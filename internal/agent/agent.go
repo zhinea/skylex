@@ -9,13 +9,21 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/zhinea/skylex/gen/skylex/v1"
+	"github.com/zhinea/skylex/internal/postgres"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Agent struct {
-	cfg     Config
-	log     *slog.Logger
-	agentID string
+	cfg      Config
+	log      *slog.Logger
+	agentID  string
+	nodeID   string
+	client   skylexv1.AgentServiceClient
+	conn     *grpc.ClientConn
+	pg       *postgres.Instance
 }
 
 func New(cfg Config) (*Agent, error) {
@@ -29,9 +37,21 @@ func New(cfg Config) (*Agent, error) {
 		cfg.Hostname = hostname
 	}
 
+	pg := postgres.New(
+		cfg.PGDataDir,
+		cfg.PGBinDir,
+		cfg.PGVersion,
+		cfg.Port,
+		cfg.PGSuperuser,
+		cfg.PGReplUser,
+		cfg.PGReplPass,
+		log,
+	)
+
 	return &Agent{
 		cfg: cfg,
 		log: log,
+		pg:  pg,
 	}, nil
 }
 
@@ -41,6 +61,21 @@ func (a *Agent) Run(ctx context.Context) error {
 		"hostname", a.cfg.Hostname,
 		"server_addr", a.cfg.ServerAddr,
 	)
+
+	conn, err := grpc.NewClient(a.cfg.ServerAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return fmt.Errorf("connect to server: %w", err)
+	}
+	defer conn.Close()
+
+	a.conn = conn
+	a.client = skylexv1.NewAgentServiceClient(conn)
+
+	if err := a.register(ctx); err != nil {
+		return fmt.Errorf("register agent: %w", err)
+	}
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -58,7 +93,33 @@ func (a *Agent) Run(ctx context.Context) error {
 	<-ctx.Done()
 	a.log.Info("shutting down skylex agent")
 
+	if a.pg.IsRunning() {
+		shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancelShutdown()
+		if err := a.pg.Stop(shutdownCtx); err != nil {
+			a.log.Error("failed to stop postgresql", "error", err)
+		}
+	}
+
 	return g.Wait()
+}
+
+func (a *Agent) register(ctx context.Context) error {
+	resp, err := a.client.RegisterAgent(ctx, &skylexv1.RegisterAgentRequest{
+		AgentToken:   a.cfg.AgentToken,
+		Hostname:     a.cfg.Hostname,
+		Address:      a.cfg.Address,
+		Port:         int32(a.cfg.Port),
+		AgentVersion: "0.1.0",
+		Labels:       a.cfg.Labels,
+	})
+	if err != nil {
+		return fmt.Errorf("register agent rpc: %w", err)
+	}
+
+	a.agentID = resp.GetAgentId()
+	a.log.Info("agent registered", "agent_id", a.agentID)
+	return nil
 }
 
 func (a *Agent) heartbeatLoop(ctx context.Context) error {
@@ -78,7 +139,37 @@ func (a *Agent) heartbeatLoop(ctx context.Context) error {
 }
 
 func (a *Agent) sendHeartbeat(ctx context.Context) error {
-	a.log.Debug("sending heartbeat", "agent_id", a.agentID)
+	postgresRunning := a.pg.IsRunning()
+
+	_, err := a.client.Heartbeat(ctx, &skylexv1.HeartbeatRequest{
+		AgentId: a.agentID,
+		NodeId:  a.nodeID,
+	})
+	if err != nil {
+		return fmt.Errorf("heartbeat rpc: %w", err)
+	}
+
+	if postgresRunning {
+		pgVersion, _ := a.pg.GetVersion(ctx)
+		lag, _ := a.pg.GetReplicationLag(ctx)
+
+		_, err = a.client.ReportStatus(ctx, &skylexv1.ReportStatusRequest{
+			AgentId: a.agentID,
+			NodeStatuses: []*skylexv1.NodeStatusReport{
+				{
+					NodeId:               a.nodeID,
+					PostgresRunning:      true,
+					PostgresVersion:      pgVersion,
+					ReplicationLagBytes:  lag,
+					ReplicationLagSeconds: lag,
+				},
+			},
+		})
+		if err != nil {
+			a.log.Warn("report status failed", "error", err)
+		}
+	}
+
 	return nil
 }
 
@@ -99,6 +190,75 @@ func (a *Agent) commandLoop(ctx context.Context) error {
 }
 
 func (a *Agent) fetchCommands(ctx context.Context) error {
-	a.log.Debug("fetching commands", "agent_id", a.agentID)
+	resp, err := a.client.FetchCommand(ctx, &skylexv1.FetchCommandRequest{
+		AgentId: a.agentID,
+	})
+	if err != nil {
+		return fmt.Errorf("fetch command rpc: %w", err)
+	}
+
+	for _, cmd := range resp.GetCommands() {
+		a.log.Info("executing command", "command_id", cmd.GetId(), "action", cmd.GetAction())
+		success, output, errMsg := a.executeCommand(ctx, cmd)
+		if reportErr := a.reportCommandResult(ctx, cmd.GetId(), success, output, errMsg); reportErr != nil {
+			a.log.Error("report command result failed", "error", reportErr)
+		}
+	}
+
 	return nil
+}
+
+func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand) (bool, string, string) {
+	switch cmd.GetAction() {
+	case "pg_init":
+		if err := a.pg.InitDB(ctx); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "postgresql initialized", ""
+
+	case "pg_start":
+		if err := a.pg.Start(ctx); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "postgresql started", ""
+
+	case "pg_stop":
+		if err := a.pg.Stop(ctx); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "postgresql stopped", ""
+
+	case "pg_basebackup":
+		primaryHost := cmd.GetPayload()
+		if err := a.pg.BaseBackup(ctx, primaryHost, a.cfg.Port, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "basebackup completed", ""
+
+	case "pg_create_repl_user":
+		if err := a.pg.CreateReplicationUser(ctx); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "replication user created", ""
+
+	case "pg_create_repl_slot":
+		if err := a.pg.CreateReplicationSlot(ctx, "skylex_replica"); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "replication slot created", ""
+
+	default:
+		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())
+	}
+}
+
+func (a *Agent) reportCommandResult(ctx context.Context, commandID string, success bool, output, errMsg string) error {
+	_, err := a.client.ReportCommandResult(ctx, &skylexv1.ReportCommandResultRequest{
+		AgentId:   a.agentID,
+		CommandId: commandID,
+		Success:   success,
+		Output:    output,
+		Error:     errMsg,
+	})
+	return err
 }
