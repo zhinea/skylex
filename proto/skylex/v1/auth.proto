@@ -3,6 +3,7 @@ syntax = "proto3";
 package skylex.v1;
 
 import "google/protobuf/timestamp.proto";
+import "skylex/v1/common.proto";
 
 enum Role {
   ROLE_UNSPECIFIED = 0;

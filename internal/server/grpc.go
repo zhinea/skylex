@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net"
 
+	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -24,6 +25,10 @@ func NewGRPCServer(srv *Server) (*GRPCServer, error) {
 	)
 
 	reflection.Register(grpcServer)
+
+	skylexv1.RegisterClusterServiceServer(grpcServer, srv.clusterService)
+	skylexv1.RegisterNodeServiceServer(grpcServer, srv.nodeService)
+	skylexv1.RegisterAgentServiceServer(grpcServer, srv.agentService)
 
 	addr := fmt.Sprintf("%s:%d", srv.cfg.Server.ListenAddr, srv.cfg.Server.GRPCPort)
 

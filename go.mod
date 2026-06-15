@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	connectrpc.com/connect v1.20.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect

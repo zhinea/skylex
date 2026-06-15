@@ -13,11 +13,14 @@ import (
 )
 
 type Server struct {
-	cfg    *Config
-	log    *slog.Logger
-	db     *db.DB
-	http   *http.Server
-	grpc   *GRPCServer
+	cfg            *Config
+	log            *slog.Logger
+	db             *db.DB
+	http           *http.Server
+	grpc           *GRPCServer
+	clusterService *ClusterService
+	nodeService    *NodeService
+	agentService   *AgentService
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -41,14 +44,24 @@ func (s *Server) Start(ctx context.Context) error {
 		"metrics_port", s.cfg.Server.MetricsPort,
 	)
 
-	db, err := db.New(db.Config{
+	database, err := db.New(db.Config{
 		Driver: s.cfg.Database.Driver,
 		DSN:    s.cfg.Database.DSN,
 	}, s.log)
 	if err != nil {
 		return fmt.Errorf("init database: %w", err)
 	}
-	s.db = db
+	s.db = database
+
+	conn := database.Conn()
+
+	clusterRepo := db.NewClusterRepository(conn, s.log)
+	nodeRepo := db.NewNodeRepository(conn, s.log)
+	commandRepo := db.NewAgentCommandRepository(conn, s.log)
+
+	s.clusterService = NewClusterService(clusterRepo, nodeRepo, commandRepo, s.log)
+	s.nodeService = NewNodeService(nodeRepo, s.log)
+	s.agentService = NewAgentService(nodeRepo, commandRepo, s.log)
 
 	grpcServer, err := NewGRPCServer(s)
 	if err != nil {

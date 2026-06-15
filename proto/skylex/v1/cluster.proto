@@ -3,7 +3,6 @@ syntax = "proto3";
 package skylex.v1;
 
 import "skylex/v1/common.proto";
-import "google/protobuf/timestamp.proto";
 
 service ClusterService {
   rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse);
