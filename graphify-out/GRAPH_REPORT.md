@@ -1,16 +1,16 @@
 # Graph Report - skylex  (2026-06-16)
 
 ## Corpus Check
-- 89 files · ~57,089 words
+- 90 files · ~58,057 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2297 nodes · 4073 edges · 144 communities (91 shown, 53 thin omitted)
+- 2322 nodes · 4097 edges · 145 communities (92 shown, 53 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 67 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `25c3bf05`
+- Built from commit: `08f87e14`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -141,6 +141,7 @@
 - [[_COMMUNITY_Community 141|Community 141]]
 - [[_COMMUNITY_Community 142|Community 142]]
 - [[_COMMUNITY_Community 143|Community 143]]
+- [[_COMMUNITY_Community 144|Community 144]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Context` - 36 edges
@@ -174,7 +175,7 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (144 total, 53 thin omitted)
+## Communities (145 total, 53 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.05
@@ -285,8 +286,8 @@ Cohesion: 0.09
 Nodes (4): Node, DrainNodeResponse, RejoinNodeResponse, RestartNodeResponse
 
 ### Community 27 - "Cluster gRPC Service"
-Cohesion: 0.07
-Nodes (30): ClusterStatus, DecryptAES256GCM(), DeriveKey(), EncryptAES256GCM(), boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow() (+22 more)
+Cohesion: 0.05
+Nodes (42): ClusterStatus, DecryptAES256GCM(), DeriveKey(), EncryptAES256GCM(), boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow() (+34 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.10
@@ -313,8 +314,8 @@ Cohesion: 0.13
 Nodes (17): DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, AgentCommandRepository, Context, Logger, Node (+9 more)
 
 ### Community 34 - "Storage gRPC Service"
-Cohesion: 0.10
-Nodes (21): AgentService, AuditInterceptor, AuthInterceptor, AuthService, BackupService, CancelFunc, ClusterService, FailoverEngine (+13 more)
+Cohesion: 0.09
+Nodes (23): AgentService, AuditInterceptor, AuthInterceptor, AuthService, BackupService, CancelFunc, ClusterService, FailoverEngine (+15 more)
 
 ### Community 35 - "Cluster gRPC Service"
 Cohesion: 0.20
@@ -437,16 +438,16 @@ Cohesion: 0.10
 Nodes (23): AgentTokenRepository, CreateUserRequest, CreateUserResponse, DeleteAPIKeyRequest, DeleteAPIKeyResponse, DeleteUserRequest, DeleteUserResponse, APIKeyRepository (+15 more)
 
 ### Community 136 - "Community 136"
-Cohesion: 0.11
-Nodes (23): AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, APIKeyRepository, Context, JWTManager (+15 more)
+Cohesion: 0.18
+Nodes (14): APIKeyRepository, Context, JWTManager, Logger, Role, UnaryServerInterceptor, UserRepository, JWTClaims (+6 more)
 
 ### Community 137 - "Community 137"
 Cohesion: 0.12
 Nodes (14): AgentToken, AgentTokenRepository, APIKeyRepository, NewAgentTokenRepository(), NewAPIKeyRepository(), NewUserRepository(), NullTime(), UserRepository (+6 more)
 
 ### Community 138 - "Community 138"
-Cohesion: 0.18
-Nodes (12): NewNodeRepository(), scanNodeRow(), scanNodesRow(), NodeRepository, Context, DB, Logger, Node (+4 more)
+Cohesion: 0.08
+Nodes (24): Agent service methods (unauthenticated), Auth flow, `config.example.yaml` (+6/-1 lines), `go.mod` / `go.sum` (+3 lines), `internal/db/audit_repo.go`, `internal/db/user_repo.go`, `internal/server/audit_interceptor.go`, `internal/server/auth_interceptor.go` (+16 more)
 
 ### Community 139 - "Community 139"
 Cohesion: 0.15
@@ -457,8 +458,8 @@ Cohesion: 0.23
 Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
 
 ### Community 141 - "Community 141"
-Cohesion: 0.20
-Nodes (8): CreateAPIKeyRequest, CreateAPIKeyResponse, APIKey, Config, ListAPIKeysRequest, ListAPIKeysResponse, apiKeyToProto(), New()
+Cohesion: 0.25
+Nodes (6): CreateAPIKeyRequest, CreateAPIKeyResponse, APIKey, ListAPIKeysRequest, ListAPIKeysResponse, apiKeyToProto()
 
 ### Community 142 - "Community 142"
 Cohesion: 0.36
@@ -468,8 +469,12 @@ Nodes (5): Context, DB, Logger, NewMetadataBackup(), MetadataBackup
 Cohesion: 0.39
 Nodes (5): AuditLog, NewAuditRepository(), AuditRepository, DB, Logger
 
+### Community 144 - "Community 144"
+Cohesion: 0.27
+Nodes (9): AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, clientIPFromContext(), methodToAuditAction(), NewAuditInterceptor() (+1 more)
+
 ## Knowledge Gaps
-- **288 isolated node(s):** `Minimum requirements`, `Local development (server only)`, `UI development`, `Full stack with Docker Compose`, `Regenerate protobuf code` (+283 more)
+- **308 isolated node(s):** ``internal/db/user_repo.go``, ``internal/db/audit_repo.go``, ``internal/server/jwt.go``, ``internal/server/auth_interceptor.go``, ``internal/server/auth_service.go`` (+303 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **53 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -477,13 +482,13 @@ Nodes (5): AuditLog, NewAuditRepository(), AuditRepository, DB, Logger
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.385) - this node is a cross-community bridge._
-- **Why does `file_skylex_v1_agent_proto_init()` connect `Agent gRPC Protocol` to `Protobuf Message Types`?**
-  _High betweenness centrality (0.283) - this node is a cross-community bridge._
+  _High betweenness centrality (0.386) - this node is a cross-community bridge._
 - **Why does `NodeStatusReport` connect `Agent gRPC Protocol` to `Agent gRPC Protocol`, `Protobuf Message Types`, `Protobuf Message Types`, `Agent gRPC Protocol`, `Agent gRPC Protocol`?**
-  _High betweenness centrality (0.282) - this node is a cross-community bridge._
-- **What connects `Minimum requirements`, `Local development (server only)`, `UI development` to the rest of the system?**
-  _289 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.291) - this node is a cross-community bridge._
+- **Why does `file_skylex_v1_agent_proto_init()` connect `Agent gRPC Protocol` to `Protobuf Message Types`?**
+  _High betweenness centrality (0.284) - this node is a cross-community bridge._
+- **What connects ``internal/db/user_repo.go``, ``internal/db/audit_repo.go``, ``internal/server/jwt.go`` to the rest of the system?**
+  _309 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.050617283950617285 - nodes in this community are weakly interconnected._
 - **Should `Cluster gRPC Service` be split into smaller, more focused modules?**
