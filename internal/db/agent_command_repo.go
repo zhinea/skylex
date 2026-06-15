@@ -56,11 +56,11 @@ func (r *AgentCommandRepository) Create(ctx context.Context, agentID, nodeID, ac
 	}, nil
 }
 
-func (r *AgentCommandRepository) ListPending(ctx context.Context, agentID string) ([]*AgentCommand, error) {
+func (r *AgentCommandRepository) ListPending(ctx context.Context, agentID, nodeID string) ([]*AgentCommand, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		`SELECT id, agent_id, node_id, action, payload, status, result, error, created_at, completed_at
-		 FROM agent_commands WHERE agent_id = ? AND status = ? ORDER BY created_at ASC LIMIT 100`,
-		agentID, models.CommandStatusPending)
+		 FROM agent_commands WHERE (agent_id = ? OR node_id = ?) AND status = ? ORDER BY created_at ASC LIMIT 100`,
+		agentID, nodeID, models.CommandStatusPending)
 	if err != nil {
 		return nil, fmt.Errorf("query pending commands: %w", err)
 	}

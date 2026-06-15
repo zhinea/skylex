@@ -298,11 +298,31 @@ logging_collector = on
 `, p.Port)
 
 	confPath := filepath.Join(p.DataDir, "postgresql.conf")
-	existing, err := os.ReadFile(confPath)
-	if err == nil && strings.Contains(string(existing), "listen_addresses") {
-		return nil
-	}
+	return os.WriteFile(confPath, []byte(conf), 0600)
+}
 
+func (p *Instance) WriteSyncReplicationConf() error {
+	conf := fmt.Sprintf(`
+listen_addresses = '*'
+port = %d
+max_connections = 200
+shared_buffers = 128MB
+wal_level = replica
+max_wal_senders = 10
+max_replication_slots = 10
+wal_keep_size = 1024
+hot_standby = on
+synchronous_commit = on
+synchronous_standby_names = 'skylex_replica'
+log_directory = 'pg_log'
+log_filename = 'postgresql-%%a.log'
+log_truncate_on_rotation = on
+log_rotation_age = 1d
+log_rotation_size = 0
+logging_collector = on
+`, p.Port)
+
+	confPath := filepath.Join(p.DataDir, "postgresql.conf")
 	return os.WriteFile(confPath, []byte(conf), 0600)
 }
 
@@ -318,12 +338,70 @@ host    replication     all             0.0.0.0/0               scram-sha-256
 }
 
 func (p *Instance) writeStandbySignal() error {
-	conf := fmt.Sprintf(`primary_conninfo = 'host=primary port=%d user=%s password=%s application_name=skylex_replica'
+	return p.UpdateStandbySignal("primary", p.Port)
+}
+
+func (p *Instance) UpdateStandbySignal(primaryHost string, primaryPort int) error {
+	conf := fmt.Sprintf(`primary_conninfo = 'host=%s port=%d user=%s password=%s application_name=skylex_replica'
 primary_slot_name = 'skylex_replica'
-`, p.Port, p.ReplUser, p.ReplPass)
+`, primaryHost, primaryPort, p.ReplUser, p.ReplPass)
 
 	confPath := filepath.Join(p.DataDir, "standby.signal")
 	return os.WriteFile(confPath, []byte(conf), 0600)
+}
+
+func (p *Instance) Promote(ctx context.Context) error {
+	if !p.IsRunning() {
+		return fmt.Errorf("postgresql is not running, cannot promote")
+	}
+
+	pgCtl := filepath.Join(p.BinDir, "pg_ctl")
+	cmd := exec.CommandContext(ctx, pgCtl,
+		"promote",
+		"-D", p.DataDir,
+		"-w",
+		"-t", "60",
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("pg_ctl promote failed: %w\n%s", err, string(output))
+	}
+
+	p.log.Info("postgresql promoted to primary", "data_dir", p.DataDir)
+
+	standbySignalPath := filepath.Join(p.DataDir, "standby.signal")
+	os.Remove(standbySignalPath)
+	os.Remove(standbySignalPath + ".backup")
+
+	recoveryConf := filepath.Join(p.DataDir, "recovery.conf")
+	os.Remove(recoveryConf)
+	os.Remove(recoveryConf + ".backup")
+
+	return nil
+}
+
+func (p *Instance) Rewind(ctx context.Context, targetHost string, targetPort int, replUser, replPass string) error {
+	pgRewind := filepath.Join(p.BinDir, "pg_rewind")
+	cmd := exec.CommandContext(ctx, pgRewind,
+		"--target-pgdata", p.DataDir,
+		"--source-server", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=postgres",
+			targetHost, targetPort, replUser, replPass),
+		"-P",
+	)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("pg_rewind failed: %w\n%s", err, string(output))
+	}
+
+	p.log.Info("pg_rewind completed", "data_dir", p.DataDir, "target", targetHost)
+
+	if err := p.UpdateStandbySignal(targetHost, targetPort); err != nil {
+		return fmt.Errorf("update standby signal after rewind: %w", err)
+	}
+
+	return nil
 }
 
 func (p *Instance) WaitForReady(ctx context.Context, timeout time.Duration) error {

@@ -14,10 +14,11 @@ import (
 
 type ClusterService struct {
 	skylexv1.UnimplementedClusterServiceServer
-	clusters *db.ClusterRepository
-	nodes    *db.NodeRepository
-	commands *db.AgentCommandRepository
-	log      *slog.Logger
+	clusters       *db.ClusterRepository
+	nodes          *db.NodeRepository
+	commands       *db.AgentCommandRepository
+	failoverEngine *FailoverEngine
+	log            *slog.Logger
 }
 
 func NewClusterService(clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, log *slog.Logger) *ClusterService {
@@ -27,6 +28,10 @@ func NewClusterService(clusters *db.ClusterRepository, nodes *db.NodeRepository,
 		commands: commands,
 		log:      log,
 	}
+}
+
+func (s *ClusterService) SetFailoverEngine(e *FailoverEngine) {
+	s.failoverEngine = e
 }
 
 func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.CreateClusterRequest) (*skylexv1.CreateClusterResponse, error) {
@@ -137,15 +142,93 @@ func (s *ClusterService) DeleteCluster(ctx context.Context, req *skylexv1.Delete
 }
 
 func (s *ClusterService) FailoverCluster(ctx context.Context, req *skylexv1.FailoverClusterRequest) (*skylexv1.FailoverClusterResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "FailoverCluster not implemented")
+	if req.GetClusterId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "cluster_id is required")
+	}
+
+	cluster, err := s.clusters.GetByID(ctx, req.GetClusterId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get cluster: %v", err)
+	}
+	if cluster == nil {
+		return nil, status.Errorf(codes.NotFound, "cluster %q not found", req.GetClusterId())
+	}
+
+	primary, err := s.nodes.GetPrimary(ctx, cluster.ID)
+	if err != nil || primary == nil {
+		return nil, status.Errorf(codes.FailedPrecondition, "no primary found for cluster %q", cluster.ID)
+	}
+
+	if s.failoverEngine == nil {
+		return nil, status.Errorf(codes.Unavailable, "failover engine is not available")
+	}
+
+	go func() {
+		s.failoverEngine.executeFailover(context.Background(), cluster, primary)
+	}()
+
+	s.log.Info("manual failover initiated",
+		"cluster_id", cluster.ID,
+		"primary_id", primary.ID,
+	)
+
+	return &skylexv1.FailoverClusterResponse{
+		Cluster: clusterToProto(cluster),
+	}, nil
 }
 
 func (s *ClusterService) RestartNode(ctx context.Context, req *skylexv1.RestartNodeRequest) (*skylexv1.RestartNodeResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "RestartNode not implemented")
+	if req.GetNodeId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "node_id is required")
+	}
+
+	node, err := s.nodes.GetByID(ctx, req.GetNodeId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get node: %v", err)
+	}
+	if node == nil {
+		return nil, status.Errorf(codes.NotFound, "node %q not found", req.GetNodeId())
+	}
+
+	agentID := node.AgentID
+	if agentID == "" {
+		return nil, status.Errorf(codes.FailedPrecondition, "node %q has no agent_id assigned", node.ID)
+	}
+
+	if _, err := s.commands.Create(ctx, agentID, node.ID, "pg_stop", ""); err != nil {
+		return nil, status.Errorf(codes.Internal, "queue stop command: %v", err)
+	}
+	if _, err := s.commands.Create(ctx, agentID, node.ID, "pg_start", ""); err != nil {
+		return nil, status.Errorf(codes.Internal, "queue start command: %v", err)
+	}
+
+	s.log.Info("restart node commands queued", "node_id", node.ID)
+
+	return &skylexv1.RestartNodeResponse{}, nil
 }
 
 func (s *ClusterService) ScaleCluster(ctx context.Context, req *skylexv1.ScaleClusterRequest) (*skylexv1.ScaleClusterResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "ScaleCluster not implemented")
+	if req.GetClusterId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "cluster_id is required")
+	}
+
+	cluster, err := s.clusters.GetByID(ctx, req.GetClusterId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get cluster: %v", err)
+	}
+	if cluster == nil {
+		return nil, status.Errorf(codes.NotFound, "cluster %q not found", req.GetClusterId())
+	}
+
+	s.log.Info("scale cluster requested",
+		"cluster_id", cluster.ID,
+		"current_replicas", cluster.Replicas,
+		"requested_replicas", req.GetReplicaCount(),
+	)
+
+	return &skylexv1.ScaleClusterResponse{
+		Cluster: clusterToProto(cluster),
+	}, nil
 }
 
 func clusterToProto(c *models.Cluster) *skylexv1.Cluster {

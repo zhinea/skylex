@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -239,6 +240,36 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand) 
 			return false, "", err.Error()
 		}
 		return true, "basebackup completed", ""
+
+	case "pg_promote":
+		if err := a.pg.Promote(ctx); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "promoted to primary", ""
+
+	case "pg_rewind":
+		parts := strings.SplitN(cmd.GetPayload(), ":", 2)
+		targetHost := parts[0]
+		targetPort := a.cfg.Port
+		if len(parts) > 1 {
+			fmt.Sscanf(parts[1], "%d", &targetPort)
+		}
+		if err := a.pg.Rewind(ctx, targetHost, targetPort, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "pg_rewind completed, repointed to new primary", ""
+
+	case "repoint_replica":
+		parts := strings.SplitN(cmd.GetPayload(), ":", 2)
+		primaryHost := parts[0]
+		primaryPort := a.cfg.Port
+		if len(parts) > 1 {
+			fmt.Sscanf(parts[1], "%d", &primaryPort)
+		}
+		if err := a.pg.UpdateStandbySignal(primaryHost, primaryPort); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "repointed to new primary", ""
 
 	case "pg_create_repl_user":
 		if err := a.pg.CreateReplicationUser(ctx); err != nil {

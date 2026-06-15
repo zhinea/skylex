@@ -33,11 +33,32 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 		return nil, status.Errorf(codes.Internal, "generate agent id: %v", err)
 	}
 
-	s.log.Info("agent registered",
-		"agent_id", agentID,
-		"hostname", req.GetHostname(),
-		"address", req.GetAddress(),
-	)
+	node, _ := s.nodes.GetByHostname(ctx, req.GetHostname())
+	if node != nil {
+		if err := s.nodes.UpdateAgentID(ctx, node.ID, agentID); err != nil {
+			s.log.Warn("update node agent_id", "error", err, "node_id", node.ID)
+		}
+		s.log.Info("agent linked to existing node",
+			"agent_id", agentID,
+			"node_id", node.ID,
+			"hostname", req.GetHostname(),
+		)
+	} else {
+		node, err := s.nodes.Create(ctx, "", req.GetHostname(), req.GetAddress(), int(req.GetPort()),
+			models.NodeRoleReplica, req.GetAgentVersion(), req.GetLabels())
+		if err != nil {
+			s.log.Warn("create node for agent", "error", err)
+		} else {
+			if err := s.nodes.UpdateAgentID(ctx, node.ID, agentID); err != nil {
+				s.log.Warn("set agent_id on new node", "error", err)
+			}
+			s.log.Info("agent registered with new node",
+				"agent_id", agentID,
+				"node_id", node.ID,
+				"hostname", req.GetHostname(),
+			)
+		}
+	}
 
 	return &skylexv1.RegisterAgentResponse{
 		AgentId: agentID,
@@ -45,9 +66,14 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 }
 
 func (s *AgentService) Heartbeat(ctx context.Context, req *skylexv1.HeartbeatRequest) (*skylexv1.HeartbeatResponse, error) {
-	if req.GetNodeId() != "" {
-		if err := s.nodes.UpdateHeartbeat(ctx, req.GetNodeId()); err != nil {
-			s.log.Warn("heartbeat update failed", "node_id", req.GetNodeId(), "error", err)
+	if req.GetAgentId() != "" {
+		node, err := s.nodes.GetByAgentID(ctx, req.GetAgentId())
+		if err != nil || node == nil {
+			s.log.Warn("node not found for heartbeat", "agent_id", req.GetAgentId())
+		} else {
+			if err := s.nodes.UpdateHeartbeat(ctx, node.ID); err != nil {
+				s.log.Warn("heartbeat update failed", "node_id", node.ID, "error", err)
+			}
 		}
 	}
 
@@ -55,20 +81,28 @@ func (s *AgentService) Heartbeat(ctx context.Context, req *skylexv1.HeartbeatReq
 }
 
 func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportStatusRequest) (*skylexv1.ReportStatusResponse, error) {
-	for _, status := range req.GetNodeStatuses() {
-		if status.GetNodeId() == "" {
-			continue
+	for _, nodeStatus := range req.GetNodeStatuses() {
+		var node *models.Node
+		var err error
+
+		if nodeStatus.GetNodeId() != "" {
+			node, err = s.nodes.GetByID(ctx, nodeStatus.GetNodeId())
+		} else {
+			node, err = s.nodes.GetByAgentID(ctx, req.GetAgentId())
 		}
-		node, err := s.nodes.GetByID(ctx, status.GetNodeId())
+
 		if err != nil || node == nil {
-			s.log.Warn("node not found for status report", "node_id", status.GetNodeId())
+			s.log.Warn("node not found for status report",
+				"node_id", nodeStatus.GetNodeId(),
+				"agent_id", req.GetAgentId(),
+			)
 			continue
 		}
 
-		if status.GetPostgresRunning() {
-			_ = s.nodes.UpdateStatus(ctx, status.GetNodeId(), models.NodeStatusOnline)
+		if nodeStatus.GetPostgresRunning() {
+			_ = s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline)
 		} else {
-			_ = s.nodes.UpdateStatus(ctx, status.GetNodeId(), models.NodeStatusOffline)
+			_ = s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOffline)
 		}
 	}
 
@@ -76,7 +110,13 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 }
 
 func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchCommandRequest) (*skylexv1.FetchCommandResponse, error) {
-	cmds, err := s.commands.ListPending(ctx, req.GetAgentId())
+	node, _ := s.nodes.GetByAgentID(ctx, req.GetAgentId())
+	nodeID := ""
+	if node != nil {
+		nodeID = node.ID
+	}
+
+	cmds, err := s.commands.ListPending(ctx, req.GetAgentId(), nodeID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "fetch commands: %v", err)
 	}

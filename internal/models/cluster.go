@@ -67,6 +67,7 @@ type Node struct {
 	Role         NodeRole          `json:"role"`
 	Status       NodeStatus        `json:"status"`
 	AgentVersion string            `json:"agent_version"`
+	AgentID      string            `json:"agent_id"`
 	Labels       map[string]string `json:"labels,omitempty"`
 	LastSeen     time.Time         `json:"last_seen"`
 	CreatedAt    time.Time         `json:"created_at"`
