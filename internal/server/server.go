@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -27,12 +28,20 @@ type Server struct {
 	agentService     *AgentService
 	storageService   *StorageService
 	backupService    *BackupService
+	authService      *AuthService
 	backupWorker     *backup.Worker
 	failoverEngine   *FailoverEngine
 	dcsStore         *dcs.Store
 	leaderElector    *dcs.LeaderElector
 	workerCancel     context.CancelFunc
 	failoverCancel   context.CancelFunc
+	jwtManager       *JWTManager
+	authInterceptor  *AuthInterceptor
+	auditInterceptor *AuditInterceptor
+	webhookClient    *WebhookClient
+	metadataBackup   *MetadataBackup
+	tlsConfig        *tls.Config
+	auditRepo        *db.AuditRepository
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -70,6 +79,18 @@ func (s *Server) Start(ctx context.Context) error {
 	clusterRepo := db.NewClusterRepository(conn, s.log)
 	nodeRepo := db.NewNodeRepository(conn, s.log)
 	commandRepo := db.NewAgentCommandRepository(conn, s.log)
+	userRepo := db.NewUserRepository(conn, s.log)
+	apiKeyRepo := db.NewAPIKeyRepository(conn, s.log)
+	agentTokenRepo := db.NewAgentTokenRepository(conn, s.log)
+	auditRepo := db.NewAuditRepository(conn, s.log)
+	s.auditRepo = auditRepo
+
+	s.jwtManager = NewJWTManager(s.cfg.Auth.JWTSecret, s.cfg.Auth.TokenExpiry, s.cfg.Auth.RefreshExpiry)
+	s.authInterceptor = NewAuthInterceptor(s.jwtManager, apiKeyRepo, userRepo, s.log)
+	s.auditInterceptor = NewAuditInterceptor(auditRepo, s.log)
+	s.authService = NewAuthService(userRepo, apiKeyRepo, agentTokenRepo, s.jwtManager, s.log)
+
+	s.webhookClient = NewWebhookClient(s.cfg.Webhook.URLs, s.cfg.Webhook.Timeout, s.log)
 
 	s.clusterService = NewClusterService(clusterRepo, nodeRepo, commandRepo, s.log)
 	s.nodeService = NewNodeService(nodeRepo, commandRepo, s.log)
@@ -78,6 +99,14 @@ func (s *Server) Start(ctx context.Context) error {
 	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
 	backupRepo := db.NewBackupRepository(conn, s.log)
+
+	tlsConfig, err := LoadTLSCredentials(s.cfg.TLS)
+	if err != nil {
+		return fmt.Errorf("load tls credentials: %w", err)
+	}
+	s.tlsConfig = tlsConfig
+
+	s.metadataBackup = NewMetadataBackup(database, s.cfg.Database.DSN, "backups/metadata", s.log)
 
 	pgBackRest := backup.NewPgBackRest(s.cfg.Backup.PgBackRestPath, s.log)
 	backupEngine := backup.NewEngine(backupRepo, storageConfigRepo, pgBackRest, s.log)

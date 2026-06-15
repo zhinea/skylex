@@ -47,3 +47,7 @@ postgres:
   default_port: 5432
   superuser: "postgres"
   replication_user: "replicator"
+
+webhook:
+  urls: []
+  timeout: 10s

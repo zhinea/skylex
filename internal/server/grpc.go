@@ -8,6 +8,7 @@ import (
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -18,11 +19,27 @@ type GRPCServer struct {
 }
 
 func NewGRPCServer(srv *Server) (*GRPCServer, error) {
-	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			grpcLoggingInterceptor(srv.log),
-		),
-	)
+	interceptors := []grpc.UnaryServerInterceptor{
+		grpcLoggingInterceptor(srv.log),
+	}
+
+	if srv.authInterceptor != nil {
+		interceptors = append(interceptors, srv.authInterceptor.UnaryInterceptor())
+	}
+
+	if srv.auditInterceptor != nil {
+		interceptors = append(interceptors, srv.auditInterceptor.UnaryInterceptor())
+	}
+
+	opts := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(interceptors...),
+	}
+
+	if srv.tlsConfig != nil {
+		opts = append(opts, grpc.Creds(credentials.NewTLS(srv.tlsConfig)))
+	}
+
+	grpcServer := grpc.NewServer(opts...)
 
 	reflection.Register(grpcServer)
 
@@ -32,6 +49,7 @@ func NewGRPCServer(srv *Server) (*GRPCServer, error) {
 	skylexv1.RegisterStorageServiceServer(grpcServer, srv.storageService)
 	skylexv1.RegisterBackupServiceServer(grpcServer, srv.backupService)
 	skylexv1.RegisterScheduleServiceServer(grpcServer, srv.backupService)
+	skylexv1.RegisterAuthServiceServer(grpcServer, srv.authService)
 
 	addr := fmt.Sprintf("%s:%d", srv.cfg.Server.ListenAddr, srv.cfg.Server.GRPCPort)
 

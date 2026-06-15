@@ -24,6 +24,7 @@ type Config struct {
 	Logging  LoggingConfig  `validate:"required"`
 	TLS      TLSConfig      `validate:"required"`
 	Postgres PostgresConfig `validate:"required"`
+	Webhook  WebhookConfig  `koanf:"webhook"`
 }
 
 type ServerConfig struct {
@@ -184,6 +185,8 @@ func (c *Config) setDefaults() error {
 	if c.Backup.DefaultStorage == "" {
 		c.Backup.DefaultStorage = "s3"
 	}
+
+	c.Webhook.setDefaults()
 
 	return nil
 }
