@@ -15,17 +15,18 @@ import (
 )
 
 type Server struct {
-	cfg             *Config
-	log             *slog.Logger
-	db              *db.DB
-	http            *http.Server
-	grpc            *GRPCServer
-	clusterService  *ClusterService
-	nodeService     *NodeService
-	agentService    *AgentService
-	storageService  *StorageService
-	backupService   *BackupService
-	backupWorker    *backup.Worker
+	cfg              *Config
+	log              *slog.Logger
+	db               *db.DB
+	http             *http.Server
+	grpc             *GRPCServer
+	clusterService   *ClusterService
+	nodeService      *NodeService
+	agentService     *AgentService
+	storageService   *StorageService
+	backupService    *BackupService
+	backupWorker     *backup.Worker
+	workerCancel     context.CancelFunc
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -80,7 +81,10 @@ func (s *Server) Start(ctx context.Context) error {
 	s.backupService = NewBackupService(backupRepo, clusterRepo, backupEngine, backupWorker, s.log)
 	s.backupWorker = backupWorker
 
-	if err := backupWorker.Start(ctx); err != nil {
+	workerCtx, workerCancel := context.WithCancel(context.Background())
+	s.workerCancel = workerCancel
+
+	if err := backupWorker.Start(workerCtx); err != nil {
 		return fmt.Errorf("start backup worker: %w", err)
 	}
 
@@ -108,6 +112,8 @@ func (s *Server) Start(ctx context.Context) error {
 
 	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), s.cfg.Agent.HeartbeatTimeout)
 	defer cancelShutdown()
+
+	s.workerCancel()
 
 	if err := s.grpc.Shutdown(shutdownCtx); err != nil {
 		s.log.Error("grpc shutdown error", "error", err)
