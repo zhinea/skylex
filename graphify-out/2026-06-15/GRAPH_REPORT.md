@@ -1,18 +1,12 @@
-# Graph Report - skylex  (2026-06-15)
+# Graph Report - .  (2026-06-15)
 
 ## Corpus Check
-- 74 files · ~49,797 words
-- Verdict: corpus is large enough that graph structure adds value.
+- Corpus is ~49,146 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 2043 nodes · 3658 edges · 135 communities (81 shown, 54 thin omitted)
+- 2032 nodes · 3647 edges · 135 communities (81 shown, 54 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
-
-## Graph Freshness
-- Built from commit: `16eadaff`
-- Run `git rev-parse HEAD` and compare to check if the graph is stale.
-- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Backup gRPC Service|Backup gRPC Service]]
@@ -232,8 +226,8 @@ Cohesion: 0.12
 Nodes (31): Skylex Control Plane Configuration, Skylex Docker Compose Stack, AgentService, AuthService, Automated Backups, Backup (data model), BackupService, Connect-RPC (+23 more)
 
 ### Community 16 - "Cluster gRPC Service"
-Cohesion: 0.08
-Nodes (8): MessageState, SizeCache, UnknownFields, DeleteBackupResponse, DeleteScheduleResponse, GetBackupRequest, ListBackupsRequest, ListSchedulesRequest
+Cohesion: 0.09
+Nodes (8): MessageState, SizeCache, UnknownFields, DeleteBackupResponse, DeleteScheduleRequest, DeleteScheduleResponse, GetBackupRequest, ListSchedulesRequest
 
 ### Community 17 - "Agent gRPC Protocol"
 Cohesion: 0.14
@@ -241,7 +235,7 @@ Nodes (14): Agent, New(), AgentCommand, AgentServiceClient, PgBackRest, NewPgBac
 
 ### Community 18 - "Cluster gRPC Service"
 Cohesion: 0.08
-Nodes (3): BackupType, CreateBackupRequest, CreateScheduleRequest
+Nodes (3): BackupType, CreateBackupRequest, UpdateScheduleRequest
 
 ### Community 19 - "Cluster gRPC Service"
 Cohesion: 0.09
@@ -269,7 +263,7 @@ Nodes (5): EnumDescriptor, EnumNumber, EnumType, BackupStatus, RestoreStatus
 
 ### Community 25 - "Cluster gRPC Service"
 Cohesion: 0.09
-Nodes (4): Cluster, CreateClusterResponse, FailoverClusterResponse, GetClusterResponse
+Nodes (4): Cluster, CreateClusterResponse, FailoverClusterResponse, UpdateClusterResponse
 
 ### Community 26 - "Getnode Descriptor"
 Cohesion: 0.09
@@ -277,7 +271,7 @@ Nodes (4): Node, DrainNodeResponse, RejoinNodeResponse, RestartNodeResponse
 
 ### Community 27 - "Cluster gRPC Service"
 Cohesion: 0.17
-Nodes (14): ClusterStatus, boolToInt(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository, EngineType, Cluster (+6 more)
+Nodes (15): ClusterStatus, boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository, EngineType (+7 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.10
@@ -293,7 +287,7 @@ Nodes (12): NewNodeRepository(), scanNodeRow(), scanNodesRow(), NodeRepository, 
 
 ### Community 31 - "Auth gRPC Service"
 Cohesion: 0.12
-Nodes (7): MessageState, SizeCache, UnknownFields, DeleteAPIKeyResponse, DeleteUserResponse, ListAPIKeysRequest, RefreshTokenRequest
+Nodes (7): MessageState, SizeCache, UnknownFields, DeleteAPIKeyResponse, DeleteUserRequest, DeleteUserResponse, ListAPIKeysRequest
 
 ### Community 32 - "PostgreSQL Backup Engine"
 Cohesion: 0.18
@@ -324,8 +318,8 @@ Cohesion: 0.13
 Nodes (3): ClusterConfig, CreateClusterRequest, UpdateClusterRequest
 
 ### Community 40 - "Storage Config Repo Marshallabels"
-Cohesion: 0.20
-Nodes (11): EncryptAES256GCM(), intToBool(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+3 more)
+Cohesion: 0.23
+Nodes (9): NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger, Row, Rows (+1 more)
 
 ### Community 41 - "Backup gRPC Service"
 Cohesion: 0.13
@@ -337,7 +331,7 @@ Nodes (5): MessageState, SizeCache, UnknownFields, Cluster, Pagination
 
 ### Community 44 - "Storage gRPC Service"
 Cohesion: 0.15
-Nodes (6): MessageState, SizeCache, UnknownFields, DeleteStorageConfigRequest, DeleteStorageConfigResponse, ValidateStorageConfigRequest
+Nodes (6): MessageState, SizeCache, UnknownFields, DeleteStorageConfigResponse, GetStorageConfigRequest, ValidateStorageConfigRequest
 
 ### Community 47 - "Agent gRPC Protocol"
 Cohesion: 0.17
@@ -363,9 +357,9 @@ Nodes (4): file_skylex_v1_common_proto_init(), file_skylex_v1_common_proto_rawDe
 Cohesion: 0.31
 Nodes (7): NewAgentCommandRepository(), AgentCommand, AgentCommandRepository, Context, DB, Logger, Time
 
-### Community 61 - "Protobuf Message Types"
-Cohesion: 0.17
-Nodes (3): UnknownFields, DeleteClusterResponse, GetClusterRequest
+### Community 60 - "Cluster gRPC Service"
+Cohesion: 0.18
+Nodes (3): UnknownFields, DeleteClusterResponse, GetNodeResponse
 
 ### Community 65 - "Agent gRPC Protocol"
 Cohesion: 0.22
@@ -385,7 +379,11 @@ Nodes (3): file_skylex_v1_cluster_proto_init(), init(), RejoinNodeRequest
 
 ### Community 71 - "Storage gRPC Service"
 Cohesion: 0.22
-Nodes (3): GetStorageConfigRequest, file_skylex_v1_storage_proto_init(), init()
+Nodes (3): DeleteStorageConfigRequest, file_skylex_v1_storage_proto_init(), init()
+
+### Community 78 - "Crypto Decryptaes256Gcm"
+Cohesion: 0.25
+Nodes (3): DecryptAES256GCM(), DeriveKey(), EncryptAES256GCM()
 
 ### Community 80 - "Time Backup"
 Cohesion: 0.46
@@ -415,12 +413,8 @@ Nodes (3): Time, AuditAction, AuditLog
 Cohesion: 0.67
 Nodes (3): Time, StorageConfig, StorageType
 
-### Community 130 - "Graphify Components"
-Cohesion: 0.17
-Nodes (11): Configuration, Database and migrations, Developer commands, Docker Compose reference stack, graphify, Important conventions, Project layout, Protocol buffers and generated code (+3 more)
-
 ## Knowledge Gaps
-- **227 isolated node(s):** `Quick start`, `Project layout`, `Developer commands`, `Configuration`, `Database and migrations` (+222 more)
+- **218 isolated node(s):** `$schema`, `plugin`, `@kilocode/plugin`, `type`, `UnsafeAgentServiceServer` (+213 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **54 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -428,13 +422,13 @@ Nodes (11): Configuration, Database and migrations, Developer commands, Docker C
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.413) - this node is a cross-community bridge._
+  _High betweenness centrality (0.435) - this node is a cross-community bridge._
 - **Why does `file_skylex_v1_agent_proto_init()` connect `Agent gRPC Protocol` to `Protobuf Message Types`?**
-  _High betweenness centrality (0.285) - this node is a cross-community bridge._
+  _High betweenness centrality (0.297) - this node is a cross-community bridge._
 - **Why does `NodeStatusReport` connect `Agent gRPC Protocol` to `Agent gRPC Protocol`, `Protobuf Message Types`, `Protobuf Message Types`, `Agent gRPC Protocol`, `Agent gRPC Protocol`?**
-  _High betweenness centrality (0.274) - this node is a cross-community bridge._
-- **What connects `Quick start`, `Project layout`, `Developer commands` to the rest of the system?**
-  _228 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.291) - this node is a cross-community bridge._
+- **What connects `$schema`, `plugin`, `@kilocode/plugin` to the rest of the system?**
+  _219 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.050617283950617285 - nodes in this community are weakly interconnected._
 - **Should `Cluster gRPC Service` be split into smaller, more focused modules?**

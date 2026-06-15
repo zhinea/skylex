@@ -1,0 +1,802 @@
+{
+  ".kilo/agent-manager.json": {
+    "mtime": 1781522419.3394477,
+    "ast_hash": "2994933f250fa85afd23907f5b8de052",
+    "semantic_hash": ""
+  },
+  ".kilo/kilo.json": {
+    "mtime": 1781522407.91278,
+    "ast_hash": "43faf6be5f378030994c91146577a597",
+    "semantic_hash": ""
+  },
+  ".kilo/package.json": {
+    "mtime": 1781504617.4833379,
+    "ast_hash": "3bf9a25b8ea5f6a3bb6ebdc1dfc3380a",
+    "semantic_hash": ""
+  },
+  ".kilo/plugins/graphify.js": {
+    "mtime": 1781522344.334856,
+    "ast_hash": "a8f0387c9261a65e48846f33ad6094f5",
+    "semantic_hash": ""
+  },
+  ".vite/deps/_metadata.json": {
+    "mtime": 1781505089.7830136,
+    "ast_hash": "bd8eef14adba0167d4dfafd707054d13",
+    "semantic_hash": ""
+  },
+  ".vite/deps/package.json": {
+    "mtime": 1781505089.7405422,
+    "ast_hash": "d0707362e90f00edd12435e9d3b9d71c",
+    "semantic_hash": ""
+  },
+  "cmd/agent/main.go": {
+    "mtime": 1781507322.2452967,
+    "ast_hash": "67a65af2195dc26c467129db09aca5fc",
+    "semantic_hash": ""
+  },
+  "cmd/server/main.go": {
+    "mtime": 1781507303.572918,
+    "ast_hash": "42a7e2ef5a6c7f124387f0236c4cdf8f",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/agent.pb.go": {
+    "mtime": 1781519076.2958937,
+    "ast_hash": "4d1a8dffca4685ba364fc3c47f415f29",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/agent_grpc.pb.go": {
+    "mtime": 1781519146.0278487,
+    "ast_hash": "f64738154e7b5c0efe6e446759b8e27e",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/auth.pb.go": {
+    "mtime": 1781519076.2961955,
+    "ast_hash": "d3a8181f716e55c51b4b34dda6df93c4",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/auth_grpc.pb.go": {
+    "mtime": 1781519146.0356493,
+    "ast_hash": "6dd73b551504b081534db17061de8560",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/backup.pb.go": {
+    "mtime": 1781519076.2969682,
+    "ast_hash": "2a397d47e354d143df9a2e258eacfb2d",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/backup_grpc.pb.go": {
+    "mtime": 1781519146.0278487,
+    "ast_hash": "8eb0cd559d37bb936520c30e1145862c",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/cluster.pb.go": {
+    "mtime": 1781519076.2961955,
+    "ast_hash": "d4ab61a5c44a599b251a8526fe5a24db",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/cluster_grpc.pb.go": {
+    "mtime": 1781519146.0318487,
+    "ast_hash": "338a198e83fd10df490274a6ccb0f605",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/common.pb.go": {
+    "mtime": 1781519076.295342,
+    "ast_hash": "4ffabab0ba15a49ed9f36eb326003a48",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/skylexv1connect/agent.connect.go": {
+    "mtime": 1781519076.296081,
+    "ast_hash": "9a37503c7449a1c6a451fbed54eb6cb4",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/skylexv1connect/auth.connect.go": {
+    "mtime": 1781519076.2958937,
+    "ast_hash": "a6261dbb65190b76e495ad9d633cd17b",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/skylexv1connect/backup.connect.go": {
+    "mtime": 1781519076.296081,
+    "ast_hash": "f348d3c52cf199667034c02bb564169d",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/skylexv1connect/cluster.connect.go": {
+    "mtime": 1781519076.2961955,
+    "ast_hash": "3bd8e2ad1971d06c797f6a955abfa1cb",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/skylexv1connect/storage.connect.go": {
+    "mtime": 1781519076.2960148,
+    "ast_hash": "7565806122bb6a4ff5762c68c15b0b65",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/storage.pb.go": {
+    "mtime": 1781519076.295342,
+    "ast_hash": "83f6021c43af5cca66db2b6cbcf00511",
+    "semantic_hash": ""
+  },
+  "gen/skylex/v1/storage_grpc.pb.go": {
+    "mtime": 1781519146.037135,
+    "ast_hash": "79d7dc359690fa36096f676cab800630",
+    "semantic_hash": ""
+  },
+  "internal/agent/agent.go": {
+    "mtime": 1781521509.7937622,
+    "ast_hash": "901a3797fa1a513c3647058c05f3ec68",
+    "semantic_hash": ""
+  },
+  "internal/agent/config.go": {
+    "mtime": 1781521542.9523785,
+    "ast_hash": "0fb7a9a59dfd154415f00aa5745bf474",
+    "semantic_hash": ""
+  },
+  "internal/backup/engine.go": {
+    "mtime": 1781521135.0816698,
+    "ast_hash": "eb8acb5a8578219d072432f8cdf6fcfc",
+    "semantic_hash": ""
+  },
+  "internal/backup/pgbackrest.go": {
+    "mtime": 1781521109.6525226,
+    "ast_hash": "e3559b81d16536f37e77b03be3c1e7e8",
+    "semantic_hash": ""
+  },
+  "internal/backup/s3.go": {
+    "mtime": 1781521090.0598087,
+    "ast_hash": "cb834d0555a29b624609ff358e08d546",
+    "semantic_hash": ""
+  },
+  "internal/backup/worker.go": {
+    "mtime": 1781521156.6392481,
+    "ast_hash": "038c39d18d665a0d7fdb22059a8c5665",
+    "semantic_hash": ""
+  },
+  "internal/crypto/crypto.go": {
+    "mtime": 1781507370.4522114,
+    "ast_hash": "1455a12017ac1c28ef29e974dfc65532",
+    "semantic_hash": ""
+  },
+  "internal/db/agent_command_repo.go": {
+    "mtime": 1781519360.3427174,
+    "ast_hash": "eace597bfded29d8e85cbd6bf92072c4",
+    "semantic_hash": ""
+  },
+  "internal/db/backup_repo.go": {
+    "mtime": 1781520294.1097426,
+    "ast_hash": "c3f72206e4aceea78a1dbc273340b22f",
+    "semantic_hash": ""
+  },
+  "internal/db/cluster_repo.go": {
+    "mtime": 1781519310.4932554,
+    "ast_hash": "bf7787c5b42d796b077c9ecf90ddd402",
+    "semantic_hash": ""
+  },
+  "internal/db/db.go": {
+    "mtime": 1781507200.2532444,
+    "ast_hash": "be4fe7d50d4da89a765e875d0a32e444",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/000001_init.sql": {
+    "mtime": 1781507218.5480466,
+    "ast_hash": "21be038e46fa6bfabafed04e8c966d53",
+    "semantic_hash": ""
+  },
+  "internal/db/node_repo.go": {
+    "mtime": 1781519344.379006,
+    "ast_hash": "f1331363363ceeb44d7031330c41ce72",
+    "semantic_hash": ""
+  },
+  "internal/db/storage_config_repo.go": {
+    "mtime": 1781520242.0686371,
+    "ast_hash": "3472a461838c7449a54601749722e282",
+    "semantic_hash": ""
+  },
+  "internal/id/id.go": {
+    "mtime": 1781519284.3105721,
+    "ast_hash": "8ba888ab43b65c33a0afb0f9bad7aad1",
+    "semantic_hash": ""
+  },
+  "internal/models/audit.go": {
+    "mtime": 1781507103.456433,
+    "ast_hash": "1d12faedb2627097c79086cd614dc6cc",
+    "semantic_hash": ""
+  },
+  "internal/models/backup.go": {
+    "mtime": 1781507090.8133936,
+    "ast_hash": "4601c5219260a0f1fcc6647e4b034175",
+    "semantic_hash": ""
+  },
+  "internal/models/cluster.go": {
+    "mtime": 1781507078.9027438,
+    "ast_hash": "8da78938c5ffb5543960f939aca556df",
+    "semantic_hash": ""
+  },
+  "internal/models/command.go": {
+    "mtime": 1781519371.484232,
+    "ast_hash": "7e5245ffaaa74cc56f8bc471c6d4b037",
+    "semantic_hash": ""
+  },
+  "internal/models/storage.go": {
+    "mtime": 1781507094.358059,
+    "ast_hash": "4a671c7548020355b6175d7d3ac6ce2f",
+    "semantic_hash": ""
+  },
+  "internal/models/user.go": {
+    "mtime": 1781507097.2901018,
+    "ast_hash": "89fdc0aaa3af7bc1a419b9f0ba03602b",
+    "semantic_hash": ""
+  },
+  "internal/postgres/postgres.go": {
+    "mtime": 1781519630.8227446,
+    "ast_hash": "37ececcc7f95d6aedc384055637beb40",
+    "semantic_hash": ""
+  },
+  "internal/server/agent_service.go": {
+    "mtime": 1781519554.9797804,
+    "ast_hash": "807773dd62535556d8852c1cb2f4697d",
+    "semantic_hash": ""
+  },
+  "internal/server/backup_service.go": {
+    "mtime": 1781521251.577738,
+    "ast_hash": "5113f404b8196f8fe56ccf9c9f8728a5",
+    "semantic_hash": ""
+  },
+  "internal/server/cluster_service.go": {
+    "mtime": 1781519554.9802036,
+    "ast_hash": "4e1e5425ebf910b479820eb310dd30f9",
+    "semantic_hash": ""
+  },
+  "internal/server/config.go": {
+    "mtime": 1781507244.025423,
+    "ast_hash": "4b7306b4082de2bc0befe703409a01be",
+    "semantic_hash": ""
+  },
+  "internal/server/grpc.go": {
+    "mtime": 1781521396.885427,
+    "ast_hash": "c0af79408dd936cb0064040d7af0fd7a",
+    "semantic_hash": ""
+  },
+  "internal/server/logger.go": {
+    "mtime": 1781507243.9257565,
+    "ast_hash": "de465711b731504faabd97ce5209a327",
+    "semantic_hash": ""
+  },
+  "internal/server/node_service.go": {
+    "mtime": 1781519554.980656,
+    "ast_hash": "957c09054a2126530cff96a7a702c2a5",
+    "semantic_hash": ""
+  },
+  "internal/server/server.go": {
+    "mtime": 1781521611.244061,
+    "ast_hash": "147e7637be9c6d35dde9ec1d3c0897bb",
+    "semantic_hash": ""
+  },
+  "internal/server/storage_service.go": {
+    "mtime": 1781521184.5924842,
+    "ast_hash": "1defaff37e4f5b9cb54ade1bffd1fa01",
+    "semantic_hash": ""
+  },
+  "ui/app/layouts/dashboard.tsx": {
+    "mtime": 1781507580.2903998,
+    "ast_hash": "d3fe4f95d5d6a6c85a3e580a11f45d87",
+    "semantic_hash": ""
+  },
+  "ui/app/root.tsx": {
+    "mtime": 1781505172.764489,
+    "ast_hash": "f4b82b77f74cc4d8956c392738190290",
+    "semantic_hash": ""
+  },
+  "ui/app/routes.ts": {
+    "mtime": 1781507682.8517618,
+    "ast_hash": "a87e71b615775b69f91907d980447f87",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/audit.tsx": {
+    "mtime": 1781507630.742024,
+    "ast_hash": "6fde9e167a87bf520f84bee77b8fcaf1",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/backups.tsx": {
+    "mtime": 1781507631.9163568,
+    "ast_hash": "4f91a0858c24c72f64bd3270ba16b8ae",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/clusters.$id.tsx": {
+    "mtime": 1781507607.8222833,
+    "ast_hash": "b7ab1a56e725aac67b3a2f29c5e88135",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/clusters.create.tsx": {
+    "mtime": 1781507601.8162856,
+    "ast_hash": "5b4732d3f434d9525e9ce03aacfc8577",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/clusters.tsx": {
+    "mtime": 1781507597.6259542,
+    "ast_hash": "0a5e79dea502992f7d9a71119997b6de",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/dashboard.tsx": {
+    "mtime": 1781507753.9074728,
+    "ast_hash": "c9356d83a8913683faf1489ee5154570",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/login.tsx": {
+    "mtime": 1781507622.5043604,
+    "ast_hash": "cc0ec78119e13b28c3668c4b030fd616",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/nodes.tsx": {
+    "mtime": 1781507627.2623587,
+    "ast_hash": "17c63acc79a35dd13a9020ca9243792b",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/restore.tsx": {
+    "mtime": 1781507636.726355,
+    "ast_hash": "d87bfb33216469b52feace8dae3f22a4",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/settings.tsx": {
+    "mtime": 1781507649.5530171,
+    "ast_hash": "3f152ea0f2df592ac080e8d7df533c80",
+    "semantic_hash": ""
+  },
+  "ui/app/routes/storage.tsx": {
+    "mtime": 1781507641.9176865,
+    "ast_hash": "cea3b8d1bb9b0e67ca9588164963756d",
+    "semantic_hash": ""
+  },
+  "ui/package.json": {
+    "mtime": 1781505172.7784324,
+    "ast_hash": "f03f7cdeb0892be7e1cc1ad4b3b4ddc1",
+    "semantic_hash": ""
+  },
+  "ui/react-router.config.ts": {
+    "mtime": 1781505172.7711504,
+    "ast_hash": "9169931cb9a389d3a977b9d9bc94d322",
+    "semantic_hash": ""
+  },
+  "ui/tsconfig.json": {
+    "mtime": 1781505172.7730458,
+    "ast_hash": "11267f3797774e3032c93a934b1a3bd1",
+    "semantic_hash": ""
+  },
+  "ui/vite.config.ts": {
+    "mtime": 1781505172.7472193,
+    "ast_hash": "884386922abc8e8141a7ef050ef15af2",
+    "semantic_hash": ""
+  },
+  ".kilo/plans/skylex-db-control-plane-plan.md": {
+    "mtime": 1781506698.0325987,
+    "ast_hash": "63c427f74edc4879a317624de62aa902",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1781522344.3337986,
+    "ast_hash": "62c05a2bf20bf036a0b2633478663e64",
+    "semantic_hash": ""
+  },
+  "buf.gen.yaml": {
+    "mtime": 1781519139.9878442,
+    "ast_hash": "4e68c8906208be1b71751d399b2526d2",
+    "semantic_hash": ""
+  },
+  "buf.yaml": {
+    "mtime": 1781507151.187661,
+    "ast_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f",
+    "semantic_hash": ""
+  },
+  "config.example.yaml": {
+    "mtime": 1781507193.2857883,
+    "ast_hash": "9afb275574d631e37a33caa0ae053d47",
+    "semantic_hash": ""
+  },
+  "deploy/docker-compose/docker-compose.yaml": {
+    "mtime": 1781507863.3662674,
+    "ast_hash": "45b0dd82e8a2b0509969a547e655fc7b",
+    "semantic_hash": ""
+  },
+  "ui/README.md": {
+    "mtime": 1781505172.7659888,
+    "ast_hash": "326d3abf712fa381742d7e7b196af2c2",
+    "semantic_hash": ""
+  },
+  "/home/zynos/projects/skylex/.kilo/agent-manager.json": {
+    "mtime": 1781522976.1850932,
+    "ast_hash": "85bbfee16863f40fd7a60786d1a70aef",
+    "semantic_hash": "85bbfee16863f40fd7a60786d1a70aef"
+  },
+  "/home/zynos/projects/skylex/.kilo/kilo.json": {
+    "mtime": 1781522407.91278,
+    "ast_hash": "43faf6be5f378030994c91146577a597",
+    "semantic_hash": "43faf6be5f378030994c91146577a597"
+  },
+  "/home/zynos/projects/skylex/.kilo/package.json": {
+    "mtime": 1781504617.4833379,
+    "ast_hash": "3bf9a25b8ea5f6a3bb6ebdc1dfc3380a",
+    "semantic_hash": "3bf9a25b8ea5f6a3bb6ebdc1dfc3380a"
+  },
+  "/home/zynos/projects/skylex/.kilo/plugins/graphify.js": {
+    "mtime": 1781523356.5582507,
+    "ast_hash": "a8f0387c9261a65e48846f33ad6094f5",
+    "semantic_hash": "a8f0387c9261a65e48846f33ad6094f5"
+  },
+  "/home/zynos/projects/skylex/.vite/deps/_metadata.json": {
+    "mtime": 1781505089.7830136,
+    "ast_hash": "bd8eef14adba0167d4dfafd707054d13",
+    "semantic_hash": "bd8eef14adba0167d4dfafd707054d13"
+  },
+  "/home/zynos/projects/skylex/.vite/deps/package.json": {
+    "mtime": 1781505089.7405422,
+    "ast_hash": "d0707362e90f00edd12435e9d3b9d71c",
+    "semantic_hash": "d0707362e90f00edd12435e9d3b9d71c"
+  },
+  "/home/zynos/projects/skylex/cmd/agent/main.go": {
+    "mtime": 1781507322.2452967,
+    "ast_hash": "67a65af2195dc26c467129db09aca5fc",
+    "semantic_hash": "67a65af2195dc26c467129db09aca5fc"
+  },
+  "/home/zynos/projects/skylex/cmd/server/main.go": {
+    "mtime": 1781507303.572918,
+    "ast_hash": "42a7e2ef5a6c7f124387f0236c4cdf8f",
+    "semantic_hash": "42a7e2ef5a6c7f124387f0236c4cdf8f"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/agent.pb.go": {
+    "mtime": 1781519076.2958937,
+    "ast_hash": "4d1a8dffca4685ba364fc3c47f415f29",
+    "semantic_hash": "4d1a8dffca4685ba364fc3c47f415f29"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/agent_grpc.pb.go": {
+    "mtime": 1781519146.0278487,
+    "ast_hash": "f64738154e7b5c0efe6e446759b8e27e",
+    "semantic_hash": "f64738154e7b5c0efe6e446759b8e27e"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/auth.pb.go": {
+    "mtime": 1781519076.2961955,
+    "ast_hash": "d3a8181f716e55c51b4b34dda6df93c4",
+    "semantic_hash": "d3a8181f716e55c51b4b34dda6df93c4"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/auth_grpc.pb.go": {
+    "mtime": 1781519146.0356493,
+    "ast_hash": "6dd73b551504b081534db17061de8560",
+    "semantic_hash": "6dd73b551504b081534db17061de8560"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/backup.pb.go": {
+    "mtime": 1781519076.2969682,
+    "ast_hash": "2a397d47e354d143df9a2e258eacfb2d",
+    "semantic_hash": "2a397d47e354d143df9a2e258eacfb2d"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/backup_grpc.pb.go": {
+    "mtime": 1781519146.0278487,
+    "ast_hash": "8eb0cd559d37bb936520c30e1145862c",
+    "semantic_hash": "8eb0cd559d37bb936520c30e1145862c"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/cluster.pb.go": {
+    "mtime": 1781519076.2961955,
+    "ast_hash": "d4ab61a5c44a599b251a8526fe5a24db",
+    "semantic_hash": "d4ab61a5c44a599b251a8526fe5a24db"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/cluster_grpc.pb.go": {
+    "mtime": 1781519146.0318487,
+    "ast_hash": "338a198e83fd10df490274a6ccb0f605",
+    "semantic_hash": "338a198e83fd10df490274a6ccb0f605"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/common.pb.go": {
+    "mtime": 1781519076.295342,
+    "ast_hash": "4ffabab0ba15a49ed9f36eb326003a48",
+    "semantic_hash": "4ffabab0ba15a49ed9f36eb326003a48"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/skylexv1connect/agent.connect.go": {
+    "mtime": 1781519076.296081,
+    "ast_hash": "9a37503c7449a1c6a451fbed54eb6cb4",
+    "semantic_hash": "9a37503c7449a1c6a451fbed54eb6cb4"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/skylexv1connect/auth.connect.go": {
+    "mtime": 1781519076.2958937,
+    "ast_hash": "a6261dbb65190b76e495ad9d633cd17b",
+    "semantic_hash": "a6261dbb65190b76e495ad9d633cd17b"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/skylexv1connect/backup.connect.go": {
+    "mtime": 1781519076.296081,
+    "ast_hash": "f348d3c52cf199667034c02bb564169d",
+    "semantic_hash": "f348d3c52cf199667034c02bb564169d"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/skylexv1connect/cluster.connect.go": {
+    "mtime": 1781519076.2961955,
+    "ast_hash": "3bd8e2ad1971d06c797f6a955abfa1cb",
+    "semantic_hash": "3bd8e2ad1971d06c797f6a955abfa1cb"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/skylexv1connect/storage.connect.go": {
+    "mtime": 1781519076.2960148,
+    "ast_hash": "7565806122bb6a4ff5762c68c15b0b65",
+    "semantic_hash": "7565806122bb6a4ff5762c68c15b0b65"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/storage.pb.go": {
+    "mtime": 1781519076.295342,
+    "ast_hash": "83f6021c43af5cca66db2b6cbcf00511",
+    "semantic_hash": "83f6021c43af5cca66db2b6cbcf00511"
+  },
+  "/home/zynos/projects/skylex/gen/skylex/v1/storage_grpc.pb.go": {
+    "mtime": 1781519146.037135,
+    "ast_hash": "79d7dc359690fa36096f676cab800630",
+    "semantic_hash": "79d7dc359690fa36096f676cab800630"
+  },
+  "/home/zynos/projects/skylex/internal/agent/agent.go": {
+    "mtime": 1781521509.7937622,
+    "ast_hash": "901a3797fa1a513c3647058c05f3ec68",
+    "semantic_hash": "901a3797fa1a513c3647058c05f3ec68"
+  },
+  "/home/zynos/projects/skylex/internal/agent/config.go": {
+    "mtime": 1781521542.9523785,
+    "ast_hash": "0fb7a9a59dfd154415f00aa5745bf474",
+    "semantic_hash": "0fb7a9a59dfd154415f00aa5745bf474"
+  },
+  "/home/zynos/projects/skylex/internal/backup/engine.go": {
+    "mtime": 1781521135.0816698,
+    "ast_hash": "eb8acb5a8578219d072432f8cdf6fcfc",
+    "semantic_hash": "eb8acb5a8578219d072432f8cdf6fcfc"
+  },
+  "/home/zynos/projects/skylex/internal/backup/pgbackrest.go": {
+    "mtime": 1781521109.6525226,
+    "ast_hash": "e3559b81d16536f37e77b03be3c1e7e8",
+    "semantic_hash": "e3559b81d16536f37e77b03be3c1e7e8"
+  },
+  "/home/zynos/projects/skylex/internal/backup/s3.go": {
+    "mtime": 1781521090.0598087,
+    "ast_hash": "cb834d0555a29b624609ff358e08d546",
+    "semantic_hash": "cb834d0555a29b624609ff358e08d546"
+  },
+  "/home/zynos/projects/skylex/internal/backup/worker.go": {
+    "mtime": 1781521156.6392481,
+    "ast_hash": "038c39d18d665a0d7fdb22059a8c5665",
+    "semantic_hash": "038c39d18d665a0d7fdb22059a8c5665"
+  },
+  "/home/zynos/projects/skylex/internal/crypto/crypto.go": {
+    "mtime": 1781507370.4522114,
+    "ast_hash": "1455a12017ac1c28ef29e974dfc65532",
+    "semantic_hash": "1455a12017ac1c28ef29e974dfc65532"
+  },
+  "/home/zynos/projects/skylex/internal/db/agent_command_repo.go": {
+    "mtime": 1781519360.3427174,
+    "ast_hash": "eace597bfded29d8e85cbd6bf92072c4",
+    "semantic_hash": "eace597bfded29d8e85cbd6bf92072c4"
+  },
+  "/home/zynos/projects/skylex/internal/db/backup_repo.go": {
+    "mtime": 1781520294.1097426,
+    "ast_hash": "c3f72206e4aceea78a1dbc273340b22f",
+    "semantic_hash": "c3f72206e4aceea78a1dbc273340b22f"
+  },
+  "/home/zynos/projects/skylex/internal/db/cluster_repo.go": {
+    "mtime": 1781519310.4932554,
+    "ast_hash": "bf7787c5b42d796b077c9ecf90ddd402",
+    "semantic_hash": "bf7787c5b42d796b077c9ecf90ddd402"
+  },
+  "/home/zynos/projects/skylex/internal/db/db.go": {
+    "mtime": 1781507200.2532444,
+    "ast_hash": "be4fe7d50d4da89a765e875d0a32e444",
+    "semantic_hash": "be4fe7d50d4da89a765e875d0a32e444"
+  },
+  "/home/zynos/projects/skylex/internal/db/migrations/000001_init.sql": {
+    "mtime": 1781507218.5480466,
+    "ast_hash": "21be038e46fa6bfabafed04e8c966d53",
+    "semantic_hash": "21be038e46fa6bfabafed04e8c966d53"
+  },
+  "/home/zynos/projects/skylex/internal/db/node_repo.go": {
+    "mtime": 1781519344.379006,
+    "ast_hash": "f1331363363ceeb44d7031330c41ce72",
+    "semantic_hash": "f1331363363ceeb44d7031330c41ce72"
+  },
+  "/home/zynos/projects/skylex/internal/db/storage_config_repo.go": {
+    "mtime": 1781520242.0686371,
+    "ast_hash": "3472a461838c7449a54601749722e282",
+    "semantic_hash": "3472a461838c7449a54601749722e282"
+  },
+  "/home/zynos/projects/skylex/internal/id/id.go": {
+    "mtime": 1781519284.3105721,
+    "ast_hash": "8ba888ab43b65c33a0afb0f9bad7aad1",
+    "semantic_hash": "8ba888ab43b65c33a0afb0f9bad7aad1"
+  },
+  "/home/zynos/projects/skylex/internal/models/audit.go": {
+    "mtime": 1781507103.456433,
+    "ast_hash": "1d12faedb2627097c79086cd614dc6cc",
+    "semantic_hash": "1d12faedb2627097c79086cd614dc6cc"
+  },
+  "/home/zynos/projects/skylex/internal/models/backup.go": {
+    "mtime": 1781507090.8133936,
+    "ast_hash": "4601c5219260a0f1fcc6647e4b034175",
+    "semantic_hash": "4601c5219260a0f1fcc6647e4b034175"
+  },
+  "/home/zynos/projects/skylex/internal/models/cluster.go": {
+    "mtime": 1781507078.9027438,
+    "ast_hash": "8da78938c5ffb5543960f939aca556df",
+    "semantic_hash": "8da78938c5ffb5543960f939aca556df"
+  },
+  "/home/zynos/projects/skylex/internal/models/command.go": {
+    "mtime": 1781519371.484232,
+    "ast_hash": "7e5245ffaaa74cc56f8bc471c6d4b037",
+    "semantic_hash": "7e5245ffaaa74cc56f8bc471c6d4b037"
+  },
+  "/home/zynos/projects/skylex/internal/models/storage.go": {
+    "mtime": 1781507094.358059,
+    "ast_hash": "4a671c7548020355b6175d7d3ac6ce2f",
+    "semantic_hash": "4a671c7548020355b6175d7d3ac6ce2f"
+  },
+  "/home/zynos/projects/skylex/internal/models/user.go": {
+    "mtime": 1781507097.2901018,
+    "ast_hash": "89fdc0aaa3af7bc1a419b9f0ba03602b",
+    "semantic_hash": "89fdc0aaa3af7bc1a419b9f0ba03602b"
+  },
+  "/home/zynos/projects/skylex/internal/postgres/postgres.go": {
+    "mtime": 1781519630.8227446,
+    "ast_hash": "37ececcc7f95d6aedc384055637beb40",
+    "semantic_hash": "37ececcc7f95d6aedc384055637beb40"
+  },
+  "/home/zynos/projects/skylex/internal/server/agent_service.go": {
+    "mtime": 1781519554.9797804,
+    "ast_hash": "807773dd62535556d8852c1cb2f4697d",
+    "semantic_hash": "807773dd62535556d8852c1cb2f4697d"
+  },
+  "/home/zynos/projects/skylex/internal/server/backup_service.go": {
+    "mtime": 1781521251.577738,
+    "ast_hash": "5113f404b8196f8fe56ccf9c9f8728a5",
+    "semantic_hash": "5113f404b8196f8fe56ccf9c9f8728a5"
+  },
+  "/home/zynos/projects/skylex/internal/server/cluster_service.go": {
+    "mtime": 1781519554.9802036,
+    "ast_hash": "4e1e5425ebf910b479820eb310dd30f9",
+    "semantic_hash": "4e1e5425ebf910b479820eb310dd30f9"
+  },
+  "/home/zynos/projects/skylex/internal/server/config.go": {
+    "mtime": 1781507244.025423,
+    "ast_hash": "4b7306b4082de2bc0befe703409a01be",
+    "semantic_hash": "4b7306b4082de2bc0befe703409a01be"
+  },
+  "/home/zynos/projects/skylex/internal/server/grpc.go": {
+    "mtime": 1781521396.885427,
+    "ast_hash": "c0af79408dd936cb0064040d7af0fd7a",
+    "semantic_hash": "c0af79408dd936cb0064040d7af0fd7a"
+  },
+  "/home/zynos/projects/skylex/internal/server/logger.go": {
+    "mtime": 1781507243.9257565,
+    "ast_hash": "de465711b731504faabd97ce5209a327",
+    "semantic_hash": "de465711b731504faabd97ce5209a327"
+  },
+  "/home/zynos/projects/skylex/internal/server/node_service.go": {
+    "mtime": 1781519554.980656,
+    "ast_hash": "957c09054a2126530cff96a7a702c2a5",
+    "semantic_hash": "957c09054a2126530cff96a7a702c2a5"
+  },
+  "/home/zynos/projects/skylex/internal/server/server.go": {
+    "mtime": 1781521611.244061,
+    "ast_hash": "147e7637be9c6d35dde9ec1d3c0897bb",
+    "semantic_hash": "147e7637be9c6d35dde9ec1d3c0897bb"
+  },
+  "/home/zynos/projects/skylex/internal/server/storage_service.go": {
+    "mtime": 1781521184.5924842,
+    "ast_hash": "1defaff37e4f5b9cb54ade1bffd1fa01",
+    "semantic_hash": "1defaff37e4f5b9cb54ade1bffd1fa01"
+  },
+  "/home/zynos/projects/skylex/ui/app/layouts/dashboard.tsx": {
+    "mtime": 1781507580.2903998,
+    "ast_hash": "d3fe4f95d5d6a6c85a3e580a11f45d87",
+    "semantic_hash": "d3fe4f95d5d6a6c85a3e580a11f45d87"
+  },
+  "/home/zynos/projects/skylex/ui/app/root.tsx": {
+    "mtime": 1781505172.764489,
+    "ast_hash": "f4b82b77f74cc4d8956c392738190290",
+    "semantic_hash": "f4b82b77f74cc4d8956c392738190290"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes.ts": {
+    "mtime": 1781507682.8517618,
+    "ast_hash": "a87e71b615775b69f91907d980447f87",
+    "semantic_hash": "a87e71b615775b69f91907d980447f87"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/audit.tsx": {
+    "mtime": 1781507630.742024,
+    "ast_hash": "6fde9e167a87bf520f84bee77b8fcaf1",
+    "semantic_hash": "6fde9e167a87bf520f84bee77b8fcaf1"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/backups.tsx": {
+    "mtime": 1781507631.9163568,
+    "ast_hash": "4f91a0858c24c72f64bd3270ba16b8ae",
+    "semantic_hash": "4f91a0858c24c72f64bd3270ba16b8ae"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/clusters.$id.tsx": {
+    "mtime": 1781507607.8222833,
+    "ast_hash": "b7ab1a56e725aac67b3a2f29c5e88135",
+    "semantic_hash": "b7ab1a56e725aac67b3a2f29c5e88135"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/clusters.create.tsx": {
+    "mtime": 1781507601.8162856,
+    "ast_hash": "5b4732d3f434d9525e9ce03aacfc8577",
+    "semantic_hash": "5b4732d3f434d9525e9ce03aacfc8577"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/clusters.tsx": {
+    "mtime": 1781507597.6259542,
+    "ast_hash": "0a5e79dea502992f7d9a71119997b6de",
+    "semantic_hash": "0a5e79dea502992f7d9a71119997b6de"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/dashboard.tsx": {
+    "mtime": 1781507753.9074728,
+    "ast_hash": "c9356d83a8913683faf1489ee5154570",
+    "semantic_hash": "c9356d83a8913683faf1489ee5154570"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/login.tsx": {
+    "mtime": 1781507622.5043604,
+    "ast_hash": "cc0ec78119e13b28c3668c4b030fd616",
+    "semantic_hash": "cc0ec78119e13b28c3668c4b030fd616"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/nodes.tsx": {
+    "mtime": 1781507627.2623587,
+    "ast_hash": "17c63acc79a35dd13a9020ca9243792b",
+    "semantic_hash": "17c63acc79a35dd13a9020ca9243792b"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/restore.tsx": {
+    "mtime": 1781507636.726355,
+    "ast_hash": "d87bfb33216469b52feace8dae3f22a4",
+    "semantic_hash": "d87bfb33216469b52feace8dae3f22a4"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/settings.tsx": {
+    "mtime": 1781507649.5530171,
+    "ast_hash": "3f152ea0f2df592ac080e8d7df533c80",
+    "semantic_hash": "3f152ea0f2df592ac080e8d7df533c80"
+  },
+  "/home/zynos/projects/skylex/ui/app/routes/storage.tsx": {
+    "mtime": 1781507641.9176865,
+    "ast_hash": "cea3b8d1bb9b0e67ca9588164963756d",
+    "semantic_hash": "cea3b8d1bb9b0e67ca9588164963756d"
+  },
+  "/home/zynos/projects/skylex/ui/package.json": {
+    "mtime": 1781505172.7784324,
+    "ast_hash": "f03f7cdeb0892be7e1cc1ad4b3b4ddc1",
+    "semantic_hash": "f03f7cdeb0892be7e1cc1ad4b3b4ddc1"
+  },
+  "/home/zynos/projects/skylex/ui/react-router.config.ts": {
+    "mtime": 1781505172.7711504,
+    "ast_hash": "9169931cb9a389d3a977b9d9bc94d322",
+    "semantic_hash": "9169931cb9a389d3a977b9d9bc94d322"
+  },
+  "/home/zynos/projects/skylex/ui/tsconfig.json": {
+    "mtime": 1781505172.7730458,
+    "ast_hash": "11267f3797774e3032c93a934b1a3bd1",
+    "semantic_hash": "11267f3797774e3032c93a934b1a3bd1"
+  },
+  "/home/zynos/projects/skylex/ui/vite.config.ts": {
+    "mtime": 1781505172.7472193,
+    "ast_hash": "884386922abc8e8141a7ef050ef15af2",
+    "semantic_hash": "884386922abc8e8141a7ef050ef15af2"
+  },
+  "/home/zynos/projects/skylex/.kilo/plans/skylex-db-control-plane-plan.md": {
+    "mtime": 1781506698.0325987,
+    "ast_hash": "63c427f74edc4879a317624de62aa902",
+    "semantic_hash": "63c427f74edc4879a317624de62aa902"
+  },
+  "/home/zynos/projects/skylex/AGENTS.md": {
+    "mtime": 1781523356.5579376,
+    "ast_hash": "93308fa20479c7fb9246ecd000c6ae34",
+    "semantic_hash": "93308fa20479c7fb9246ecd000c6ae34"
+  },
+  "/home/zynos/projects/skylex/buf.gen.yaml": {
+    "mtime": 1781519139.9878442,
+    "ast_hash": "4e68c8906208be1b71751d399b2526d2",
+    "semantic_hash": "4e68c8906208be1b71751d399b2526d2"
+  },
+  "/home/zynos/projects/skylex/buf.yaml": {
+    "mtime": 1781507151.187661,
+    "ast_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f",
+    "semantic_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f"
+  },
+  "/home/zynos/projects/skylex/config.example.yaml": {
+    "mtime": 1781507193.2857883,
+    "ast_hash": "9afb275574d631e37a33caa0ae053d47",
+    "semantic_hash": "9afb275574d631e37a33caa0ae053d47"
+  },
+  "/home/zynos/projects/skylex/deploy/docker-compose/docker-compose.yaml": {
+    "mtime": 1781507863.3662674,
+    "ast_hash": "45b0dd82e8a2b0509969a547e655fc7b",
+    "semantic_hash": "45b0dd82e8a2b0509969a547e655fc7b"
+  },
+  "/home/zynos/projects/skylex/ui/README.md": {
+    "mtime": 1781505172.7659888,
+    "ast_hash": "326d3abf712fa381742d7e7b196af2c2",
+    "semantic_hash": "326d3abf712fa381742d7e7b196af2c2"
+  }
+}
