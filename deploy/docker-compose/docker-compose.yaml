@@ -4,7 +4,7 @@ services:
   skylex-server:
     image: skylex-server:latest
     build:
-      context: ..
+      context: ../..
       dockerfile: deploy/docker-compose/Dockerfile.server
     container_name: skylex-server
     ports:
@@ -27,7 +27,7 @@ services:
   skylex-agent-1:
     image: skylex-agent:latest
     build:
-      context: ..
+      context: ../..
       dockerfile: deploy/docker-compose/Dockerfile.agent
     container_name: skylex-agent-1
     environment:
@@ -44,7 +44,7 @@ services:
   skylex-agent-2:
     image: skylex-agent:latest
     build:
-      context: ..
+      context: ../..
       dockerfile: deploy/docker-compose/Dockerfile.agent
     container_name: skylex-agent-2
     environment:
@@ -61,7 +61,7 @@ services:
   skylex-agent-3:
     image: skylex-agent:latest
     build:
-      context: ..
+      context: ../..
       dockerfile: deploy/docker-compose/Dockerfile.agent
     container_name: skylex-agent-3
     environment:
