@@ -6,9 +6,18 @@ server:
   http_port: 8080
   metrics_port: 9091
 
+# SQLite (default) — embedded single-file database, no external dependencies
 database:
   driver: sqlite3
   dsn: "file:skylex.db?_journal_mode=WAL&_foreign_keys=on"
+
+# Uncomment for PostgreSQL-backed metadata (production HA mode):
+# database:
+#   driver: postgres
+#   dsn: "postgres://skylex:skylex@localhost:5432/skylex?sslmode=disable"
+#   max_open_conns: 25
+#   max_idle_conns: 10
+#   conn_max_lifetime: 30m
 
 etcd:
   endpoints:

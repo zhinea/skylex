@@ -33,8 +33,8 @@ func (r *ClusterRepository) Create(ctx context.Context, name, storageConfigID, d
 	pitrInt := boolToInt(pitrEnabled)
 
 	_, err = r.conn.ExecContext(ctx,
-		`INSERT INTO clusters (id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		Rebind(`INSERT INTO clusters (id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		clusterID, name, engine, version, mode, replicas, storageConfigID, dataDir, pitrInt, models.ClusterStatusCreating, string(labelsJSON), now, now,
 	)
 	if err != nil {
@@ -60,25 +60,25 @@ func (r *ClusterRepository) Create(ctx context.Context, name, storageConfigID, d
 
 func (r *ClusterRepository) GetByID(ctx context.Context, id string) (*models.Cluster, error) {
 	return r.scanCluster(r.conn.QueryRowContext(ctx,
-		`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
-		 FROM clusters WHERE id = ?`, id))
+		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
+		 FROM clusters WHERE id = ?`), id))
 }
 
 func (r *ClusterRepository) GetByName(ctx context.Context, name string) (*models.Cluster, error) {
 	return r.scanCluster(r.conn.QueryRowContext(ctx,
-		`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
-		 FROM clusters WHERE name = ?`, name))
+		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
+		 FROM clusters WHERE name = ?`), name))
 }
 
 func (r *ClusterRepository) List(ctx context.Context, offset, limit int) ([]*models.Cluster, int, error) {
 	var total int
-	if err := r.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM clusters`).Scan(&total); err != nil {
+	if err := r.conn.QueryRowContext(ctx, Rebind(`SELECT COUNT(*) FROM clusters`)).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count clusters: %w", err)
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
-		 FROM clusters ORDER BY created_at DESC LIMIT ? OFFSET ?`, limit, offset)
+		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
+		 FROM clusters ORDER BY created_at DESC LIMIT ? OFFSET ?`), limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query clusters: %w", err)
 	}
@@ -101,7 +101,7 @@ func (r *ClusterRepository) List(ctx context.Context, offset, limit int) ([]*mod
 
 func (r *ClusterRepository) UpdateStatus(ctx context.Context, id string, status models.ClusterStatus) error {
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE clusters SET status = ?, updated_at = ? WHERE id = ?`,
+		Rebind(`UPDATE clusters SET status = ?, updated_at = ? WHERE id = ?`),
 		status, time.Now().UTC(), id)
 	if err != nil {
 		return fmt.Errorf("update cluster status: %w", err)
@@ -110,7 +110,7 @@ func (r *ClusterRepository) UpdateStatus(ctx context.Context, id string, status 
 }
 
 func (r *ClusterRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.conn.ExecContext(ctx, `DELETE FROM clusters WHERE id = ?`, id)
+	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM clusters WHERE id = ?`), id)
 	if err != nil {
 		return fmt.Errorf("delete cluster: %w", err)
 	}

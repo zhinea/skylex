@@ -35,8 +35,11 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Driver string `koanf:"driver" validate:"required,oneof=sqlite3 postgres"`
-	DSN    string `koanf:"dsn" validate:"required"`
+	Driver          string        `koanf:"driver" validate:"required,oneof=sqlite3 postgres pgx"`
+	DSN             string        `koanf:"dsn" validate:"required"`
+	MaxOpenConns    int           `koanf:"max_open_conns"`
+	MaxIdleConns    int           `koanf:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `koanf:"conn_max_lifetime"`
 }
 
 type EtcdConfig struct {

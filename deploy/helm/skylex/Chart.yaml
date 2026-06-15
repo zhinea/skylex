@@ -1,0 +1,17 @@
+# Skylex Helm Chart
+
+apiVersion: v2
+name: skylex
+description: Skylex Database Control Plane
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - database
+  - postgresql
+  - control-plane
+  - high-availability
+  - pitr
+home: https://github.com/zhinea/skylex
+sources:
+  - https://github.com/zhinea/skylex

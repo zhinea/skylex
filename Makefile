@@ -6,13 +6,16 @@ BINARY_AGENT ?= skylex-agent
 GO ?= go
 GOFLAGS ?= -ldflags="-s -w"
 
-build: build-server build-agent
+build: build-server build-agent build-bench
 
 build-server:
 	$(GO) build $(GOFLAGS) -o bin/$(BINARY_SERVER) ./cmd/server
 
 build-agent:
 	$(GO) build $(GOFLAGS) -o bin/$(BINARY_AGENT) ./cmd/agent
+
+build-bench:
+	$(GO) build $(GOFLAGS) -o bin/skylex-bench ./cmd/bench
 
 run-server:
 	$(GO) run ./cmd/server $(ARGS)

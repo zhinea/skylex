@@ -1,0 +1,34 @@
+[Unit]
+Description=Skylex Database Agent
+Documentation=https://github.com/zhinea/skylex
+After=network-online.target skylex-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=skylex
+Group=skylex
+ExecStart=/usr/local/bin/skylex-agent
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+TimeoutStopSec=15
+
+ReadWritePaths=/var/lib/postgresql/data /var/log/skylex
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER CAP_SETUID CAP_SETGID CAP_SYS_NICE CAP_SYS_RESOURCE
+AmbientCapabilities=CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER CAP_SETUID CAP_SETGID CAP_SYS_NICE CAP_SYS_RESOURCE
+
+MemoryHigh=2G
+MemoryMax=4G
+CPUQuota=400%
+
+Environment=SKYLEX_SERVER_ADDR=localhost:9090
+Environment=SKYLEX_AGENT_TOKEN=%d/skylex-agent-token
+Environment=SKYLEX_LOGGING_OUTPUT=stdout
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,68 @@
+server:
+  replicaCount: 1
+  image:
+    repository: skylex-server
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    grpcPort: 9090
+    httpPort: 8080
+    metricsPort: 9091
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  config:
+    logging:
+      level: info
+      format: json
+      output: stdout
+    agent:
+      heartbeatInterval: 10s
+      heartbeatTimeout: 30s
+    auth:
+      tokenExpiry: 24h
+      refreshExpiry: 168h
+    backup:
+      pgbackrestPath: /usr/bin/pgbackrest
+      defaultStorage: s3
+    postgres:
+      defaultVersion: "16"
+      defaultDataDir: /var/lib/postgresql/data
+      defaultPort: 5432
+    tls:
+      enabled: false
+
+database:
+  driver: sqlite3
+  dsn: "file:/var/lib/skylex/skylex.db?_journal_mode=WAL&_foreign_keys=on"
+
+etcd:
+  endpoints:
+    - "etcd:2379"
+  dialTimeout: 5s
+
+minio:
+  enabled: true
+  accessKey: minioadmin
+  secretKey: minioadmin
+  bucket: skylex-backups
+
+postgresMetadata:
+  enabled: false
+  host: postgres-metadata
+  port: 5432
+  user: skylex
+  database: skylex
+  password: skylex
+  poolMaxOpen: 25
+  poolMaxIdle: 10
+  poolMaxLifetime: 30m
+
+webhook:
+  urls: []
+  timeout: 10s

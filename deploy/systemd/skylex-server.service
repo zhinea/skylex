@@ -1,0 +1,38 @@
+[Unit]
+Description=Skylex Control Plane Server
+Documentation=https://github.com/zhinea/skylex
+After=network-online.target etcd.service postgresql.service
+Wants=network-online.target
+Requires=etcd.service
+
+[Service]
+Type=simple
+User=skylex
+Group=skylex
+ExecStart=/usr/local/bin/skylex-server /etc/skylex/config.yaml
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+LimitNPROC=4096
+TimeoutStopSec=15
+
+ReadOnlyPaths=/
+ReadWritePaths=/var/lib/skylex /var/log/skylex /tmp
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+MemoryHigh=1G
+MemoryMax=2G
+CPUQuota=200%
+
+Environment=SKYLEX_AUTH_JWT_SECRET=%d/skylex-auth-jwt-secret
+Environment=SKYLEX_LOGGING_OUTPUT=stdout
+
+[Install]
+WantedBy=multi-user.target

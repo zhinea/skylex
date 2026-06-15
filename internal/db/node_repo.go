@@ -31,8 +31,8 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 	}
 
 	_, err = r.conn.ExecContext(ctx,
-		`INSERT INTO nodes (id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		Rebind(`INSERT INTO nodes (id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		nodeID, clusterID, hostname, address, port, role, models.NodeStatusOnline, agentVersion, "", string(labelsJSON), now, now, now,
 	)
 	if err != nil {
@@ -57,20 +57,20 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 
 func (r *NodeRepository) GetByID(ctx context.Context, id string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE id = ?`, id)
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE id = ?`), id)
 	return scanNodeRow(row)
 }
 
 func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, offset, limit int) ([]*models.Node, int, error) {
 	var total int
-	if err := r.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM nodes WHERE cluster_id = ?`, clusterID).Scan(&total); err != nil {
+	if err := r.conn.QueryRowContext(ctx, Rebind(`SELECT COUNT(*) FROM nodes WHERE cluster_id = ?`), clusterID).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count nodes: %w", err)
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE cluster_id = ? ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`,
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE cluster_id = ? ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`),
 		clusterID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query nodes: %w", err)
@@ -94,7 +94,7 @@ func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, of
 
 func (r *NodeRepository) UpdateStatus(ctx context.Context, id string, status models.NodeStatus) error {
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE nodes SET status = ?, updated_at = ? WHERE id = ?`,
+		Rebind(`UPDATE nodes SET status = ?, updated_at = ? WHERE id = ?`),
 		status, time.Now().UTC(), id)
 	if err != nil {
 		return fmt.Errorf("update node status: %w", err)
@@ -104,7 +104,7 @@ func (r *NodeRepository) UpdateStatus(ctx context.Context, id string, status mod
 
 func (r *NodeRepository) UpdateRole(ctx context.Context, id string, role models.NodeRole) error {
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE nodes SET role = ?, updated_at = ? WHERE id = ?`,
+		Rebind(`UPDATE nodes SET role = ?, updated_at = ? WHERE id = ?`),
 		role, time.Now().UTC(), id)
 	if err != nil {
 		return fmt.Errorf("update node role: %w", err)
@@ -114,7 +114,7 @@ func (r *NodeRepository) UpdateRole(ctx context.Context, id string, role models.
 
 func (r *NodeRepository) UpdateHeartbeat(ctx context.Context, id string) error {
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE nodes SET last_seen = ?, updated_at = ? WHERE id = ?`,
+		Rebind(`UPDATE nodes SET last_seen = ?, updated_at = ? WHERE id = ?`),
 		time.Now().UTC(), time.Now().UTC(), id)
 	if err != nil {
 		return fmt.Errorf("update node heartbeat: %w", err)
@@ -124,16 +124,16 @@ func (r *NodeRepository) UpdateHeartbeat(ctx context.Context, id string) error {
 
 func (r *NodeRepository) GetPrimary(ctx context.Context, clusterID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE cluster_id = ? AND role = ? LIMIT 1`,
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE cluster_id = ? AND role = ? LIMIT 1`),
 		clusterID, models.NodeRolePrimary)
 	return scanNodeRow(row)
 }
 
 func (r *NodeRepository) GetReplicas(ctx context.Context, clusterID string) ([]*models.Node, error) {
 	rows, err := r.conn.QueryContext(ctx,
-		`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE cluster_id = ? AND role = ? ORDER BY created_at ASC`,
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE cluster_id = ? AND role = ? ORDER BY created_at ASC`),
 		clusterID, models.NodeRoleReplica)
 	if err != nil {
 		return nil, fmt.Errorf("query replicas: %w", err)
@@ -152,7 +152,7 @@ func (r *NodeRepository) GetReplicas(ctx context.Context, clusterID string) ([]*
 }
 
 func (r *NodeRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.conn.ExecContext(ctx, `DELETE FROM nodes WHERE id = ?`, id)
+	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM nodes WHERE id = ?`), id)
 	if err != nil {
 		return fmt.Errorf("delete node: %w", err)
 	}
@@ -161,7 +161,7 @@ func (r *NodeRepository) Delete(ctx context.Context, id string) error {
 
 func (r *NodeRepository) UpdateAgentID(ctx context.Context, id, agentID string) error {
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE nodes SET agent_id = ?, updated_at = ? WHERE id = ?`,
+		Rebind(`UPDATE nodes SET agent_id = ?, updated_at = ? WHERE id = ?`),
 		agentID, time.Now().UTC(), id)
 	if err != nil {
 		return fmt.Errorf("update node agent_id: %w", err)
@@ -171,15 +171,15 @@ func (r *NodeRepository) UpdateAgentID(ctx context.Context, id, agentID string) 
 
 func (r *NodeRepository) GetByHostname(ctx context.Context, hostname string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE hostname = ? LIMIT 1`, hostname)
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE hostname = ? LIMIT 1`), hostname)
 	return scanNodeRow(row)
 }
 
 func (r *NodeRepository) GetByAgentID(ctx context.Context, agentID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE agent_id = ? LIMIT 1`, agentID)
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE agent_id = ? LIMIT 1`), agentID)
 	return scanNodeRow(row)
 }
 

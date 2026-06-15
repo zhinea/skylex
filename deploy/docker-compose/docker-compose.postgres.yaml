@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  postgres-metadata:
+    image: postgres:16-alpine
+    container_name: skylex-postgres-metadata
+    environment:
+      POSTGRES_USER: skylex
+      POSTGRES_PASSWORD: ${SKYLEX_METADATA_DB_PASSWORD:-skylex}
+      POSTGRES_DB: skylex
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-metadata-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skylex -d skylex"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - skylex-net
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+volumes:
+  postgres-metadata-data:
+
+networks:
+  skylex-net:
+    external: true

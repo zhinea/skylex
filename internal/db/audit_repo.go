@@ -17,27 +17,22 @@ func NewAuditRepository(db *sql.DB, log *slog.Logger) *AuditRepository {
 }
 
 func (r *AuditRepository) Log(entry *models.AuditLog) error {
-	query := `INSERT INTO audit_logs (user_id, action, resource, detail, ip_address) VALUES (?, ?, ?, ?, ?)`
-	result, err := r.db.Exec(query, entry.UserID, entry.Action, entry.Resource, entry.Detail, entry.IPAddress)
+	query := Rebind(`INSERT INTO audit_logs (user_id, action, resource, detail, ip_address) VALUES (?, ?, ?, ?, ?) RETURNING id`)
+	err := r.db.QueryRow(query, entry.UserID, entry.Action, entry.Resource, entry.Detail, entry.IPAddress).Scan(&entry.ID)
 	if err != nil {
 		return err
 	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
-	entry.ID = id
 	return nil
 }
 
 func (r *AuditRepository) List(page, pageSize int) ([]models.AuditLog, int, error) {
 	var total int
-	if err := r.db.QueryRow("SELECT COUNT(*) FROM audit_logs").Scan(&total); err != nil {
+	if err := r.db.QueryRow(Rebind("SELECT COUNT(*) FROM audit_logs")).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
 	offset := (page - 1) * pageSize
-	query := `SELECT id, user_id, action, resource, detail, ip_address, created_at FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?`
+	query := Rebind(`SELECT id, user_id, action, resource, detail, ip_address, created_at FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?`)
 	rows, err := r.db.Query(query, pageSize, offset)
 	if err != nil {
 		return nil, 0, err

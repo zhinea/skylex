@@ -25,8 +25,8 @@ func (r *BackupRepository) CreateBackup(ctx context.Context, clusterID, nodeID, 
 	now := time.Now().UTC()
 
 	_, err := r.conn.ExecContext(ctx,
-		`INSERT INTO backups (id, cluster_id, node_id, storage_config_id, type, storage_path, status, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		Rebind(`INSERT INTO backups (id, cluster_id, node_id, storage_config_id, type, storage_path, status, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
 		backupID, clusterID, nodeID, storageConfigID, backupType, storagePath, models.BackupStatusRunning, now,
 	)
 	if err != nil {
@@ -47,20 +47,20 @@ func (r *BackupRepository) CreateBackup(ctx context.Context, clusterID, nodeID, 
 
 func (r *BackupRepository) GetBackup(ctx context.Context, id string) (*models.Backup, error) {
 	row := r.conn.QueryRowContext(ctx,
-		`SELECT id, cluster_id, node_id, type, storage_path, storage_config_id, wal_start, wal_stop, lsn, size_bytes, status, created_at, completed_at
-		 FROM backups WHERE id = ?`, id)
+		Rebind(`SELECT id, cluster_id, node_id, type, storage_path, storage_config_id, wal_start, wal_stop, lsn, size_bytes, status, created_at, completed_at
+		 FROM backups WHERE id = ?`), id)
 	return scanBackupRow(row)
 }
 
 func (r *BackupRepository) ListBackups(ctx context.Context, clusterID string, offset, limit int) ([]*models.Backup, int, error) {
 	var total int
-	if err := r.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM backups WHERE cluster_id = ?`, clusterID).Scan(&total); err != nil {
+	if err := r.conn.QueryRowContext(ctx, Rebind(`SELECT COUNT(*) FROM backups WHERE cluster_id = ?`), clusterID).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count backups: %w", err)
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		`SELECT id, cluster_id, node_id, type, storage_path, storage_config_id, wal_start, wal_stop, lsn, size_bytes, status, created_at, completed_at
-		 FROM backups WHERE cluster_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		Rebind(`SELECT id, cluster_id, node_id, type, storage_path, storage_config_id, wal_start, wal_stop, lsn, size_bytes, status, created_at, completed_at
+		 FROM backups WHERE cluster_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`),
 		clusterID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query backups: %w", err)
@@ -85,7 +85,7 @@ func (r *BackupRepository) ListBackups(ctx context.Context, clusterID string, of
 func (r *BackupRepository) CompleteBackup(ctx context.Context, id string, walStart, walStop, lsn string, sizeBytes int64) error {
 	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE backups SET status = ?, wal_start = ?, wal_stop = ?, lsn = ?, size_bytes = ?, completed_at = ? WHERE id = ?`,
+		Rebind(`UPDATE backups SET status = ?, wal_start = ?, wal_stop = ?, lsn = ?, size_bytes = ?, completed_at = ? WHERE id = ?`),
 		models.BackupStatusCompleted, walStart, walStop, lsn, sizeBytes, now, id,
 	)
 	if err != nil {
@@ -97,7 +97,7 @@ func (r *BackupRepository) CompleteBackup(ctx context.Context, id string, walSta
 func (r *BackupRepository) FailBackup(ctx context.Context, id string) error {
 	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE backups SET status = ?, completed_at = ? WHERE id = ?`,
+		Rebind(`UPDATE backups SET status = ?, completed_at = ? WHERE id = ?`),
 		models.BackupStatusFailed, now, id,
 	)
 	if err != nil {
@@ -107,7 +107,7 @@ func (r *BackupRepository) FailBackup(ctx context.Context, id string) error {
 }
 
 func (r *BackupRepository) DeleteBackup(ctx context.Context, id string) error {
-	_, err := r.conn.ExecContext(ctx, `DELETE FROM backups WHERE id = ?`, id)
+	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM backups WHERE id = ?`), id)
 	if err != nil {
 		return fmt.Errorf("delete backup: %w", err)
 	}
@@ -119,8 +119,8 @@ func (r *BackupRepository) CreateRestoreJob(ctx context.Context, sourceClusterID
 	now := time.Now().UTC()
 
 	_, err := r.conn.ExecContext(ctx,
-		`INSERT INTO restore_jobs (id, cluster_id, backup_id, target_type, target_value, target_node, status, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		Rebind(`INSERT INTO restore_jobs (id, cluster_id, backup_id, target_type, target_value, target_node, status, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
 		jobID, sourceClusterID, backupID, targetType, targetValue, targetNodeID, models.RestoreStatusRunning, now,
 	)
 	if err != nil {
@@ -140,20 +140,20 @@ func (r *BackupRepository) CreateRestoreJob(ctx context.Context, sourceClusterID
 
 func (r *BackupRepository) GetRestoreJob(ctx context.Context, id string) (*models.RestoreJob, error) {
 	row := r.conn.QueryRowContext(ctx,
-		`SELECT id, cluster_id, target_type, target_value, target_node, status, created_at, completed_at
-		 FROM restore_jobs WHERE id = ?`, id)
+		Rebind(`SELECT id, cluster_id, target_type, target_value, target_node, status, created_at, completed_at
+		 FROM restore_jobs WHERE id = ?`), id)
 	return scanRestoreJobRow(row)
 }
 
 func (r *BackupRepository) ListRestoreJobs(ctx context.Context, clusterID string, offset, limit int) ([]*models.RestoreJob, int, error) {
 	var total int
-	if err := r.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM restore_jobs WHERE cluster_id = ?`, clusterID).Scan(&total); err != nil {
+	if err := r.conn.QueryRowContext(ctx, Rebind(`SELECT COUNT(*) FROM restore_jobs WHERE cluster_id = ?`), clusterID).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count restore jobs: %w", err)
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		`SELECT id, cluster_id, target_type, target_value, target_node, status, created_at, completed_at
-		 FROM restore_jobs WHERE cluster_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+		Rebind(`SELECT id, cluster_id, target_type, target_value, target_node, status, created_at, completed_at
+		 FROM restore_jobs WHERE cluster_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`),
 		clusterID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query restore jobs: %w", err)
@@ -178,7 +178,7 @@ func (r *BackupRepository) ListRestoreJobs(ctx context.Context, clusterID string
 func (r *BackupRepository) CompleteRestoreJob(ctx context.Context, id string) error {
 	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE restore_jobs SET status = ?, completed_at = ? WHERE id = ?`,
+		Rebind(`UPDATE restore_jobs SET status = ?, completed_at = ? WHERE id = ?`),
 		models.RestoreStatusCompleted, now, id,
 	)
 	if err != nil {
@@ -190,7 +190,7 @@ func (r *BackupRepository) CompleteRestoreJob(ctx context.Context, id string) er
 func (r *BackupRepository) FailRestoreJob(ctx context.Context, id string) error {
 	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE restore_jobs SET status = ?, completed_at = ? WHERE id = ?`,
+		Rebind(`UPDATE restore_jobs SET status = ?, completed_at = ? WHERE id = ?`),
 		models.RestoreStatusFailed, now, id,
 	)
 	if err != nil {
@@ -204,8 +204,8 @@ func (r *BackupRepository) CreateSchedule(ctx context.Context, clusterID, cron s
 	now := time.Now().UTC()
 
 	_, err := r.conn.ExecContext(ctx,
-		`INSERT INTO backup_schedules (id, cluster_id, cron, type, retention_count, retention_days, storage_config_id, enabled, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+		Rebind(`INSERT INTO backup_schedules (id, cluster_id, cron, type, retention_count, retention_days, storage_config_id, enabled, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`),
 		scheduleID, clusterID, cron, backupType, retentionCount, retentionDays, storageConfigID, now, now,
 	)
 	if err != nil {
@@ -228,8 +228,8 @@ func (r *BackupRepository) CreateSchedule(ctx context.Context, clusterID, cron s
 
 func (r *BackupRepository) ListSchedules(ctx context.Context, clusterID string) ([]*models.BackupSchedule, error) {
 	rows, err := r.conn.QueryContext(ctx,
-		`SELECT id, cluster_id, cron, type, retention_count, retention_days, storage_config_id, enabled, created_at, updated_at
-		 FROM backup_schedules WHERE cluster_id = ? ORDER BY created_at ASC`, clusterID)
+		Rebind(`SELECT id, cluster_id, cron, type, retention_count, retention_days, storage_config_id, enabled, created_at, updated_at
+		 FROM backup_schedules WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("query schedules: %w", err)
 	}
@@ -254,7 +254,7 @@ func (r *BackupRepository) UpdateSchedule(ctx context.Context, id string, cron s
 	enabledInt := boolToInt(enabled)
 
 	_, err := r.conn.ExecContext(ctx,
-		`UPDATE backup_schedules SET cron = ?, type = ?, retention_count = ?, retention_days = ?, storage_config_id = ?, enabled = ?, updated_at = ? WHERE id = ?`,
+		Rebind(`UPDATE backup_schedules SET cron = ?, type = ?, retention_count = ?, retention_days = ?, storage_config_id = ?, enabled = ?, updated_at = ? WHERE id = ?`),
 		cron, backupType, retentionCount, retentionDays, storageConfigID, enabledInt, now, id,
 	)
 	if err != nil {
@@ -274,7 +274,7 @@ func (r *BackupRepository) UpdateSchedule(ctx context.Context, id string, cron s
 }
 
 func (r *BackupRepository) DeleteSchedule(ctx context.Context, id string) error {
-	_, err := r.conn.ExecContext(ctx, `DELETE FROM backup_schedules WHERE id = ?`, id)
+	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM backup_schedules WHERE id = ?`), id)
 	if err != nil {
 		return fmt.Errorf("delete schedule: %w", err)
 	}

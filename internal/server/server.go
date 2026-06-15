@@ -66,8 +66,11 @@ func (s *Server) Start(ctx context.Context) error {
 	)
 
 	database, err := db.New(db.Config{
-		Driver: s.cfg.Database.Driver,
-		DSN:    s.cfg.Database.DSN,
+		Driver:          s.cfg.Database.Driver,
+		DSN:             s.cfg.Database.DSN,
+		MaxOpenConns:    s.cfg.Database.MaxOpenConns,
+		MaxIdleConns:    s.cfg.Database.MaxIdleConns,
+		ConnMaxLifetime: s.cfg.Database.ConnMaxLifetime,
 	}, s.log)
 	if err != nil {
 		return fmt.Errorf("init database: %w", err)
