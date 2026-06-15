@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781560947.484718,
-    "ast_hash": "31baa003ea2ac9abc5fd2de6c141a543",
+    "mtime": 1781564713.093901,
+    "ast_hash": "604ce60176f1d6605ab6d9c8ee7a1b59",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -245,14 +245,14 @@
     "semantic_hash": ""
   },
   "internal/server/config.go": {
-    "mtime": 1781559445.7181952,
-    "ast_hash": "4b7306b4082de2bc0befe703409a01be",
-    "semantic_hash": "4b7306b4082de2bc0befe703409a01be"
+    "mtime": 1781564943.2536254,
+    "ast_hash": "b85710884ece6fa6237e8be1e0d6ea43",
+    "semantic_hash": ""
   },
   "internal/server/grpc.go": {
-    "mtime": 1781559445.7184253,
-    "ast_hash": "c0af79408dd936cb0064040d7af0fd7a",
-    "semantic_hash": "c0af79408dd936cb0064040d7af0fd7a"
+    "mtime": 1781564906.4079356,
+    "ast_hash": "8e8d17dd748d20337ccf33720596cfe5",
+    "semantic_hash": ""
   },
   "internal/server/logger.go": {
     "mtime": 1781559445.7184253,
@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "internal/server/server.go": {
-    "mtime": 1781562878.2838733,
-    "ast_hash": "668f3476096ab9a129dcd80253c72a33",
+    "mtime": 1781564933.3902347,
+    "ast_hash": "49fb542aaeed12414db106368074a777",
     "semantic_hash": ""
   },
   "internal/server/storage_service.go": {
@@ -385,9 +385,9 @@
     "semantic_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f"
   },
   "config.example.yaml": {
-    "mtime": 1781559445.6749103,
-    "ast_hash": "9afb275574d631e37a33caa0ae053d47",
-    "semantic_hash": "9afb275574d631e37a33caa0ae053d47"
+    "mtime": 1781565028.2102156,
+    "ast_hash": "425f9d3b963f0425578e23a851fc04da",
+    "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.yaml": {
     "mtime": 1781559445.6749103,
@@ -422,6 +422,56 @@
   "internal/server/failover.go": {
     "mtime": 1781562359.0799804,
     "ast_hash": "f932ff8985ca04f76dac5f386c01c612",
+    "semantic_hash": ""
+  },
+  "internal/db/audit_repo.go": {
+    "mtime": 1781564759.52833,
+    "ast_hash": "4a988922fbf371743237a35648c947ce",
+    "semantic_hash": ""
+  },
+  "internal/db/user_repo.go": {
+    "mtime": 1781564753.2161598,
+    "ast_hash": "2be0ea2425750b7788ddf228fb81c0ab",
+    "semantic_hash": ""
+  },
+  "internal/server/audit_interceptor.go": {
+    "mtime": 1781564824.2455006,
+    "ast_hash": "8a10946e2de7756f9a06fe05b45cb7b7",
+    "semantic_hash": ""
+  },
+  "internal/server/auth_interceptor.go": {
+    "mtime": 1781564785.7019055,
+    "ast_hash": "e458cc584fffc1574209444663826f8e",
+    "semantic_hash": ""
+  },
+  "internal/server/auth_service.go": {
+    "mtime": 1781564970.586458,
+    "ast_hash": "d10930b3eceb472fae36ff04ad281ca5",
+    "semantic_hash": ""
+  },
+  "internal/server/jwt.go": {
+    "mtime": 1781564769.4554996,
+    "ast_hash": "4519b5814e65b311c4c384e6fa7a3801",
+    "semantic_hash": ""
+  },
+  "internal/server/metadata_backup.go": {
+    "mtime": 1781564998.2189906,
+    "ast_hash": "e357729fbdb863291f83e99869df2a99",
+    "semantic_hash": ""
+  },
+  "internal/server/tls.go": {
+    "mtime": 1781564830.6964848,
+    "ast_hash": "374d9a5428fb0053ec7d6e3a4a9f87f3",
+    "semantic_hash": ""
+  },
+  "internal/server/webhook.go": {
+    "mtime": 1781564843.6812692,
+    "ast_hash": "238cd94d996c54a796533dcb3d48f95d",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1781564872.0963686,
+    "ast_hash": "42addc97409a20bcf832d68286c63abf",
     "semantic_hash": ""
   }
 }

@@ -1,16 +1,16 @@
-# Graph Report - skylex  (2026-06-15)
+# Graph Report - skylex  (2026-06-16)
 
 ## Corpus Check
-- 74 files · ~49,797 words
+- 79 files · ~52,925 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2043 nodes · 3658 edges · 135 communities (81 shown, 54 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.8)
+- 2127 nodes · 3815 edges · 135 communities (81 shown, 54 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 49 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `16eadaff`
+- Built from commit: `3097d04a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -208,8 +208,8 @@ Cohesion: 0.11
 Nodes (25): ClientConnInterface, Context, CreateStorageConfigRequest, CreateStorageConfigResponse, DeleteStorageConfigRequest, DeleteStorageConfigResponse, GetStorageConfigRequest, GetStorageConfigResponse (+17 more)
 
 ### Community 10 - "Cluster gRPC Service"
-Cohesion: 0.08
-Nodes (28): AgentCommandRepository, Cluster, ClusterRepository, Context, CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest, DeleteClusterResponse (+20 more)
+Cohesion: 0.06
+Nodes (37): CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest, DeleteClusterResponse, FailoverClusterRequest, FailoverClusterResponse, GetClusterRequest, GetClusterResponse (+29 more)
 
 ### Community 11 - "Backup gRPC Service"
 Cohesion: 0.13
@@ -257,7 +257,7 @@ Nodes (23): AgentConfig, AuthConfig, BackupConfig, DatabaseConfig, EtcdConfig, D
 
 ### Community 22 - "Agent gRPC Protocol"
 Cohesion: 0.11
-Nodes (18): GenerateToken(), AgentCommandRepository, Context, FetchCommandRequest, FetchCommandResponse, HeartbeatRequest, HeartbeatResponse, Logger (+10 more)
+Nodes (18): GenerateToken(), FetchCommandRequest, FetchCommandResponse, HeartbeatRequest, HeartbeatResponse, AgentCommandRepository, Context, Logger (+10 more)
 
 ### Community 23 - "React UI Frontend"
 Cohesion: 0.08
@@ -276,8 +276,8 @@ Cohesion: 0.09
 Nodes (4): Node, DrainNodeResponse, RejoinNodeResponse, RestartNodeResponse
 
 ### Community 27 - "Cluster gRPC Service"
-Cohesion: 0.17
-Nodes (14): ClusterStatus, boolToInt(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository, EngineType, Cluster (+6 more)
+Cohesion: 0.05
+Nodes (42): ClusterStatus, DecryptAES256GCM(), DeriveKey(), EncryptAES256GCM(), boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow() (+34 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.10
@@ -288,24 +288,24 @@ Cohesion: 0.09
 Nodes (3): APIKey, CreateAPIKeyResponse, ListAPIKeysResponse
 
 ### Community 30 - "Agent gRPC Protocol"
-Cohesion: 0.19
-Nodes (12): NewNodeRepository(), scanNodeRow(), scanNodesRow(), NodeRepository, Context, DB, Logger, Node (+4 more)
+Cohesion: 0.18
+Nodes (10): Client, Config, New(), Context, Store, Duration, LeaseID, Logger (+2 more)
 
 ### Community 31 - "Auth gRPC Service"
 Cohesion: 0.12
 Nodes (7): MessageState, SizeCache, UnknownFields, DeleteAPIKeyResponse, DeleteUserResponse, ListAPIKeysRequest, RefreshTokenRequest
 
 ### Community 32 - "PostgreSQL Backup Engine"
-Cohesion: 0.18
+Cohesion: 0.15
 Nodes (5): Context, Duration, Logger, Instance, New()
 
 ### Community 33 - "Node Repository"
 Cohesion: 0.13
-Nodes (16): Context, DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, ListNodesRequest, ListNodesResponse, Logger (+8 more)
+Nodes (17): DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, AgentCommandRepository, Context, Logger, Node (+9 more)
 
 ### Community 34 - "Storage gRPC Service"
-Cohesion: 0.15
-Nodes (14): AgentService, BackupService, CancelFunc, ClusterService, GRPCServer, Config, Context, DB (+6 more)
+Cohesion: 0.13
+Nodes (16): AgentService, BackupService, CancelFunc, ClusterService, GRPCServer, Config, DB, FailoverEngine (+8 more)
 
 ### Community 35 - "Cluster gRPC Service"
 Cohesion: 0.20
@@ -324,8 +324,8 @@ Cohesion: 0.13
 Nodes (3): ClusterConfig, CreateClusterRequest, UpdateClusterRequest
 
 ### Community 40 - "Storage Config Repo Marshallabels"
-Cohesion: 0.20
-Nodes (11): EncryptAES256GCM(), intToBool(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+3 more)
+Cohesion: 0.22
+Nodes (12): AgentCommandRepository, Cluster, ClusterRepository, Context, Duration, LeaderElector, Logger, Node (+4 more)
 
 ### Community 41 - "Backup gRPC Service"
 Cohesion: 0.13
@@ -387,13 +387,17 @@ Nodes (3): file_skylex_v1_cluster_proto_init(), init(), RejoinNodeRequest
 Cohesion: 0.22
 Nodes (3): GetStorageConfigRequest, file_skylex_v1_storage_proto_init(), init()
 
+### Community 78 - "Crypto Decryptaes256Gcm"
+Cohesion: 0.23
+Nodes (7): MemberInfo, PrimaryInfo, Context, Store, LeaseID, Time, WatchChan
+
 ### Community 80 - "Time Backup"
 Cohesion: 0.46
 Nodes (8): Time, Backup, BackupSchedule, BackupStatus, BackupType, RestoreJob, RestoreStatus, RestoreTargetType
 
 ### Community 81 - "Time Cluster"
-Cohesion: 0.39
-Nodes (8): Time, Cluster, ClusterStatus, EngineType, Node, NodeRole, NodeStatus, ReplicationMode
+Cohesion: 0.21
+Nodes (8): NewLeaderElector(), LeaderElector, Election, Context, Logger, Store, WatchChan, Session
 
 ### Community 88 - "Main Config"
 Cohesion: 0.33
@@ -411,16 +415,12 @@ Nodes (5): Time, AgentToken, APIKey, Role, User
 Cohesion: 0.67
 Nodes (3): Time, AuditAction, AuditLog
 
-### Community 107 - "Time Storage"
-Cohesion: 0.67
-Nodes (3): Time, StorageConfig, StorageType
-
 ### Community 130 - "Graphify Components"
 Cohesion: 0.17
 Nodes (11): Configuration, Database and migrations, Developer commands, Docker Compose reference stack, graphify, Important conventions, Project layout, Protocol buffers and generated code (+3 more)
 
 ## Knowledge Gaps
-- **227 isolated node(s):** `Quick start`, `Project layout`, `Developer commands`, `Configuration`, `Database and migrations` (+222 more)
+- **237 isolated node(s):** `Logger`, `AgentServiceClient`, `ClientConn`, `Instance`, `PgBackRest` (+232 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **54 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -428,13 +428,13 @@ Nodes (11): Configuration, Database and migrations, Developer commands, Docker C
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.413) - this node is a cross-community bridge._
+  _High betweenness centrality (0.371) - this node is a cross-community bridge._
 - **Why does `file_skylex_v1_agent_proto_init()` connect `Agent gRPC Protocol` to `Protobuf Message Types`?**
-  _High betweenness centrality (0.285) - this node is a cross-community bridge._
+  _High betweenness centrality (0.262) - this node is a cross-community bridge._
 - **Why does `NodeStatusReport` connect `Agent gRPC Protocol` to `Agent gRPC Protocol`, `Protobuf Message Types`, `Protobuf Message Types`, `Agent gRPC Protocol`, `Agent gRPC Protocol`?**
-  _High betweenness centrality (0.274) - this node is a cross-community bridge._
-- **What connects `Quick start`, `Project layout`, `Developer commands` to the rest of the system?**
-  _228 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.253) - this node is a cross-community bridge._
+- **What connects `Logger`, `AgentServiceClient`, `ClientConn` to the rest of the system?**
+  _238 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.050617283950617285 - nodes in this community are weakly interconnected._
 - **Should `Cluster gRPC Service` be split into smaller, more focused modules?**
