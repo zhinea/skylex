@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/zhinea/skylex/gen/skylex/v1"
+	"github.com/zhinea/skylex/internal/backup"
 	"github.com/zhinea/skylex/internal/postgres"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -17,13 +18,14 @@ import (
 )
 
 type Agent struct {
-	cfg      Config
-	log      *slog.Logger
-	agentID  string
-	nodeID   string
-	client   skylexv1.AgentServiceClient
-	conn     *grpc.ClientConn
-	pg       *postgres.Instance
+	cfg        Config
+	log        *slog.Logger
+	agentID    string
+	nodeID     string
+	client     skylexv1.AgentServiceClient
+	conn       *grpc.ClientConn
+	pg         *postgres.Instance
+	pgBackRest *backup.PgBackRest
 }
 
 func New(cfg Config) (*Agent, error) {
@@ -48,10 +50,13 @@ func New(cfg Config) (*Agent, error) {
 		log,
 	)
 
+	pgBackRest := backup.NewPgBackRest(cfg.PGBackRestPath, log)
+
 	return &Agent{
-		cfg: cfg,
-		log: log,
-		pg:  pg,
+		cfg:        cfg,
+		log:        log,
+		pg:         pg,
+		pgBackRest: pgBackRest,
 	}, nil
 }
 
@@ -246,6 +251,34 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand) 
 			return false, "", err.Error()
 		}
 		return true, "replication slot created", ""
+
+	case "pgbackrest_backup":
+		stanza := cmd.GetPayload()
+		if _, err := a.pgBackRest.Backup(ctx, stanza, "full", "", a.cfg.PGDataDir); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "pgbackrest backup completed", ""
+
+	case "pgbackrest_restore":
+		stanza := cmd.GetPayload()
+		if _, err := a.pgBackRest.Restore(ctx, stanza, "", "", "", a.cfg.PGDataDir); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "pgbackrest restore completed", ""
+
+	case "pgbackrest_stanza_create":
+		stanza := cmd.GetPayload()
+		if err := a.pgBackRest.StanzaCreate(ctx, stanza, "", a.cfg.PGDataDir); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "pgbackrest stanza created", ""
+
+	case "pgbackrest_stanza_check":
+		stanza := cmd.GetPayload()
+		if err := a.pgBackRest.StanzaCheck(ctx, stanza, "", a.cfg.PGDataDir); err != nil {
+			return false, "", err.Error()
+		}
+		return true, "pgbackrest stanza check passed", ""
 
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())

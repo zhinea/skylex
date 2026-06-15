@@ -8,19 +8,24 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/zhinea/skylex/internal/backup"
+	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
 	"golang.org/x/sync/errgroup"
 )
 
 type Server struct {
-	cfg            *Config
-	log            *slog.Logger
-	db             *db.DB
-	http           *http.Server
-	grpc           *GRPCServer
-	clusterService *ClusterService
-	nodeService    *NodeService
-	agentService   *AgentService
+	cfg             *Config
+	log             *slog.Logger
+	db              *db.DB
+	http            *http.Server
+	grpc            *GRPCServer
+	clusterService  *ClusterService
+	nodeService     *NodeService
+	agentService    *AgentService
+	storageService  *StorageService
+	backupService   *BackupService
+	backupWorker    *backup.Worker
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -62,6 +67,22 @@ func (s *Server) Start(ctx context.Context) error {
 	s.clusterService = NewClusterService(clusterRepo, nodeRepo, commandRepo, s.log)
 	s.nodeService = NewNodeService(nodeRepo, s.log)
 	s.agentService = NewAgentService(nodeRepo, commandRepo, s.log)
+
+	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))
+	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
+	backupRepo := db.NewBackupRepository(conn, s.log)
+
+	pgBackRest := backup.NewPgBackRest(s.cfg.Backup.PgBackRestPath, s.log)
+	backupEngine := backup.NewEngine(backupRepo, storageConfigRepo, pgBackRest, s.log)
+	backupWorker := backup.NewWorker(backupEngine, backupRepo, clusterRepo, s.log)
+
+	s.storageService = NewStorageService(storageConfigRepo, s.log)
+	s.backupService = NewBackupService(backupRepo, clusterRepo, backupEngine, backupWorker, s.log)
+	s.backupWorker = backupWorker
+
+	if err := backupWorker.Start(ctx); err != nil {
+		return fmt.Errorf("start backup worker: %w", err)
+	}
 
 	grpcServer, err := NewGRPCServer(s)
 	if err != nil {

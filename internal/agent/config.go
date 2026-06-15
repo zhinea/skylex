@@ -23,6 +23,7 @@ type Config struct {
 	PGSuperuser       string            `mapstructure:"pg_superuser" yaml:"pg_superuser"`
 	PGReplUser        string            `mapstructure:"pg_repl_user" yaml:"pg_repl_user"`
 	PGReplPass        string            `mapstructure:"pg_repl_pass" yaml:"pg_repl_pass"`
+	PGBackRestPath    string            `mapstructure:"pgbackrest_path" yaml:"pgbackrest_path"`
 }
 
 func DefaultConfig() Config {
@@ -38,6 +39,7 @@ func DefaultConfig() Config {
 		PGSuperuser:       "postgres",
 		PGReplUser:        "replicator",
 		PGReplPass:        "replicator",
+		PGBackRestPath:    "/usr/bin/pgbackrest",
 	}
 }
 

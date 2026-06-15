@@ -29,6 +29,9 @@ func NewGRPCServer(srv *Server) (*GRPCServer, error) {
 	skylexv1.RegisterClusterServiceServer(grpcServer, srv.clusterService)
 	skylexv1.RegisterNodeServiceServer(grpcServer, srv.nodeService)
 	skylexv1.RegisterAgentServiceServer(grpcServer, srv.agentService)
+	skylexv1.RegisterStorageServiceServer(grpcServer, srv.storageService)
+	skylexv1.RegisterBackupServiceServer(grpcServer, srv.backupService)
+	skylexv1.RegisterScheduleServiceServer(grpcServer, srv.backupService)
 
 	addr := fmt.Sprintf("%s:%d", srv.cfg.Server.ListenAddr, srv.cfg.Server.GRPCPort)
 
