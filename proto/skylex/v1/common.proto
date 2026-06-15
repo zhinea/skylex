@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package skylex.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum ClusterStatus {
+  CLUSTER_STATUS_UNSPECIFIED = 0;
+  CLUSTER_STATUS_CREATING = 1;
+  CLUSTER_STATUS_HEALTHY = 2;
+  CLUSTER_STATUS_DEGRADED = 3;
+  CLUSTER_STATUS_FAILED = 4;
+  CLUSTER_STATUS_DELETING = 5;
+}
+
+enum NodeRole {
+  NODE_ROLE_UNSPECIFIED = 0;
+  NODE_ROLE_PRIMARY = 1;
+  NODE_ROLE_REPLICA = 2;
+}
+
+enum ReplicationMode {
+  REPLICATION_MODE_UNSPECIFIED = 0;
+  REPLICATION_MODE_ASYNC = 1;
+  REPLICATION_MODE_SYNC = 2;
+}
+
+enum Engine {
+  ENGINE_UNSPECIFIED = 0;
+  ENGINE_POSTGRESQL = 1;
+}
+
+message ClusterConfig {
+  Engine engine = 1;
+  string version = 2;
+  ReplicationMode replication_mode = 3;
+  int32 replica_count = 4;
+  string storage_config_id = 5;
+  bool pitr_enabled = 6;
+  map<string, string> labels = 7;
+}
+
+message Cluster {
+  string id = 1;
+  string name = 2;
+  ClusterConfig config = 3;
+  ClusterStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message Node {
+  string id = 1;
+  string cluster_id = 2;
+  string hostname = 3;
+  NodeRole role = 4;
+  string address = 5;
+  int32 port = 6;
+  map<string, string> labels = 7;
+  string agent_version = 8;
+  google.protobuf.Timestamp last_seen = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message Pagination {
+  int32 page = 1;
+  int32 page_size = 2;
+  int32 total = 3;
+}

@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package skylex.v1;
+
+import "skylex/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+service ClusterService {
+  rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse);
+  rpc GetCluster(GetClusterRequest) returns (GetClusterResponse);
+  rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+  rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse);
+  rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
+  rpc FailoverCluster(FailoverClusterRequest) returns (FailoverClusterResponse);
+  rpc RestartNode(RestartNodeRequest) returns (RestartNodeResponse);
+  rpc ScaleCluster(ScaleClusterRequest) returns (ScaleClusterResponse);
+}
+
+message CreateClusterRequest {
+  string name = 1;
+  ClusterConfig config = 2;
+}
+
+message CreateClusterResponse {
+  Cluster cluster = 1;
+}
+
+message GetClusterRequest {
+  string id = 1;
+}
+
+message GetClusterResponse {
+  Cluster cluster = 1;
+}
+
+message ListClustersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListClustersResponse {
+  repeated Cluster clusters = 1;
+  Pagination pagination = 2;
+}
+
+message UpdateClusterRequest {
+  string id = 1;
+  ClusterConfig config = 2;
+}
+
+message UpdateClusterResponse {
+  Cluster cluster = 1;
+}
+
+message DeleteClusterRequest {
+  string id = 1;
+}
+
+message DeleteClusterResponse {}
+
+message FailoverClusterRequest {
+  string cluster_id = 1;
+}
+
+message FailoverClusterResponse {
+  Cluster cluster = 1;
+}
+
+message RestartNodeRequest {
+  string node_id = 1;
+}
+
+message RestartNodeResponse {
+  Node node = 1;
+}
+
+message ScaleClusterRequest {
+  string cluster_id = 1;
+  int32 replica_count = 2;
+}
+
+message ScaleClusterResponse {
+  Cluster cluster = 1;
+}
+
+service NodeService {
+  rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
+  rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
+  rpc DrainNode(DrainNodeRequest) returns (DrainNodeResponse);
+  rpc RejoinNode(RejoinNodeRequest) returns (RejoinNodeResponse);
+}
+
+message ListNodesRequest {
+  string cluster_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListNodesResponse {
+  repeated Node nodes = 1;
+  Pagination pagination = 2;
+}
+
+message GetNodeRequest {
+  string id = 1;
+}
+
+message GetNodeResponse {
+  Node node = 1;
+}
+
+message DrainNodeRequest {
+  string node_id = 1;
+}
+
+message DrainNodeResponse {
+  Node node = 1;
+}
+
+message RejoinNodeRequest {
+  string node_id = 1;
+}
+
+message RejoinNodeResponse {
+  Node node = 1;
+}

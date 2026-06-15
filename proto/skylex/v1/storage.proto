@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package skylex.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message StorageConfig {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  string endpoint = 4;
+  string bucket = 5;
+  string region = 6;
+  bool use_tls = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+service StorageService {
+  rpc CreateStorageConfig(CreateStorageConfigRequest) returns (CreateStorageConfigResponse);
+  rpc ListStorageConfigs(ListStorageConfigsRequest) returns (ListStorageConfigsResponse);
+  rpc GetStorageConfig(GetStorageConfigRequest) returns (GetStorageConfigResponse);
+  rpc DeleteStorageConfig(DeleteStorageConfigRequest) returns (DeleteStorageConfigResponse);
+  rpc ValidateStorageConfig(ValidateStorageConfigRequest) returns (ValidateStorageConfigResponse);
+}
+
+message CreateStorageConfigRequest {
+  string name = 1;
+  string type = 2;
+  string endpoint = 3;
+  string bucket = 4;
+  string region = 5;
+  string access_key = 6;
+  string secret_key = 7;
+  bool use_tls = 8;
+}
+
+message CreateStorageConfigResponse {
+  StorageConfig storage_config = 1;
+}
+
+message ListStorageConfigsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message ListStorageConfigsResponse {
+  repeated StorageConfig storage_configs = 1;
+  Pagination pagination = 2;
+}
+
+message GetStorageConfigRequest {
+  string id = 1;
+}
+
+message GetStorageConfigResponse {
+  StorageConfig storage_config = 1;
+}
+
+message DeleteStorageConfigRequest {
+  string id = 1;
+}
+
+message DeleteStorageConfigResponse {}
+
+message ValidateStorageConfigRequest {
+  string id = 1;
+}
+
+message ValidateStorageConfigResponse {
+  bool valid = 1;
+  string message = 2;
+}

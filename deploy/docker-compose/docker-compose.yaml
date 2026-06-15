@@ -1,0 +1,145 @@
+version: "3.8"
+
+services:
+  skylex-server:
+    image: skylex-server:latest
+    build:
+      context: ..
+      dockerfile: deploy/docker-compose/Dockerfile.server
+    container_name: skylex-server
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+      - "9091:9091"
+    volumes:
+      - skylex-data:/var/lib/skylex
+      - ./config.yaml:/etc/skylex/config.yaml:ro
+    environment:
+      SKYLEX_DATABASE_DSN: "file:/var/lib/skylex/skylex.db?_journal_mode=WAL&_foreign_keys=on"
+      SKYLEX_AUTH_JWT_SECRET: "${SKYLEX_JWT_SECRET:-change-me-in-production}"
+    depends_on:
+      etcd:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - skylex-net
+
+  skylex-agent-1:
+    image: skylex-agent:latest
+    build:
+      context: ..
+      dockerfile: deploy/docker-compose/Dockerfile.agent
+    container_name: skylex-agent-1
+    environment:
+      SKYLEX_SERVER_ADDR: "skylex-server:9090"
+      SKYLEX_AGENT_TOKEN: "${SKYLEX_AGENT_TOKEN:-dev-token}"
+    volumes:
+      - pg-data-1:/var/lib/postgresql/data
+    depends_on:
+      - skylex-server
+    restart: unless-stopped
+    networks:
+      - skylex-net
+
+  skylex-agent-2:
+    image: skylex-agent:latest
+    build:
+      context: ..
+      dockerfile: deploy/docker-compose/Dockerfile.agent
+    container_name: skylex-agent-2
+    environment:
+      SKYLEX_SERVER_ADDR: "skylex-server:9090"
+      SKYLEX_AGENT_TOKEN: "${SKYLEX_AGENT_TOKEN:-dev-token}"
+    volumes:
+      - pg-data-2:/var/lib/postgresql/data
+    depends_on:
+      - skylex-server
+    restart: unless-stopped
+    networks:
+      - skylex-net
+
+  skylex-agent-3:
+    image: skylex-agent:latest
+    build:
+      context: ..
+      dockerfile: deploy/docker-compose/Dockerfile.agent
+    container_name: skylex-agent-3
+    environment:
+      SKYLEX_SERVER_ADDR: "skylex-server:9090"
+      SKYLEX_AGENT_TOKEN: "${SKYLEX_AGENT_TOKEN:-dev-token}"
+    volumes:
+      - pg-data-3:/var/lib/postgresql/data
+    depends_on:
+      - skylex-server
+    restart: unless-stopped
+    networks:
+      - skylex-net
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.14
+    container_name: skylex-etcd
+    command:
+      - etcd
+      - --name=etcd1
+      - --data-dir=/etcd-data
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --initial-advertise-peer-urls=http://etcd:2380
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-cluster=etcd1=http://etcd:2380
+    volumes:
+      - etcd-data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skylex-net
+
+  minio:
+    image: minio/minio:RELEASE.2024-01-01T00-00-00Z
+    container_name: skylex-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skylex-net
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: skylex-minio-init
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add skylex http://minio:9000 minioadmin minioadmin) do sleep 1; done;
+      /usr/bin/mc mb --ignore-existing skylex/skylex-backups;
+      exit 0;
+      "
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - skylex-net
+
+volumes:
+  skylex-data:
+  pg-data-1:
+  pg-data-2:
+  pg-data-3:
+  etcd-data:
+  minio-data:
+
+networks:
+  skylex-net:
+    driver: bridge

@@ -1,0 +1,49 @@
+# Skylex Control Plane Configuration
+
+server:
+  listen_addr: "0.0.0.0"
+  grpc_port: 9090
+  http_port: 8080
+  metrics_port: 9091
+
+database:
+  driver: sqlite3
+  dsn: "file:skylex.db?_journal_mode=WAL&_foreign_keys=on"
+
+etcd:
+  endpoints:
+    - "localhost:2379"
+  dial_timeout: 5s
+  username: ""
+  password: ""
+
+backup:
+  pgbackrest_path: "/usr/bin/pgbackrest"
+  default_storage: "s3"
+
+agent:
+  heartbeat_interval: 10s
+  heartbeat_timeout: 30s
+
+auth:
+  jwt_secret: ""
+  token_expiry: 24h
+  refresh_expiry: 168h
+
+logging:
+  level: info
+  format: json
+  output: stdout
+
+tls:
+  enabled: false
+  cert_file: ""
+  key_file: ""
+  ca_file: ""
+
+postgres:
+  default_version: "16"
+  default_data_dir: "/var/lib/postgresql/data"
+  default_port: 5432
+  superuser: "postgres"
+  replication_user: "replicator"

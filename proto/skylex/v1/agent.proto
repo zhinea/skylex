@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package skylex.v1;
+
+import "skylex/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+service AgentService {
+  rpc RegisterAgent(RegisterAgentRequest) returns (RegisterAgentResponse);
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  rpc ReportStatus(ReportStatusRequest) returns (ReportStatusResponse);
+  rpc FetchCommand(FetchCommandRequest) returns (FetchCommandResponse);
+  rpc ReportCommandResult(ReportCommandResultRequest) returns (ReportCommandResultResponse);
+}
+
+message RegisterAgentRequest {
+  string agent_token = 1;
+  string hostname = 2;
+  string address = 3;
+  int32 port = 4;
+  string agent_version = 5;
+  map<string, string> labels = 6;
+}
+
+message RegisterAgentResponse {
+  string agent_id = 1;
+}
+
+message HeartbeatRequest {
+  string agent_id = 1;
+  string node_id = 2;
+  NodeRole current_role = 3;
+}
+
+message HeartbeatResponse {}
+
+message NodeStatusReport {
+  string node_id = 1;
+  bool postgres_running = 2;
+  string postgres_version = 3;
+  string replication_lag_bytes = 4;
+  string replication_lag_seconds = 5;
+  int64 wal_position = 6;
+  int64 disk_used_bytes = 7;
+  int64 disk_total_bytes = 8;
+}
+
+message ReportStatusRequest {
+  string agent_id = 1;
+  repeated NodeStatusReport node_statuses = 2;
+}
+
+message ReportStatusResponse {}
+
+message AgentCommand {
+  string id = 1;
+  string node_id = 2;
+  string action = 3;
+  string payload = 4;
+}
+
+message FetchCommandRequest {
+  string agent_id = 1;
+}
+
+message FetchCommandResponse {
+  repeated AgentCommand commands = 1;
+}
+
+message ReportCommandResultRequest {
+  string agent_id = 1;
+  string command_id = 2;
+  bool success = 3;
+  string output = 4;
+  string error = 5;
+}
+
+message ReportCommandResultResponse {}

@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package skylex.v1;
+
+import "google/protobuf/timestamp.proto";
+
+enum BackupType {
+  BACKUP_TYPE_UNSPECIFIED = 0;
+  BACKUP_TYPE_FULL = 1;
+  BACKUP_TYPE_INCREMENTAL = 2;
+  BACKUP_TYPE_DIFFERENTIAL = 3;
+}
+
+enum BackupStatus {
+  BACKUP_STATUS_UNSPECIFIED = 0;
+  BACKUP_STATUS_RUNNING = 1;
+  BACKUP_STATUS_COMPLETED = 2;
+  BACKUP_STATUS_FAILED = 3;
+}
+
+enum RestoreStatus {
+  RESTORE_STATUS_UNSPECIFIED = 0;
+  RESTORE_STATUS_RUNNING = 1;
+  RESTORE_STATUS_COMPLETED = 2;
+  RESTORE_STATUS_FAILED = 3;
+}
+
+message Backup {
+  string id = 1;
+  string cluster_id = 2;
+  string node_id = 3;
+  BackupType type = 4;
+  string storage_path = 5;
+  string wal_start = 6;
+  string wal_stop = 7;
+  string lsn = 8;
+  int64 size_bytes = 9;
+  BackupStatus status = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp completed_at = 12;
+}
+
+message RestoreJob {
+  string id = 1;
+  string cluster_id = 2;
+  string backup_id = 3;
+  google.protobuf.Timestamp target_time = 4;
+  string target_lsn = 5;
+  string target_node = 6;
+  RestoreStatus status = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp completed_at = 9;
+}
+
+message BackupSchedule {
+  string id = 1;
+  string cluster_id = 2;
+  string cron = 3;
+  BackupType type = 4;
+  int32 retention_count = 5;
+  int32 retention_days = 6;
+  string storage_config_id = 7;
+  bool enabled = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+service BackupService {
+  rpc CreateBackup(CreateBackupRequest) returns (CreateBackupResponse);
+  rpc ListBackups(ListBackupsRequest) returns (ListBackupsResponse);
+  rpc GetBackup(GetBackupRequest) returns (GetBackupResponse);
+  rpc DeleteBackup(DeleteBackupRequest) returns (DeleteBackupResponse);
+  rpc CreateRestoreJob(CreateRestoreJobRequest) returns (CreateRestoreJobResponse);
+  rpc ListRestoreJobs(ListRestoreJobsRequest) returns (ListRestoreJobsResponse);
+}
+
+message CreateBackupRequest {
+  string cluster_id = 1;
+  BackupType type = 2;
+}
+
+message CreateBackupResponse {
+  Backup backup = 1;
+}
+
+message ListBackupsRequest {
+  string cluster_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListBackupsResponse {
+  repeated Backup backups = 1;
+  Pagination pagination = 2;
+}
+
+message GetBackupRequest {
+  string id = 1;
+}
+
+message GetBackupResponse {
+  Backup backup = 1;
+}
+
+message DeleteBackupRequest {
+  string id = 1;
+}
+
+message DeleteBackupResponse {}
+
+message CreateRestoreJobRequest {
+  string cluster_id = 1;
+  string backup_id = 2;
+  google.protobuf.Timestamp target_time = 3;
+  string target_lsn = 4;
+  string target_node = 5;
+}
+
+message CreateRestoreJobResponse {
+  RestoreJob restore_job = 1;
+}
+
+message ListRestoreJobsRequest {
+  string cluster_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message ListRestoreJobsResponse {
+  repeated RestoreJob restore_jobs = 1;
+  Pagination pagination = 2;
+}
+
+service ScheduleService {
+  rpc CreateSchedule(CreateScheduleRequest) returns (CreateScheduleResponse);
+  rpc ListSchedules(ListSchedulesRequest) returns (ListSchedulesResponse);
+  rpc UpdateSchedule(UpdateScheduleRequest) returns (UpdateScheduleResponse);
+  rpc DeleteSchedule(DeleteScheduleRequest) returns (DeleteScheduleResponse);
+}
+
+message CreateScheduleRequest {
+  string cluster_id = 1;
+  string cron = 2;
+  BackupType type = 3;
+  int32 retention_count = 4;
+  int32 retention_days = 5;
+  string storage_config_id = 6;
+}
+
+message CreateScheduleResponse {
+  BackupSchedule schedule = 1;
+}
+
+message ListSchedulesRequest {
+  string cluster_id = 1;
+}
+
+message ListSchedulesResponse {
+  repeated BackupSchedule schedules = 1;
+}
+
+message UpdateScheduleRequest {
+  string id = 1;
+  string cron = 2;
+  BackupType type = 3;
+  int32 retention_count = 4;
+  int32 retention_days = 5;
+  string storage_config_id = 6;
+  bool enabled = 7;
+}
+
+message UpdateScheduleResponse {
+  BackupSchedule schedule = 1;
+}
+
+message DeleteScheduleRequest {
+  string id = 1;
+}
+
+message DeleteScheduleResponse {}
