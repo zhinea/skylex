@@ -1,0 +1,121 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "kilo.json",
+      "file_type": "code",
+      "source_file": ".kilo/kilo.json",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "kilo_kilo",
+      "community": 0,
+      "norm_label": "kilo.json"
+    },
+    {
+      "label": "$schema",
+      "file_type": "code",
+      "source_file": ".kilo/kilo.json",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "kilo_kilo_schema",
+      "community": 0,
+      "norm_label": "$schema"
+    },
+    {
+      "label": "plugin",
+      "file_type": "code",
+      "source_file": ".kilo/kilo.json",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "kilo_kilo_plugin",
+      "community": 0,
+      "norm_label": "plugin"
+    },
+    {
+      "label": "graphify.js",
+      "file_type": "code",
+      "source_file": ".kilo/plugins/graphify.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plugins_graphify",
+      "community": 2,
+      "norm_label": "graphify.js"
+    },
+    {
+      "label": "GraphifyPlugin()",
+      "file_type": "code",
+      "source_file": ".kilo/plugins/graphify.js",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "plugins_graphify_graphifyplugin",
+      "community": 2,
+      "norm_label": "graphifyplugin()"
+    },
+    {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 1,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_graphify",
+      "community": 1,
+      "norm_label": "graphify"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".kilo/kilo.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "kilo_kilo",
+      "target": "kilo_kilo_plugin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".kilo/kilo.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "kilo_kilo",
+      "target": "kilo_kilo_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".kilo/plugins/graphify.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "plugins_graphify",
+      "target": "plugins_graphify_graphifyplugin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "agents",
+      "target": "agents_graphify",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "2cdc1adc23a1f80762d1794dc9fbb48724ccaf0c"
+}

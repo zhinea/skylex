@@ -1,0 +1,8 @@
+bin
+.vite
+dist
+node_modules
+*.log
+*.env
+.env.local
+.env
