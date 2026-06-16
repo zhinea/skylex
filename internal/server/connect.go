@@ -518,6 +518,7 @@ func extractHTTPAuth(r *http.Request, srv *Server) (userID, userRole, userEmail 
 	authHeader := r.Header.Get("Authorization")
 
 	if authHeader == "" {
+		srv.log.Warn("connect auth: missing authorization header", "path", r.URL.Path)
 		return "", "", "", fmt.Errorf("missing authorization header")
 	}
 
@@ -525,10 +526,12 @@ func extractHTTPAuth(r *http.Request, srv *Server) (userID, userRole, userEmail 
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 		claims, err := srv.jwtManager.ValidateToken(token)
 		if err != nil {
+			srv.log.Warn("connect auth: invalid bearer token", "path", r.URL.Path, "error", err)
 			return "", "", "", fmt.Errorf("invalid bearer token: %w", err)
 		}
 		return claims.UserID, string(claims.Role), claims.Email, nil
 	}
 
+	srv.log.Warn("connect auth: unsupported auth scheme", "path", r.URL.Path, "header", authHeader[:20])
 	return "", "", "", fmt.Errorf("unsupported auth scheme")
 }

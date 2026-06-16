@@ -26,6 +26,10 @@ class ApiError extends Error {
 }
 
 async function request<T>(path: string, body: unknown): Promise<T> {
+  if (typeof window === "undefined") {
+    throw new ApiError("Cannot make API requests during SSR", "ssr", 0);
+  }
+
   const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -44,6 +48,12 @@ async function request<T>(path: string, body: unknown): Promise<T> {
   const data = await res.json();
 
   if (!res.ok) {
+    if (res.status === 401) {
+      clearToken();
+      localStorage.removeItem("skylex_refresh_token");
+      window.location.href = "/login";
+      throw new ApiError("Session expired", "unauthenticated", 401);
+    }
     throw new ApiError(data.message || "Request failed", data.code || "unknown", res.status);
   }
 

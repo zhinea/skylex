@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from "react-router";
+import { useEffect } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import { useAuth } from "~/lib/auth";
 
 const navItems = [
@@ -12,7 +13,18 @@ const navItems = [
 ];
 
 export default function DashboardLayout() {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">

@@ -34,17 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   const login = useCallback(async (email: string, password: string) => {
-    const data = await api.post<{
-      accessToken: string;
-      refreshToken: string;
-      user: User;
-    }>("/skylex.v1.AuthService/Login", { email, password });
+    const data = (await api.post("/skylex.v1.AuthService/Login", { email, password })) as Record<string, unknown>;
 
-    setToken(data.accessToken);
-    localStorage.setItem("skylex_refresh_token", data.refreshToken);
-    setAccessToken(data.accessToken);
-    setRefreshToken(data.refreshToken);
-    setUser(data.user);
+    const accessTokenVal = (data.accessToken || data.access_token) as string;
+    const refreshTokenVal = (data.refreshToken || data.refresh_token) as string;
+    const userVal = data.user as User | undefined;
+
+    if (!accessTokenVal || !userVal) {
+      throw new Error("Invalid login response from server");
+    }
+
+    setToken(accessTokenVal);
+    if (refreshTokenVal) {
+      localStorage.setItem("skylex_refresh_token", refreshTokenVal);
+    }
+    setAccessToken(accessTokenVal);
+    setRefreshToken(refreshTokenVal || null);
+    setUser(userVal);
     navigate("/");
   }, [navigate]);
 

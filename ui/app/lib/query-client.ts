@@ -1,18 +1,25 @@
 import { QueryClient } from "@tanstack/react-query";
 
-let queryClient: QueryClient | null = null;
-
-export function getQueryClient(): QueryClient {
-  if (!queryClient) {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          staleTime: 30_000,
-          retry: 1,
-          refetchOnWindowFocus: false,
-        },
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 30_000,
+        retry: 1,
+        refetchOnWindowFocus: false,
       },
-    });
+    },
+  });
+}
+
+let browserQueryClient: QueryClient | undefined;
+
+export function getQueryClient() {
+  if (typeof window === "undefined") {
+    return makeQueryClient();
   }
-  return queryClient;
+  if (!browserQueryClient) {
+    browserQueryClient = makeQueryClient();
+  }
+  return browserQueryClient;
 }
