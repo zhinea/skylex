@@ -1,16 +1,16 @@
 # Graph Report - skylex  (2026-06-16)
 
 ## Corpus Check
-- 129 files · ~71,437 words
+- 110 files · ~61,888 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2536 nodes · 4659 edges · 146 communities (94 shown, 52 thin omitted)
+- 2406 nodes · 4379 edges · 143 communities (91 shown, 52 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 126 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `52bc6a14`
+- Built from commit: `85a675e7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -126,11 +126,9 @@
 - [[_COMMUNITY_Newlogger Components|Newlogger Components]]
 - [[_COMMUNITY_Kilo Json|Kilo Json]]
 - [[_COMMUNITY_React UI Frontend|React UI Frontend]]
-- [[_COMMUNITY_React UI Frontend|React UI Frontend]]
 - [[_COMMUNITY_Audit Tsx|Audit Tsx]]
 - [[_COMMUNITY_Backups Tsx|Backups Tsx]]
 - [[_COMMUNITY_Clusters Tsx|Clusters Tsx]]
-- [[_COMMUNITY_Cluster gRPC Service|Cluster gRPC Service]]
 - [[_COMMUNITY_Clusters Tsx|Clusters Tsx]]
 - [[_COMMUNITY_Settings Tsx|Settings Tsx]]
 - [[_COMMUNITY_Storage Tsx|Storage Tsx]]
@@ -140,7 +138,6 @@
 - [[_COMMUNITY_React UI Frontend|React UI Frontend]]
 - [[_COMMUNITY_Node Data|Node Data]]
 - [[_COMMUNITY_Graphify Components|Graphify Components]]
-- [[_COMMUNITY_Community 135|Community 135]]
 - [[_COMMUNITY_Community 136|Community 136]]
 - [[_COMMUNITY_Community 137|Community 137]]
 - [[_COMMUNITY_Community 138|Community 138]]
@@ -155,15 +152,15 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `Rebind()` - 60 edges
-2. `Context` - 37 edges
-3. `Request` - 37 edges
-4. `Context` - 36 edges
-5. `Response` - 35 edges
-6. `Backup` - 30 edges
-7. `Context` - 30 edges
-8. `Server` - 29 edges
-9. `BackupSchedule` - 27 edges
-10. `file_skylex_v1_backup_proto_rawDescGZIP()` - 27 edges
+2. `Context` - 36 edges
+3. `Backup` - 30 edges
+4. `Context` - 30 edges
+5. `Server` - 29 edges
+6. `BackupSchedule` - 27 edges
+7. `file_skylex_v1_backup_proto_rawDescGZIP()` - 27 edges
+8. `AuthServiceClient` - 27 edges
+9. `ClusterServiceClient` - 27 edges
+10. `file_skylex_v1_cluster_proto_rawDescGZIP()` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `React Router Template` --semantically_similar_to--> `Frontend Stack (Vite + React Router 7 + Tailwind CSS)`  [INFERRED] [semantically similar]
@@ -185,11 +182,11 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (146 total, 52 thin omitted)
+## Communities (143 total, 52 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.05
-Nodes (53): ClientConnInterface, Context, CreateBackupRequest, CreateBackupResponse, CreateRestoreJobRequest, CreateRestoreJobResponse, CreateScheduleRequest, CreateScheduleResponse (+45 more)
+Nodes (52): ClientConnInterface, Context, CreateBackupRequest, CreateBackupResponse, CreateRestoreJobRequest, CreateRestoreJobResponse, CreateScheduleRequest, CreateScheduleResponse (+44 more)
 
 ### Community 1 - "Cluster gRPC Service"
 Cohesion: 0.05
@@ -228,8 +225,8 @@ Cohesion: 0.11
 Nodes (25): ClientConnInterface, Context, CreateStorageConfigRequest, CreateStorageConfigResponse, DeleteStorageConfigRequest, DeleteStorageConfigResponse, GetStorageConfigRequest, GetStorageConfigResponse (+17 more)
 
 ### Community 10 - "Cluster gRPC Service"
-Cohesion: 0.07
-Nodes (32): CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest, DeleteClusterResponse, FailoverClusterRequest, FailoverClusterResponse, GetClusterRequest, GetClusterResponse (+24 more)
+Cohesion: 0.11
+Nodes (21): Time, AgentCommandRepository, Cluster, ClusterRepository, Context, FailoverEngine, Logger, NodeRepository (+13 more)
 
 ### Community 11 - "Backup gRPC Service"
 Cohesion: 0.15
@@ -320,12 +317,12 @@ Cohesion: 0.15
 Nodes (5): Context, Duration, Logger, Instance, New()
 
 ### Community 33 - "Node Repository"
-Cohesion: 0.11
-Nodes (19): DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, NodeService, AgentCommandRepository, Context, Logger (+11 more)
+Cohesion: 0.24
+Nodes (9): AgentCommandRepository, Context, Logger, Node, NodeRepository, NewNodeService(), nodeToProto(), NodeService (+1 more)
 
 ### Community 34 - "Storage gRPC Service"
-Cohesion: 0.06
-Nodes (39): CreateBackupRequest, CreateBackupResponse, CreateRestoreJobRequest, CreateRestoreJobResponse, CreateScheduleRequest, CreateScheduleResponse, CreateStorageConfigRequest, CreateStorageConfigResponse (+31 more)
+Cohesion: 0.31
+Nodes (4): App(), AuthProvider(), getQueryClient(), makeQueryClient()
 
 ### Community 35 - "Cluster gRPC Service"
 Cohesion: 0.20
@@ -425,11 +422,11 @@ Nodes (6): Config, DefaultConfig(), NewLogger(), main(), Duration, Logger
 
 ### Community 89 - "Config Close"
 Cohesion: 0.06
-Nodes (29): AgentService, AuditInterceptor, AuditRepository, AuthInterceptor, main(), tokenAuth, CancelFunc, Context (+21 more)
+Nodes (30): AgentService, AuditInterceptor, AuditRepository, AuthInterceptor, main(), tokenAuth, CancelFunc, Context (+22 more)
 
 ### Community 103 - "Root Tsx"
-Cohesion: 0.12
-Nodes (15): App(), DashboardLayout(), navItems, ApiError, clearToken(), getToken(), request(), setToken() (+7 more)
+Cohesion: 0.15
+Nodes (15): Pagination, User, DashboardLayout(), navItems, api, ApiError, clearToken(), getToken() (+7 more)
 
 ### Community 105 - "Auth Repository"
 Cohesion: 0.80
@@ -443,49 +440,37 @@ Nodes (3): Time, AuditAction, AuditLog
 Cohesion: 0.40
 Nodes (5): Config, Context, TLSConfig, LoadClientTLSCredentials(), LoadTLSCredentials()
 
-### Community 111 - "React UI Frontend"
-Cohesion: 0.33
-Nodes (7): Handler, Server, auditListRequest, connectInterceptors(), extractHTTPAuth(), isUnauthenticated(), isWriteMethod()
-
 ### Community 112 - "Audit Tsx"
-Cohesion: 0.27
-Nodes (6): PageSpinner(), AuditEntry, AuditResponse, Pagination, useAuditLogs(), AuditPage()
+Cohesion: 0.38
+Nodes (5): AuditEntry, AuditResponse, Pagination, useAuditLogs(), AuditPage()
 
 ### Community 113 - "Backups Tsx"
-Cohesion: 0.25
-Nodes (10): Backup, BackupSchedule, Pagination, RestoreJob, useBackups(), useCreateBackup(), useCreateRestoreJob(), useDeleteBackup() (+2 more)
+Cohesion: 0.21
+Nodes (12): Backup, BackupSchedule, Pagination, RestoreJob, useBackups(), useCreateBackup(), useCreateRestoreJob(), useDeleteBackup() (+4 more)
 
 ### Community 114 - "Clusters Tsx"
-Cohesion: 0.25
-Nodes (11): Card(), Cluster, ClusterConfig, Pagination, useClusters(), useCreateCluster(), useDeleteCluster(), useFailoverCluster() (+3 more)
-
-### Community 115 - "Cluster gRPC Service"
-Cohesion: 0.48
-Nodes (7): Time, Cluster, ClusterStatus, Node, NodeRole, NodeStatus, ReplicationMode
+Cohesion: 0.27
+Nodes (8): Cluster, ClusterConfig, Pagination, useCreateCluster(), useDeleteCluster(), useFailoverCluster(), ClustersPage(), CreateClusterPage()
 
 ### Community 116 - "Clusters Tsx"
-Cohesion: 0.28
-Nodes (9): Badge(), statusColors, useCluster(), Node, Pagination, useDrainNode(), useNodes(), ClusterDetailPage() (+1 more)
+Cohesion: 0.33
+Nodes (7): useCluster(), Node, Pagination, useDrainNode(), useNodes(), ClusterDetailPage(), NodesPage()
 
 ### Community 121 - "Settings Tsx"
 Cohesion: 0.33
-Nodes (6): Modal(), Pagination, User, useUsers(), api, SettingsPage()
+Nodes (7): Badge(), statusColors, Card(), ConfirmDialog(), PageSpinner(), useUsers(), SettingsPage()
 
 ### Community 122 - "Storage Tsx"
 Cohesion: 0.36
-Nodes (7): ConfirmDialog(), Pagination, StorageConfig, useCreateStorageConfig(), useDeleteStorageConfig(), useStorageConfigs(), StoragePage()
+Nodes (7): Modal(), Pagination, StorageConfig, useCreateStorageConfig(), useDeleteStorageConfig(), useStorageConfigs(), StoragePage()
 
 ### Community 130 - "Graphify Components"
 Cohesion: 0.17
 Nodes (11): Configuration, Database and migrations, Developer commands, Docker Compose reference stack, graphify, Important conventions, Project layout, Protocol buffers and generated code (+3 more)
 
-### Community 135 - "Community 135"
-Cohesion: 0.07
-Nodes (33): AgentTokenRepository, Config, CreateAPIKeyRequest, CreateAPIKeyResponse, CreateUserRequest, CreateUserResponse, DeleteAPIKeyRequest, DeleteAPIKeyResponse (+25 more)
-
 ### Community 136 - "Community 136"
-Cohesion: 0.11
-Nodes (23): AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, APIKeyRepository, Context, JWTManager (+15 more)
+Cohesion: 0.07
+Nodes (37): AgentTokenRepository, AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, APIKeyRepository, Context (+29 more)
 
 ### Community 137 - "Community 137"
 Cohesion: 0.11
@@ -528,7 +513,7 @@ Cohesion: 0.23
 Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
 
 ## Knowledge Gaps
-- **365 isolated node(s):** `Handler`, `AuthService`, `ClusterService`, `NodeService`, `StorageService` (+360 more)
+- **328 isolated node(s):** `navItems`, `User`, `AuthState`, `AuthContext`, `GRPCServer` (+323 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -536,15 +521,15 @@ Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, J
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.381) - this node is a cross-community bridge._
+  _High betweenness centrality (0.342) - this node is a cross-community bridge._
 - **Why does `NodeStatusReport` connect `Agent gRPC Protocol` to `Agent gRPC Protocol`, `Protobuf Message Types`, `Protobuf Message Types`, `Agent gRPC Protocol`, `Agent gRPC Protocol`?**
-  _High betweenness centrality (0.304) - this node is a cross-community bridge._
+  _High betweenness centrality (0.265) - this node is a cross-community bridge._
 - **Are the 59 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.ListPending()`) actually correct?**
   _`Rebind()` has 59 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Handler`, `AuthService`, `ClusterService` to the rest of the system?**
-  _366 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `navItems`, `User`, `AuthState` to the rest of the system?**
+  _329 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
-  _Cohesion score 0.050617283950617285 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05126582278481013 - nodes in this community are weakly interconnected._
 - **Should `Cluster gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.05308641975308642 - nodes in this community are weakly interconnected._
 - **Should `Cluster gRPC Service` be split into smaller, more focused modules?**

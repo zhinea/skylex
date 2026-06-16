@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781567421.7950027,
-    "ast_hash": "8f655681936967ba1fa59779f984932f",
+    "mtime": 1781569428.2150447,
+    "ast_hash": "44718c2bddb7ab85ab4a825c18bfe204",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -260,8 +260,8 @@
     "semantic_hash": ""
   },
   "internal/server/server.go": {
-    "mtime": 1781566116.257884,
-    "ast_hash": "76c10c80f9f0272a9f192c573d691296",
+    "mtime": 1781569864.529318,
+    "ast_hash": "df91985e0f9920f2792d673ace5efbdd",
     "semantic_hash": ""
   },
   "internal/server/storage_service.go": {
@@ -270,14 +270,14 @@
     "semantic_hash": "1defaff37e4f5b9cb54ade1bffd1fa01"
   },
   "ui/app/layouts/dashboard.tsx": {
-    "mtime": 1781559445.7191453,
-    "ast_hash": "d3fe4f95d5d6a6c85a3e580a11f45d87",
-    "semantic_hash": "d3fe4f95d5d6a6c85a3e580a11f45d87"
+    "mtime": 1781570155.912438,
+    "ast_hash": "c67f91ad61b4fcb6492304c284297b21",
+    "semantic_hash": ""
   },
   "ui/app/root.tsx": {
-    "mtime": 1781559445.7191453,
-    "ast_hash": "f4b82b77f74cc4d8956c392738190290",
-    "semantic_hash": "f4b82b77f74cc4d8956c392738190290"
+    "mtime": 1781570137.622881,
+    "ast_hash": "6c9d50fe54876c8ae55ed02a66121a16",
+    "semantic_hash": ""
   },
   "ui/app/routes.ts": {
     "mtime": 1781559445.7191453,
@@ -285,64 +285,64 @@
     "semantic_hash": "a87e71b615775b69f91907d980447f87"
   },
   "ui/app/routes/audit.tsx": {
-    "mtime": 1781559445.7217414,
-    "ast_hash": "6fde9e167a87bf520f84bee77b8fcaf1",
-    "semantic_hash": "6fde9e167a87bf520f84bee77b8fcaf1"
+    "mtime": 1781570557.9971254,
+    "ast_hash": "ac5d77200bcc5bc536f3872046af1c99",
+    "semantic_hash": ""
   },
   "ui/app/routes/backups.tsx": {
-    "mtime": 1781559445.7217414,
-    "ast_hash": "4f91a0858c24c72f64bd3270ba16b8ae",
-    "semantic_hash": "4f91a0858c24c72f64bd3270ba16b8ae"
+    "mtime": 1781570303.26934,
+    "ast_hash": "40459113dbbd94dc7af436cb6d10e73e",
+    "semantic_hash": ""
   },
   "ui/app/routes/clusters.$id.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "b7ab1a56e725aac67b3a2f29c5e88135",
-    "semantic_hash": "b7ab1a56e725aac67b3a2f29c5e88135"
+    "mtime": 1781570261.3317568,
+    "ast_hash": "af7a9e8fdb87ab85796cec1a36826a5a",
+    "semantic_hash": ""
   },
   "ui/app/routes/clusters.create.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "5b4732d3f434d9525e9ce03aacfc8577",
-    "semantic_hash": "5b4732d3f434d9525e9ce03aacfc8577"
+    "mtime": 1781570240.7069216,
+    "ast_hash": "c5276a8e698e67eeddfe2fabd1b99309",
+    "semantic_hash": ""
   },
   "ui/app/routes/clusters.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "0a5e79dea502992f7d9a71119997b6de",
-    "semantic_hash": "0a5e79dea502992f7d9a71119997b6de"
+    "mtime": 1781570220.276702,
+    "ast_hash": "34a402005fbfbecc5d7fbe16f6d350d0",
+    "semantic_hash": ""
   },
   "ui/app/routes/dashboard.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "c9356d83a8913683faf1489ee5154570",
-    "semantic_hash": "c9356d83a8913683faf1489ee5154570"
+    "mtime": 1781570191.5541513,
+    "ast_hash": "b1fb6cae5eb20eaac19af83bbb6543bc",
+    "semantic_hash": ""
   },
   "ui/app/routes/login.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "cc0ec78119e13b28c3668c4b030fd616",
-    "semantic_hash": "cc0ec78119e13b28c3668c4b030fd616"
+    "mtime": 1781570174.1223173,
+    "ast_hash": "37f9744d92ccf7bafe59cafd9aecbd85",
+    "semantic_hash": ""
   },
   "ui/app/routes/nodes.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "17c63acc79a35dd13a9020ca9243792b",
-    "semantic_hash": "17c63acc79a35dd13a9020ca9243792b"
+    "mtime": 1781570284.8473058,
+    "ast_hash": "48ed96782f8d461b0c563de7784b0bbd",
+    "semantic_hash": ""
   },
   "ui/app/routes/restore.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "d87bfb33216469b52feace8dae3f22a4",
-    "semantic_hash": "d87bfb33216469b52feace8dae3f22a4"
+    "mtime": 1781570322.786937,
+    "ast_hash": "d75a25241093fe00ccfb68cc16ef6d2e",
+    "semantic_hash": ""
   },
   "ui/app/routes/settings.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "3f152ea0f2df592ac080e8d7df533c80",
-    "semantic_hash": "3f152ea0f2df592ac080e8d7df533c80"
+    "mtime": 1781570385.3631294,
+    "ast_hash": "765c5edcae42f66624241b311d753da4",
+    "semantic_hash": ""
   },
   "ui/app/routes/storage.tsx": {
-    "mtime": 1781559445.722046,
-    "ast_hash": "cea3b8d1bb9b0e67ca9588164963756d",
-    "semantic_hash": "cea3b8d1bb9b0e67ca9588164963756d"
+    "mtime": 1781570360.1454122,
+    "ast_hash": "c2924306ce74b506d551369ed9a3255c",
+    "semantic_hash": ""
   },
   "ui/package.json": {
-    "mtime": 1781559445.723444,
-    "ast_hash": "f03f7cdeb0892be7e1cc1ad4b3b4ddc1",
-    "semantic_hash": "f03f7cdeb0892be7e1cc1ad4b3b4ddc1"
+    "mtime": 1781569974.5232365,
+    "ast_hash": "cd4998c3ce72492599665affc62086f7",
+    "semantic_hash": ""
   },
   "ui/react-router.config.ts": {
     "mtime": 1781559445.72376,
@@ -355,9 +355,9 @@
     "semantic_hash": "11267f3797774e3032c93a934b1a3bd1"
   },
   "ui/vite.config.ts": {
-    "mtime": 1781559445.7239623,
-    "ast_hash": "884386922abc8e8141a7ef050ef15af2",
-    "semantic_hash": "884386922abc8e8141a7ef050ef15af2"
+    "mtime": 1781570417.1751635,
+    "ast_hash": "0a737b9fe3766f53e55efdd05a57da19",
+    "semantic_hash": ""
   },
   ".kilo/plans/skylex-db-control-plane-plan.md": {
     "mtime": 1781559445.6722112,
@@ -385,8 +385,8 @@
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.yaml": {
-    "mtime": 1781567442.9336867,
-    "ast_hash": "c39eac783046401d80cbc07cbda67daf",
+    "mtime": 1781571498.583698,
+    "ast_hash": "219e03cfdc306f9723df666e13e79ec5",
     "semantic_hash": ""
   },
   "ui/README.md": {
@@ -517,6 +517,176 @@
   "implemented/phase-5-packaging-scale.md": {
     "mtime": 1781566710.8194213,
     "ast_hash": "ffaee878c305202e6ef9b45eef21f1ba",
+    "semantic_hash": ""
+  },
+  "internal/server/connect.go": {
+    "mtime": 1781570517.5631006,
+    "ast_hash": "d756af57323ba01751ef64f2fb7e3c41",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/+future.ts": {
+    "mtime": 1781570644.2685292,
+    "ast_hash": "c40c27a89fe2bfb5c932e43b56408c5e",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/+routes.ts": {
+    "mtime": 1781570644.2700672,
+    "ast_hash": "3e1136465aba78740bc3f6ce223ec43e",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/+server-build.d.ts": {
+    "mtime": 1781570644.2685292,
+    "ast_hash": "feb059bd8a13e59965da5ed7f19ac4ff",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/+types/root.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "be2dbb5fac580743e65bc9134fe35a71",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/layouts/+types/dashboard.ts": {
+    "mtime": 1781570644.2709658,
+    "ast_hash": "62bd86419d17344f5e191c25785c45e4",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/audit.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "9c3274db5ff4e951085134cc7bccd35b",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/backups.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "c144b9280a2b3f2ce03c39253fabb078",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/clusters.$id.ts": {
+    "mtime": 1781570644.271543,
+    "ast_hash": "179cb8cf0f3110829ccaded493b01833",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/clusters.create.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "af2cf528a3babf09dfb618ac48aeca53",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/clusters.ts": {
+    "mtime": 1781570644.271543,
+    "ast_hash": "653618381537a0fb4ffffea5da33574e",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/dashboard.ts": {
+    "mtime": 1781570644.275189,
+    "ast_hash": "352d3d82b9b8d58ac0e6035df727c532",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/login.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "e3d69a3a3327a82e5473bdfd0bfb76bd",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/nodes.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "fe31755e34048a656f0441120af39589",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/restore.ts": {
+    "mtime": 1781570644.271543,
+    "ast_hash": "e78ca862cc9f426c17d7f9c54c6142c8",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/settings.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "ed1cf7166e2caa960e6e2d68648911e7",
+    "semantic_hash": ""
+  },
+  "ui/.react-router/types/app/routes/+types/storage.ts": {
+    "mtime": 1781570644.2729967,
+    "ast_hash": "0bd8aefee15d54a28eb887d9d8175809",
+    "semantic_hash": ""
+  },
+  "ui/app/components/Badge.tsx": {
+    "mtime": 1781570069.8409092,
+    "ast_hash": "195725cd54a38fc759283f5b9b955fad",
+    "semantic_hash": ""
+  },
+  "ui/app/components/Card.tsx": {
+    "mtime": 1781570073.5474892,
+    "ast_hash": "ca95ed2452a2c93fe20d98c4a3ae2e66",
+    "semantic_hash": ""
+  },
+  "ui/app/components/ConfirmDialog.tsx": {
+    "mtime": 1781570087.6619554,
+    "ast_hash": "1acc369be31a151ac2ba996e43c51682",
+    "semantic_hash": ""
+  },
+  "ui/app/components/EmptyState.tsx": {
+    "mtime": 1781570080.898034,
+    "ast_hash": "4b7d46bdce5c4943e6f31f68d9d6786d",
+    "semantic_hash": ""
+  },
+  "ui/app/components/Modal.tsx": {
+    "mtime": 1781570102.7874482,
+    "ast_hash": "aa9341f2c3a411fdcb5b7442fbd8ed44",
+    "semantic_hash": ""
+  },
+  "ui/app/components/Spinner.tsx": {
+    "mtime": 1781570077.6442904,
+    "ast_hash": "6df970df7ead9285b8598e2c9e27224d",
+    "semantic_hash": ""
+  },
+  "ui/app/components/StatCard.tsx": {
+    "mtime": 1781570090.9700882,
+    "ast_hash": "e8b598d5197ed03261933aa6c9770642",
+    "semantic_hash": ""
+  },
+  "ui/app/components/Table.tsx": {
+    "mtime": 1781570097.114767,
+    "ast_hash": "df15f6b02ec8f0801e18e4dd7db00b81",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useAuditLogs.ts": {
+    "mtime": 1781570537.2014527,
+    "ast_hash": "f3abd3f6ab7f6034cd6c81c3d1125842",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useBackups.ts": {
+    "mtime": 1781570038.722414,
+    "ast_hash": "2c524d008b0ca2c3439e8bd1084954b7",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useClusters.ts": {
+    "mtime": 1781570022.0864882,
+    "ast_hash": "a73e9d87f0cfb454566fd12b5c0daec2",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useNodes.ts": {
+    "mtime": 1781570027.3190794,
+    "ast_hash": "455e022c6f9cb039b2783b176de73cbd",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useStorage.ts": {
+    "mtime": 1781570048.6631181,
+    "ast_hash": "752c92f9a39d13e5f02688235f7ad890",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useUsers.ts": {
+    "mtime": 1781570041.8323197,
+    "ast_hash": "697834b3073bfe8c282533ff37b9cd54",
+    "semantic_hash": ""
+  },
+  "ui/app/lib/api.ts": {
+    "mtime": 1781569995.7649233,
+    "ast_hash": "9ff884e346f027bbef70e9d0c2df6296",
+    "semantic_hash": ""
+  },
+  "ui/app/lib/auth.tsx": {
+    "mtime": 1781570007.2030683,
+    "ast_hash": "4b8ace91466f6df8dce2c1115b7e69d7",
+    "semantic_hash": ""
+  },
+  "ui/app/lib/query-client.ts": {
+    "mtime": 1781569998.4820056,
+    "ast_hash": "1419e4396e666013b93a4bc9412e6183",
     "semantic_hash": ""
   }
 }
