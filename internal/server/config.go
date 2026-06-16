@@ -35,7 +35,7 @@ type ServerConfig struct {
 }
 
 type DatabaseConfig struct {
-	Driver          string        `koanf:"driver" validate:"required,oneof=sqlite3 postgres pgx"`
+	Driver          string        `koanf:"driver" validate:"required,oneof=sqlite sqlite3 postgres pgx"`
 	DSN             string        `koanf:"dsn" validate:"required"`
 	MaxOpenConns    int           `koanf:"max_open_conns"`
 	MaxIdleConns    int           `koanf:"max_idle_conns"`
@@ -139,7 +139,7 @@ func (c *Config) setDefaults() error {
 	}
 
 	if c.Database.Driver == "" {
-		c.Database.Driver = "sqlite3"
+		c.Database.Driver = "sqlite"
 	}
 
 	if c.Agent.HeartbeatInterval == 0 {

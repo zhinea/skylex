@@ -158,7 +158,7 @@ func (db *DB) migrate() error {
 
 func (db *DB) createMigrationsTable() error {
 	query := `CREATE TABLE IF NOT EXISTS schema_migrations (
-		version INTEGER PRIMARY KEY,
+		version TEXT PRIMARY KEY,
 		applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`
 	_, err := db.conn.Exec(Rebind(query))

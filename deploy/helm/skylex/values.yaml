@@ -38,7 +38,7 @@ server:
       enabled: false
 
 database:
-  driver: sqlite3
+  driver: sqlite
   dsn: "file:/var/lib/skylex/skylex.db?_journal_mode=WAL&_foreign_keys=on"
 
 etcd:

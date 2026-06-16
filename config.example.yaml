@@ -8,7 +8,7 @@ server:
 
 # SQLite (default) — embedded single-file database, no external dependencies
 database:
-  driver: sqlite3
+  driver: sqlite
   dsn: "file:skylex.db?_journal_mode=WAL&_foreign_keys=on"
 
 # Uncomment for PostgreSQL-backed metadata (production HA mode):
