@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781565489.4746165,
-    "ast_hash": "dea7b16682ceb48616301eb5bc344d17",
+    "mtime": 1781567421.7950027,
+    "ast_hash": "8f655681936967ba1fa59779f984932f",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -170,8 +170,8 @@
     "semantic_hash": ""
   },
   "internal/db/db.go": {
-    "mtime": 1781565790.7928917,
-    "ast_hash": "4e061be47e71785c725c3d0e0557902a",
+    "mtime": 1781567866.0134935,
+    "ast_hash": "e3358c33e68062aedf9fa9ccf1d199aa",
     "semantic_hash": ""
   },
   "internal/db/node_repo.go": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "internal/server/config.go": {
-    "mtime": 1781566112.2966177,
-    "ast_hash": "c37390fe30409d1b61ee63286ccca435",
+    "mtime": 1781567705.4807913,
+    "ast_hash": "f69140a8ff4ee9511980d92196104f0f",
     "semantic_hash": ""
   },
   "internal/server/grpc.go": {
@@ -380,13 +380,13 @@
     "semantic_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f"
   },
   "config.example.yaml": {
-    "mtime": 1781566159.8459167,
-    "ast_hash": "3a705699c62c6a1fde6a57d5fe5315e0",
+    "mtime": 1781567706.4070654,
+    "ast_hash": "8910a8bb5715c471c1dff43042b85e9e",
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.yaml": {
-    "mtime": 1781566262.376909,
-    "ast_hash": "13a503e562160e7f94ee35fb2b7b8ec4",
+    "mtime": 1781567442.9336867,
+    "ast_hash": "c39eac783046401d80cbc07cbda67daf",
     "semantic_hash": ""
   },
   "ui/README.md": {
@@ -510,8 +510,8 @@
     "semantic_hash": ""
   },
   "deploy/helm/skylex/values.yaml": {
-    "mtime": 1781566304.3846524,
-    "ast_hash": "45c8f3fd9e427a4cd34039e1ef801b8c",
+    "mtime": 1781567707.3858454,
+    "ast_hash": "bf420d7a4ff491150d03fb936dea41ff",
     "semantic_hash": ""
   },
   "implemented/phase-5-packaging-scale.md": {
