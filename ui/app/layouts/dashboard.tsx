@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router";
+import { useAuth } from "~/lib/auth";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: "□" },
@@ -11,6 +12,8 @@ const navItems = [
 ];
 
 export default function DashboardLayout() {
+  const { user, logout } = useAuth();
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -37,9 +40,20 @@ export default function DashboardLayout() {
           ))}
         </nav>
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Skylex v0.1.0
-          </div>
+          {user && (
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[140px]">
+                {user.email}
+              </span>
+              <button
+                onClick={logout}
+                className="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+          <div className="text-xs text-gray-500 dark:text-gray-400">Skylex v0.1.0</div>
         </div>
       </aside>
       <main className="flex-1 overflow-auto">

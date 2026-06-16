@@ -189,6 +189,10 @@ func (s *Server) Start(ctx context.Context) error {
 	})
 
 	g.Go(func() error {
+		return s.serveConnectHTTP(ctx)
+	})
+
+	g.Go(func() error {
 		return s.serveMetrics(ctx)
 	})
 

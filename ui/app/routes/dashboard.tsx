@@ -1,58 +1,91 @@
-import type { Route } from "./+types/dashboard";
+import { useClusters } from "~/hooks/useClusters";
+import { Badge } from "~/components/Badge";
+import { Card } from "~/components/Card";
+import { PageSpinner } from "~/components/Spinner";
 import { Link } from "react-router";
 
-export function meta({}: Route.MetaArgs) {
-  return [{ title: "Dashboard - Skylex" }];
-}
+export default function DashboardPage() {
+  const { data, isLoading } = useClusters(1, 100);
 
-export default function Dashboard() {
-  const stats = [
-    { label: "Clusters", value: "0", to: "/clusters", color: "bg-indigo-500" },
-    { label: "Nodes", value: "0", to: "/nodes", color: "bg-emerald-500" },
-    { label: "Backups", value: "0", to: "/backups", color: "bg-amber-500" },
-    { label: "Alerts", value: "0", to: "/audit", color: "bg-red-500" },
-  ];
+  if (isLoading) return <PageSpinner />;
+
+  const clusters = data?.clusters || [];
+  const totalClusters = data?.pagination?.total || clusters.length;
+  const healthyClusters = clusters.filter((c) => c.status === "HEALTHY").length;
+  const degradedClusters = clusters.filter((c) => c.status === "DEGRADED").length;
+  const failedClusters = clusters.filter((c) => c.status === "FAILED").length;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Dashboard
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat) => (
-          <Link
-            key={stat.label}
-            to={stat.to}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
-          >
-            <div className="flex items-center gap-4">
-              <div className={`w-3 h-3 rounded-full ${stat.color}`} />
-              <div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {stat.label}
-                </div>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Recent Events
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          No recent events. Get started by creating a cluster.
-        </p>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
         <Link
-          to="/clusters"
-          className="inline-block mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+          to="/clusters/create"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
           Create Cluster
         </Link>
       </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Clusters</dt>
+          <dd className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{totalClusters}</dd>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Healthy</dt>
+          <dd className="mt-1 text-3xl font-semibold text-green-600">{healthyClusters}</dd>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Degraded</dt>
+          <dd className="mt-1 text-3xl font-semibold text-yellow-600">{degradedClusters}</dd>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Failed</dt>
+          <dd className="mt-1 text-3xl font-semibold text-red-600">{failedClusters}</dd>
+        </div>
+      </div>
+
+      <Card title="Recent Clusters">
+        {clusters.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+            No clusters yet. Create your first cluster to get started.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Name</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Engine</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Status</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Replicas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clusters.slice(0, 10).map((c) => (
+                  <tr key={c.id} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="px-4 py-3">
+                      <Link to={`/clusters/${c.id}`} className="text-blue-600 hover:text-blue-800 dark:text-blue-400 font-medium">
+                        {c.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-gray-900 dark:text-white">
+                      {c.config?.engine || "POSTGRESQL"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge label={c.status} />
+                    </td>
+                    <td className="px-4 py-3 text-gray-900 dark:text-white">
+                      {c.config?.replicaCount || 0}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
