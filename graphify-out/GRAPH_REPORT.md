@@ -1,16 +1,16 @@
 # Graph Report - skylex  (2026-06-16)
 
 ## Corpus Check
-- 95 files · ~61,425 words
+- 95 files · ~61,433 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2384 nodes · 4224 edges · 148 communities (95 shown, 53 thin omitted)
+- 2384 nodes · 4224 edges · 150 communities (97 shown, 53 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 126 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2d0eb3ee`
+- Built from commit: `88436785`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -145,6 +145,8 @@
 - [[_COMMUNITY_Community 145|Community 145]]
 - [[_COMMUNITY_Community 146|Community 146]]
 - [[_COMMUNITY_Community 147|Community 147]]
+- [[_COMMUNITY_Community 148|Community 148]]
+- [[_COMMUNITY_Community 149|Community 149]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Rebind()` - 60 edges
@@ -178,7 +180,7 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (148 total, 53 thin omitted)
+## Communities (150 total, 53 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.05
@@ -313,8 +315,8 @@ Cohesion: 0.15
 Nodes (5): Context, Duration, Logger, Instance, New()
 
 ### Community 33 - "Node Repository"
-Cohesion: 0.06
-Nodes (33): Engine, NewEngine(), DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, BackupRepository, BackupType (+25 more)
+Cohesion: 0.13
+Nodes (17): DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, AgentCommandRepository, Context, Logger, Node (+9 more)
 
 ### Community 34 - "Storage gRPC Service"
 Cohesion: 0.10
@@ -488,8 +490,16 @@ Nodes (8): AgentTokenRepository, APIKeyRepository, JWTManager, Logger, UserRepos
 Cohesion: 0.67
 Nodes (3): Time, StorageConfig, StorageType
 
+### Community 148 - "Community 148"
+Cohesion: 0.24
+Nodes (9): Engine, NewEngine(), BackupRepository, BackupType, Context, Logger, PgBackRest, StorageConfigRepository (+1 more)
+
+### Community 149 - "Community 149"
+Cohesion: 0.23
+Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
+
 ## Knowledge Gaps
-- **347 isolated node(s):** `Minimum requirements`, `1. Clone and build`, `2. Run the server`, `3. UI development`, `4. Full stack with Docker Compose` (+342 more)
+- **347 isolated node(s):** `Duration`, `ServerConfig`, `DatabaseConfig`, `EtcdConfig`, `BackupConfig` (+342 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **53 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -497,14 +507,14 @@ Nodes (3): Time, StorageConfig, StorageType
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.380) - this node is a cross-community bridge._
+  _High betweenness centrality (0.383) - this node is a cross-community bridge._
 - **Why does `NodeStatusReport` connect `Agent gRPC Protocol` to `Agent gRPC Protocol`, `Protobuf Message Types`, `Protobuf Message Types`, `Agent gRPC Protocol`, `Agent gRPC Protocol`?**
-  _High betweenness centrality (0.284) - this node is a cross-community bridge._
+  _High betweenness centrality (0.288) - this node is a cross-community bridge._
 - **Why does `file_skylex_v1_agent_proto_init()` connect `Agent gRPC Protocol` to `Protobuf Message Types`?**
-  _High betweenness centrality (0.283) - this node is a cross-community bridge._
+  _High betweenness centrality (0.286) - this node is a cross-community bridge._
 - **Are the 59 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.ListPending()`) actually correct?**
   _`Rebind()` has 59 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Minimum requirements`, `1. Clone and build`, `2. Run the server` to the rest of the system?**
+- **What connects `Duration`, `ServerConfig`, `DatabaseConfig` to the rest of the system?**
   _348 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.050617283950617285 - nodes in this community are weakly interconnected._

@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781565415.2116337,
-    "ast_hash": "99642c3c7bf725cbf8612bd16ce4269b",
+    "mtime": 1781565489.4746165,
+    "ast_hash": "dea7b16682ceb48616301eb5bc344d17",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -155,39 +155,34 @@
     "semantic_hash": "1455a12017ac1c28ef29e974dfc65532"
   },
   "internal/db/agent_command_repo.go": {
-    "mtime": 1781562395.7079809,
-    "ast_hash": "dbea6fcfb256d99a80874e4a4b173918",
+    "mtime": 1781566086.1790972,
+    "ast_hash": "3a5a955be3388b1468feeb8009804171",
     "semantic_hash": ""
   },
   "internal/db/backup_repo.go": {
-    "mtime": 1781559445.7147212,
-    "ast_hash": "c3f72206e4aceea78a1dbc273340b22f",
-    "semantic_hash": "c3f72206e4aceea78a1dbc273340b22f"
+    "mtime": 1781566034.9294627,
+    "ast_hash": "89b2f4fae125c08e9ddae2d9c1909337",
+    "semantic_hash": ""
   },
   "internal/db/cluster_repo.go": {
-    "mtime": 1781559445.7148504,
-    "ast_hash": "bf7787c5b42d796b077c9ecf90ddd402",
-    "semantic_hash": "bf7787c5b42d796b077c9ecf90ddd402"
+    "mtime": 1781565912.5172899,
+    "ast_hash": "b40ff4933c287a1ddda53f79b77eaa2d",
+    "semantic_hash": ""
   },
   "internal/db/db.go": {
-    "mtime": 1781559445.7148504,
-    "ast_hash": "be4fe7d50d4da89a765e875d0a32e444",
-    "semantic_hash": "be4fe7d50d4da89a765e875d0a32e444"
-  },
-  "internal/db/migrations/000001_init.sql": {
-    "mtime": 1781559445.7148504,
-    "ast_hash": "21be038e46fa6bfabafed04e8c966d53",
-    "semantic_hash": "21be038e46fa6bfabafed04e8c966d53"
+    "mtime": 1781565790.7928917,
+    "ast_hash": "4e061be47e71785c725c3d0e0557902a",
+    "semantic_hash": ""
   },
   "internal/db/node_repo.go": {
-    "mtime": 1781562299.9439971,
-    "ast_hash": "d9f5254ce1651253cf5ad365d4383680",
+    "mtime": 1781565962.7580225,
+    "ast_hash": "3cfbf164f656b6f6171a507853921696",
     "semantic_hash": ""
   },
   "internal/db/storage_config_repo.go": {
-    "mtime": 1781559445.7154977,
-    "ast_hash": "3472a461838c7449a54601749722e282",
-    "semantic_hash": "3472a461838c7449a54601749722e282"
+    "mtime": 1781566069.2075584,
+    "ast_hash": "9e52681d0c96526d4db591270c848608",
+    "semantic_hash": ""
   },
   "internal/id/id.go": {
     "mtime": 1781559445.7154977,
@@ -245,8 +240,8 @@
     "semantic_hash": ""
   },
   "internal/server/config.go": {
-    "mtime": 1781564943.2536254,
-    "ast_hash": "b85710884ece6fa6237e8be1e0d6ea43",
+    "mtime": 1781566112.2966177,
+    "ast_hash": "c37390fe30409d1b61ee63286ccca435",
     "semantic_hash": ""
   },
   "internal/server/grpc.go": {
@@ -265,8 +260,8 @@
     "semantic_hash": ""
   },
   "internal/server/server.go": {
-    "mtime": 1781564933.3902347,
-    "ast_hash": "49fb542aaeed12414db106368074a777",
+    "mtime": 1781566116.257884,
+    "ast_hash": "76c10c80f9f0272a9f192c573d691296",
     "semantic_hash": ""
   },
   "internal/server/storage_service.go": {
@@ -385,24 +380,19 @@
     "semantic_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f"
   },
   "config.example.yaml": {
-    "mtime": 1781565028.2102156,
-    "ast_hash": "425f9d3b963f0425578e23a851fc04da",
+    "mtime": 1781566159.8459167,
+    "ast_hash": "3a705699c62c6a1fde6a57d5fe5315e0",
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.yaml": {
-    "mtime": 1781559445.6749103,
-    "ast_hash": "45b0dd82e8a2b0509969a547e655fc7b",
-    "semantic_hash": "45b0dd82e8a2b0509969a547e655fc7b"
+    "mtime": 1781566262.376909,
+    "ast_hash": "13a503e562160e7f94ee35fb2b7b8ec4",
+    "semantic_hash": ""
   },
   "ui/README.md": {
     "mtime": 1781559445.7191453,
     "ast_hash": "326d3abf712fa381742d7e7b196af2c2",
     "semantic_hash": "326d3abf712fa381742d7e7b196af2c2"
-  },
-  "internal/db/migrations/000002_add_agent_id.sql": {
-    "mtime": 1781562197.5640213,
-    "ast_hash": "86371f3228fd2ade63f2e454bb8cd97c",
-    "semantic_hash": ""
   },
   "internal/dcs/election.go": {
     "mtime": 1781562631.5879407,
@@ -425,13 +415,13 @@
     "semantic_hash": ""
   },
   "internal/db/audit_repo.go": {
-    "mtime": 1781564759.52833,
-    "ast_hash": "4a988922fbf371743237a35648c947ce",
+    "mtime": 1781565842.3816454,
+    "ast_hash": "1cbe81f797b197454c5e2b33e3091ff8",
     "semantic_hash": ""
   },
   "internal/db/user_repo.go": {
-    "mtime": 1781564753.2161598,
-    "ast_hash": "2be0ea2425750b7788ddf228fb81c0ab",
+    "mtime": 1781565880.2384663,
+    "ast_hash": "2ae24bf1b24f02f95abc52f60a27db0f",
     "semantic_hash": ""
   },
   "internal/server/audit_interceptor.go": {
@@ -455,8 +445,8 @@
     "semantic_hash": ""
   },
   "internal/server/metadata_backup.go": {
-    "mtime": 1781564998.2189906,
-    "ast_hash": "e357729fbdb863291f83e99869df2a99",
+    "mtime": 1781566151.0073,
+    "ast_hash": "297e7d3fd89a37b63765559daea6eebc",
     "semantic_hash": ""
   },
   "internal/server/tls.go": {
@@ -470,13 +460,63 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1781564872.0963686,
-    "ast_hash": "42addc97409a20bcf832d68286c63abf",
+    "mtime": 1781566541.6818733,
+    "ast_hash": "213da4d95dbb0ec4ec465a90cc27b650",
     "semantic_hash": ""
   },
   "implemented/phase-4-security-operations.md": {
     "mtime": 1781565390.80595,
     "ast_hash": "ef9d2bf73c80dd0eea5dfd238f5c391c",
+    "semantic_hash": ""
+  },
+  "cmd/bench/main.go": {
+    "mtime": 1781566474.2054234,
+    "ast_hash": "d10510d5a1a80b08ec0bbc363fd7e7ed",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000001_init.sql": {
+    "mtime": 1781565758.7142575,
+    "ast_hash": "561f35cecdb007ab2c900e8b05f76ba1",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000002_add_agent_id.sql": {
+    "mtime": 1781565760.2337782,
+    "ast_hash": "e2b5fa05c1cbd17f1215cd215485f271",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000001_init.sql": {
+    "mtime": 1781559445.7148504,
+    "ast_hash": "21be038e46fa6bfabafed04e8c966d53",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000002_add_agent_id.sql": {
+    "mtime": 1781562197.5640213,
+    "ast_hash": "86371f3228fd2ade63f2e454bb8cd97c",
+    "semantic_hash": ""
+  },
+  "internal/db/rebind.go": {
+    "mtime": 1781565740.0652149,
+    "ast_hash": "8c28b2072a2eaaadf8c9744ac9cf7830",
+    "semantic_hash": ""
+  },
+  "deploy/docker-compose/docker-compose.postgres.yaml": {
+    "mtime": 1781566269.2820816,
+    "ast_hash": "9fff74df8a15192b0750192393c3ff21",
+    "semantic_hash": ""
+  },
+  "deploy/helm/skylex/Chart.yaml": {
+    "mtime": 1781566288.1279993,
+    "ast_hash": "4fe828a672bff8c29691023c6b462415",
+    "semantic_hash": ""
+  },
+  "deploy/helm/skylex/values.yaml": {
+    "mtime": 1781566304.3846524,
+    "ast_hash": "45c8f3fd9e427a4cd34039e1ef801b8c",
+    "semantic_hash": ""
+  },
+  "implemented/phase-5-packaging-scale.md": {
+    "mtime": 1781566710.8194213,
+    "ast_hash": "ffaee878c305202e6ef9b45eef21f1ba",
     "semantic_hash": ""
   }
 }
