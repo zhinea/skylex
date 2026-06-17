@@ -1,16 +1,16 @@
-# Graph Report - skylex  (2026-06-18)
+# Graph Report - skylex  (2026-06-16)
 
 ## Corpus Check
-- 111 files · ~62,080 words
+- 110 files · ~61,888 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2380 nodes · 4311 edges · 143 communities (90 shown, 53 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 94 edges (avg confidence: 0.8)
+- 2406 nodes · 4379 edges · 143 communities (91 shown, 52 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 126 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0cd5b3da`
+- Built from commit: `85a675e7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -126,7 +126,6 @@
 - [[_COMMUNITY_Newlogger Components|Newlogger Components]]
 - [[_COMMUNITY_Kilo Json|Kilo Json]]
 - [[_COMMUNITY_React UI Frontend|React UI Frontend]]
-- [[_COMMUNITY_Community 111|Community 111]]
 - [[_COMMUNITY_Audit Tsx|Audit Tsx]]
 - [[_COMMUNITY_Backups Tsx|Backups Tsx]]
 - [[_COMMUNITY_Clusters Tsx|Clusters Tsx]]
@@ -147,6 +146,7 @@
 - [[_COMMUNITY_Community 142|Community 142]]
 - [[_COMMUNITY_Community 143|Community 143]]
 - [[_COMMUNITY_Community 144|Community 144]]
+- [[_COMMUNITY_Community 147|Community 147]]
 - [[_COMMUNITY_Community 148|Community 148]]
 - [[_COMMUNITY_Community 149|Community 149]]
 
@@ -155,12 +155,12 @@
 2. `Context` - 36 edges
 3. `Backup` - 30 edges
 4. `Context` - 30 edges
-5. `BackupSchedule` - 27 edges
-6. `file_skylex_v1_backup_proto_rawDescGZIP()` - 27 edges
-7. `AuthServiceClient` - 27 edges
-8. `ClusterServiceClient` - 27 edges
-9. `file_skylex_v1_cluster_proto_rawDescGZIP()` - 25 edges
-10. `StorageConfig` - 25 edges
+5. `Server` - 29 edges
+6. `BackupSchedule` - 27 edges
+7. `file_skylex_v1_backup_proto_rawDescGZIP()` - 27 edges
+8. `AuthServiceClient` - 27 edges
+9. `ClusterServiceClient` - 27 edges
+10. `file_skylex_v1_cluster_proto_rawDescGZIP()` - 25 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `React Router Template` --semantically_similar_to--> `Frontend Stack (Vite + React Router 7 + Tailwind CSS)`  [INFERRED] [semantically similar]
@@ -182,7 +182,7 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (143 total, 53 thin omitted)
+## Communities (143 total, 52 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.05
@@ -293,8 +293,8 @@ Cohesion: 0.09
 Nodes (4): Node, DrainNodeResponse, RejoinNodeResponse, RestartNodeResponse
 
 ### Community 27 - "Cluster gRPC Service"
-Cohesion: 0.11
-Nodes (14): DecryptAES256GCM(), EncryptAES256GCM(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+6 more)
+Cohesion: 0.13
+Nodes (13): DecryptAES256GCM(), DeriveKey(), EncryptAES256GCM(), intToBool(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context (+5 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.10
@@ -421,8 +421,8 @@ Cohesion: 0.33
 Nodes (6): Config, DefaultConfig(), NewLogger(), main(), Duration, Logger
 
 ### Community 89 - "Config Close"
-Cohesion: 0.14
-Nodes (8): main(), tokenAuth, Context, Config, DB, New(), setRebind(), Duration
+Cohesion: 0.06
+Nodes (30): AgentService, AuditInterceptor, AuditRepository, AuthInterceptor, main(), tokenAuth, CancelFunc, Context (+22 more)
 
 ### Community 103 - "Root Tsx"
 Cohesion: 0.15
@@ -470,11 +470,11 @@ Nodes (11): Configuration, Database and migrations, Developer commands, Docker C
 
 ### Community 136 - "Community 136"
 Cohesion: 0.07
-Nodes (36): AgentTokenRepository, AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, APIKeyRepository, Context (+28 more)
+Nodes (37): AgentTokenRepository, AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, APIKeyRepository, Context (+29 more)
 
 ### Community 137 - "Community 137"
-Cohesion: 0.12
-Nodes (14): AgentToken, APIKey, AgentTokenRepository, APIKeyRepository, NewAgentTokenRepository(), NewAPIKeyRepository(), NewUserRepository(), NullTime() (+6 more)
+Cohesion: 0.11
+Nodes (15): AgentToken, APIKey, AgentTokenRepository, APIKeyRepository, NewAgentTokenRepository(), NewAPIKeyRepository(), NewUserRepository(), NullTime() (+7 more)
 
 ### Community 138 - "Community 138"
 Cohesion: 0.08
@@ -497,8 +497,12 @@ Cohesion: 0.39
 Nodes (5): AuditLog, NewAuditRepository(), AuditRepository, DB, Logger
 
 ### Community 144 - "Community 144"
-Cohesion: 0.18
-Nodes (14): Cluster, ClusterStatus, boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository (+6 more)
+Cohesion: 0.19
+Nodes (13): Cluster, ClusterStatus, boolToInt(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository, EngineType (+5 more)
+
+### Community 147 - "Community 147"
+Cohesion: 0.67
+Nodes (3): Time, StorageConfig, StorageType
 
 ### Community 148 - "Community 148"
 Cohesion: 0.24
@@ -509,24 +513,24 @@ Cohesion: 0.23
 Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
 
 ## Knowledge Gaps
-- **311 isolated node(s):** `Quick start`, `Project layout`, `Developer commands`, `Configuration`, `Database and migrations` (+306 more)
+- **328 isolated node(s):** `navItems`, `User`, `AuthState`, `AuthContext`, `GRPCServer` (+323 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **53 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **52 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.202) - this node is a cross-community bridge._
-- **Why does `file_skylex_v1_agent_proto_init()` connect `Agent gRPC Protocol` to `Protobuf Message Types`?**
-  _High betweenness centrality (0.107) - this node is a cross-community bridge._
+  _High betweenness centrality (0.342) - this node is a cross-community bridge._
 - **Why does `NodeStatusReport` connect `Agent gRPC Protocol` to `Agent gRPC Protocol`, `Protobuf Message Types`, `Protobuf Message Types`, `Agent gRPC Protocol`, `Agent gRPC Protocol`?**
-  _High betweenness centrality (0.095) - this node is a cross-community bridge._
+  _High betweenness centrality (0.265) - this node is a cross-community bridge._
 - **Are the 59 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.ListPending()`) actually correct?**
   _`Rebind()` has 59 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Quick start`, `Project layout`, `Developer commands` to the rest of the system?**
-  _312 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `navItems`, `User`, `AuthState` to the rest of the system?**
+  _329 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.05126582278481013 - nodes in this community are weakly interconnected._
 - **Should `Cluster gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.05308641975308642 - nodes in this community are weakly interconnected._
+- **Should `Cluster gRPC Service` be split into smaller, more focused modules?**
+  _Cohesion score 0.09038461538461538 - nodes in this community are weakly interconnected._
