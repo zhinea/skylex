@@ -49,11 +49,14 @@ proto:
 clean:
 	rm -rf bin/ gen/
 
+setup:
+	mv ./config.example.yaml ./config.yaml
+
 dev:
 	./scripts/dev.sh
 
 dev-server:
-	$(GO) run ./cmd/server config.example.yaml
+	$(GO) run ./cmd/server config.yaml
 
 docker-up:
 	docker compose -f deploy/docker-compose/docker-compose.yaml up --build -d
