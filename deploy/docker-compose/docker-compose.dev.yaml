@@ -1,0 +1,11 @@
+# Development override for `make dev`.
+# Publishes etcd and MinIO to localhost so the host-side server binary can
+# reach them while UI/dev tools also run on the host.
+services:
+  etcd:
+    ports:
+      - "2379:2379"
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"

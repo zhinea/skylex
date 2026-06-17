@@ -1,4 +1,4 @@
-.PHONY: build build-server build-agent test lint clean run-server run-agent proto
+.PHONY: build build-server build-agent test lint clean run-server run-agent proto dev dev-server
 
 BINARY_SERVER ?= skylex-server
 BINARY_AGENT ?= skylex-agent
@@ -37,6 +37,9 @@ clean:
 	rm -rf bin/ gen/
 
 dev:
+	./scripts/dev.sh
+
+dev-server:
 	$(GO) run ./cmd/server config.example.yaml
 
 docker-up:

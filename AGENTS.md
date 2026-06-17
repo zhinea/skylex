@@ -8,7 +8,8 @@ Skylex is a self-hosted database control plane MVP. The Go backend has two binar
 ```bash
 # Backend — build both binaries and run the server locally
 make build
-make dev                                    # runs cmd/server with config.example.yaml
+make dev                                    # starts etcd + minio via docker compose, then runs cmd/server with config.example.yaml
+make dev-server                             # runs cmd/server with config.example.yaml (no extra services)
 
 # Full reference stack in Docker Compose
 make docker-up                              # builds images and starts server + 3 agents + etcd + minio
@@ -34,7 +35,8 @@ make docker-down
 | Build both binaries | `make build` |
 | Build server only | `make build-server` |
 | Build agent only | `make build-agent` |
-| Run server locally | `make run-server ARGS=path/to/config.yaml` or `make dev` |
+| Run server locally with dev deps | `make dev` |
+| Run server locally (no extra services) | `make run-server ARGS=path/to/config.yaml` or `make dev-server` |
 | Run agent locally | `make run-agent` |
 | Run all Go tests | `make test` |
 | Lint Go code | `make lint` (uses `golangci-lint`; no repo-level config file) |

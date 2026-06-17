@@ -10,10 +10,14 @@ import (
 	"os/signal"
 	"syscall"
 
+	"time"
+
 	"github.com/zhinea/skylex/internal/backup"
 	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
 	"github.com/zhinea/skylex/internal/dcs"
+	"github.com/zhinea/skylex/internal/id"
+	"github.com/zhinea/skylex/internal/models"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -92,6 +96,10 @@ func (s *Server) Start(ctx context.Context) error {
 	s.authInterceptor = NewAuthInterceptor(s.jwtManager, apiKeyRepo, userRepo, s.log)
 	s.auditInterceptor = NewAuditInterceptor(auditRepo, s.log)
 	s.authService = NewAuthService(userRepo, apiKeyRepo, agentTokenRepo, s.jwtManager, s.log)
+
+	if err := s.ensureDefaultAdmin(userRepo); err != nil {
+		return fmt.Errorf("ensure default admin: %w", err)
+	}
 
 	s.webhookClient = NewWebhookClient(s.cfg.Webhook.URLs, s.cfg.Webhook.Timeout, s.log)
 
@@ -185,16 +193,21 @@ func (s *Server) Start(ctx context.Context) error {
 	s.grpc = grpcServer
 
 	g.Go(func() error {
+		s.log.Info("starting gRPC server goroutine")
 		return s.grpc.Serve(ctx)
 	})
 
 	g.Go(func() error {
+		s.log.Info("starting Connect HTTP server goroutine")
 		return s.serveConnectHTTP(ctx)
 	})
 
 	g.Go(func() error {
+		s.log.Info("starting metrics server goroutine")
 		return s.serveMetrics(ctx)
 	})
+
+	s.log.Info("all goroutines started, waiting for shutdown signal")
 
 	<-ctx.Done()
 	s.log.Info("shutting down skylex server")
@@ -223,6 +236,38 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	return g.Wait()
+}
+
+func (s *Server) ensureDefaultAdmin(userRepo *db.UserRepository) error {
+	_, total, err := userRepo.List(1, 1)
+	if err != nil {
+		return fmt.Errorf("count users: %w", err)
+	}
+	if total > 0 {
+		return nil
+	}
+
+	hash, err := crypto.HashPassword("admin")
+	if err != nil {
+		return fmt.Errorf("hash default admin password: %w", err)
+	}
+
+	now := time.Now().UTC()
+	admin := &models.User{
+		ID:           id.New(),
+		Email:        "admin@skylex.local",
+		PasswordHash: hash,
+		DisplayName:  "Administrator",
+		Role:         models.RoleAdmin,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+	if err := userRepo.Create(admin); err != nil {
+		return fmt.Errorf("create default admin: %w", err)
+	}
+
+	s.log.Warn("created default admin user", "email", admin.Email, "password", "admin")
+	return nil
 }
 
 func (s *Server) DB() *db.DB {
