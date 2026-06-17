@@ -1,0 +1,1 @@
+ALTER TABLE nodes ALTER COLUMN cluster_id DROP NOT NULL;

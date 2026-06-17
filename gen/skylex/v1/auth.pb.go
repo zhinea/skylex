@@ -1062,6 +1062,374 @@ func (*DeleteAPIKeyResponse) Descriptor() ([]byte, []int) {
 	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{18}
 }
 
+type CreateAgentTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Role          Role                   `protobuf:"varint,2,opt,name=role,proto3,enum=skylex.v1.Role" json:"role,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAgentTokenRequest) Reset() {
+	*x = CreateAgentTokenRequest{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAgentTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAgentTokenRequest) ProtoMessage() {}
+
+func (x *CreateAgentTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAgentTokenRequest.ProtoReflect.Descriptor instead.
+func (*CreateAgentTokenRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *CreateAgentTokenRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateAgentTokenRequest) GetRole() Role {
+	if x != nil {
+		return x.Role
+	}
+	return Role_ROLE_UNSPECIFIED
+}
+
+func (x *CreateAgentTokenRequest) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+type CreateAgentTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AgentToken    *AgentToken            `protobuf:"bytes,1,opt,name=agent_token,json=agentToken,proto3" json:"agent_token,omitempty"`
+	Token         string                 `protobuf:"bytes,2,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAgentTokenResponse) Reset() {
+	*x = CreateAgentTokenResponse{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAgentTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAgentTokenResponse) ProtoMessage() {}
+
+func (x *CreateAgentTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAgentTokenResponse.ProtoReflect.Descriptor instead.
+func (*CreateAgentTokenResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CreateAgentTokenResponse) GetAgentToken() *AgentToken {
+	if x != nil {
+		return x.AgentToken
+	}
+	return nil
+}
+
+func (x *CreateAgentTokenResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+type ListAgentTokensRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentTokensRequest) Reset() {
+	*x = ListAgentTokensRequest{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentTokensRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentTokensRequest) ProtoMessage() {}
+
+func (x *ListAgentTokensRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentTokensRequest.ProtoReflect.Descriptor instead.
+func (*ListAgentTokensRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{21}
+}
+
+type ListAgentTokensResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Tokens        []*AgentToken          `protobuf:"bytes,1,rep,name=tokens,proto3" json:"tokens,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListAgentTokensResponse) Reset() {
+	*x = ListAgentTokensResponse{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListAgentTokensResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListAgentTokensResponse) ProtoMessage() {}
+
+func (x *ListAgentTokensResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListAgentTokensResponse.ProtoReflect.Descriptor instead.
+func (*ListAgentTokensResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListAgentTokensResponse) GetTokens() []*AgentToken {
+	if x != nil {
+		return x.Tokens
+	}
+	return nil
+}
+
+type DeleteAgentTokenRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAgentTokenRequest) Reset() {
+	*x = DeleteAgentTokenRequest{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAgentTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAgentTokenRequest) ProtoMessage() {}
+
+func (x *DeleteAgentTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAgentTokenRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAgentTokenRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *DeleteAgentTokenRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeleteAgentTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAgentTokenResponse) Reset() {
+	*x = DeleteAgentTokenResponse{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAgentTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAgentTokenResponse) ProtoMessage() {}
+
+func (x *DeleteAgentTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAgentTokenResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAgentTokenResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{24}
+}
+
+type GetAgentInstallCommandRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentInstallCommandRequest) Reset() {
+	*x = GetAgentInstallCommandRequest{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentInstallCommandRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentInstallCommandRequest) ProtoMessage() {}
+
+func (x *GetAgentInstallCommandRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentInstallCommandRequest.ProtoReflect.Descriptor instead.
+func (*GetAgentInstallCommandRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{25}
+}
+
+type GetAgentInstallCommandResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ScriptUrl     string                 `protobuf:"bytes,1,opt,name=script_url,json=scriptUrl,proto3" json:"script_url,omitempty"`
+	ServerAddr    string                 `protobuf:"bytes,2,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
+	Token         string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAgentInstallCommandResponse) Reset() {
+	*x = GetAgentInstallCommandResponse{}
+	mi := &file_skylex_v1_auth_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAgentInstallCommandResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAgentInstallCommandResponse) ProtoMessage() {}
+
+func (x *GetAgentInstallCommandResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_auth_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAgentInstallCommandResponse.ProtoReflect.Descriptor instead.
+func (*GetAgentInstallCommandResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_auth_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetAgentInstallCommandResponse) GetScriptUrl() string {
+	if x != nil {
+		return x.ScriptUrl
+	}
+	return ""
+}
+
+func (x *GetAgentInstallCommandResponse) GetServerAddr() string {
+	if x != nil {
+		return x.ServerAddr
+	}
+	return ""
+}
+
+func (x *GetAgentInstallCommandResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
 var File_skylex_v1_auth_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_auth_proto_rawDesc = "" +
@@ -1132,13 +1500,35 @@ const file_skylex_v1_auth_proto_rawDesc = "" +
 	"\bapi_keys\x18\x01 \x03(\v2\x11.skylex.v1.APIKeyR\aapiKeys\"%\n" +
 	"\x13DeleteAPIKeyRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x16\n" +
-	"\x14DeleteAPIKeyResponse*P\n" +
+	"\x14DeleteAPIKeyResponse\"\x8d\x01\n" +
+	"\x17CreateAgentTokenRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12#\n" +
+	"\x04role\x18\x02 \x01(\x0e2\x0f.skylex.v1.RoleR\x04role\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"h\n" +
+	"\x18CreateAgentTokenResponse\x126\n" +
+	"\vagent_token\x18\x01 \x01(\v2\x15.skylex.v1.AgentTokenR\n" +
+	"agentToken\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"\x18\n" +
+	"\x16ListAgentTokensRequest\"H\n" +
+	"\x17ListAgentTokensResponse\x12-\n" +
+	"\x06tokens\x18\x01 \x03(\v2\x15.skylex.v1.AgentTokenR\x06tokens\")\n" +
+	"\x17DeleteAgentTokenRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x1a\n" +
+	"\x18DeleteAgentTokenResponse\"\x1f\n" +
+	"\x1dGetAgentInstallCommandRequest\"v\n" +
+	"\x1eGetAgentInstallCommandResponse\x12\x1d\n" +
+	"\n" +
+	"script_url\x18\x01 \x01(\tR\tscriptUrl\x12\x1f\n" +
+	"\vserver_addr\x18\x02 \x01(\tR\n" +
+	"serverAddr\x12\x14\n" +
+	"\x05token\x18\x03 \x01(\tR\x05token*P\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"ROLE_ADMIN\x10\x01\x12\x11\n" +
 	"\rROLE_OPERATOR\x10\x02\x12\x0f\n" +
-	"\vROLE_VIEWER\x10\x032\xe8\x04\n" +
+	"\vROLE_VIEWER\x10\x032\xeb\a\n" +
 	"\vAuthService\x12:\n" +
 	"\x05Login\x12\x17.skylex.v1.LoginRequest\x1a\x18.skylex.v1.LoginResponse\x12O\n" +
 	"\fRefreshToken\x12\x1e.skylex.v1.RefreshTokenRequest\x1a\x1f.skylex.v1.RefreshTokenResponse\x12F\n" +
@@ -1149,7 +1539,11 @@ const file_skylex_v1_auth_proto_rawDesc = "" +
 	"DeleteUser\x12\x1c.skylex.v1.DeleteUserRequest\x1a\x1d.skylex.v1.DeleteUserResponse\x12O\n" +
 	"\fCreateAPIKey\x12\x1e.skylex.v1.CreateAPIKeyRequest\x1a\x1f.skylex.v1.CreateAPIKeyResponse\x12L\n" +
 	"\vListAPIKeys\x12\x1d.skylex.v1.ListAPIKeysRequest\x1a\x1e.skylex.v1.ListAPIKeysResponse\x12O\n" +
-	"\fDeleteAPIKey\x12\x1e.skylex.v1.DeleteAPIKeyRequest\x1a\x1f.skylex.v1.DeleteAPIKeyResponseB\x90\x01\n" +
+	"\fDeleteAPIKey\x12\x1e.skylex.v1.DeleteAPIKeyRequest\x1a\x1f.skylex.v1.DeleteAPIKeyResponse\x12[\n" +
+	"\x10CreateAgentToken\x12\".skylex.v1.CreateAgentTokenRequest\x1a#.skylex.v1.CreateAgentTokenResponse\x12X\n" +
+	"\x0fListAgentTokens\x12!.skylex.v1.ListAgentTokensRequest\x1a\".skylex.v1.ListAgentTokensResponse\x12[\n" +
+	"\x10DeleteAgentToken\x12\".skylex.v1.DeleteAgentTokenRequest\x1a#.skylex.v1.DeleteAgentTokenResponse\x12m\n" +
+	"\x16GetAgentInstallCommand\x12(.skylex.v1.GetAgentInstallCommandRequest\x1a).skylex.v1.GetAgentInstallCommandResponseB\x90\x01\n" +
 	"\rcom.skylex.v1B\tAuthProtoP\x01Z/github.com/zhinea/skylex/gen/skylex/v1;skylexv1\xa2\x02\x03SXX\xaa\x02\tSkylex.V1\xca\x02\tSkylex\\V1\xe2\x02\x15Skylex\\V1\\GPBMetadata\xea\x02\n" +
 	"Skylex::V1b\x06proto3"
 
@@ -1166,68 +1560,88 @@ func file_skylex_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_skylex_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skylex_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_skylex_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_skylex_v1_auth_proto_goTypes = []any{
-	(Role)(0),                     // 0: skylex.v1.Role
-	(*User)(nil),                  // 1: skylex.v1.User
-	(*APIKey)(nil),                // 2: skylex.v1.APIKey
-	(*AgentToken)(nil),            // 3: skylex.v1.AgentToken
-	(*LoginRequest)(nil),          // 4: skylex.v1.LoginRequest
-	(*LoginResponse)(nil),         // 5: skylex.v1.LoginResponse
-	(*RefreshTokenRequest)(nil),   // 6: skylex.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),  // 7: skylex.v1.RefreshTokenResponse
-	(*ListUsersRequest)(nil),      // 8: skylex.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),     // 9: skylex.v1.ListUsersResponse
-	(*CreateUserRequest)(nil),     // 10: skylex.v1.CreateUserRequest
-	(*CreateUserResponse)(nil),    // 11: skylex.v1.CreateUserResponse
-	(*DeleteUserRequest)(nil),     // 12: skylex.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),    // 13: skylex.v1.DeleteUserResponse
-	(*CreateAPIKeyRequest)(nil),   // 14: skylex.v1.CreateAPIKeyRequest
-	(*CreateAPIKeyResponse)(nil),  // 15: skylex.v1.CreateAPIKeyResponse
-	(*ListAPIKeysRequest)(nil),    // 16: skylex.v1.ListAPIKeysRequest
-	(*ListAPIKeysResponse)(nil),   // 17: skylex.v1.ListAPIKeysResponse
-	(*DeleteAPIKeyRequest)(nil),   // 18: skylex.v1.DeleteAPIKeyRequest
-	(*DeleteAPIKeyResponse)(nil),  // 19: skylex.v1.DeleteAPIKeyResponse
-	(*timestamppb.Timestamp)(nil), // 20: google.protobuf.Timestamp
-	(*Pagination)(nil),            // 21: skylex.v1.Pagination
+	(Role)(0),                              // 0: skylex.v1.Role
+	(*User)(nil),                           // 1: skylex.v1.User
+	(*APIKey)(nil),                         // 2: skylex.v1.APIKey
+	(*AgentToken)(nil),                     // 3: skylex.v1.AgentToken
+	(*LoginRequest)(nil),                   // 4: skylex.v1.LoginRequest
+	(*LoginResponse)(nil),                  // 5: skylex.v1.LoginResponse
+	(*RefreshTokenRequest)(nil),            // 6: skylex.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),           // 7: skylex.v1.RefreshTokenResponse
+	(*ListUsersRequest)(nil),               // 8: skylex.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),              // 9: skylex.v1.ListUsersResponse
+	(*CreateUserRequest)(nil),              // 10: skylex.v1.CreateUserRequest
+	(*CreateUserResponse)(nil),             // 11: skylex.v1.CreateUserResponse
+	(*DeleteUserRequest)(nil),              // 12: skylex.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),             // 13: skylex.v1.DeleteUserResponse
+	(*CreateAPIKeyRequest)(nil),            // 14: skylex.v1.CreateAPIKeyRequest
+	(*CreateAPIKeyResponse)(nil),           // 15: skylex.v1.CreateAPIKeyResponse
+	(*ListAPIKeysRequest)(nil),             // 16: skylex.v1.ListAPIKeysRequest
+	(*ListAPIKeysResponse)(nil),            // 17: skylex.v1.ListAPIKeysResponse
+	(*DeleteAPIKeyRequest)(nil),            // 18: skylex.v1.DeleteAPIKeyRequest
+	(*DeleteAPIKeyResponse)(nil),           // 19: skylex.v1.DeleteAPIKeyResponse
+	(*CreateAgentTokenRequest)(nil),        // 20: skylex.v1.CreateAgentTokenRequest
+	(*CreateAgentTokenResponse)(nil),       // 21: skylex.v1.CreateAgentTokenResponse
+	(*ListAgentTokensRequest)(nil),         // 22: skylex.v1.ListAgentTokensRequest
+	(*ListAgentTokensResponse)(nil),        // 23: skylex.v1.ListAgentTokensResponse
+	(*DeleteAgentTokenRequest)(nil),        // 24: skylex.v1.DeleteAgentTokenRequest
+	(*DeleteAgentTokenResponse)(nil),       // 25: skylex.v1.DeleteAgentTokenResponse
+	(*GetAgentInstallCommandRequest)(nil),  // 26: skylex.v1.GetAgentInstallCommandRequest
+	(*GetAgentInstallCommandResponse)(nil), // 27: skylex.v1.GetAgentInstallCommandResponse
+	(*timestamppb.Timestamp)(nil),          // 28: google.protobuf.Timestamp
+	(*Pagination)(nil),                     // 29: skylex.v1.Pagination
 }
 var file_skylex_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: skylex.v1.User.role:type_name -> skylex.v1.Role
-	20, // 1: skylex.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	20, // 2: skylex.v1.APIKey.expires_at:type_name -> google.protobuf.Timestamp
-	20, // 3: skylex.v1.APIKey.created_at:type_name -> google.protobuf.Timestamp
+	28, // 1: skylex.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	28, // 2: skylex.v1.APIKey.expires_at:type_name -> google.protobuf.Timestamp
+	28, // 3: skylex.v1.APIKey.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 4: skylex.v1.AgentToken.role:type_name -> skylex.v1.Role
-	20, // 5: skylex.v1.AgentToken.expires_at:type_name -> google.protobuf.Timestamp
-	20, // 6: skylex.v1.AgentToken.created_at:type_name -> google.protobuf.Timestamp
+	28, // 5: skylex.v1.AgentToken.expires_at:type_name -> google.protobuf.Timestamp
+	28, // 6: skylex.v1.AgentToken.created_at:type_name -> google.protobuf.Timestamp
 	1,  // 7: skylex.v1.LoginResponse.user:type_name -> skylex.v1.User
 	1,  // 8: skylex.v1.ListUsersResponse.users:type_name -> skylex.v1.User
-	21, // 9: skylex.v1.ListUsersResponse.pagination:type_name -> skylex.v1.Pagination
+	29, // 9: skylex.v1.ListUsersResponse.pagination:type_name -> skylex.v1.Pagination
 	0,  // 10: skylex.v1.CreateUserRequest.role:type_name -> skylex.v1.Role
 	1,  // 11: skylex.v1.CreateUserResponse.user:type_name -> skylex.v1.User
-	20, // 12: skylex.v1.CreateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
+	28, // 12: skylex.v1.CreateAPIKeyRequest.expires_at:type_name -> google.protobuf.Timestamp
 	2,  // 13: skylex.v1.CreateAPIKeyResponse.api_key:type_name -> skylex.v1.APIKey
 	2,  // 14: skylex.v1.ListAPIKeysResponse.api_keys:type_name -> skylex.v1.APIKey
-	4,  // 15: skylex.v1.AuthService.Login:input_type -> skylex.v1.LoginRequest
-	6,  // 16: skylex.v1.AuthService.RefreshToken:input_type -> skylex.v1.RefreshTokenRequest
-	8,  // 17: skylex.v1.AuthService.ListUsers:input_type -> skylex.v1.ListUsersRequest
-	10, // 18: skylex.v1.AuthService.CreateUser:input_type -> skylex.v1.CreateUserRequest
-	12, // 19: skylex.v1.AuthService.DeleteUser:input_type -> skylex.v1.DeleteUserRequest
-	14, // 20: skylex.v1.AuthService.CreateAPIKey:input_type -> skylex.v1.CreateAPIKeyRequest
-	16, // 21: skylex.v1.AuthService.ListAPIKeys:input_type -> skylex.v1.ListAPIKeysRequest
-	18, // 22: skylex.v1.AuthService.DeleteAPIKey:input_type -> skylex.v1.DeleteAPIKeyRequest
-	5,  // 23: skylex.v1.AuthService.Login:output_type -> skylex.v1.LoginResponse
-	7,  // 24: skylex.v1.AuthService.RefreshToken:output_type -> skylex.v1.RefreshTokenResponse
-	9,  // 25: skylex.v1.AuthService.ListUsers:output_type -> skylex.v1.ListUsersResponse
-	11, // 26: skylex.v1.AuthService.CreateUser:output_type -> skylex.v1.CreateUserResponse
-	13, // 27: skylex.v1.AuthService.DeleteUser:output_type -> skylex.v1.DeleteUserResponse
-	15, // 28: skylex.v1.AuthService.CreateAPIKey:output_type -> skylex.v1.CreateAPIKeyResponse
-	17, // 29: skylex.v1.AuthService.ListAPIKeys:output_type -> skylex.v1.ListAPIKeysResponse
-	19, // 30: skylex.v1.AuthService.DeleteAPIKey:output_type -> skylex.v1.DeleteAPIKeyResponse
-	23, // [23:31] is the sub-list for method output_type
-	15, // [15:23] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	0,  // 15: skylex.v1.CreateAgentTokenRequest.role:type_name -> skylex.v1.Role
+	28, // 16: skylex.v1.CreateAgentTokenRequest.expires_at:type_name -> google.protobuf.Timestamp
+	3,  // 17: skylex.v1.CreateAgentTokenResponse.agent_token:type_name -> skylex.v1.AgentToken
+	3,  // 18: skylex.v1.ListAgentTokensResponse.tokens:type_name -> skylex.v1.AgentToken
+	4,  // 19: skylex.v1.AuthService.Login:input_type -> skylex.v1.LoginRequest
+	6,  // 20: skylex.v1.AuthService.RefreshToken:input_type -> skylex.v1.RefreshTokenRequest
+	8,  // 21: skylex.v1.AuthService.ListUsers:input_type -> skylex.v1.ListUsersRequest
+	10, // 22: skylex.v1.AuthService.CreateUser:input_type -> skylex.v1.CreateUserRequest
+	12, // 23: skylex.v1.AuthService.DeleteUser:input_type -> skylex.v1.DeleteUserRequest
+	14, // 24: skylex.v1.AuthService.CreateAPIKey:input_type -> skylex.v1.CreateAPIKeyRequest
+	16, // 25: skylex.v1.AuthService.ListAPIKeys:input_type -> skylex.v1.ListAPIKeysRequest
+	18, // 26: skylex.v1.AuthService.DeleteAPIKey:input_type -> skylex.v1.DeleteAPIKeyRequest
+	20, // 27: skylex.v1.AuthService.CreateAgentToken:input_type -> skylex.v1.CreateAgentTokenRequest
+	22, // 28: skylex.v1.AuthService.ListAgentTokens:input_type -> skylex.v1.ListAgentTokensRequest
+	24, // 29: skylex.v1.AuthService.DeleteAgentToken:input_type -> skylex.v1.DeleteAgentTokenRequest
+	26, // 30: skylex.v1.AuthService.GetAgentInstallCommand:input_type -> skylex.v1.GetAgentInstallCommandRequest
+	5,  // 31: skylex.v1.AuthService.Login:output_type -> skylex.v1.LoginResponse
+	7,  // 32: skylex.v1.AuthService.RefreshToken:output_type -> skylex.v1.RefreshTokenResponse
+	9,  // 33: skylex.v1.AuthService.ListUsers:output_type -> skylex.v1.ListUsersResponse
+	11, // 34: skylex.v1.AuthService.CreateUser:output_type -> skylex.v1.CreateUserResponse
+	13, // 35: skylex.v1.AuthService.DeleteUser:output_type -> skylex.v1.DeleteUserResponse
+	15, // 36: skylex.v1.AuthService.CreateAPIKey:output_type -> skylex.v1.CreateAPIKeyResponse
+	17, // 37: skylex.v1.AuthService.ListAPIKeys:output_type -> skylex.v1.ListAPIKeysResponse
+	19, // 38: skylex.v1.AuthService.DeleteAPIKey:output_type -> skylex.v1.DeleteAPIKeyResponse
+	21, // 39: skylex.v1.AuthService.CreateAgentToken:output_type -> skylex.v1.CreateAgentTokenResponse
+	23, // 40: skylex.v1.AuthService.ListAgentTokens:output_type -> skylex.v1.ListAgentTokensResponse
+	25, // 41: skylex.v1.AuthService.DeleteAgentToken:output_type -> skylex.v1.DeleteAgentTokenResponse
+	27, // 42: skylex.v1.AuthService.GetAgentInstallCommand:output_type -> skylex.v1.GetAgentInstallCommandResponse
+	31, // [31:43] is the sub-list for method output_type
+	19, // [19:31] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_auth_proto_init() }
@@ -1242,7 +1656,7 @@ func file_skylex_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_auth_proto_rawDesc), len(file_skylex_v1_auth_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   19,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

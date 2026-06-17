@@ -2,6 +2,9 @@
 
 server:
   listen_addr: "0.0.0.0"
+  # advertise_addr is the gRPC endpoint agents use. Defaults to listen_addr:grpc_port.
+  # Set this when running behind NAT, a reverse proxy, or in Docker.
+  # advertise_addr: "localhost:9090"
   grpc_port: 9090
   http_port: 8080
   metrics_port: 9091
@@ -33,6 +36,12 @@ backup:
 agent:
   heartbeat_interval: 10s
   heartbeat_timeout: 30s
+  # Optional fallback token used for agent registration when no agent_tokens exist.
+  # For production, create per-install tokens through the UI and leave this empty.
+  # agent_token: ""
+  # Optional development token. If agent_tokens table is empty, this token is
+  # accepted during RegisterAgent. Leave empty to require generated tokens only.
+  # agent_token: "dev-token"
 
 auth:
   jwt_secret: ""

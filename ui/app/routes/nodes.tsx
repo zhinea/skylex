@@ -4,9 +4,11 @@ import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
+import { InstallAgentModal } from "~/components/InstallAgentModal";
 
 export default function NodesPage() {
   const [page, setPage] = useState(1);
+  const [installOpen, setInstallOpen] = useState(false);
   const { data, isLoading } = useNodes(undefined, page);
   const drainNode = useDrainNode();
   const [drainId, setDrainId] = useState<string | null>(null);
@@ -19,12 +21,31 @@ export default function NodesPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Nodes</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Nodes</h2>
+        <button
+          onClick={() => setInstallOpen(true)}
+          className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Add Node
+        </button>
+      </div>
       <Card>
         {nodes.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-            No nodes registered. Deploy agents to manage your database servers.
-          </p>
+          <div className="py-10 text-center">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No agents yet
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              Add your first database server by installing the Skylex agent. You&apos;ll get a copy-paste command to run on the target host.
+            </p>
+            <button
+              onClick={() => setInstallOpen(true)}
+              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Install Agent
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -99,6 +120,8 @@ export default function NodesPage() {
         onConfirm={() => { if (drainId) { drainNode.mutate(drainId); setDrainId(null); }}}
         onCancel={() => setDrainId(null)}
       />
+
+      <InstallAgentModal open={installOpen} onClose={() => setInstallOpen(false)} />
     </div>
   );
 }

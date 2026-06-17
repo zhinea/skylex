@@ -19,14 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName        = "/skylex.v1.AuthService/Login"
-	AuthService_RefreshToken_FullMethodName = "/skylex.v1.AuthService/RefreshToken"
-	AuthService_ListUsers_FullMethodName    = "/skylex.v1.AuthService/ListUsers"
-	AuthService_CreateUser_FullMethodName   = "/skylex.v1.AuthService/CreateUser"
-	AuthService_DeleteUser_FullMethodName   = "/skylex.v1.AuthService/DeleteUser"
-	AuthService_CreateAPIKey_FullMethodName = "/skylex.v1.AuthService/CreateAPIKey"
-	AuthService_ListAPIKeys_FullMethodName  = "/skylex.v1.AuthService/ListAPIKeys"
-	AuthService_DeleteAPIKey_FullMethodName = "/skylex.v1.AuthService/DeleteAPIKey"
+	AuthService_Login_FullMethodName                  = "/skylex.v1.AuthService/Login"
+	AuthService_RefreshToken_FullMethodName           = "/skylex.v1.AuthService/RefreshToken"
+	AuthService_ListUsers_FullMethodName              = "/skylex.v1.AuthService/ListUsers"
+	AuthService_CreateUser_FullMethodName             = "/skylex.v1.AuthService/CreateUser"
+	AuthService_DeleteUser_FullMethodName             = "/skylex.v1.AuthService/DeleteUser"
+	AuthService_CreateAPIKey_FullMethodName           = "/skylex.v1.AuthService/CreateAPIKey"
+	AuthService_ListAPIKeys_FullMethodName            = "/skylex.v1.AuthService/ListAPIKeys"
+	AuthService_DeleteAPIKey_FullMethodName           = "/skylex.v1.AuthService/DeleteAPIKey"
+	AuthService_CreateAgentToken_FullMethodName       = "/skylex.v1.AuthService/CreateAgentToken"
+	AuthService_ListAgentTokens_FullMethodName        = "/skylex.v1.AuthService/ListAgentTokens"
+	AuthService_DeleteAgentToken_FullMethodName       = "/skylex.v1.AuthService/DeleteAgentToken"
+	AuthService_GetAgentInstallCommand_FullMethodName = "/skylex.v1.AuthService/GetAgentInstallCommand"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -41,6 +45,10 @@ type AuthServiceClient interface {
 	CreateAPIKey(ctx context.Context, in *CreateAPIKeyRequest, opts ...grpc.CallOption) (*CreateAPIKeyResponse, error)
 	ListAPIKeys(ctx context.Context, in *ListAPIKeysRequest, opts ...grpc.CallOption) (*ListAPIKeysResponse, error)
 	DeleteAPIKey(ctx context.Context, in *DeleteAPIKeyRequest, opts ...grpc.CallOption) (*DeleteAPIKeyResponse, error)
+	CreateAgentToken(ctx context.Context, in *CreateAgentTokenRequest, opts ...grpc.CallOption) (*CreateAgentTokenResponse, error)
+	ListAgentTokens(ctx context.Context, in *ListAgentTokensRequest, opts ...grpc.CallOption) (*ListAgentTokensResponse, error)
+	DeleteAgentToken(ctx context.Context, in *DeleteAgentTokenRequest, opts ...grpc.CallOption) (*DeleteAgentTokenResponse, error)
+	GetAgentInstallCommand(ctx context.Context, in *GetAgentInstallCommandRequest, opts ...grpc.CallOption) (*GetAgentInstallCommandResponse, error)
 }
 
 type authServiceClient struct {
@@ -131,6 +139,46 @@ func (c *authServiceClient) DeleteAPIKey(ctx context.Context, in *DeleteAPIKeyRe
 	return out, nil
 }
 
+func (c *authServiceClient) CreateAgentToken(ctx context.Context, in *CreateAgentTokenRequest, opts ...grpc.CallOption) (*CreateAgentTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateAgentTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_CreateAgentToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListAgentTokens(ctx context.Context, in *ListAgentTokensRequest, opts ...grpc.CallOption) (*ListAgentTokensResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAgentTokensResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListAgentTokens_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteAgentToken(ctx context.Context, in *DeleteAgentTokenRequest, opts ...grpc.CallOption) (*DeleteAgentTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteAgentTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteAgentToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetAgentInstallCommand(ctx context.Context, in *GetAgentInstallCommandRequest, opts ...grpc.CallOption) (*GetAgentInstallCommandResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAgentInstallCommandResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetAgentInstallCommand_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -143,6 +191,10 @@ type AuthServiceServer interface {
 	CreateAPIKey(context.Context, *CreateAPIKeyRequest) (*CreateAPIKeyResponse, error)
 	ListAPIKeys(context.Context, *ListAPIKeysRequest) (*ListAPIKeysResponse, error)
 	DeleteAPIKey(context.Context, *DeleteAPIKeyRequest) (*DeleteAPIKeyResponse, error)
+	CreateAgentToken(context.Context, *CreateAgentTokenRequest) (*CreateAgentTokenResponse, error)
+	ListAgentTokens(context.Context, *ListAgentTokensRequest) (*ListAgentTokensResponse, error)
+	DeleteAgentToken(context.Context, *DeleteAgentTokenRequest) (*DeleteAgentTokenResponse, error)
+	GetAgentInstallCommand(context.Context, *GetAgentInstallCommandRequest) (*GetAgentInstallCommandResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -176,6 +228,18 @@ func (UnimplementedAuthServiceServer) ListAPIKeys(context.Context, *ListAPIKeysR
 }
 func (UnimplementedAuthServiceServer) DeleteAPIKey(context.Context, *DeleteAPIKeyRequest) (*DeleteAPIKeyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAPIKey not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateAgentToken(context.Context, *CreateAgentTokenRequest) (*CreateAgentTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAgentToken not implemented")
+}
+func (UnimplementedAuthServiceServer) ListAgentTokens(context.Context, *ListAgentTokensRequest) (*ListAgentTokensResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAgentTokens not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteAgentToken(context.Context, *DeleteAgentTokenRequest) (*DeleteAgentTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteAgentToken not implemented")
+}
+func (UnimplementedAuthServiceServer) GetAgentInstallCommand(context.Context, *GetAgentInstallCommandRequest) (*GetAgentInstallCommandResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAgentInstallCommand not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -342,6 +406,78 @@ func _AuthService_DeleteAPIKey_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_CreateAgentToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAgentTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateAgentToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateAgentToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateAgentToken(ctx, req.(*CreateAgentTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListAgentTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAgentTokensRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListAgentTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListAgentTokens_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListAgentTokens(ctx, req.(*ListAgentTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteAgentToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAgentTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteAgentToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteAgentToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteAgentToken(ctx, req.(*DeleteAgentTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetAgentInstallCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAgentInstallCommandRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetAgentInstallCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetAgentInstallCommand_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetAgentInstallCommand(ctx, req.(*GetAgentInstallCommandRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -380,6 +516,22 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteAPIKey",
 			Handler:    _AuthService_DeleteAPIKey_Handler,
+		},
+		{
+			MethodName: "CreateAgentToken",
+			Handler:    _AuthService_CreateAgentToken_Handler,
+		},
+		{
+			MethodName: "ListAgentTokens",
+			Handler:    _AuthService_ListAgentTokens_Handler,
+		},
+		{
+			MethodName: "DeleteAgentToken",
+			Handler:    _AuthService_DeleteAgentToken_Handler,
+		},
+		{
+			MethodName: "GetAgentInstallCommand",
+			Handler:    _AuthService_GetAgentInstallCommand_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

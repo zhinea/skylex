@@ -29,6 +29,7 @@ export function useNodes(clusterId?: string, page = 1, pageSize = 50) {
         "/skylex.v1.NodeService/ListNodes",
         { clusterId: clusterId || "", page, pageSize },
       ),
+    refetchInterval: 5000,
   });
 }
 

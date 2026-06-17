@@ -55,6 +55,8 @@ func connectInterceptors(h http.Handler, srv *Server) http.Handler {
 var unauthenticatedPaths = map[string]bool{
 	skylexv1connect.AuthServiceLoginProcedure:        true,
 	skylexv1connect.AuthServiceRefreshTokenProcedure: true,
+	"/install.sh": true,
+	"/version":    true,
 }
 
 var writeMethods = map[string]bool{
@@ -79,6 +81,8 @@ var writeMethods = map[string]bool{
 	skylexv1connect.AuthServiceDeleteUserProcedure:  true,
 	skylexv1connect.AuthServiceCreateAPIKeyProcedure: true,
 	skylexv1connect.AuthServiceDeleteAPIKeyProcedure: true,
+	skylexv1connect.AuthServiceCreateAgentTokenProcedure: true,
+	skylexv1connect.AuthServiceDeleteAgentTokenProcedure: true,
 }
 
 func isUnauthenticated(path string) bool {
@@ -151,6 +155,38 @@ func (c *connectAuthService) ListAPIKeys(ctx context.Context, req *connect.Reque
 
 func (c *connectAuthService) DeleteAPIKey(ctx context.Context, req *connect.Request[skylexv1.DeleteAPIKeyRequest]) (*connect.Response[skylexv1.DeleteAPIKeyResponse], error) {
 	resp, err := c.svc.DeleteAPIKey(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectAuthService) CreateAgentToken(ctx context.Context, req *connect.Request[skylexv1.CreateAgentTokenRequest]) (*connect.Response[skylexv1.CreateAgentTokenResponse], error) {
+	resp, err := c.svc.CreateAgentToken(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectAuthService) ListAgentTokens(ctx context.Context, req *connect.Request[skylexv1.ListAgentTokensRequest]) (*connect.Response[skylexv1.ListAgentTokensResponse], error) {
+	resp, err := c.svc.ListAgentTokens(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectAuthService) DeleteAgentToken(ctx context.Context, req *connect.Request[skylexv1.DeleteAgentTokenRequest]) (*connect.Response[skylexv1.DeleteAgentTokenResponse], error) {
+	resp, err := c.svc.DeleteAgentToken(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectAuthService) GetAgentInstallCommand(ctx context.Context, req *connect.Request[skylexv1.GetAgentInstallCommandRequest]) (*connect.Response[skylexv1.GetAgentInstallCommandResponse], error) {
+	resp, err := c.svc.GetAgentInstallCommand(ctx, req.Msg)
 	if err != nil {
 		return nil, err
 	}
@@ -414,6 +450,9 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 	schedulePath, scheduleHandler := skylexv1connect.NewScheduleServiceHandler(&connectScheduleService{svc: s.backupService})
 	mux.Handle(schedulePath, scheduleHandler)
 
+	mux.HandleFunc("/install.sh", s.serveAgentInstallScript)
+	mux.HandleFunc("/version", s.serveVersion)
+
 	mux.HandleFunc("/skylex.v1.AuthService/ListAuditLogs", s.handleListAuditLogs)
 
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -512,6 +551,28 @@ func (s *Server) handleListAuditLogs(w http.ResponseWriter, r *http.Request) {
 			"total":    total,
 		},
 	})
+}
+
+func (s *Server) serveAgentInstallScript(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/x-shellscript")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(installScript()))
+}
+
+func (s *Server) serveVersion(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(versionString()))
 }
 
 func extractHTTPAuth(r *http.Request, srv *Server) (userID, userRole, userEmail string, err error) {

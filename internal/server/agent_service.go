@@ -2,7 +2,11 @@ package server
 
 import (
 	"context"
+	"crypto/subtle"
+	"database/sql"
+	"errors"
 	"log/slog"
+	"time"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/crypto"
@@ -14,20 +18,61 @@ import (
 
 type AgentService struct {
 	skylexv1.UnimplementedAgentServiceServer
-	nodes    *db.NodeRepository
-	commands *db.AgentCommandRepository
-	log      *slog.Logger
+	cfg            *Config
+	nodes          *db.NodeRepository
+	commands       *db.AgentCommandRepository
+	agentTokenRepo *db.AgentTokenRepository
+	log            *slog.Logger
 }
 
-func NewAgentService(nodes *db.NodeRepository, commands *db.AgentCommandRepository, log *slog.Logger) *AgentService {
+func NewAgentService(cfg *Config, nodes *db.NodeRepository, commands *db.AgentCommandRepository, agentTokenRepo *db.AgentTokenRepository, log *slog.Logger) *AgentService {
 	return &AgentService{
-		nodes:    nodes,
-		commands: commands,
-		log:      log,
+		cfg:            cfg,
+		nodes:          nodes,
+		commands:       commands,
+		agentTokenRepo: agentTokenRepo,
+		log:            log,
 	}
 }
 
+func (s *AgentService) validateAgentToken(token string) (bool, error) {
+	if token == "" {
+		return false, nil
+	}
+
+	hash := crypto.HashToken(token)
+	storedToken, err := s.agentTokenRepo.GetByTokenHash(hash)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return false, err
+	}
+	if storedToken != nil {
+		if storedToken.ExpiresAt == nil || storedToken.ExpiresAt.After(time.Now()) {
+			return true, nil
+		}
+	}
+
+	// Optional dev-token fallback when no stored token matched. This is only
+	// enabled when agent_token is explicitly configured in the server config.
+	if s.cfg.Agent.AgentToken != "" && subtle.ConstantTimeCompare([]byte(token), []byte(s.cfg.Agent.AgentToken)) == 1 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.RegisterAgentRequest) (*skylexv1.RegisterAgentResponse, error) {
+	if req.AgentToken == "" {
+		return nil, status.Error(codes.Unauthenticated, "agent token is required")
+	}
+
+	valid, err := s.validateAgentToken(req.AgentToken)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "validate agent token: %v", err)
+	}
+	if !valid {
+		return nil, status.Error(codes.Unauthenticated, "invalid or revoked agent token")
+	}
+
 	agentID, err := crypto.GenerateToken(16)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "generate agent id: %v", err)

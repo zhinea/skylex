@@ -52,6 +52,18 @@ const (
 	// AuthServiceDeleteAPIKeyProcedure is the fully-qualified name of the AuthService's DeleteAPIKey
 	// RPC.
 	AuthServiceDeleteAPIKeyProcedure = "/skylex.v1.AuthService/DeleteAPIKey"
+	// AuthServiceCreateAgentTokenProcedure is the fully-qualified name of the AuthService's
+	// CreateAgentToken RPC.
+	AuthServiceCreateAgentTokenProcedure = "/skylex.v1.AuthService/CreateAgentToken"
+	// AuthServiceListAgentTokensProcedure is the fully-qualified name of the AuthService's
+	// ListAgentTokens RPC.
+	AuthServiceListAgentTokensProcedure = "/skylex.v1.AuthService/ListAgentTokens"
+	// AuthServiceDeleteAgentTokenProcedure is the fully-qualified name of the AuthService's
+	// DeleteAgentToken RPC.
+	AuthServiceDeleteAgentTokenProcedure = "/skylex.v1.AuthService/DeleteAgentToken"
+	// AuthServiceGetAgentInstallCommandProcedure is the fully-qualified name of the AuthService's
+	// GetAgentInstallCommand RPC.
+	AuthServiceGetAgentInstallCommandProcedure = "/skylex.v1.AuthService/GetAgentInstallCommand"
 )
 
 // AuthServiceClient is a client for the skylex.v1.AuthService service.
@@ -64,6 +76,10 @@ type AuthServiceClient interface {
 	CreateAPIKey(context.Context, *connect.Request[v1.CreateAPIKeyRequest]) (*connect.Response[v1.CreateAPIKeyResponse], error)
 	ListAPIKeys(context.Context, *connect.Request[v1.ListAPIKeysRequest]) (*connect.Response[v1.ListAPIKeysResponse], error)
 	DeleteAPIKey(context.Context, *connect.Request[v1.DeleteAPIKeyRequest]) (*connect.Response[v1.DeleteAPIKeyResponse], error)
+	CreateAgentToken(context.Context, *connect.Request[v1.CreateAgentTokenRequest]) (*connect.Response[v1.CreateAgentTokenResponse], error)
+	ListAgentTokens(context.Context, *connect.Request[v1.ListAgentTokensRequest]) (*connect.Response[v1.ListAgentTokensResponse], error)
+	DeleteAgentToken(context.Context, *connect.Request[v1.DeleteAgentTokenRequest]) (*connect.Response[v1.DeleteAgentTokenResponse], error)
+	GetAgentInstallCommand(context.Context, *connect.Request[v1.GetAgentInstallCommandRequest]) (*connect.Response[v1.GetAgentInstallCommandResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the skylex.v1.AuthService service. By default, it
@@ -125,19 +141,47 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("DeleteAPIKey")),
 			connect.WithClientOptions(opts...),
 		),
+		createAgentToken: connect.NewClient[v1.CreateAgentTokenRequest, v1.CreateAgentTokenResponse](
+			httpClient,
+			baseURL+AuthServiceCreateAgentTokenProcedure,
+			connect.WithSchema(authServiceMethods.ByName("CreateAgentToken")),
+			connect.WithClientOptions(opts...),
+		),
+		listAgentTokens: connect.NewClient[v1.ListAgentTokensRequest, v1.ListAgentTokensResponse](
+			httpClient,
+			baseURL+AuthServiceListAgentTokensProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ListAgentTokens")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteAgentToken: connect.NewClient[v1.DeleteAgentTokenRequest, v1.DeleteAgentTokenResponse](
+			httpClient,
+			baseURL+AuthServiceDeleteAgentTokenProcedure,
+			connect.WithSchema(authServiceMethods.ByName("DeleteAgentToken")),
+			connect.WithClientOptions(opts...),
+		),
+		getAgentInstallCommand: connect.NewClient[v1.GetAgentInstallCommandRequest, v1.GetAgentInstallCommandResponse](
+			httpClient,
+			baseURL+AuthServiceGetAgentInstallCommandProcedure,
+			connect.WithSchema(authServiceMethods.ByName("GetAgentInstallCommand")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	login        *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	refreshToken *connect.Client[v1.RefreshTokenRequest, v1.RefreshTokenResponse]
-	listUsers    *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	createUser   *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
-	deleteUser   *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
-	createAPIKey *connect.Client[v1.CreateAPIKeyRequest, v1.CreateAPIKeyResponse]
-	listAPIKeys  *connect.Client[v1.ListAPIKeysRequest, v1.ListAPIKeysResponse]
-	deleteAPIKey *connect.Client[v1.DeleteAPIKeyRequest, v1.DeleteAPIKeyResponse]
+	login                  *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	refreshToken           *connect.Client[v1.RefreshTokenRequest, v1.RefreshTokenResponse]
+	listUsers              *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
+	createUser             *connect.Client[v1.CreateUserRequest, v1.CreateUserResponse]
+	deleteUser             *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
+	createAPIKey           *connect.Client[v1.CreateAPIKeyRequest, v1.CreateAPIKeyResponse]
+	listAPIKeys            *connect.Client[v1.ListAPIKeysRequest, v1.ListAPIKeysResponse]
+	deleteAPIKey           *connect.Client[v1.DeleteAPIKeyRequest, v1.DeleteAPIKeyResponse]
+	createAgentToken       *connect.Client[v1.CreateAgentTokenRequest, v1.CreateAgentTokenResponse]
+	listAgentTokens        *connect.Client[v1.ListAgentTokensRequest, v1.ListAgentTokensResponse]
+	deleteAgentToken       *connect.Client[v1.DeleteAgentTokenRequest, v1.DeleteAgentTokenResponse]
+	getAgentInstallCommand *connect.Client[v1.GetAgentInstallCommandRequest, v1.GetAgentInstallCommandResponse]
 }
 
 // Login calls skylex.v1.AuthService.Login.
@@ -180,6 +224,26 @@ func (c *authServiceClient) DeleteAPIKey(ctx context.Context, req *connect.Reque
 	return c.deleteAPIKey.CallUnary(ctx, req)
 }
 
+// CreateAgentToken calls skylex.v1.AuthService.CreateAgentToken.
+func (c *authServiceClient) CreateAgentToken(ctx context.Context, req *connect.Request[v1.CreateAgentTokenRequest]) (*connect.Response[v1.CreateAgentTokenResponse], error) {
+	return c.createAgentToken.CallUnary(ctx, req)
+}
+
+// ListAgentTokens calls skylex.v1.AuthService.ListAgentTokens.
+func (c *authServiceClient) ListAgentTokens(ctx context.Context, req *connect.Request[v1.ListAgentTokensRequest]) (*connect.Response[v1.ListAgentTokensResponse], error) {
+	return c.listAgentTokens.CallUnary(ctx, req)
+}
+
+// DeleteAgentToken calls skylex.v1.AuthService.DeleteAgentToken.
+func (c *authServiceClient) DeleteAgentToken(ctx context.Context, req *connect.Request[v1.DeleteAgentTokenRequest]) (*connect.Response[v1.DeleteAgentTokenResponse], error) {
+	return c.deleteAgentToken.CallUnary(ctx, req)
+}
+
+// GetAgentInstallCommand calls skylex.v1.AuthService.GetAgentInstallCommand.
+func (c *authServiceClient) GetAgentInstallCommand(ctx context.Context, req *connect.Request[v1.GetAgentInstallCommandRequest]) (*connect.Response[v1.GetAgentInstallCommandResponse], error) {
+	return c.getAgentInstallCommand.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the skylex.v1.AuthService service.
 type AuthServiceHandler interface {
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
@@ -190,6 +254,10 @@ type AuthServiceHandler interface {
 	CreateAPIKey(context.Context, *connect.Request[v1.CreateAPIKeyRequest]) (*connect.Response[v1.CreateAPIKeyResponse], error)
 	ListAPIKeys(context.Context, *connect.Request[v1.ListAPIKeysRequest]) (*connect.Response[v1.ListAPIKeysResponse], error)
 	DeleteAPIKey(context.Context, *connect.Request[v1.DeleteAPIKeyRequest]) (*connect.Response[v1.DeleteAPIKeyResponse], error)
+	CreateAgentToken(context.Context, *connect.Request[v1.CreateAgentTokenRequest]) (*connect.Response[v1.CreateAgentTokenResponse], error)
+	ListAgentTokens(context.Context, *connect.Request[v1.ListAgentTokensRequest]) (*connect.Response[v1.ListAgentTokensResponse], error)
+	DeleteAgentToken(context.Context, *connect.Request[v1.DeleteAgentTokenRequest]) (*connect.Response[v1.DeleteAgentTokenResponse], error)
+	GetAgentInstallCommand(context.Context, *connect.Request[v1.GetAgentInstallCommandRequest]) (*connect.Response[v1.GetAgentInstallCommandResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -247,6 +315,30 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("DeleteAPIKey")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceCreateAgentTokenHandler := connect.NewUnaryHandler(
+		AuthServiceCreateAgentTokenProcedure,
+		svc.CreateAgentToken,
+		connect.WithSchema(authServiceMethods.ByName("CreateAgentToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceListAgentTokensHandler := connect.NewUnaryHandler(
+		AuthServiceListAgentTokensProcedure,
+		svc.ListAgentTokens,
+		connect.WithSchema(authServiceMethods.ByName("ListAgentTokens")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceDeleteAgentTokenHandler := connect.NewUnaryHandler(
+		AuthServiceDeleteAgentTokenProcedure,
+		svc.DeleteAgentToken,
+		connect.WithSchema(authServiceMethods.ByName("DeleteAgentToken")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceGetAgentInstallCommandHandler := connect.NewUnaryHandler(
+		AuthServiceGetAgentInstallCommandProcedure,
+		svc.GetAgentInstallCommand,
+		connect.WithSchema(authServiceMethods.ByName("GetAgentInstallCommand")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceLoginProcedure:
@@ -265,6 +357,14 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceListAPIKeysHandler.ServeHTTP(w, r)
 		case AuthServiceDeleteAPIKeyProcedure:
 			authServiceDeleteAPIKeyHandler.ServeHTTP(w, r)
+		case AuthServiceCreateAgentTokenProcedure:
+			authServiceCreateAgentTokenHandler.ServeHTTP(w, r)
+		case AuthServiceListAgentTokensProcedure:
+			authServiceListAgentTokensHandler.ServeHTTP(w, r)
+		case AuthServiceDeleteAgentTokenProcedure:
+			authServiceDeleteAgentTokenHandler.ServeHTTP(w, r)
+		case AuthServiceGetAgentInstallCommandProcedure:
+			authServiceGetAgentInstallCommandHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -304,4 +404,20 @@ func (UnimplementedAuthServiceHandler) ListAPIKeys(context.Context, *connect.Req
 
 func (UnimplementedAuthServiceHandler) DeleteAPIKey(context.Context, *connect.Request[v1.DeleteAPIKeyRequest]) (*connect.Response[v1.DeleteAPIKeyResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AuthService.DeleteAPIKey is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) CreateAgentToken(context.Context, *connect.Request[v1.CreateAgentTokenRequest]) (*connect.Response[v1.CreateAgentTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AuthService.CreateAgentToken is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ListAgentTokens(context.Context, *connect.Request[v1.ListAgentTokensRequest]) (*connect.Response[v1.ListAgentTokensResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AuthService.ListAgentTokens is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) DeleteAgentToken(context.Context, *connect.Request[v1.DeleteAgentTokenRequest]) (*connect.Response[v1.DeleteAgentTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AuthService.DeleteAgentToken is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) GetAgentInstallCommand(context.Context, *connect.Request[v1.GetAgentInstallCommandRequest]) (*connect.Response[v1.GetAgentInstallCommandResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AuthService.GetAgentInstallCommand is not implemented"))
 }

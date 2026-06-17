@@ -62,8 +62,11 @@ func New(cfg *Config) (*Server, error) {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	if Version == "" {
+		Version = "dev"
+	}
 	s.log.Info("starting skylex server",
-		"version", "0.1.0",
+		"version", Version,
 		"grpc_port", s.cfg.Server.GRPCPort,
 		"http_port", s.cfg.Server.HTTPPort,
 		"metrics_port", s.cfg.Server.MetricsPort,
@@ -95,7 +98,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.jwtManager = NewJWTManager(s.cfg.Auth.JWTSecret, s.cfg.Auth.TokenExpiry, s.cfg.Auth.RefreshExpiry)
 	s.authInterceptor = NewAuthInterceptor(s.jwtManager, apiKeyRepo, userRepo, s.log)
 	s.auditInterceptor = NewAuditInterceptor(auditRepo, s.log)
-	s.authService = NewAuthService(userRepo, apiKeyRepo, agentTokenRepo, s.jwtManager, s.log)
+	s.authService = NewAuthService(s.cfg, userRepo, apiKeyRepo, agentTokenRepo, s.jwtManager, s.log)
 
 	if err := s.ensureDefaultAdmin(userRepo); err != nil {
 		return fmt.Errorf("ensure default admin: %w", err)
@@ -105,7 +108,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.clusterService = NewClusterService(clusterRepo, nodeRepo, commandRepo, s.log)
 	s.nodeService = NewNodeService(nodeRepo, commandRepo, s.log)
-	s.agentService = NewAgentService(nodeRepo, commandRepo, s.log)
+	s.agentService = NewAgentService(s.cfg, nodeRepo, commandRepo, agentTokenRepo, s.log)
 
 	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)

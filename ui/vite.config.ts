@@ -14,6 +14,8 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ""),
         changeOrigin: true,
       },
+      "/install.sh": "http://localhost:8080",
+      "/version": "http://localhost:8080",
     },
   },
 });

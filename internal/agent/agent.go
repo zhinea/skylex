@@ -63,7 +63,7 @@ func New(cfg Config) (*Agent, error) {
 
 func (a *Agent) Run(ctx context.Context) error {
 	a.log.Info("starting skylex agent",
-		"version", "0.1.0",
+		"version", Version,
 		"hostname", a.cfg.Hostname,
 		"server_addr", a.cfg.ServerAddr,
 	)

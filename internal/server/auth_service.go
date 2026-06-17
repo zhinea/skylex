@@ -18,6 +18,7 @@ import (
 
 type AuthService struct {
 	skylexv1.UnimplementedAuthServiceServer
+	cfg            *Config
 	userRepo       *db.UserRepository
 	apiKeyRepo     *db.APIKeyRepository
 	agentTokenRepo *db.AgentTokenRepository
@@ -26,6 +27,7 @@ type AuthService struct {
 }
 
 func NewAuthService(
+	cfg *Config,
 	userRepo *db.UserRepository,
 	apiKeyRepo *db.APIKeyRepository,
 	agentTokenRepo *db.AgentTokenRepository,
@@ -33,6 +35,7 @@ func NewAuthService(
 	log *slog.Logger,
 ) *AuthService {
 	return &AuthService{
+		cfg:            cfg,
 		userRepo:       userRepo,
 		apiKeyRepo:     apiKeyRepo,
 		agentTokenRepo: agentTokenRepo,
@@ -230,6 +233,88 @@ func (s *AuthService) DeleteAPIKey(ctx context.Context, req *skylexv1.DeleteAPIK
 	return &skylexv1.DeleteAPIKeyResponse{}, nil
 }
 
+func (s *AuthService) CreateAgentToken(ctx context.Context, req *skylexv1.CreateAgentTokenRequest) (*skylexv1.CreateAgentTokenResponse, error) {
+	if req.Name == "" {
+		return nil, status.Error(codes.InvalidArgument, "name is required")
+	}
+
+	rawToken, err := crypto.GenerateToken(32)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "generate token: %v", err)
+	}
+	rawToken = "sklx_at_" + rawToken
+	tokenHash := crypto.HashToken(rawToken)
+
+	role := models.RoleOperator
+	switch req.Role {
+	case skylexv1.Role_ROLE_ADMIN:
+		role = models.RoleAdmin
+	case skylexv1.Role_ROLE_OPERATOR:
+		role = models.RoleOperator
+	case skylexv1.Role_ROLE_VIEWER:
+		role = models.RoleViewer
+	}
+
+	token := &models.AgentToken{
+		ID:        id.New(),
+		Name:      req.Name,
+		TokenHash: tokenHash,
+		Role:      role,
+		CreatedAt: time.Now(),
+	}
+
+	if req.ExpiresAt != nil {
+		t := req.ExpiresAt.AsTime()
+		token.ExpiresAt = &t
+	}
+
+	if err := s.agentTokenRepo.Create(token); err != nil {
+		return nil, status.Errorf(codes.Internal, "create agent token: %v", err)
+	}
+
+	return &skylexv1.CreateAgentTokenResponse{
+		AgentToken: agentTokenToProto(token),
+		Token:      rawToken,
+	}, nil
+}
+
+func (s *AuthService) ListAgentTokens(ctx context.Context, req *skylexv1.ListAgentTokensRequest) (*skylexv1.ListAgentTokensResponse, error) {
+	tokens, err := s.agentTokenRepo.List()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list agent tokens: %v", err)
+	}
+
+	var protoTokens []*skylexv1.AgentToken
+	for i := range tokens {
+		protoTokens = append(protoTokens, agentTokenToProto(&tokens[i]))
+	}
+
+	return &skylexv1.ListAgentTokensResponse{Tokens: protoTokens}, nil
+}
+
+func (s *AuthService) DeleteAgentToken(ctx context.Context, req *skylexv1.DeleteAgentTokenRequest) (*skylexv1.DeleteAgentTokenResponse, error) {
+	if err := s.agentTokenRepo.Delete(req.Id); err != nil {
+		return nil, status.Errorf(codes.Internal, "delete agent token: %v", err)
+	}
+	return &skylexv1.DeleteAgentTokenResponse{}, nil
+}
+
+func (s *AuthService) GetAgentInstallCommand(ctx context.Context, req *skylexv1.GetAgentInstallCommandRequest) (*skylexv1.GetAgentInstallCommandResponse, error) {
+	createResp, err := s.CreateAgentToken(ctx, &skylexv1.CreateAgentTokenRequest{
+		Name: "node-install",
+		Role: skylexv1.Role_ROLE_OPERATOR,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &skylexv1.GetAgentInstallCommandResponse{
+		ScriptUrl:  "",
+		ServerAddr: s.cfg.Server.AdvertiseAddr,
+		Token:      createResp.Token,
+	}, nil
+}
+
 func userToProto(u *models.User) *skylexv1.User {
 	role := skylexv1.Role_ROLE_VIEWER
 	switch u.Role {
@@ -258,4 +343,25 @@ func apiKeyToProto(k *models.APIKey) *skylexv1.APIKey {
 		pk.ExpiresAt = timestamppb.New(*k.ExpiresAt)
 	}
 	return pk
+}
+
+func agentTokenToProto(t *models.AgentToken) *skylexv1.AgentToken {
+	role := skylexv1.Role_ROLE_VIEWER
+	switch t.Role {
+	case models.RoleAdmin:
+		role = skylexv1.Role_ROLE_ADMIN
+	case models.RoleOperator:
+		role = skylexv1.Role_ROLE_OPERATOR
+	}
+
+	pt := &skylexv1.AgentToken{
+		Id:        t.ID,
+		Name:      t.Name,
+		Role:      role,
+		CreatedAt: timestamppb.New(t.CreatedAt),
+	}
+	if t.ExpiresAt != nil {
+		pt.ExpiresAt = timestamppb.New(*t.ExpiresAt)
+	}
+	return pt
 }

@@ -44,6 +44,10 @@ service AuthService {
   rpc CreateAPIKey(CreateAPIKeyRequest) returns (CreateAPIKeyResponse);
   rpc ListAPIKeys(ListAPIKeysRequest) returns (ListAPIKeysResponse);
   rpc DeleteAPIKey(DeleteAPIKeyRequest) returns (DeleteAPIKeyResponse);
+  rpc CreateAgentToken(CreateAgentTokenRequest) returns (CreateAgentTokenResponse);
+  rpc ListAgentTokens(ListAgentTokensRequest) returns (ListAgentTokensResponse);
+  rpc DeleteAgentToken(DeleteAgentTokenRequest) returns (DeleteAgentTokenResponse);
+  rpc GetAgentInstallCommand(GetAgentInstallCommandRequest) returns (GetAgentInstallCommandResponse);
 }
 
 message LoginRequest {
@@ -114,3 +118,34 @@ message DeleteAPIKeyRequest {
 }
 
 message DeleteAPIKeyResponse {}
+
+message CreateAgentTokenRequest {
+  string name = 1;
+  Role role = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message CreateAgentTokenResponse {
+  AgentToken agent_token = 1;
+  string token = 2;
+}
+
+message ListAgentTokensRequest {}
+
+message ListAgentTokensResponse {
+  repeated AgentToken tokens = 1;
+}
+
+message DeleteAgentTokenRequest {
+  string id = 1;
+}
+
+message DeleteAgentTokenResponse {}
+
+message GetAgentInstallCommandRequest {}
+
+message GetAgentInstallCommandResponse {
+  string script_url = 1;
+  string server_addr = 2;
+  string token = 3;
+}

@@ -28,10 +28,11 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	ListenAddr  string `koanf:"listen_addr" validate:"required"`
-	GRPCPort    int    `koanf:"grpc_port" validate:"required,min=1,max=65535"`
-	HTTPPort    int    `koanf:"http_port" validate:"required,min=1,max=65535"`
-	MetricsPort int    `koanf:"metrics_port" validate:"required,min=1,max=65535"`
+	ListenAddr   string `koanf:"listen_addr" validate:"required"`
+	GRPCPort     int    `koanf:"grpc_port" validate:"required,min=1,max=65535"`
+	HTTPPort     int    `koanf:"http_port" validate:"required,min=1,max=65535"`
+	MetricsPort  int    `koanf:"metrics_port" validate:"required,min=1,max=65535"`
+	AdvertiseAddr string `koanf:"advertise_addr"`
 }
 
 type DatabaseConfig struct {
@@ -57,6 +58,7 @@ type BackupConfig struct {
 type AgentConfig struct {
 	HeartbeatInterval time.Duration `koanf:"heartbeat_interval" validate:"required"`
 	HeartbeatTimeout  time.Duration `koanf:"heartbeat_timeout" validate:"required"`
+	AgentToken        string        `koanf:"agent_token"`
 }
 
 type AuthConfig struct {
@@ -136,6 +138,9 @@ func (c *Config) setDefaults() error {
 	}
 	if c.Server.MetricsPort == 0 {
 		c.Server.MetricsPort = 9091
+	}
+	if c.Server.AdvertiseAddr == "" {
+		c.Server.AdvertiseAddr = fmt.Sprintf("%s:%d", c.Server.ListenAddr, c.Server.GRPCPort)
 	}
 
 	if c.Database.Driver == "" {
