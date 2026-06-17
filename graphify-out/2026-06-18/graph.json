@@ -56,14 +56,176 @@
   },
   "nodes": [
     {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 130,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "Skylex \u2014 Agent Notes",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_skylex_agent_notes",
+      "community": 130,
+      "norm_label": "skylex \u2014 agent notes"
+    },
+    {
+      "label": "Quick start",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "agents_quick_start",
+      "community": 130,
+      "norm_label": "quick start"
+    },
+    {
+      "label": "Project layout",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "agents_project_layout",
+      "community": 130,
+      "norm_label": "project layout"
+    },
+    {
+      "label": "Developer commands",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "agents_developer_commands",
+      "community": 130,
+      "norm_label": "developer commands"
+    },
+    {
+      "label": "Configuration",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "agents_configuration",
+      "community": 130,
+      "norm_label": "configuration"
+    },
+    {
+      "label": "Database and migrations",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "agents_database_and_migrations",
+      "community": 130,
+      "norm_label": "database and migrations"
+    },
+    {
+      "label": "Protocol buffers and generated code",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "agents_protocol_buffers_and_generated_code",
+      "community": 130,
+      "norm_label": "protocol buffers and generated code"
+    },
+    {
+      "label": "Testing",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "agents_testing",
+      "community": 130,
+      "norm_label": "testing"
+    },
+    {
+      "label": "Docker Compose reference stack",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "agents_docker_compose_reference_stack",
+      "community": 130,
+      "norm_label": "docker compose reference stack"
+    },
+    {
+      "label": "Important conventions",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "agents_important_conventions",
+      "community": 130,
+      "norm_label": "important conventions"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "agents_graphify",
+      "community": 130,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "dev.sh",
+      "file_type": "code",
+      "source_file": "scripts/dev.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "scripts_dev",
+      "community": 111,
+      "norm_label": "dev.sh"
+    },
+    {
+      "label": "dev.sh script",
+      "file_type": "code",
+      "source_file": "scripts/dev.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "home_zynos_projects_skylex_scripts_dev_sh__entry",
+      "community": 111,
+      "norm_label": "dev.sh script"
+    },
+    {
+      "label": "cleanup()",
+      "file_type": "code",
+      "source_file": "scripts/dev.sh",
+      "source_location": "L14",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "scripts_dev_cleanup",
+      "community": 111,
+      "norm_label": "cleanup()"
+    },
+    {
       "label": "dashboard.tsx",
       "file_type": "code",
       "source_file": "ui/app/layouts/dashboard.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "layouts_dashboard",
       "community": 103,
-      "norm_label": "dashboard.tsx"
+      "norm_label": "dashboard.tsx",
+      "id": "layouts_dashboard"
     },
     {
       "label": "navItems",
@@ -71,9 +233,9 @@
       "source_file": "ui/app/layouts/dashboard.tsx",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "layouts_dashboard_navitems",
       "community": 103,
-      "norm_label": "navitems"
+      "norm_label": "navitems",
+      "id": "layouts_dashboard_navitems"
     },
     {
       "label": "DashboardLayout()",
@@ -81,9 +243,9 @@
       "source_file": "ui/app/layouts/dashboard.tsx",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "layouts_dashboard_dashboardlayout",
       "community": 103,
-      "norm_label": "dashboardlayout()"
+      "norm_label": "dashboardlayout()",
+      "id": "layouts_dashboard_dashboardlayout"
     },
     {
       "label": "api.ts",
@@ -91,9 +253,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_api",
       "community": 103,
-      "norm_label": "api.ts"
+      "norm_label": "api.ts",
+      "id": "lib_api"
     },
     {
       "label": "getToken()",
@@ -101,9 +263,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_api_gettoken",
       "community": 103,
-      "norm_label": "gettoken()"
+      "norm_label": "gettoken()",
+      "id": "lib_api_gettoken"
     },
     {
       "label": "setToken()",
@@ -111,9 +273,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L8",
       "_origin": "ast",
-      "id": "lib_api_settoken",
       "community": 103,
-      "norm_label": "settoken()"
+      "norm_label": "settoken()",
+      "id": "lib_api_settoken"
     },
     {
       "label": "clearToken()",
@@ -121,9 +283,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "lib_api_cleartoken",
       "community": 103,
-      "norm_label": "cleartoken()"
+      "norm_label": "cleartoken()",
+      "id": "lib_api_cleartoken"
     },
     {
       "label": "ApiError",
@@ -131,9 +293,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "lib_api_apierror",
       "community": 103,
-      "norm_label": "apierror"
+      "norm_label": "apierror",
+      "id": "lib_api_apierror"
     },
     {
       "label": ".constructor()",
@@ -141,9 +303,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "lib_api_apierror_constructor",
       "community": 103,
-      "norm_label": ".constructor()"
+      "norm_label": ".constructor()",
+      "id": "lib_api_apierror_constructor"
     },
     {
       "label": "request()",
@@ -151,9 +313,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "lib_api_request",
       "community": 103,
-      "norm_label": "request()"
+      "norm_label": "request()",
+      "id": "lib_api_request"
     },
     {
       "label": "api",
@@ -161,9 +323,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L65",
       "_origin": "ast",
-      "id": "lib_api_api",
       "community": 103,
-      "norm_label": "api"
+      "norm_label": "api",
+      "id": "lib_api_api"
     },
     {
       "label": "auth.tsx",
@@ -171,9 +333,9 @@
       "source_file": "ui/app/lib/auth.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_auth",
       "community": 103,
-      "norm_label": "auth.tsx"
+      "norm_label": "auth.tsx",
+      "id": "lib_auth"
     },
     {
       "label": "User",
@@ -181,9 +343,9 @@
       "source_file": "ui/app/lib/auth.tsx",
       "source_location": "L5",
       "_origin": "ast",
-      "id": "lib_auth_user",
       "community": 103,
-      "norm_label": "user"
+      "norm_label": "user",
+      "id": "lib_auth_user"
     },
     {
       "label": "AuthState",
@@ -191,9 +353,9 @@
       "source_file": "ui/app/lib/auth.tsx",
       "source_location": "L13",
       "_origin": "ast",
-      "id": "lib_auth_authstate",
       "community": 103,
-      "norm_label": "authstate"
+      "norm_label": "authstate",
+      "id": "lib_auth_authstate"
     },
     {
       "label": "AuthContext",
@@ -201,9 +363,9 @@
       "source_file": "ui/app/lib/auth.tsx",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "lib_auth_authcontext",
       "community": 103,
-      "norm_label": "authcontext"
+      "norm_label": "authcontext",
+      "id": "lib_auth_authcontext"
     },
     {
       "label": "AuthProvider()",
@@ -211,9 +373,9 @@
       "source_file": "ui/app/lib/auth.tsx",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "lib_auth_authprovider",
       "community": 34,
-      "norm_label": "authprovider()"
+      "norm_label": "authprovider()",
+      "id": "lib_auth_authprovider"
     },
     {
       "label": "useAuth()",
@@ -221,9 +383,9 @@
       "source_file": "ui/app/lib/auth.tsx",
       "source_location": "L82",
       "_origin": "ast",
-      "id": "lib_auth_useauth",
       "community": 103,
-      "norm_label": "useauth()"
+      "norm_label": "useauth()",
+      "id": "lib_auth_useauth"
     },
     {
       "label": "query-client.ts",
@@ -231,9 +393,9 @@
       "source_file": "ui/app/lib/query-client.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "lib_query_client",
       "community": 34,
-      "norm_label": "query-client.ts"
+      "norm_label": "query-client.ts",
+      "id": "lib_query_client"
     },
     {
       "label": "makeQueryClient()",
@@ -241,9 +403,9 @@
       "source_file": "ui/app/lib/query-client.ts",
       "source_location": "L3",
       "_origin": "ast",
-      "id": "lib_query_client_makequeryclient",
       "community": 34,
-      "norm_label": "makequeryclient()"
+      "norm_label": "makequeryclient()",
+      "id": "lib_query_client_makequeryclient"
     },
     {
       "label": "getQueryClient()",
@@ -251,299 +413,9 @@
       "source_file": "ui/app/lib/query-client.ts",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "lib_query_client_getqueryclient",
       "community": 34,
-      "norm_label": "getqueryclient()"
-    },
-    {
-      "label": "Server",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L20",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "server",
-      "id": "internal_server_server_go_server_server"
-    },
-    {
-      "label": "Config",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L21",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "config",
-      "id": "config"
-    },
-    {
-      "label": "Logger",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L22",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "logger",
-      "id": "logger"
-    },
-    {
-      "label": "DB",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L23",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "db",
-      "id": "db"
-    },
-    {
-      "label": "GRPCServer",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L25",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "grpcserver",
-      "id": "grpcserver"
-    },
-    {
-      "label": "ClusterService",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L26",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "clusterservice",
-      "id": "internal_server_server_go_clusterservice"
-    },
-    {
-      "label": "NodeService",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L27",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "nodeservice",
-      "id": "internal_server_server_go_nodeservice"
-    },
-    {
-      "label": "AgentService",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L28",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "agentservice",
-      "id": "agentservice"
-    },
-    {
-      "label": "StorageService",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L29",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "storageservice",
-      "id": "internal_server_server_go_storageservice"
-    },
-    {
-      "label": "BackupService",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L30",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "backupservice",
-      "id": "internal_server_server_go_backupservice"
-    },
-    {
-      "label": "AuthService",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L31",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "authservice",
-      "id": "internal_server_server_go_authservice"
-    },
-    {
-      "label": "Worker",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L32",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "worker",
-      "id": "worker"
-    },
-    {
-      "label": "FailoverEngine",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L33",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "failoverengine",
-      "id": "failoverengine"
-    },
-    {
-      "label": "Store",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L34",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "store",
-      "id": "store"
-    },
-    {
-      "label": "LeaderElector",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L35",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "leaderelector",
-      "id": "leaderelector"
-    },
-    {
-      "label": "CancelFunc",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L36",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "cancelfunc",
-      "id": "cancelfunc"
-    },
-    {
-      "label": "JWTManager",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L38",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "jwtmanager",
-      "id": "jwtmanager"
-    },
-    {
-      "label": "AuthInterceptor",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L39",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "authinterceptor",
-      "id": "authinterceptor"
-    },
-    {
-      "label": "AuditInterceptor",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L40",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "auditinterceptor",
-      "id": "auditinterceptor"
-    },
-    {
-      "label": "WebhookClient",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L41",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "webhookclient",
-      "id": "webhookclient"
-    },
-    {
-      "label": "MetadataBackup",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L42",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "metadatabackup",
-      "id": "metadatabackup"
-    },
-    {
-      "label": "AuditRepository",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L44",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": "auditrepository",
-      "id": "auditrepository"
-    },
-    {
-      "label": "New()",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L47",
-      "_origin": "ast",
-      "community": 136,
-      "norm_label": "new()",
-      "id": "server_server_new"
-    },
-    {
-      "label": ".Start()",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L60",
-      "_origin": "ast",
-      "community": 137,
-      "norm_label": ".start()",
-      "id": "server_server_start"
-    },
-    {
-      "label": "Context",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L60",
-      "_origin": "ast",
-      "community": 137,
-      "norm_label": "context",
-      "id": "internal_server_server_go_context"
-    },
-    {
-      "label": ".DB()",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L228",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": ".db()",
-      "id": "server_server_db"
-    },
-    {
-      "label": ".Config()",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L232",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": ".config()",
-      "id": "server_server_config"
-    },
-    {
-      "label": ".Log()",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L236",
-      "_origin": "ast",
-      "community": 89,
-      "norm_label": ".log()",
-      "id": "server_server_log"
-    },
-    {
-      "label": ".serveMetrics()",
-      "file_type": "code",
-      "source_file": "internal/server/server.go",
-      "source_location": "L240",
-      "_origin": "ast",
-      "community": 137,
-      "norm_label": ".servemetrics()",
-      "id": "server_server_servemetrics"
+      "norm_label": "getqueryclient()",
+      "id": "lib_query_client_getqueryclient"
     },
     {
       "label": "Badge.tsx",
@@ -3371,7 +3243,7 @@
       "source_file": "internal/db/cluster_repo.go",
       "source_location": "L161",
       "_origin": "ast",
-      "community": 27,
+      "community": 144,
       "norm_label": "inttobool()",
       "id": "db_cluster_repo_inttobool"
     },
@@ -7314,126 +7186,6 @@
       "community": 33,
       "norm_label": "node",
       "id": "internal_server_node_service_go_node"
-    },
-    {
-      "label": "AGENTS.md",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "agents.md",
-      "id": "agents"
-    },
-    {
-      "label": "Skylex \u2014 Agent Notes",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "skylex \u2014 agent notes",
-      "id": "agents_skylex_agent_notes"
-    },
-    {
-      "label": "Quick start",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L6",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "quick start",
-      "id": "agents_quick_start"
-    },
-    {
-      "label": "Project layout",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L18",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "project layout",
-      "id": "agents_project_layout"
-    },
-    {
-      "label": "Developer commands",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L30",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "developer commands",
-      "id": "agents_developer_commands"
-    },
-    {
-      "label": "Configuration",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L47",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "configuration",
-      "id": "agents_configuration"
-    },
-    {
-      "label": "Database and migrations",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L55",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "database and migrations",
-      "id": "agents_database_and_migrations"
-    },
-    {
-      "label": "Protocol buffers and generated code",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L61",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "protocol buffers and generated code",
-      "id": "agents_protocol_buffers_and_generated_code"
-    },
-    {
-      "label": "Testing",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L67",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "testing",
-      "id": "agents_testing"
-    },
-    {
-      "label": "Docker Compose reference stack",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L72",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "docker compose reference stack",
-      "id": "agents_docker_compose_reference_stack"
-    },
-    {
-      "label": "Important conventions",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L80",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "important conventions",
-      "id": "agents_important_conventions"
-    },
-    {
-      "label": "graphify",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L89",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "graphify",
-      "id": "agents_graphify"
     },
     {
       "label": "kilo.json",
@@ -22631,7 +22383,7 @@
       "source_file": "internal/models/storage.go",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 147,
+      "community": 27,
       "norm_label": "storage.go",
       "id": "models_storage"
     },
@@ -22641,7 +22393,7 @@
       "source_file": "internal/models/storage.go",
       "source_location": "L5",
       "_origin": "ast",
-      "community": 147,
+      "community": 27,
       "norm_label": "storagetype",
       "id": "models_storagetype"
     },
@@ -22651,7 +22403,7 @@
       "source_file": "internal/models/storage.go",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 147,
+      "community": 27,
       "norm_label": "storageconfig",
       "id": "models_storageconfig"
     },
@@ -22661,7 +22413,7 @@
       "source_file": "internal/models/storage.go",
       "source_location": "L21",
       "_origin": "ast",
-      "community": 147,
+      "community": 27,
       "norm_label": "time",
       "id": "internal_models_storage_go_time"
     },
@@ -24238,6 +23990,136 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents",
+      "target": "agents_skylex_agent_notes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_configuration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_database_and_migrations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_developer_commands"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L72",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_docker_compose_reference_stack"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L89",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_graphify"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_important_conventions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_project_layout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_protocol_buffers_and_generated_code"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_quick_start"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_testing"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/dev.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "scripts_dev",
+      "target": "home_zynos_projects_skylex_scripts_dev_sh__entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/dev.sh",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "scripts_dev",
+      "target": "scripts_dev_cleanup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "ui/app/layouts/dashboard.tsx",
       "source_location": "L13",
       "weight": 1.0,
@@ -24465,9 +24347,9 @@
       "source_file": "ui/app/lib/api.ts",
       "source_location": "L52",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_request",
-      "target": "lib_api_cleartoken",
-      "confidence_score": 1.0
+      "target": "lib_api_cleartoken"
     },
     {
       "relation": "imports",
@@ -24721,9 +24603,9 @@
       "source_file": "ui/app/lib/query-client.ts",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_query_client",
-      "target": "lib_query_client_makequeryclient",
-      "confidence_score": 1.0
+      "target": "lib_query_client_makequeryclient"
     },
     {
       "relation": "calls",
@@ -24732,9 +24614,9 @@
       "source_file": "ui/app/lib/query-client.ts",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_query_client_getqueryclient",
-      "target": "lib_query_client_makequeryclient",
-      "confidence_score": 1.0
+      "target": "lib_query_client_makequeryclient"
     },
     {
       "relation": "imports",
@@ -24757,770 +24639,6 @@
       "weight": 1.0,
       "source": "app_root_app",
       "target": "lib_query_client_getqueryclient"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "agentservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L40",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "auditinterceptor"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L44",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "auditrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L39",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "authinterceptor"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L37",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "cancelfunc"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L43",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "config"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L23",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "db"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L33",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "failoverengine"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L25",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "grpcserver"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L31",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "internal_server_server_go_authservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L30",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "internal_server_server_go_backupservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L26",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "internal_server_server_go_clusterservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L27",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "internal_server_server_go_nodeservice"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "internal_server_server_go_server_server"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L29",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "internal_server_server_go_storageservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L38",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "jwtmanager"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L35",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "leaderelector"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L22",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "logger"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L42",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "metadatabackup"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L232",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "server_server_config"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L228",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "server_server_db"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L236",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "server_server_log"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L240",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "server_server_servemetrics"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L60",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "server_server_start"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L34",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "store"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L41",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "webhookclient"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L32",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "internal_server_server_go_server_server",
-      "target": "worker"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L47",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_server_new",
-      "target": "internal_server_server_go_server_server"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L228",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_server_config",
-      "target": "config"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L47",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_server_new",
-      "target": "config"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/db/db.go",
-      "source_location": "L23",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "db_db",
-      "target": "logger"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/db/db.go",
-      "source_location": "L35",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "db_db_new",
-      "target": "logger"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L236",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_server_log",
-      "target": "logger"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L228",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_server_db",
-      "target": "db"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/auth_service.go",
-      "source_location": "L255",
-      "weight": 1.0,
-      "source": "server_auth_service_apikeytoproto",
-      "target": "server_server_new"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/auth_service.go",
-      "source_location": "L247",
-      "weight": 1.0,
-      "source": "server_auth_service_usertoproto",
-      "target": "server_server_new"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/auth_service.go",
-      "source_location": "L185",
-      "weight": 1.0,
-      "source": "server_authservice_createapikey",
-      "target": "server_server_new"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/auth_service.go",
-      "source_location": "L148",
-      "weight": 1.0,
-      "source": "server_authservice_createuser",
-      "target": "server_server_new"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L53",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_server_start",
-      "target": "server_server_new"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L77",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "backup_engine_newengine"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L76",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "backup_pgbackrest_newpgbackrest"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L78",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "backup_worker_newworker"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L72",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "crypto_crypto_derivekey"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L66",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_agent_command_repo_newagentcommandrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L85",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_audit_repo_newauditrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L74",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_backup_repo_newbackuprepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L64",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_cluster_repo_newclusterrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L65",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_node_repo_newnoderepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L73",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_storage_config_repo_newstorageconfigrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L84",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_user_repo_newagenttokenrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L83",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_user_repo_newapikeyrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L82",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "db_user_repo_newuserrepository"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L115",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "dcs_election_newleaderelector"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L45",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_server_start",
-      "target": "internal_server_server_go_context"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L70",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L90",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_audit_interceptor_newauditinterceptor"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L89",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_auth_interceptor_newauthinterceptor"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L91",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_auth_service_newauthservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L81",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_backup_service_newbackupservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L68",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_cluster_service_newclusterservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L133",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_failover_newfailoverengine"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L91",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_grpc_newgrpcserver"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L88",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_jwt_newjwtmanager"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L109",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_metadata_backup_newmetadatabackup"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L69",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_node_service_newnodeservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L107",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_server_start",
-      "target": "server_server_servemetrics"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L80",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_storage_service_newstorageservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L103",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_tls_loadtlscredentials"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L93",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_webhook_newwebhookclient"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/server.go",
-      "source_location": "L141",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_server_servemetrics",
-      "target": "internal_server_server_go_context"
     },
     {
       "relation": "contains",
@@ -38006,116 +37124,6 @@
       "confidence_score": 1.0,
       "source": "server_node_service_nodetoproto",
       "target": "internal_server_node_service_go_node"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents",
-      "target": "agents_skylex_agent_notes"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L47",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_configuration"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L55",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_database_and_migrations"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_developer_commands"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L72",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_docker_compose_reference_stack"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L89",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_graphify"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L80",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_important_conventions"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_project_layout"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L61",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_protocol_buffers_and_generated_code"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_quick_start"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L67",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_testing"
     },
     {
       "relation": "contains",
@@ -70675,5 +69683,5 @@
       "source_file": "deploy/docker-compose/docker-compose.yaml"
     }
   ],
-  "built_at_commit": "85a675e7d8b85cffbd9dce004eae6dd961dd102a"
+  "built_at_commit": "0cd5b3da86ce90499fe104465a6427f5736c4da4"
 }
