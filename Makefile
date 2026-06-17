@@ -1,4 +1,4 @@
-.PHONY: build build-server build-agent build-bench build-agent-linux-amd64 build-agent-linux-arm64 test lint clean run-server run-agent proto dev dev-server release-agent
+.PHONY: build build-server build-agent build-bench build-agent-linux-amd64 build-agent-linux-arm64 assets test lint clean run-server run-agent proto dev dev-server
 
 BINARY_SERVER ?= skylex-server
 BINARY_AGENT ?= skylex-agent
@@ -6,12 +6,14 @@ BINARY_AGENT ?= skylex-agent
 GO ?= go
 GOFLAGS ?= -ldflags="-s -w"
 
-build: assets build-server build-agent build-bench
+ASSETS_DIR = internal/server/assets
 
 assets:
-	@mkdir -p internal/server/assets
-	@cp scripts/install-agent.sh internal/server/assets/install-agent.sh
-	@cp version.txt internal/server/assets/version.txt
+	@mkdir -p $(ASSETS_DIR)
+	@cp scripts/install-agent.sh $(ASSETS_DIR)/install-agent.sh
+	@cp version.txt $(ASSETS_DIR)/version.txt
+
+build: assets build-server build-agent build-bench
 
 build-server: assets
 	$(GO) build $(GOFLAGS) -o bin/$(BINARY_SERVER) ./cmd/server
@@ -27,19 +29,6 @@ build-agent-linux-amd64:
 
 build-agent-linux-arm64:
 	GOOS=linux GOARCH=arm64 $(GO) build $(GOFLAGS) -o bin/$(BINARY_AGENT)-linux-arm64 ./cmd/agent
-
-build-agent-linux-amd64:
-	mkdir -p $(DIST)
-	GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -o $(DIST)/$(BINARY_AGENT)-linux-amd64 ./cmd/agent
-
-build-agent-linux-arm64:
-	mkdir -p $(DIST)
-	GOOS=linux GOARCH=arm64 $(GO) build $(GOFLAGS) -o $(DIST)/$(BINARY_AGENT)-linux-arm64 ./cmd/agent
-
-build-release-binaries: build-agent-linux-amd64 build-agent-linux-arm64
-
-build-bench:
-	$(GO) build $(GOFLAGS) -o bin/skylex-bench ./cmd/bench
 
 run-server:
 	$(GO) run ./cmd/server $(ARGS)

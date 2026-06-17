@@ -17,7 +17,7 @@ export function useAgentInstallCommand() {
     setError(null);
     try {
       const resp = (await api.post("/skylex.v1.AuthService/GetAgentInstallCommand", {})) as {
-        serverAddr: string;
+        server_addr: string;
         token: string;
       };
 
