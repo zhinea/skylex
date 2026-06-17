@@ -5,8 +5,8 @@ export interface AgentToken {
   id: string;
   name: string;
   role: string;
-  expiresAt: string | null;
-  createdAt: string;
+  expires_at: string | null;
+  created_at: string;
 }
 
 export function useAgentTokens() {
@@ -19,8 +19,8 @@ export function useAgentTokens() {
 export function useCreateAgentToken() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { name: string; role?: string; expiresAt?: string }) =>
-      api.post<{ agentToken: AgentToken; token: string }>(
+mutationFn: (body: { name: string; role?: string; expires_at?: string }) =>
+      api.post<{ agent_token: AgentToken; token: string }>(
         "/skylex.v1.AuthService/CreateAgentToken",
         body,
       ),

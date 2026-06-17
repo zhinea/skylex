@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api, ApiError } from "~/lib/api";
 
 export interface InstallCommandData {
-  serverAddr: string;
+  server_addr: string;
   token: string;
 }
 
@@ -31,10 +31,15 @@ export function useAgentInstallCommand() {
         // version endpoint is optional for the command display
       }
 
-      setData({ serverAddr: resp.serverAddr, token: resp.token });
+      setData({ server_addr: resp.server_addr, token: resp.token });
       setVersion(ver);
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : err instanceof Error ? err.message : "Failed to load install command";
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : "Failed to load install command";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -52,8 +57,12 @@ export function useAgentInstallCommand() {
 
 export function useScriptUrl() {
   const [url, setUrl] = useState<string>("");
-  if (typeof window !== "undefined" && url === "") {
-    setUrl(`${window.location.origin}/install.sh`);
-  }
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setUrl(`${window.location.origin}/install.sh`);
+    }
+  }, []);
+
   return url;
 }
