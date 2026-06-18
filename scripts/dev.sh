@@ -31,4 +31,4 @@ for _ in $(seq 1 30); do
 done
 
 echo "[dev] starting skylex server..."
-air ./cmd/server config.yaml
+air

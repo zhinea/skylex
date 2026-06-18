@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781736014.643929,
-    "ast_hash": "ea62f46b59a5bd0489b8ed1a1cefcf82",
+    "mtime": 1781740748.9718537,
+    "ast_hash": "3e353fcca9f5165559f18174e7622729",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -690,8 +690,8 @@
     "semantic_hash": ""
   },
   "scripts/dev.sh": {
-    "mtime": 1781734299.107596,
-    "ast_hash": "c84b347bb2e014bb908b23d800e30507",
+    "mtime": 1781740563.7603786,
+    "ast_hash": "e18795be7fca97797f06134783dd0063",
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.dev.yaml": {

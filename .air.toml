@@ -1,0 +1,27 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+  args_bin = ["config.yaml"]
+  cmd = "go build -o ./tmp/main ./cmd/server"
+  entrypoint = ["./tmp/main"]
+  include_ext = ["go", "tpl", "tmpl", "html", "yaml", "yml"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "ui", "node_modules", "bin", "gen", "graphify-out"]
+  exclude_regex = ["_test.go"]
+  delay = 1000
+  stop_on_error = true
+
+[log]
+  time = false
+
+[color]
+  build = "yellow"
+  runner = "green"
+  watcher = "cyan"
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = false
