@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781750611.5533264,
-    "ast_hash": "a38a01420ce49694545b2c3de3113690",
+    "mtime": 1781751375.1793969,
+    "ast_hash": "a02713d6683b696b553693a3922e569e",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -30,8 +30,8 @@
     "semantic_hash": "d0707362e90f00edd12435e9d3b9d71c"
   },
   "cmd/agent/main.go": {
-    "mtime": 1781737782.5872505,
-    "ast_hash": "4f009b2e5f756ebab3043818f30fe7ba",
+    "mtime": 1781752686.7116783,
+    "ast_hash": "19bd9cabb3e60f93c8b7863fee0f1480",
     "semantic_hash": ""
   },
   "cmd/server/main.go": {
@@ -365,8 +365,8 @@
     "semantic_hash": "63c427f74edc4879a317624de62aa902"
   },
   "AGENTS.md": {
-    "mtime": 1781742763.2465143,
-    "ast_hash": "c788d5e5370ee8eb91f40d9336c0177d",
+    "mtime": 1781753629.017082,
+    "ast_hash": "938393992aa15d070014ebc34a5fdb66",
     "semantic_hash": ""
   },
   "buf.gen.yaml": {
@@ -715,8 +715,8 @@
     "semantic_hash": ""
   },
   "scripts/install-agent.sh": {
-    "mtime": 1781750672.1062105,
-    "ast_hash": "c1e73b07a640b7a2bce3d22307e22994",
+    "mtime": 1781752699.0839622,
+    "ast_hash": "9a2f833f6969e8529f35b2de44ba22f0",
     "semantic_hash": ""
   },
   "ui/app/components/InstallAgentModal.tsx": {
@@ -785,8 +785,13 @@
     "semantic_hash": ""
   },
   "internal/server/assets/install-agent.sh": {
-    "mtime": 1781750672.1207795,
-    "ast_hash": "c1e73b07a640b7a2bce3d22307e22994",
+    "mtime": 1781752700.1005836,
+    "ast_hash": "9a2f833f6969e8529f35b2de44ba22f0",
+    "semantic_hash": ""
+  },
+  ".kilo/plans/agent-cli-flags.md": {
+    "mtime": 1781751298.7074776,
+    "ast_hash": "defebb1446fd4b2e118a2627d4af1b62",
     "semantic_hash": ""
   }
 }

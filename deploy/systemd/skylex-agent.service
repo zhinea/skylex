@@ -26,9 +26,5 @@ MemoryHigh=2G
 MemoryMax=4G
 CPUQuota=400%
 
-Environment=SKYLEX_SERVER_ADDR=localhost:9090
-Environment=SKYLEX_AGENT_TOKEN=%d/skylex-agent-token
-Environment=SKYLEX_LOGGING_OUTPUT=stdout
-
 [Install]
 WantedBy=multi-user.target

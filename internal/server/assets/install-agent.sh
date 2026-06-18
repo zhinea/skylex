@@ -185,11 +185,6 @@ Restart=always
 RestartSec=5
 User=${USER}
 Group=${USER}
-Environment=SKYLEX_SERVER_ADDR=${SERVER_ADDR}
-Environment=SKYLEX_AGENT_TOKEN=${TOKEN}
-Environment=SKYLEX_HOSTNAME=${HOSTNAME}
-Environment=SKYLEX_PORT=${PORT}
-Environment=SKYLEX_PG_DATA_DIR=${DATA_DIR}
 
 [Install]
 WantedBy=multi-user.target

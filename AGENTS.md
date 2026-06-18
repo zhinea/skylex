@@ -37,7 +37,7 @@ make docker-down
 | Build agent only | `make build-agent` |
 | Run server locally with dev deps | `make dev` |
 | Run server locally (no extra services) | `make run-server ARGS=path/to/config.yaml` or `make dev-server` |
-| Run agent locally | `make run-agent` |
+| Run agent locally | `make run-agent ARGS='--server localhost:9090 --token dev-token'` |
 | Run all Go tests | `make test` |
 | Lint Go code | `make lint` (uses `golangci-lint`; no repo-level config file) |
 | Regenerate protobuf | `make proto` (runs `buf lint && buf generate`) |
@@ -52,7 +52,17 @@ make docker-down
 - Settings are merged with `koanf`: YAML file + env vars. Env vars use the prefix `SKYLEX_` and nested keys become `_` (e.g. `SKYLEX_DATABASE_DSN`, `SKYLEX_AUTH_JWT_SECRET`).
 - `config.example.yaml` is committed and works as-is for local development.
 - Defaults exist for most values; see `internal/server/config.go`. `auth.jwt_secret` defaults to `change-me-in-production` in `config.example.yaml` so dev sessions survive restarts. If `auth.jwt_secret` is left empty, a random secret is generated on startup and a warning is logged; existing JWTs will not validate after a restart.
-- Agent settings are currently hard-coded defaults in `internal/agent/config.go`, but the agent binary also reads `SKYLEX_AGENT_TOKEN` and `SKYLEX_SERVER_ADDR` from the environment.
+- Agent settings are layered: CLI flags take precedence over environment variables, which take precedence over the config file (`/etc/skylex/agent.yaml` by default), with `internal/agent/config.go` defaults as the fallback.
+
+```bash
+# With flags
+make run-agent ARGS='--server localhost:9090 --token dev-token'
+
+# With a token file (recommended for production to avoid leaking secrets in shell history)
+make run-agent ARGS='--server localhost:9090 --token-file /etc/skylex/token'
+```
+
+- Environment variables are still supported for backwards compatibility and container deployments (`SKYLEX_AGENT_TOKEN`, `SKYLEX_SERVER_ADDR`, `SKYLEX_HOSTNAME`, `SKYLEX_PORT`, `SKYLEX_PG_DATA_DIR`, and `SKYLEX_AGENT_CONFIG`).
 
 ## Database and migrations
 
