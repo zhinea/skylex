@@ -381,13 +381,10 @@ export default function ClusterDetailPage() {
   const progressPct = totalNodes > 0 ? Math.round((onlineNodes.length / totalNodes) * 100) : 0;
 
   // Find latest error log
-  const lastErrorLog = useMemo(
-    () => logs.filter((l) => l.level === "error").slice(-1)[0] ?? null,
-    [logs],
-  );
+  const lastErrorLog = logs.filter((l) => l.level === "error").slice(-1)[0] ?? null;
 
   // Suggest fix from error message
-  const suggestedFix = useMemo(() => {
+  const suggestedFix = (() => {
     if (!lastErrorLog) return null;
     const msg = lastErrorLog.message.toLowerCase();
     if (msg.includes("permission denied")) return "Check data directory ownership on the node.";
@@ -398,7 +395,7 @@ export default function ClusterDetailPage() {
     if (msg.includes("not installed") || msg.includes("not found"))
       return "Install PostgreSQL on the node and re-register the agent.";
     return null;
-  }, [lastErrorLog]);
+  })();
 
   return (
     <div>

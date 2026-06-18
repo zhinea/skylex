@@ -1,6 +1,5 @@
 {
   "$schema": "https://app.kilo.ai/config.json",
   "plugin": [
-    "file:///home/zynos/projects/skylex/.kilo/plugins/graphify.js"
   ]
 }
