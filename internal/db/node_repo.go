@@ -62,7 +62,7 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 
 func (r *NodeRepository) GetByID(ctx context.Context, id string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes WHERE id = ?`), id)
 	return scanNodeRow(row)
 }
@@ -83,7 +83,7 @@ func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, of
 		return nil, 0, fmt.Errorf("count nodes: %w", err)
 	}
 
-	listQuery := Rebind(fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+	listQuery := Rebind(fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes %s ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`, where))
 	queryArgs := append(args, limit, offset)
 
@@ -182,7 +182,7 @@ func (r *NodeRepository) AssignToCluster(ctx context.Context, nodeID, clusterID 
 
 func (r *NodeRepository) GetPrimary(ctx context.Context, clusterID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes WHERE cluster_id = ? AND role = ? LIMIT 1`),
 		clusterID, models.NodeRolePrimary)
 	return scanNodeRow(row)
@@ -190,7 +190,7 @@ func (r *NodeRepository) GetPrimary(ctx context.Context, clusterID string) (*mod
 
 func (r *NodeRepository) GetReplicas(ctx context.Context, clusterID string) ([]*models.Node, error) {
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes WHERE cluster_id = ? AND role = ? ORDER BY created_at ASC`),
 		clusterID, models.NodeRoleReplica)
 	if err != nil {
@@ -229,14 +229,14 @@ func (r *NodeRepository) UpdateAgentID(ctx context.Context, id, agentID string) 
 
 func (r *NodeRepository) GetByHostname(ctx context.Context, hostname string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes WHERE hostname = ? LIMIT 1`), hostname)
 	return scanNodeRow(row)
 }
 
 func (r *NodeRepository) GetByAgentID(ctx context.Context, agentID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes WHERE agent_id = ? LIMIT 1`), agentID)
 	return scanNodeRow(row)
 }
@@ -246,7 +246,7 @@ func scanNodeRow(row *sql.Row) (*models.Node, error) {
 	var clusterID sql.NullString
 	var labelsJSON string
 
-	err := row.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
+	err := row.Scan(&n.ID, &n.ClusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -265,7 +265,7 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	var clusterID sql.NullString
 	var labelsJSON string
 
-	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
+	if err := rows.Scan(&n.ID, &n.ClusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt); err != nil {
 		return nil, fmt.Errorf("scan node row: %w", err)
 	}
@@ -273,4 +273,16 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	n.ClusterID = clusterID.String
 	n.Labels = unmarshalLabels(labelsJSON)
 	return &n, nil
+}
+
+// UpdatePostgresStatus stores the PostgreSQL installation and data-directory
+// state for a node as reported by the agent.
+func (r *NodeRepository) UpdatePostgresStatus(ctx context.Context, id string, installed bool, version string, dataInitialized bool) error {
+	_, err := r.conn.ExecContext(ctx,
+		Rebind(`UPDATE nodes SET postgres_installed = ?, postgres_version = ?, postgres_data_initialized = ?, updated_at = ? WHERE id = ?`),
+		installed, version, dataInitialized, time.Now().UTC(), id)
+	if err != nil {
+		return fmt.Errorf("update node postgres status: %w", err)
+	}
+	return nil
 }

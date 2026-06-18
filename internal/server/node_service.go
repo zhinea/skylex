@@ -231,16 +231,19 @@ func nodeToProto(n *models.Node) *skylexv1.Node {
 	}
 
 	return &skylexv1.Node{
-		Id:           n.ID,
-		ClusterId:    n.ClusterID,
-		Hostname:     n.Hostname,
-		Role:         role,
-		Address:      n.Address,
-		Port:         int32(n.Port),
-		Labels:       n.Labels,
-		AgentVersion: n.AgentVersion,
-		LastSeen:     timestamppb.New(n.LastSeen),
-		CreatedAt:    timestamppb.New(n.CreatedAt),
-		UpdatedAt:    timestamppb.New(n.UpdatedAt),
+		Id:                     n.ID,
+		ClusterId:               n.ClusterID,
+		Hostname:                n.Hostname,
+		Role:                    role,
+		Address:                 n.Address,
+		Port:                    int32(n.Port),
+		Labels:                  n.Labels,
+		AgentVersion:            n.AgentVersion,
+		LastSeen:                timestamppb.New(n.LastSeen),
+		CreatedAt:               timestamppb.New(n.CreatedAt),
+		UpdatedAt:               timestamppb.New(n.UpdatedAt),
+		PostgresInstalled:       n.PostgresInstalled,
+		PostgresVersion:         n.PostgresVersion,
+		PostgresDataInitialized: n.PostgresDataInitialized,
 	}
 }

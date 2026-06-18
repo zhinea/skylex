@@ -118,6 +118,37 @@ func runStreamingCmd(ctx context.Context, cmd *exec.Cmd) ([]byte, error) {
 	}
 }
 
+// DetectInstallation probes the host for a PostgreSQL installation without
+// requiring a running instance.  It first tries "pg_config --version"; if that
+// is not on PATH it falls back to "postgres --version".  Returns
+// (installed=true, version string) on success or (false, "") when neither
+// binary is found.
+func DetectInstallation(ctx context.Context) (installed bool, version string) {
+	// Prefer pg_config because it reliably prints "PostgreSQL <version>".
+	if out, err := exec.CommandContext(ctx, "pg_config", "--version").Output(); err == nil {
+		ver := strings.TrimSpace(string(out))
+		if ver != "" {
+			return true, ver
+		}
+	}
+
+	// Fallback: "postgres --version" prints "postgres (PostgreSQL) <version>".
+	if out, err := exec.CommandContext(ctx, "postgres", "--version").Output(); err == nil {
+		ver := strings.TrimSpace(string(out))
+		if ver != "" {
+			return true, ver
+		}
+	}
+
+	return false, ""
+}
+
+// IsDataDirInitialized reports whether the data directory has been initialised
+// by initdb (i.e. a PG_VERSION file is present).
+func (p *Instance) IsDataDirInitialized() bool {
+	return p.IsInitialized()
+}
+
 func (p *Instance) IsInitialized() bool {
 	_, err := os.Stat(filepath.Join(p.DataDir, "PG_VERSION"))
 	return err == nil

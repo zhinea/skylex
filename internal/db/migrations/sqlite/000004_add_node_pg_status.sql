@@ -1,0 +1,3 @@
+ALTER TABLE nodes ADD COLUMN postgres_installed INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE nodes ADD COLUMN postgres_version TEXT NOT NULL DEFAULT '';
+ALTER TABLE nodes ADD COLUMN postgres_data_initialized INTEGER NOT NULL DEFAULT 0;

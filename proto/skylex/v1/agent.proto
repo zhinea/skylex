@@ -13,6 +13,13 @@ service AgentService {
   rpc ReportCommandLog(ReportCommandLogRequest) returns (ReportCommandLogResponse);
 }
 
+message NodeCapabilities {
+  bool postgres_available = 1;
+  string postgres_version = 2;
+  string postgres_bin_dir = 3;
+  string data_dir = 4;
+}
+
 message RegisterAgentRequest {
   string agent_token = 1;
   string hostname = 2;
@@ -20,6 +27,7 @@ message RegisterAgentRequest {
   int32 port = 4;
   string agent_version = 5;
   map<string, string> labels = 6;
+  NodeCapabilities capabilities = 7;
 }
 
 message RegisterAgentResponse {
@@ -43,6 +51,10 @@ message NodeStatusReport {
   int64 wal_position = 6;
   int64 disk_used_bytes = 7;
   int64 disk_total_bytes = 8;
+  // Phase 2: installation & health visibility
+  bool postgres_installed = 9;
+  string postgres_bin_version = 10;
+  bool postgres_data_initialized = 11;
 }
 
 message ReportStatusRequest {

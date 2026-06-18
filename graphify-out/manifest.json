@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781763566.583496,
-    "ast_hash": "3660bada909c0f0fa6faf166b2c6cc94",
+    "mtime": 1781764918.1728468,
+    "ast_hash": "dd491605cbcbdd89090ba2d21974aa59",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -789,11 +789,6 @@
     "ast_hash": "9a2f833f6969e8529f35b2de44ba22f0",
     "semantic_hash": ""
   },
-  ".kilo/plans/agent-cli-flags.md": {
-    "mtime": 1781751298.7074776,
-    "ast_hash": "defebb1446fd4b2e118a2627d4af1b62",
-    "semantic_hash": ""
-  },
   "internal/agent/log.go": {
     "mtime": 1781764353.3748412,
     "ast_hash": "973f878fc9a9458c3d1c1ddfab71ab63",
@@ -817,6 +812,11 @@
   "ui/app/hooks/useCommandLogs.ts": {
     "mtime": 1781764216.5718,
     "ast_hash": "95da13810d8331c83d6034597b632a72",
+    "semantic_hash": ""
+  },
+  ".kilo/plans/agent-cli-flags.md": {
+    "mtime": 1781751298.7074776,
+    "ast_hash": "defebb1446fd4b2e118a2627d4af1b62",
     "semantic_hash": ""
   },
   ".kilo/plans/postgres-agent-visibility-phased-plan.md": {

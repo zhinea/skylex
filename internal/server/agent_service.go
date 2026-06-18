@@ -80,10 +80,22 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 		return nil, status.Errorf(codes.Internal, "generate agent id: %v", err)
 	}
 
+	caps := req.GetCapabilities()
+
 	node, _ := s.nodes.GetByHostname(ctx, req.GetHostname())
 	if node != nil {
 		if err := s.nodes.UpdateAgentID(ctx, node.ID, agentID); err != nil {
 			s.log.Warn("update node agent_id", "error", err, "node_id", node.ID)
+		}
+		// Persist capabilities reported at registration time.
+		if caps != nil {
+			if err := s.nodes.UpdatePostgresStatus(ctx, node.ID,
+				caps.GetPostgresAvailable(),
+				caps.GetPostgresVersion(),
+				false, // data-dir initialization is reported via ReportStatus
+			); err != nil {
+				s.log.Warn("update node postgres status (register)", "error", err, "node_id", node.ID)
+			}
 		}
 		s.log.Info("agent linked to existing node",
 			"agent_id", agentID,
@@ -98,6 +110,15 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 		} else {
 			if err := s.nodes.UpdateAgentID(ctx, node.ID, agentID); err != nil {
 				s.log.Warn("set agent_id on new node", "error", err)
+			}
+			if caps != nil {
+				if err := s.nodes.UpdatePostgresStatus(ctx, node.ID,
+					caps.GetPostgresAvailable(),
+					caps.GetPostgresVersion(),
+					false,
+				); err != nil {
+					s.log.Warn("update node postgres status (register new)", "error", err, "node_id", node.ID)
+				}
 			}
 			s.log.Info("agent registered with new node",
 				"agent_id", agentID,
@@ -162,6 +183,21 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 			_ = s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline)
 		} else {
 			_ = s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOffline)
+		}
+
+		// Store PostgreSQL installation/health state whenever the agent reports it.
+		if nodeStatus.GetPostgresInstalled() || nodeStatus.GetPostgresBinVersion() != "" {
+			pgVersion := nodeStatus.GetPostgresBinVersion()
+			if pgVersion == "" {
+				pgVersion = nodeStatus.GetPostgresVersion()
+			}
+			if err := s.nodes.UpdatePostgresStatus(ctx, node.ID,
+				nodeStatus.GetPostgresInstalled(),
+				pgVersion,
+				nodeStatus.GetPostgresDataInitialized(),
+			); err != nil {
+				s.log.Warn("update node postgres status (report)", "error", err, "node_id", node.ID)
+			}
 		}
 	}
 

@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zhinea/skylex/gen/skylex/v1"
+	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/backup"
 	"github.com/zhinea/skylex/internal/postgres"
 	"golang.org/x/sync/errgroup"
@@ -111,10 +111,7 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) register(ctx context.Context) error {
-	address := a.cfg.Address
-	if address == "" {
-		address = a.cfg.Hostname
-	}
+	pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
 
 	resp, err := a.client.RegisterAgent(ctx, &skylexv1.RegisterAgentRequest{
 		AgentToken:   a.cfg.AgentToken,
@@ -123,13 +120,20 @@ func (a *Agent) register(ctx context.Context) error {
 		Port:         int32(a.cfg.Port),
 		AgentVersion: "0.1.0",
 		Labels:       a.cfg.Labels,
+		Capabilities: &skylexv1.NodeCapabilities{
+			PostgresAvailable: pgInstalled,
+			PostgresVersion:   pgBinVersion,
+			PostgresBinDir:    a.cfg.PGBinDir,
+			DataDir:           a.cfg.PGDataDir,
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("register agent rpc: %w", err)
 	}
 
 	a.agentID = resp.GetAgentId()
-	a.log.Info("agent registered", "agent_id", a.agentID)
+	a.log.Info("agent registered", "agent_id", a.agentID,
+		"pg_installed", pgInstalled, "pg_bin_version", pgBinVersion)
 	return nil
 }
 
@@ -151,6 +155,8 @@ func (a *Agent) heartbeatLoop(ctx context.Context) error {
 
 func (a *Agent) sendHeartbeat(ctx context.Context) error {
 	postgresRunning := a.pg.IsRunning()
+	pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
+	pgDataInitialized := a.pg.IsDataDirInitialized()
 
 	_, err := a.client.Heartbeat(ctx, &skylexv1.HeartbeatRequest{
 		AgentId: a.agentID,
@@ -160,25 +166,28 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 		return fmt.Errorf("heartbeat rpc: %w", err)
 	}
 
+	report := &skylexv1.NodeStatusReport{
+		NodeId:                  a.nodeID,
+		PostgresRunning:         postgresRunning,
+		PostgresInstalled:       pgInstalled,
+		PostgresBinVersion:      pgBinVersion,
+		PostgresDataInitialized: pgDataInitialized,
+	}
+
 	if postgresRunning {
 		pgVersion, _ := a.pg.GetVersion(ctx)
 		lag, _ := a.pg.GetReplicationLag(ctx)
+		report.PostgresVersion = pgVersion
+		report.ReplicationLagBytes = lag
+		report.ReplicationLagSeconds = lag
+	}
 
-		_, err = a.client.ReportStatus(ctx, &skylexv1.ReportStatusRequest{
-			AgentId: a.agentID,
-			NodeStatuses: []*skylexv1.NodeStatusReport{
-				{
-					NodeId:               a.nodeID,
-					PostgresRunning:      true,
-					PostgresVersion:      pgVersion,
-					ReplicationLagBytes:  lag,
-					ReplicationLagSeconds: lag,
-				},
-			},
-		})
-		if err != nil {
-			a.log.Warn("report status failed", "error", err)
-		}
+	_, err = a.client.ReportStatus(ctx, &skylexv1.ReportStatusRequest{
+		AgentId:      a.agentID,
+		NodeStatuses: []*skylexv1.NodeStatusReport{report},
+	})
+	if err != nil {
+		a.log.Warn("report status failed", "error", err)
 	}
 
 	return nil

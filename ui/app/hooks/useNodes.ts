@@ -13,6 +13,10 @@ interface Node {
   lastSeen: string;
   createdAt: string;
   updatedAt: string;
+  // Phase 2: PostgreSQL installation & health visibility
+  postgresInstalled: boolean;
+  postgresVersion: string;
+  postgresDataInitialized: boolean;
 }
 
 interface Pagination {

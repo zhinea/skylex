@@ -7,6 +7,40 @@ import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
 
+function PgStatusBadges({
+  installed,
+  version,
+  dataInitialized,
+}: {
+  installed: boolean;
+  version: string;
+  dataInitialized: boolean;
+}) {
+  if (!installed) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+        not installed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+        {version || "installed"}
+      </span>
+      <span
+        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+          dataInitialized
+            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+        }`}
+      >
+        {dataInitialized ? "data ready" : "not initialized"}
+      </span>
+    </span>
+  );
+}
+
 export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
@@ -45,6 +79,7 @@ export default function ClusterDetailPage() {
         return "text-blue-600 dark:text-blue-400";
     }
   };
+  const missingPgNodes = nodes.filter((n) => !n.postgresInstalled);
 
   return (
     <div>
@@ -57,6 +92,18 @@ export default function ClusterDetailPage() {
         </div>
         <Badge label={cluster.status} />
       </div>
+
+      {missingPgNodes.length > 0 && (
+        <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
+          <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            {missingPgNodes.length === 1
+              ? `Node "${missingPgNodes[0].hostname}" does not have PostgreSQL installed.`
+              : `${missingPgNodes.length} nodes in this cluster do not have PostgreSQL installed.`}{" "}
+            Install PostgreSQL on those hosts before promoting or replicating.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card title="Configuration">
@@ -116,6 +163,7 @@ export default function ClusterDetailPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Hostname</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Version</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
                 </tr>
@@ -126,6 +174,13 @@ export default function ClusterDetailPage() {
                     <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{n.hostname}</td>
                     <td className="px-4 py-3"><Badge label={n.role} /></td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{n.address}:{n.port}</td>
+                    <td className="px-4 py-3">
+                      <PgStatusBadges
+                        installed={n.postgresInstalled}
+                        version={n.postgresVersion}
+                        dataInitialized={n.postgresDataInitialized}
+                      />
+                    </td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{n.agentVersion || "-"}</td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
                       {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}

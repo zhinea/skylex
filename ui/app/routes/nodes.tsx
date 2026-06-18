@@ -6,6 +6,40 @@ import { PageSpinner } from "~/components/Spinner";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
 import { InstallAgentModal } from "~/components/InstallAgentModal";
 
+function PgStatusBadges({
+  installed,
+  version,
+  dataInitialized,
+}: {
+  installed: boolean;
+  version: string;
+  dataInitialized: boolean;
+}) {
+  if (!installed) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+        PG not installed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+        {version || "PG installed"}
+      </span>
+      <span
+        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+          dataInitialized
+            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+        }`}
+      >
+        {dataInitialized ? "data dir ready" : "not initialized"}
+      </span>
+    </span>
+  );
+}
+
 export default function NodesPage() {
   const [page, setPage] = useState(1);
   const [installOpen, setInstallOpen] = useState(false);
@@ -19,6 +53,8 @@ export default function NodesPage() {
   const total = data?.pagination?.total || 0;
   const pageSize = data?.pagination?.pageSize || 50;
 
+  const missingPgCount = nodes.filter((n) => !n.postgresInstalled).length;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -30,6 +66,19 @@ export default function NodesPage() {
           Add Node
         </button>
       </div>
+
+      {missingPgCount > 0 && nodes.length > 0 && (
+        <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
+          <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            {missingPgCount === 1
+              ? "1 node does not have PostgreSQL installed."
+              : `${missingPgCount} nodes do not have PostgreSQL installed.`}{" "}
+            Install PostgreSQL on those hosts before adding them to a cluster.
+          </p>
+        </div>
+      )}
+
       <Card>
         {nodes.length === 0 ? (
           <div className="py-10 text-center">
@@ -55,6 +104,7 @@ export default function NodesPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Cluster</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent Version</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
@@ -69,6 +119,13 @@ export default function NodesPage() {
                     </td>
                     <td className="px-4 py-3"><Badge label={n.role} /></td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{n.address}:{n.port}</td>
+                    <td className="px-4 py-3">
+                      <PgStatusBadges
+                        installed={n.postgresInstalled}
+                        version={n.postgresVersion}
+                        dataInitialized={n.postgresDataInitialized}
+                      />
+                    </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{n.agentVersion || "-"}</td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                       {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}

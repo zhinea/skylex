@@ -59,17 +59,21 @@ const (
 )
 
 type Node struct {
-	ID           string            `json:"id"`
-	ClusterID    string            `json:"cluster_id"`
-	Hostname     string            `json:"hostname"`
-	Address      string            `json:"address"`
-	Port         int               `json:"port"`
-	Role         NodeRole          `json:"role"`
-	Status       NodeStatus        `json:"status"`
-	AgentVersion string            `json:"agent_version"`
-	AgentID      string            `json:"agent_id"`
-	Labels       map[string]string `json:"labels,omitempty"`
-	LastSeen     time.Time         `json:"last_seen"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	ID                     string            `json:"id"`
+	ClusterID              string            `json:"cluster_id"`
+	Hostname               string            `json:"hostname"`
+	Address                string            `json:"address"`
+	Port                   int               `json:"port"`
+	Role                   NodeRole          `json:"role"`
+	Status                 NodeStatus        `json:"status"`
+	AgentVersion           string            `json:"agent_version"`
+	AgentID                string            `json:"agent_id"`
+	Labels                 map[string]string `json:"labels,omitempty"`
+	LastSeen               time.Time         `json:"last_seen"`
+	CreatedAt              time.Time         `json:"created_at"`
+	UpdatedAt              time.Time         `json:"updated_at"`
+	// Phase 2: PostgreSQL installation & health visibility
+	PostgresInstalled      bool   `json:"postgres_installed"`
+	PostgresVersion        string `json:"postgres_version"`
+	PostgresDataInitialized bool  `json:"postgres_data_initialized"`
 }

@@ -401,20 +401,24 @@ func (x *Cluster) GetUpdatedAt() *timestamppb.Timestamp {
 }
 
 type Node struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	ClusterId     string                 `protobuf:"bytes,2,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
-	Hostname      string                 `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	Role          NodeRole               `protobuf:"varint,4,opt,name=role,proto3,enum=skylex.v1.NodeRole" json:"role,omitempty"`
-	Address       string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
-	Port          int32                  `protobuf:"varint,6,opt,name=port,proto3" json:"port,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	AgentVersion  string                 `protobuf:"bytes,8,opt,name=agent_version,json=agentVersion,proto3" json:"agent_version,omitempty"`
-	LastSeen      *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ClusterId    string                 `protobuf:"bytes,2,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	Hostname     string                 `protobuf:"bytes,3,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Role         NodeRole               `protobuf:"varint,4,opt,name=role,proto3,enum=skylex.v1.NodeRole" json:"role,omitempty"`
+	Address      string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
+	Port         int32                  `protobuf:"varint,6,opt,name=port,proto3" json:"port,omitempty"`
+	Labels       map[string]string      `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	AgentVersion string                 `protobuf:"bytes,8,opt,name=agent_version,json=agentVersion,proto3" json:"agent_version,omitempty"`
+	LastSeen     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
+	CreatedAt    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt    *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Phase 2: PostgreSQL installation & health visibility
+	PostgresInstalled       bool   `protobuf:"varint,12,opt,name=postgres_installed,json=postgresInstalled,proto3" json:"postgres_installed,omitempty"`
+	PostgresVersion         string `protobuf:"bytes,13,opt,name=postgres_version,json=postgresVersion,proto3" json:"postgres_version,omitempty"`
+	PostgresDataInitialized bool   `protobuf:"varint,14,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -524,6 +528,27 @@ func (x *Node) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Node) GetPostgresInstalled() bool {
+	if x != nil {
+		return x.PostgresInstalled
+	}
+	return false
+}
+
+func (x *Node) GetPostgresVersion() string {
+	if x != nil {
+		return x.PostgresVersion
+	}
+	return ""
+}
+
+func (x *Node) GetPostgresDataInitialized() bool {
+	if x != nil {
+		return x.PostgresDataInitialized
+	}
+	return false
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -608,7 +633,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xec\x03\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x82\x05\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -624,7 +649,10 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x1a9\n" +
+	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12-\n" +
+	"\x12postgres_installed\x18\f \x01(\bR\x11postgresInstalled\x12)\n" +
+	"\x10postgres_version\x18\r \x01(\tR\x0fpostgresVersion\x12:\n" +
+	"\x19postgres_data_initialized\x18\x0e \x01(\bR\x17postgresDataInitialized\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +
