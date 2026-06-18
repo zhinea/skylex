@@ -1,16 +1,16 @@
 # Graph Report - skylex  (2026-06-18)
 
 ## Corpus Check
-- 143 files · ~78,879 words
+- 144 files · ~79,064 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2703 nodes · 4939 edges · 168 communities (113 shown, 55 thin omitted)
+- 2705 nodes · 4941 edges · 167 communities (112 shown, 55 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 130 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4e7eed7e`
+- Built from commit: `785bb43b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -168,7 +168,6 @@
 - [[_COMMUNITY_Community 162|Community 162]]
 - [[_COMMUNITY_Community 163|Community 163]]
 - [[_COMMUNITY_Community 164|Community 164]]
-- [[_COMMUNITY_Community 165|Community 165]]
 - [[_COMMUNITY_Community 166|Community 166]]
 - [[_COMMUNITY_Community 167|Community 167]]
 
@@ -204,7 +203,7 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (168 total, 55 thin omitted)
+## Communities (167 total, 55 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.06
@@ -312,7 +311,7 @@ Nodes (4): Node, DrainNodeResponse, RejoinNodeResponse, RestartNodeResponse
 
 ### Community 27 - "Cluster gRPC Service"
 Cohesion: 0.11
-Nodes (15): DecryptAES256GCM(), EncryptAES256GCM(), intToBool(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB (+7 more)
+Nodes (14): DecryptAES256GCM(), EncryptAES256GCM(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+6 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.08
@@ -447,8 +446,8 @@ Cohesion: 0.28
 Nodes (8): Config, DefaultConfig(), NewLogger(), loadConfigFile(), main(), Config, Duration, Logger
 
 ### Community 89 - "Config Close"
-Cohesion: 0.25
-Nodes (5): Config, DB, New(), setRebind(), Duration
+Cohesion: 0.14
+Nodes (8): main(), tokenAuth, Context, Config, DB, New(), setRebind(), Duration
 
 ### Community 91 - "Auth gRPC Service"
 Cohesion: 0.42
@@ -515,8 +514,8 @@ Cohesion: 0.10
 Nodes (19): 1. Clone and build, 2. Run the server, 3. UI development, 4. Full stack with Docker Compose, Configuration, Contributing, Deployment modes, Docker Compose env vars (+11 more)
 
 ### Community 140 - "Community 140"
-Cohesion: 0.17
-Nodes (13): unmarshalLabels(), NewNodeRepository(), scanNodeRow(), scanNodesRow(), NodeRepository, Context, DB, Logger (+5 more)
+Cohesion: 0.18
+Nodes (12): NewNodeRepository(), scanNodeRow(), scanNodesRow(), NodeRepository, Context, DB, Logger, Row (+4 more)
 
 ### Community 142 - "Community 142"
 Cohesion: 0.32
@@ -527,8 +526,8 @@ Cohesion: 0.39
 Nodes (5): AuditLog, NewAuditRepository(), AuditRepository, DB, Logger
 
 ### Community 144 - "Community 144"
-Cohesion: 0.19
-Nodes (12): Cluster, ClusterStatus, boolToInt(), NewClusterRepository(), scanClusterRow(), ClusterRepository, EngineType, Context (+4 more)
+Cohesion: 0.18
+Nodes (14): Cluster, ClusterStatus, boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository (+6 more)
 
 ### Community 145 - "Community 145"
 Cohesion: 0.70
@@ -547,8 +546,8 @@ Cohesion: 0.23
 Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
 
 ### Community 151 - "Community 151"
-Cohesion: 0.25
-Nodes (5): GetAgentInstallCommandRequest, GetAgentInstallCommandResponse, versionString(), TestServeVersion(), T
+Cohesion: 0.20
+Nodes (6): GetAgentInstallCommandRequest, GetAgentInstallCommandResponse, versionString(), TestGetAgentInstallCommandScriptUrl(), TestServeVersion(), T
 
 ### Community 152 - "Community 152"
 Cohesion: 0.09
@@ -598,10 +597,6 @@ Nodes (7): CreateUserRequest, CreateUserResponse, ListUsersRequest, ListUsersRes
 Cohesion: 0.33
 Nodes (7): Server, auditListRequest, connectInterceptors(), extractHTTPAuth(), isUnauthenticated(), isWriteMethod(), Server
 
-### Community 165 - "Community 165"
-Cohesion: 0.33
-Nodes (3): main(), tokenAuth, Context
-
 ### Community 166 - "Community 166"
 Cohesion: 0.29
 Nodes (5): CreateAgentTokenRequest, CreateAgentTokenResponse, ListAgentTokensRequest, ListAgentTokensResponse, agentTokenToProto()
@@ -611,7 +606,7 @@ Cohesion: 0.29
 Nodes (5): CreateAPIKeyRequest, CreateAPIKeyResponse, ListAPIKeysRequest, ListAPIKeysResponse, apiKeyToProto()
 
 ## Knowledge Gaps
-- **447 isolated node(s):** `Goal`, `Decision / assumptions`, `Why`, `1. `internal/server/auth_service.go``, `2. `internal/server/connect.go`` (+442 more)
+- **446 isolated node(s):** `InstallAgentModalProps`, `InstallCommandData`, `Goal`, `Decision / assumptions`, `Why` (+441 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -623,12 +618,12 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
   _High betweenness centrality (0.239) - this node is a cross-community bridge._
 - **Why does `Role` connect `Auth gRPC Service` to `Auth gRPC Service`, `Loginresponse Descriptor`, `Auth gRPC Service`, `Descriptor Enumdescriptor`?**
-  _High betweenness centrality (0.218) - this node is a cross-community bridge._
+  _High betweenness centrality (0.220) - this node is a cross-community bridge._
 - **Are the 59 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.ListPending()`) actually correct?**
   _`Rebind()` has 59 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 39 inferred relationships involving `New()` (e.g. with `NewPgBackRest()` and `main()`) actually correct?**
   _`New()` has 39 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Goal`, `Decision / assumptions`, `Why` to the rest of the system?**
-  _448 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `InstallAgentModalProps`, `InstallCommandData`, `Goal` to the rest of the system?**
+  _447 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.05955734406438632 - nodes in this community are weakly interconnected._

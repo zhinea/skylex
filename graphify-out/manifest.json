@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "internal/server/config.go": {
-    "mtime": 1781742637.7004473,
-    "ast_hash": "0e8fdfa634ea4648610c2f269281c15a",
+    "mtime": 1781746062.1260073,
+    "ast_hash": "9290e833c8fcd74c9a8706180e774042",
     "semantic_hash": ""
   },
   "internal/server/grpc.go": {
@@ -380,8 +380,8 @@
     "semantic_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f"
   },
   "config.example.yaml": {
-    "mtime": 1781741934.3666372,
-    "ast_hash": "5b1de8ad9475659d6565e2ca287c0e70",
+    "mtime": 1781746169.4155676,
+    "ast_hash": "c895b3c5857b81847d42f9a8768aa94f",
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.yaml": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "internal/server/auth_service.go": {
-    "mtime": 1781743758.8184001,
-    "ast_hash": "de9aba0915bb84b261d60053cbafc09d",
+    "mtime": 1781746158.182155,
+    "ast_hash": "c93d9f7e7de6d209e75fa3f9e5bb0ca9",
     "semantic_hash": ""
   },
   "internal/server/jwt.go": {
@@ -520,87 +520,87 @@
     "semantic_hash": ""
   },
   "internal/server/connect.go": {
-    "mtime": 1781743768.5423837,
-    "ast_hash": "5c5cc0a2a38f01876661ab12ed6e2582",
+    "mtime": 1781746220.7817345,
+    "ast_hash": "1e9496a2088b1e508c81f90f397ee933",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+future.ts": {
-    "mtime": 1781744731.6605542,
+    "mtime": 1781746201.558996,
     "ast_hash": "c40c27a89fe2bfb5c932e43b56408c5e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+routes.ts": {
-    "mtime": 1781744731.6605542,
+    "mtime": 1781746201.5595624,
     "ast_hash": "3e1136465aba78740bc3f6ce223ec43e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+server-build.d.ts": {
-    "mtime": 1781744731.6617403,
+    "mtime": 1781746201.5595624,
     "ast_hash": "feb059bd8a13e59965da5ed7f19ac4ff",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/+types/root.ts": {
-    "mtime": 1781744731.6643982,
+    "mtime": 1781746201.5667338,
     "ast_hash": "be2dbb5fac580743e65bc9134fe35a71",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/layouts/+types/dashboard.ts": {
-    "mtime": 1781744731.6671872,
+    "mtime": 1781746201.5667338,
     "ast_hash": "62bd86419d17344f5e191c25785c45e4",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/audit.ts": {
-    "mtime": 1781744731.6686215,
+    "mtime": 1781746201.5690324,
     "ast_hash": "9c3274db5ff4e951085134cc7bccd35b",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/backups.ts": {
-    "mtime": 1781744731.671832,
+    "mtime": 1781746201.5690324,
     "ast_hash": "c144b9280a2b3f2ce03c39253fabb078",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.$id.ts": {
-    "mtime": 1781744731.6686215,
+    "mtime": 1781746201.5690324,
     "ast_hash": "179cb8cf0f3110829ccaded493b01833",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.create.ts": {
-    "mtime": 1781744731.6706545,
+    "mtime": 1781746201.5690324,
     "ast_hash": "af2cf528a3babf09dfb618ac48aeca53",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.ts": {
-    "mtime": 1781744731.6671872,
+    "mtime": 1781746201.5690324,
     "ast_hash": "653618381537a0fb4ffffea5da33574e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/dashboard.ts": {
-    "mtime": 1781744731.671832,
+    "mtime": 1781746201.5690324,
     "ast_hash": "352d3d82b9b8d58ac0e6035df727c532",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/login.ts": {
-    "mtime": 1781744731.6706545,
+    "mtime": 1781746201.5690324,
     "ast_hash": "e3d69a3a3327a82e5473bdfd0bfb76bd",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/nodes.ts": {
-    "mtime": 1781744731.6706545,
+    "mtime": 1781746201.5690324,
     "ast_hash": "fe31755e34048a656f0441120af39589",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/restore.ts": {
-    "mtime": 1781744731.6706545,
+    "mtime": 1781746201.5690324,
     "ast_hash": "e78ca862cc9f426c17d7f9c54c6142c8",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/settings.ts": {
-    "mtime": 1781744731.6686215,
+    "mtime": 1781746201.5690324,
     "ast_hash": "ed1cf7166e2caa960e6e2d68648911e7",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/storage.ts": {
-    "mtime": 1781744731.671832,
+    "mtime": 1781746201.5667338,
     "ast_hash": "0bd8aefee15d54a28eb887d9d8175809",
     "semantic_hash": ""
   },
@@ -745,8 +745,8 @@
     "semantic_hash": ""
   },
   "version.txt": {
-    "mtime": 1781737999.440602,
-    "ast_hash": "1347633cdf7cdcb2168d61093630d5ae",
+    "mtime": 1781745557.1635797,
+    "ast_hash": "523f7f8a2368d300345949dfb006cae4",
     "semantic_hash": ""
   },
   "internal/server/agent_service_test.go": {
@@ -755,8 +755,8 @@
     "semantic_hash": ""
   },
   "internal/server/assets.go": {
-    "mtime": 1781743761.5559514,
-    "ast_hash": "12df1a95d2c19549d607d5b9c8952b44",
+    "mtime": 1781746072.8732147,
+    "ast_hash": "db7c001abb0d2e377ca25c53344297d4",
     "semantic_hash": ""
   },
   "internal/server/connect_test.go": {
@@ -770,8 +770,8 @@
     "semantic_hash": ""
   },
   "internal/server/assets/version.txt": {
-    "mtime": 1781743849.7842984,
-    "ast_hash": "1347633cdf7cdcb2168d61093630d5ae",
+    "mtime": 1781746234.0406754,
+    "ast_hash": "523f7f8a2368d300345949dfb006cae4",
     "semantic_hash": ""
   },
   ".kilo/plans/agent-install-github-releases.md": {
@@ -782,6 +782,11 @@
   "internal/server/auth_install_test.go": {
     "mtime": 1781744851.537725,
     "ast_hash": "c84071a09dea26d1344e35adfc1b913a",
+    "semantic_hash": ""
+  },
+  "internal/server/assets/install-agent.sh": {
+    "mtime": 1781746234.0340753,
+    "ast_hash": "c1e73b07a640b7a2bce3d22307e22994",
     "semantic_hash": ""
   }
 }
