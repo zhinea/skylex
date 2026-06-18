@@ -11,7 +11,7 @@ FROM alpine:3.20
 
 RUN apk add --no-cache ca-certificates tzdata
 COPY --from=builder /bin/skylex-server /bin/skylex-server
-COPY config.example.yaml /etc/skylex/config.yaml
+COPY config.yaml /etc/skylex/config.yaml
 
 EXPOSE 8080 9090 9091
 
