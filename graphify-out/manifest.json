@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781780194.2660885,
-    "ast_hash": "c570b61c7fd85147dda193c54c30e40b",
+    "mtime": 1781780711.8907464,
+    "ast_hash": "347452131c29f21af1578e397e3365b9",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -70,8 +70,8 @@
     "semantic_hash": "8eb0cd559d37bb936520c30e1145862c"
   },
   "gen/skylex/v1/cluster.pb.go": {
-    "mtime": 1781768685.388124,
-    "ast_hash": "5b943a9365bf4703c931cfbc884ebc06",
+    "mtime": 1781780967.6357284,
+    "ast_hash": "f1a7190d5315896b705649b01ddbcf4a",
     "semantic_hash": ""
   },
   "gen/skylex/v1/cluster_grpc.pb.go": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "internal/db/node_repo.go": {
-    "mtime": 1781777059.8679948,
-    "ast_hash": "0d58e031795a9f30c3f1f6f69645d2a9",
+    "mtime": 1781780997.4725726,
+    "ast_hash": "8d6aaee34c2639507852a78a1598306e",
     "semantic_hash": ""
   },
   "internal/db/storage_config_repo.go": {
@@ -235,8 +235,8 @@
     "semantic_hash": "5113f404b8196f8fe56ccf9c9f8728a5"
   },
   "internal/server/cluster_service.go": {
-    "mtime": 1781777101.203527,
-    "ast_hash": "f6e539076509ddfc523e90f30e7a8f83",
+    "mtime": 1781781120.2741513,
+    "ast_hash": "7d3c31795c56736a6f7d1c4e74d5504e",
     "semantic_hash": ""
   },
   "internal/server/config.go": {
@@ -260,8 +260,8 @@
     "semantic_hash": ""
   },
   "internal/server/server.go": {
-    "mtime": 1781768480.2459505,
-    "ast_hash": "426ded18d6c808a2d155da048dcf723d",
+    "mtime": 1781781131.6028202,
+    "ast_hash": "6a6026827e79fedf13d6281c426a53b7",
     "semantic_hash": ""
   },
   "internal/server/storage_service.go": {
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.create.tsx": {
-    "mtime": 1781777829.6396327,
-    "ast_hash": "1fa6cf56a98bc7b7a3f9844d2fbe3e98",
+    "mtime": 1781781289.5528197,
+    "ast_hash": "c28d275a2360d457a6c2e6055b188992",
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.tsx": {
@@ -655,8 +655,8 @@
     "semantic_hash": ""
   },
   "ui/app/hooks/useClusters.ts": {
-    "mtime": 1781777747.1382926,
-    "ast_hash": "e7cdf504604580bc47e076d70f2a2fa9",
+    "mtime": 1781781156.2056947,
+    "ast_hash": "f52190f535d5a1a4617eedc5b239dad3",
     "semantic_hash": ""
   },
   "ui/app/hooks/useNodes.ts": {
@@ -835,8 +835,8 @@
     "semantic_hash": ""
   },
   "internal/server/cluster_service_test.go": {
-    "mtime": 1781777656.520399,
-    "ast_hash": "24633c6ab5f27e2062d8e17a5389fb95",
+    "mtime": 1781781420.4556134,
+    "ast_hash": "1fe1c805cb3820df436255747d70f8d6",
     "semantic_hash": ""
   },
   "ui/app/components/SettingInput.tsx": {
