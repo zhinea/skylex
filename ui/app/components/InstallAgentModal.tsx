@@ -9,11 +9,10 @@ interface InstallAgentModalProps {
 }
 
 export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
-  const { data, version, isLoading, error, generate } = useAgentInstallCommand();
+  const { data, isLoading, error, generate } = useAgentInstallCommand();
   const { data: nodesData } = useNodes(undefined, 1, 100);
   const [docker, setDocker] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [scriptUrl, setScriptUrl] = useState<string>("");
 
   useEffect(() => {
     if (open) {
@@ -22,17 +21,11 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setScriptUrl(`${window.location.origin}/install.sh`);
-    }
-  }, []);
-
   const initialCount = nodesData?.pagination?.total || 0;
   const currentCount = nodesData?.nodes?.length || 0;
   const newNodesSeen = currentCount > initialCount;
 
-  const command = buildCommand(scriptUrl, data?.server_addr, data?.token, version, docker);
+  const command = buildCommand(data?.script_url, data?.server_addr, data?.token, docker);
 
   const handleCopy = async () => {
     if (typeof window === "undefined" || !command) return;
@@ -82,12 +75,6 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
           </button>
         </div>
 
-        {scriptUrl && scriptUrl.startsWith("http:") && (
-          <div className="text-sm text-red-600 dark:text-red-400">
-            Warning: the install script URL is not using HTTPS. Use HTTPS for production.
-          </div>
-        )}
-
         {isLoading && <p className="text-sm text-gray-500">Generating install command...</p>}
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
@@ -135,10 +122,9 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
 }
 
 function buildCommand(
-  scriptUrl: string,
+  scriptUrl: string | undefined,
   serverAddr: string | undefined,
   token: string | undefined,
-  version: string | null,
   docker: boolean,
 ): string {
   if (!scriptUrl || !serverAddr || !token) return "";
@@ -148,10 +134,6 @@ function buildCommand(
     `--server "${serverAddr}"`,
     `--token "${token}"`,
   ];
-
-  if (version) {
-    parts.push(`--version "${version}"`);
-  }
 
   if (docker) {
     parts.push("--docker");

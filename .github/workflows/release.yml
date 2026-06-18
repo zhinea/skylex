@@ -25,6 +25,11 @@ jobs:
           make build-agent-linux-amd64
           make build-agent-linux-arm64
 
+      - name: Prepare install script
+        run: |
+          version="${GITHUB_REF_NAME}"
+          sed "s/@@VERSION@@/${version#v}/g" scripts/install-agent.sh > /tmp/install-agent.sh
+
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,11 +39,13 @@ jobs:
             gh release upload "$version" \
               bin/skylex-agent-linux-amd64 \
               bin/skylex-agent-linux-arm64 \
+              /tmp/install-agent.sh \
               --clobber
           else
             gh release create "$version" \
               bin/skylex-agent-linux-amd64 \
               bin/skylex-agent-linux-arm64 \
+              /tmp/install-agent.sh \
               --generate-notes \
               --title "$version"
           fi

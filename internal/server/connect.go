@@ -55,8 +55,7 @@ func connectInterceptors(h http.Handler, srv *Server) http.Handler {
 var unauthenticatedPaths = map[string]bool{
 	skylexv1connect.AuthServiceLoginProcedure:        true,
 	skylexv1connect.AuthServiceRefreshTokenProcedure: true,
-	"/install.sh": true,
-	"/version":    true,
+	"/version": true,
 }
 
 var writeMethods = map[string]bool{
@@ -450,7 +449,6 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 	schedulePath, scheduleHandler := skylexv1connect.NewScheduleServiceHandler(&connectScheduleService{svc: s.backupService})
 	mux.Handle(schedulePath, scheduleHandler)
 
-	mux.HandleFunc("/install.sh", s.serveAgentInstallScript)
 	mux.HandleFunc("/version", s.serveVersion)
 
 	mux.HandleFunc("/skylex.v1.AuthService/ListAuditLogs", s.handleListAuditLogs)
@@ -551,17 +549,6 @@ func (s *Server) handleListAuditLogs(w http.ResponseWriter, r *http.Request) {
 			"total":    total,
 		},
 	})
-}
-
-func (s *Server) serveAgentInstallScript(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	w.Header().Set("Content-Type", "text/x-shellscript")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(installScript()))
 }
 
 func (s *Server) serveVersion(w http.ResponseWriter, r *http.Request) {

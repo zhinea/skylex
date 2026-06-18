@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 	"github.com/zhinea/skylex/internal/models"
 )
+
+const defaultReleaseRepo = "zhinea/skylex"
 
 type AuthService struct {
 	skylexv1.UnimplementedAuthServiceServer
@@ -308,8 +311,10 @@ func (s *AuthService) GetAgentInstallCommand(ctx context.Context, req *skylexv1.
 		return nil, err
 	}
 
+	scriptURL := fmt.Sprintf("https://github.com/%s/releases/download/v%s/install-agent.sh", defaultReleaseRepo, versionString())
+
 	return &skylexv1.GetAgentInstallCommandResponse{
-		ScriptUrl:  "",
+		ScriptUrl:  scriptURL,
 		ServerAddr: s.cfg.Server.AdvertiseAddr,
 		Token:      createResp.Token,
 	}, nil
