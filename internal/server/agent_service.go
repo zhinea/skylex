@@ -199,6 +199,15 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 				s.log.Warn("update node postgres status (report)", "error", err, "node_id", node.ID)
 			}
 		}
+
+		// Phase 4: compute and store human-readable status detail.
+		detail := nodeStatus.GetNodeStatusDetail()
+		if detail == "" {
+			detail = computeNodeStatusDetail(node, nodeStatus)
+		}
+		if detail != "" {
+			_ = s.nodes.UpdateStatusDetail(ctx, node.ID, detail)
+		}
 	}
 
 	return &skylexv1.ReportStatusResponse{}, nil
@@ -279,4 +288,22 @@ func timeFromMillis(ms int64) time.Time {
 		return time.Now().UTC()
 	}
 	return time.UnixMilli(ms).UTC()
+}
+
+// computeNodeStatusDetail derives a human-readable status detail from the
+// node's current state and the agent's latest status report.
+func computeNodeStatusDetail(node *models.Node, report *skylexv1.NodeStatusReport) string {
+	if !report.GetPostgresInstalled() {
+		return "waiting_for_postgres"
+	}
+	if !report.GetPostgresDataInitialized() {
+		return "initializing_data_directory"
+	}
+	if !report.GetPostgresRunning() {
+		return "stopped"
+	}
+	if node.Role == models.NodeRoleReplica {
+		return "syncing_replica"
+	}
+	return "healthy"
 }

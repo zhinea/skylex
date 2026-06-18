@@ -51,6 +51,10 @@ func createIdleTestNode(t *testing.T, ctx context.Context, svc *ClusterService) 
 	if err := svc.nodes.UpdateAgentID(ctx, node.ID, "agent-1"); err != nil {
 		t.Fatalf("update agent id: %v", err)
 	}
+	// Phase 4: test nodes must have PostgreSQL installed to pass preflight.
+	if err := svc.nodes.UpdatePostgresStatus(ctx, node.ID, true, "16", false); err != nil {
+		t.Fatalf("update postgres status: %v", err)
+	}
 	return node.ID
 }
 

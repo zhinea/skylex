@@ -245,5 +245,6 @@ func nodeToProto(n *models.Node) *skylexv1.Node {
 		PostgresInstalled:       n.PostgresInstalled,
 		PostgresVersion:         n.PostgresVersion,
 		PostgresDataInitialized: n.PostgresDataInitialized,
+		StatusDetail:            n.StatusDetail,
 	}
 }

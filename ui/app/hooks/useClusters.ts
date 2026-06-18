@@ -79,4 +79,16 @@ export function useFailoverCluster() {
   });
 }
 
+export function useRestartNode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (nodeId: string) =>
+      api.post<{ node: Node }>("/skylex.v1.ClusterService/RestartNode", { nodeId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+      qc.invalidateQueries({ queryKey: ["clusters"] });
+    },
+  });
+}
+
 export type { Cluster, ClusterConfig, Pagination };

@@ -417,8 +417,10 @@ type Node struct {
 	PostgresInstalled       bool   `protobuf:"varint,12,opt,name=postgres_installed,json=postgresInstalled,proto3" json:"postgres_installed,omitempty"`
 	PostgresVersion         string `protobuf:"bytes,13,opt,name=postgres_version,json=postgresVersion,proto3" json:"postgres_version,omitempty"`
 	PostgresDataInitialized bool   `protobuf:"varint,14,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// Phase 4: human-readable status detail
+	StatusDetail  string `protobuf:"bytes,15,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -549,6 +551,13 @@ func (x *Node) GetPostgresDataInitialized() bool {
 	return false
 }
 
+func (x *Node) GetStatusDetail() string {
+	if x != nil {
+		return x.StatusDetail
+	}
+	return ""
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -633,7 +642,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x82\x05\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa7\x05\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -652,7 +661,8 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12-\n" +
 	"\x12postgres_installed\x18\f \x01(\bR\x11postgresInstalled\x12)\n" +
 	"\x10postgres_version\x18\r \x01(\tR\x0fpostgresVersion\x12:\n" +
-	"\x19postgres_data_initialized\x18\x0e \x01(\bR\x17postgresDataInitialized\x1a9\n" +
+	"\x19postgres_data_initialized\x18\x0e \x01(\bR\x17postgresDataInitialized\x12#\n" +
+	"\rstatus_detail\x18\x0f \x01(\tR\fstatusDetail\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +

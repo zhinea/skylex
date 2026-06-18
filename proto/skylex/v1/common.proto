@@ -65,6 +65,8 @@ message Node {
   bool postgres_installed = 12;
   string postgres_version = 13;
   bool postgres_data_initialized = 14;
+  // Phase 4: human-readable status detail
+  string status_detail = 15;
 }
 
 message Pagination {

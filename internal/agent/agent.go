@@ -173,6 +173,7 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 		PostgresInstalled:       pgInstalled,
 		PostgresBinVersion:      pgBinVersion,
 		PostgresDataInitialized: pgDataInitialized,
+		NodeStatusDetail:        computeAgentStatusDetail(pgInstalled, pgDataInitialized, postgresRunning),
 	}
 
 	if postgresRunning {
@@ -238,34 +239,34 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 	switch cmd.GetAction() {
 	case "pg_init":
 		if err := a.pg.InitDB(ctx); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_init", err)
 		}
-		return true, "postgresql initialized", ""
+		return true, "PostgreSQL data directory initialized successfully", ""
 
 	case "pg_start":
 		if err := a.pg.Start(ctx); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_start", err)
 		}
-		return true, "postgresql started", ""
+		return true, fmt.Sprintf("PostgreSQL started on port %d", a.cfg.Port), ""
 
 	case "pg_stop":
 		if err := a.pg.Stop(ctx); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_stop", err)
 		}
-		return true, "postgresql stopped", ""
+		return true, "PostgreSQL stopped gracefully", ""
 
 	case "pg_basebackup":
 		primaryHost := cmd.GetPayload()
 		if err := a.pg.BaseBackup(ctx, primaryHost, a.cfg.Port, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_basebackup", err)
 		}
-		return true, "basebackup completed", ""
+		return true, fmt.Sprintf("Base backup completed from primary at %s:%d", primaryHost, a.cfg.Port), ""
 
 	case "pg_promote":
 		if err := a.pg.Promote(ctx); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_promote", err)
 		}
-		return true, "promoted to primary", ""
+		return true, "Promoted to primary — node is now writable", ""
 
 	case "pg_rewind":
 		parts := strings.SplitN(cmd.GetPayload(), ":", 2)
@@ -275,9 +276,9 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 			fmt.Sscanf(parts[1], "%d", &targetPort)
 		}
 		if err := a.pg.Rewind(ctx, targetHost, targetPort, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_rewind", err)
 		}
-		return true, "pg_rewind completed, repointed to new primary", ""
+		return true, fmt.Sprintf("pg_rewind completed — repointed to new primary at %s:%d", targetHost, targetPort), ""
 
 	case "repoint_replica":
 		parts := strings.SplitN(cmd.GetPayload(), ":", 2)
@@ -288,21 +289,21 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		}
 		logger.Info(fmt.Sprintf("updating standby signal to %s:%d", primaryHost, primaryPort))
 		if err := a.pg.UpdateStandbySignal(primaryHost, primaryPort); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("repoint_replica", err)
 		}
-		return true, "repointed to new primary", ""
+		return true, fmt.Sprintf("Replica repointed to follow primary at %s:%d", primaryHost, primaryPort), ""
 
 	case "pg_create_repl_user":
 		if err := a.pg.CreateReplicationUser(ctx); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_create_repl_user", err)
 		}
-		return true, "replication user created", ""
+		return true, "Replication user created successfully", ""
 
 	case "pg_create_repl_slot":
 		if err := a.pg.CreateReplicationSlot(ctx, "skylex_replica"); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_create_repl_slot", err)
 		}
-		return true, "replication slot created", ""
+		return true, "Replication slot 'skylex_replica' created", ""
 
 	case "pg_apply_settings":
 		settings := make(map[string]string)
@@ -311,40 +312,88 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		}
 		method, err := a.pg.ApplySettings(ctx, settings)
 		if err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pg_apply_settings", err)
 		}
-		return true, fmt.Sprintf("settings applied via %s", method), ""
+		return true, fmt.Sprintf("Settings applied via %s — a reload was issued", method), ""
 
 	case "pgbackrest_backup":
 		stanza := cmd.GetPayload()
 		if _, err := a.pgBackRest.Backup(ctx, stanza, "full", "", a.cfg.PGDataDir); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pgbackrest_backup", err)
 		}
-		return true, "pgbackrest backup completed", ""
+		return true, "pgBackRest backup completed successfully", ""
 
 	case "pgbackrest_restore":
 		stanza := cmd.GetPayload()
 		if _, err := a.pgBackRest.Restore(ctx, stanza, "", "", "", a.cfg.PGDataDir); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pgbackrest_restore", err)
 		}
-		return true, "pgbackrest restore completed", ""
+		return true, "pgBackRest restore completed successfully", ""
 
 	case "pgbackrest_stanza_create":
 		stanza := cmd.GetPayload()
 		if err := a.pgBackRest.StanzaCreate(ctx, stanza, "", a.cfg.PGDataDir); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pgbackrest_stanza_create", err)
 		}
-		return true, "pgbackrest stanza created", ""
+		return true, "pgBackRest stanza created successfully", ""
 
 	case "pgbackrest_stanza_check":
 		stanza := cmd.GetPayload()
 		if err := a.pgBackRest.StanzaCheck(ctx, stanza, "", a.cfg.PGDataDir); err != nil {
-			return false, "", err.Error()
+			return false, "", a.enrichError("pgbackrest_stanza_check", err)
 		}
-		return true, "pgbackrest stanza check passed", ""
+		return true, "pgBackRest stanza check passed", ""
 
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())
+	}
+}
+
+// enrichError wraps an error with actionable hints based on the command type
+// and the error message content.
+func (a *Agent) enrichError(action string, err error) string {
+	msg := err.Error()
+	lower := strings.ToLower(msg)
+
+	switch action {
+	case "pg_init":
+		if strings.Contains(lower, "permission denied") {
+			return fmt.Sprintf("initdb failed: permission denied — check that the data directory %s is owned by the current user", msg)
+		}
+		if strings.Contains(lower, "exists") && strings.Contains(lower, "not empty") {
+			return fmt.Sprintf("initdb failed: data directory is not empty — remove or clear %s before initializing", msg)
+		}
+		return fmt.Sprintf("initdb failed: %s — check that PostgreSQL binaries are in PATH and disk space is available", msg)
+
+	case "pg_start":
+		if strings.Contains(lower, "permission denied") {
+			return fmt.Sprintf("pg_start failed: permission denied — check that the data directory %s is owned by the postgres user", msg)
+		}
+		if strings.Contains(lower, "port") || strings.Contains(lower, "already in use") || strings.Contains(lower, "address already in use") {
+			return fmt.Sprintf("pg_start failed: port is already in use — stop the existing PostgreSQL process on port %d or change the port", a.cfg.Port)
+		}
+		if strings.Contains(lower, "no such file") || strings.Contains(lower, "not found") {
+			return fmt.Sprintf("pg_start failed: PostgreSQL binary not found — ensure PostgreSQL is installed and PGBinDir (%s) is correct", a.cfg.PGBinDir)
+		}
+		return fmt.Sprintf("pg_start failed: %s — check pg_log for details", msg)
+
+	case "pg_stop":
+		return fmt.Sprintf("pg_stop failed: %s — the process may need to be terminated manually", msg)
+
+	case "pg_basebackup":
+		if strings.Contains(lower, "connection refused") || strings.Contains(lower, "no route to host") {
+			return fmt.Sprintf("pg_basebackup failed: cannot connect to primary — ensure the primary is running and reachable on the network")
+		}
+		if strings.Contains(lower, "password authentication failed") {
+			return fmt.Sprintf("pg_basebackup failed: authentication failed — verify the replication user credentials in pg_hba.conf on the primary")
+		}
+		return fmt.Sprintf("pg_basebackup failed: %s — verify the primary is running and the replication user is configured", msg)
+
+	case "pg_apply_settings":
+		return fmt.Sprintf("pg_apply_settings failed: %s — check the parameter values and ensure PostgreSQL can reload", msg)
+
+	default:
+		return fmt.Sprintf("%s failed: %s", action, msg)
 	}
 }
 
@@ -357,4 +406,19 @@ func (a *Agent) reportCommandResult(ctx context.Context, commandID string, succe
 		Error:     RedactSecrets(errMsg),
 	})
 	return err
+}
+
+// computeAgentStatusDetail derives a human-readable status detail from the
+// agent's local PostgreSQL state.
+func computeAgentStatusDetail(pgInstalled, pgDataInitialized, pgRunning bool) string {
+	if !pgInstalled {
+		return "waiting_for_postgres"
+	}
+	if !pgDataInitialized {
+		return "initializing_data_directory"
+	}
+	if !pgRunning {
+		return "stopped"
+	}
+	return "running"
 }

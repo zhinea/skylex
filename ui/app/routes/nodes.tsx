@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNodes, useDrainNode } from "~/hooks/useNodes";
+import { useNodes, useDrainNode, useRejoinNode } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
@@ -40,12 +40,30 @@ function PgStatusBadges({
   );
 }
 
+function StatusDetailTooltip({ detail }: { detail: string }) {
+  if (!detail) return null;
+  const label = detail.replace(/_/g, " ");
+  return (
+    <span
+      className="group relative inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 cursor-help"
+      title={label}
+    >
+      {label}
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block w-max max-w-xs px-2 py-1 text-xs text-white bg-gray-900 dark:bg-gray-600 rounded shadow-lg z-10">
+        {label}
+      </span>
+    </span>
+  );
+}
+
 export default function NodesPage() {
   const [page, setPage] = useState(1);
   const [installOpen, setInstallOpen] = useState(false);
   const { data, isLoading } = useNodes(undefined, page);
   const drainNode = useDrainNode();
+  const rejoinNode = useRejoinNode();
   const [drainId, setDrainId] = useState<string | null>(null);
+  const [rejoinId, setRejoinId] = useState<string | null>(null);
 
   if (isLoading) return <PageSpinner />;
 
@@ -105,6 +123,7 @@ export default function NodesPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Status</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent Version</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
                   <th className="text-right px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
@@ -126,17 +145,31 @@ export default function NodesPage() {
                         dataInitialized={n.postgresDataInitialized}
                       />
                     </td>
+                    <td className="px-4 py-3">
+                      <StatusDetailTooltip detail={n.statusDetail} />
+                    </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{n.agentVersion || "-"}</td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                       {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setDrainId(n.id)}
-                        className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
-                      >
-                        Drain
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {n.clusterId && n.statusDetail === "stopped" && (
+                          <button
+                            onClick={() => setRejoinId(n.id)}
+                            className="text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
+                            title="Rejoin cluster"
+                          >
+                            Rejoin
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setDrainId(n.id)}
+                          className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
+                        >
+                          Drain
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -176,6 +209,15 @@ export default function NodesPage() {
         confirmLabel="Drain"
         onConfirm={() => { if (drainId) { drainNode.mutate(drainId); setDrainId(null); }}}
         onCancel={() => setDrainId(null)}
+      />
+
+      <ConfirmDialog
+        open={!!rejoinId}
+        title="Rejoin Node"
+        message="This will repoint the node to follow the current primary and restart. Any divergent data will be overwritten. Are you sure?"
+        confirmLabel="Rejoin"
+        onConfirm={() => { if (rejoinId) { rejoinNode.mutate(rejoinId); setRejoinId(null); }}}
+        onCancel={() => setRejoinId(null)}
       />
 
       <InstallAgentModal open={installOpen} onClose={() => setInstallOpen(false)} />

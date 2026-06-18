@@ -143,6 +143,19 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 			neededNodes, len(idleNodes), max(len(idleNodes)-1, 0))
 	}
 
+	// Phase 4: preflight — every candidate node must have PostgreSQL installed.
+	var missingPg []string
+	for _, n := range idleNodes[:neededNodes] {
+		if !n.PostgresInstalled {
+			missingPg = append(missingPg, n.Hostname)
+		}
+	}
+	if len(missingPg) > 0 {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"PostgreSQL is not installed on the following node(s): %s. Install PostgreSQL on those hosts before creating a cluster.",
+			strings.Join(missingPg, ", "))
+	}
+
 	cluster, err := s.clusters.Create(ctx, req.GetName(),
 		cfg.GetStorageConfigId(), "", engine, version, mode,
 		replicaCount, cfg.GetPitrEnabled(), cfg.GetLabels())

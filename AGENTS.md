@@ -73,7 +73,7 @@ make run-agent ARGS='--server localhost:9090 --token-file /etc/skylex/token'
 ## Protocol buffers and generated code
 
 - Buf v2 is configured in `buf.yaml` (modules under `proto/`, lint + breaking rules) and `buf.gen.yaml` (generates Go gRPC + Connect-RPC into `gen/`).
-- Regenerate with `make proto` after changing `.proto` files.
+- **Always run `make proto` after changing `.proto` files.** Never manually edit files under `gen/`.
 - `go_package_prefix` is `github.com/zhinea/skylex/gen`.
 
 ## Testing

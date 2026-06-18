@@ -17,6 +17,8 @@ interface Node {
   postgresInstalled: boolean;
   postgresVersion: string;
   postgresDataInitialized: boolean;
+  // Phase 4: human-readable status detail
+  statusDetail: string;
 }
 
 interface Pagination {
@@ -42,6 +44,17 @@ export function useDrainNode() {
   return useMutation({
     mutationFn: (nodeId: string) =>
       api.post<{ node: Node }>("/skylex.v1.NodeService/DrainNode", { nodeId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+    },
+  });
+}
+
+export function useRejoinNode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (nodeId: string) =>
+      api.post<{ node: Node }>("/skylex.v1.NodeService/RejoinNode", { nodeId }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["nodes"] });
     },

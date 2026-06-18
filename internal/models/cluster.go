@@ -76,4 +76,6 @@ type Node struct {
 	PostgresInstalled      bool   `json:"postgres_installed"`
 	PostgresVersion        string `json:"postgres_version"`
 	PostgresDataInitialized bool  `json:"postgres_data_initialized"`
+	// Phase 4: human-readable status detail
+	StatusDetail            string `json:"status_detail"`
 }

@@ -335,8 +335,10 @@ type NodeStatusReport struct {
 	PostgresInstalled       bool   `protobuf:"varint,9,opt,name=postgres_installed,json=postgresInstalled,proto3" json:"postgres_installed,omitempty"`
 	PostgresBinVersion      string `protobuf:"bytes,10,opt,name=postgres_bin_version,json=postgresBinVersion,proto3" json:"postgres_bin_version,omitempty"`
 	PostgresDataInitialized bool   `protobuf:"varint,11,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// Phase 4: human-readable status detail
+	NodeStatusDetail string `protobuf:"bytes,12,opt,name=node_status_detail,json=nodeStatusDetail,proto3" json:"node_status_detail,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *NodeStatusReport) Reset() {
@@ -444,6 +446,13 @@ func (x *NodeStatusReport) GetPostgresDataInitialized() bool {
 		return x.PostgresDataInitialized
 	}
 	return false
+}
+
+func (x *NodeStatusReport) GetNodeStatusDetail() string {
+	if x != nil {
+		return x.NodeStatusDetail
+	}
+	return ""
 }
 
 type ReportStatusRequest struct {
@@ -986,7 +995,7 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12\x17\n" +
 	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x126\n" +
 	"\fcurrent_role\x18\x03 \x01(\x0e2\x13.skylex.v1.NodeRoleR\vcurrentRole\"\x13\n" +
-	"\x11HeartbeatResponse\"\xff\x03\n" +
+	"\x11HeartbeatResponse\"\xad\x04\n" +
 	"\x10NodeStatusReport\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12)\n" +
 	"\x10postgres_running\x18\x02 \x01(\bR\x0fpostgresRunning\x12)\n" +
@@ -999,7 +1008,8 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\x12postgres_installed\x18\t \x01(\bR\x11postgresInstalled\x120\n" +
 	"\x14postgres_bin_version\x18\n" +
 	" \x01(\tR\x12postgresBinVersion\x12:\n" +
-	"\x19postgres_data_initialized\x18\v \x01(\bR\x17postgresDataInitialized\"r\n" +
+	"\x19postgres_data_initialized\x18\v \x01(\bR\x17postgresDataInitialized\x12,\n" +
+	"\x12node_status_detail\x18\f \x01(\tR\x10nodeStatusDetail\"r\n" +
 	"\x13ReportStatusRequest\x12\x19\n" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12@\n" +
 	"\rnode_statuses\x18\x02 \x03(\v2\x1b.skylex.v1.NodeStatusReportR\fnodeStatuses\"\x16\n" +

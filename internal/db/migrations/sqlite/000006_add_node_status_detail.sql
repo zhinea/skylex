@@ -1,0 +1,1 @@
+ALTER TABLE nodes ADD COLUMN status_detail TEXT NOT NULL DEFAULT '';

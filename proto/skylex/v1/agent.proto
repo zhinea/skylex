@@ -55,6 +55,8 @@ message NodeStatusReport {
   bool postgres_installed = 9;
   string postgres_bin_version = 10;
   bool postgres_data_initialized = 11;
+  // Phase 4: human-readable status detail
+  string node_status_detail = 12;
 }
 
 message ReportStatusRequest {
