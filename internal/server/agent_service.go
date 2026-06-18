@@ -113,8 +113,12 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 func (s *AgentService) Heartbeat(ctx context.Context, req *skylexv1.HeartbeatRequest) (*skylexv1.HeartbeatResponse, error) {
 	if req.GetAgentId() != "" {
 		node, err := s.nodes.GetByAgentID(ctx, req.GetAgentId())
-		if err != nil || node == nil {
-			s.log.Warn("node not found for heartbeat", "agent_id", req.GetAgentId())
+		if err != nil {
+			s.log.Warn("lookup node for heartbeat failed", "agent_id", req.GetAgentId(), "error", err)
+		} else if node == nil {
+			// Unknown agent_ids are usually stale/orphaned agents from a
+			// previous registration. Log at debug to avoid log spam.
+			s.log.Debug("node not found for heartbeat", "agent_id", req.GetAgentId())
 		} else {
 			if err := s.nodes.UpdateHeartbeat(ctx, node.ID); err != nil {
 				s.log.Warn("heartbeat update failed", "node_id", node.ID, "error", err)
@@ -136,8 +140,16 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 			node, err = s.nodes.GetByAgentID(ctx, req.GetAgentId())
 		}
 
-		if err != nil || node == nil {
-			s.log.Warn("node not found for status report",
+		if err != nil {
+			s.log.Warn("lookup node for status report failed",
+				"node_id", nodeStatus.GetNodeId(),
+				"agent_id", req.GetAgentId(),
+				"error", err,
+			)
+			continue
+		}
+		if node == nil {
+			s.log.Debug("node not found for status report",
 				"node_id", nodeStatus.GetNodeId(),
 				"agent_id", req.GetAgentId(),
 			)
