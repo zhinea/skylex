@@ -36,6 +36,17 @@ enum ServiceLocation {
   SERVICE_LOCATION_DOCKER = 2;
 }
 
+enum InstallationState {
+  INSTALLATION_STATE_UNSPECIFIED = 0;
+  INSTALLATION_STATE_PENDING_PREFLIGHT = 1;
+  INSTALLATION_STATE_NOTHING_FOUND = 2;
+  INSTALLATION_STATE_CONFLICT = 3;
+  INSTALLATION_STATE_INSTALLING = 4;
+  INSTALLATION_STATE_INSTALLED = 5;
+  INSTALLATION_STATE_FAILED = 6;
+  INSTALLATION_STATE_ADOPTED = 7;
+}
+
 message ClusterConfig {
   Engine engine = 1;
   string version = 2;
@@ -80,6 +91,8 @@ message Node {
   // Phase 2: service location model
   ServiceLocation service_location = 16;
   bool docker_available = 17;
+  InstallationState installation_state = 18;
+  string conflict_details = 19;
 }
 
 message Pagination {

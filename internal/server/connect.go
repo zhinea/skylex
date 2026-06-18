@@ -59,30 +59,31 @@ var unauthenticatedPaths = map[string]bool{
 }
 
 var writeMethods = map[string]bool{
-	skylexv1connect.ClusterServiceCreateClusterProcedure:  true,
-	skylexv1connect.ClusterServiceUpdateClusterProcedure:  true,
-	skylexv1connect.ClusterServiceDeleteClusterProcedure:  true,
-	skylexv1connect.ClusterServiceFailoverClusterProcedure: true,
-	skylexv1connect.ClusterServiceRestartNodeProcedure:       true,
-	skylexv1connect.ClusterServiceScaleClusterProcedure:      true,
-	skylexv1connect.ClusterServiceUpdateClusterSettingsProcedure: true,
-	skylexv1connect.NodeServiceDrainNodeProcedure:         true,
-	skylexv1connect.NodeServiceRejoinNodeProcedure:        true,
-	skylexv1connect.BackupServiceCreateBackupProcedure:    true,
-	skylexv1connect.BackupServiceDeleteBackupProcedure:    true,
-	skylexv1connect.BackupServiceCreateRestoreJobProcedure: true,
-	skylexv1connect.ScheduleServiceCreateScheduleProcedure: true,
-	skylexv1connect.ScheduleServiceUpdateScheduleProcedure: true,
-	skylexv1connect.ScheduleServiceDeleteScheduleProcedure: true,
-	skylexv1connect.StorageServiceCreateStorageConfigProcedure:   true,
-	skylexv1connect.StorageServiceDeleteStorageConfigProcedure:   true,
-	skylexv1connect.StorageServiceValidateStorageConfigProcedure: true,
-	skylexv1connect.AuthServiceCreateUserProcedure:  true,
-	skylexv1connect.AuthServiceDeleteUserProcedure:  true,
-	skylexv1connect.AuthServiceCreateAPIKeyProcedure: true,
-	skylexv1connect.AuthServiceDeleteAPIKeyProcedure: true,
-	skylexv1connect.AuthServiceCreateAgentTokenProcedure: true,
-	skylexv1connect.AuthServiceDeleteAgentTokenProcedure: true,
+	skylexv1connect.ClusterServiceCreateClusterProcedure:            true,
+	skylexv1connect.ClusterServiceUpdateClusterProcedure:            true,
+	skylexv1connect.ClusterServiceDeleteClusterProcedure:            true,
+	skylexv1connect.ClusterServiceFailoverClusterProcedure:          true,
+	skylexv1connect.ClusterServiceRestartNodeProcedure:              true,
+	skylexv1connect.ClusterServiceScaleClusterProcedure:             true,
+	skylexv1connect.ClusterServiceUpdateClusterSettingsProcedure:    true,
+	skylexv1connect.NodeServiceDrainNodeProcedure:                   true,
+	skylexv1connect.NodeServiceRejoinNodeProcedure:                  true,
+	skylexv1connect.NodeServiceResolveInstallationConflictProcedure: true,
+	skylexv1connect.BackupServiceCreateBackupProcedure:              true,
+	skylexv1connect.BackupServiceDeleteBackupProcedure:              true,
+	skylexv1connect.BackupServiceCreateRestoreJobProcedure:          true,
+	skylexv1connect.ScheduleServiceCreateScheduleProcedure:          true,
+	skylexv1connect.ScheduleServiceUpdateScheduleProcedure:          true,
+	skylexv1connect.ScheduleServiceDeleteScheduleProcedure:          true,
+	skylexv1connect.StorageServiceCreateStorageConfigProcedure:      true,
+	skylexv1connect.StorageServiceDeleteStorageConfigProcedure:      true,
+	skylexv1connect.StorageServiceValidateStorageConfigProcedure:    true,
+	skylexv1connect.AuthServiceCreateUserProcedure:                  true,
+	skylexv1connect.AuthServiceDeleteUserProcedure:                  true,
+	skylexv1connect.AuthServiceCreateAPIKeyProcedure:                true,
+	skylexv1connect.AuthServiceDeleteAPIKeyProcedure:                true,
+	skylexv1connect.AuthServiceCreateAgentTokenProcedure:            true,
+	skylexv1connect.AuthServiceDeleteAgentTokenProcedure:            true,
 }
 
 func isUnauthenticated(srv *Server, path string) bool {
@@ -310,6 +311,14 @@ func (c *connectNodeService) DrainNode(ctx context.Context, req *connect.Request
 
 func (c *connectNodeService) RejoinNode(ctx context.Context, req *connect.Request[skylexv1.RejoinNodeRequest]) (*connect.Response[skylexv1.RejoinNodeResponse], error) {
 	resp, err := c.svc.RejoinNode(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectNodeService) ResolveInstallationConflict(ctx context.Context, req *connect.Request[skylexv1.ResolveInstallationConflictRequest]) (*connect.Response[skylexv1.ResolveInstallationConflictResponse], error) {
+	resp, err := c.svc.ResolveInstallationConflict(ctx, req.Msg)
 	if err != nil {
 		return nil, err
 	}

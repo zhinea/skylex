@@ -3,12 +3,71 @@ package installer
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
 type NativeInstaller struct{}
+
+const (
+	PreflightNothingFound = "NOTHING_FOUND"
+	PreflightPGExists     = "PG_EXISTS"
+)
+
+type PreflightResult struct {
+	State           string `json:"state"`
+	Version         string `json:"version"`
+	DataDir         string `json:"data_dir"`
+	DataPresent     bool   `json:"data_present"`
+	DataInitialized bool   `json:"data_initialized"`
+}
+
+func (r PreflightResult) Details() string {
+	if r.State == PreflightNothingFound {
+		return "no native PostgreSQL installation or data directory content found"
+	}
+	version := r.Version
+	if version == "" {
+		version = "unknown"
+	}
+	return fmt.Sprintf("existing PostgreSQL/data detected: version=%s data_dir=%s data_present=%v data_initialized=%v", version, r.DataDir, r.DataPresent, r.DataInitialized)
+}
+
+func (NativeInstaller) Preflight(ctx context.Context, cfg InstallConfig, log LogSink) (PreflightResult, error) {
+	installed := false
+	version := ""
+	if out, err := output(ctx, "pg_config", "--version"); err == nil && out != "" {
+		installed = true
+		version = out
+	} else if out, err := output(ctx, "postgres", "--version"); err == nil && out != "" {
+		installed = true
+		version = out
+	}
+
+	dataPresent, dataInitialized, err := inspectDataDir(cfg.DataDir)
+	if err != nil {
+		return PreflightResult{}, err
+	}
+
+	state := PreflightNothingFound
+	if installed || dataPresent {
+		state = PreflightPGExists
+	}
+
+	result := PreflightResult{
+		State:           state,
+		Version:         version,
+		DataDir:         filepath.Clean(cfg.DataDir),
+		DataPresent:     dataPresent,
+		DataInitialized: dataInitialized,
+	}
+	if log != nil {
+		log.Info(result.Details())
+	}
+	return result, nil
+}
 
 func (NativeInstaller) Install(ctx context.Context, cfg InstallConfig, log LogSink) error {
 	pm, err := detectPackageManager()
@@ -43,19 +102,33 @@ func (NativeInstaller) Purge(ctx context.Context, cfg InstallConfig, log LogSink
 		return err
 	}
 
+	stopNativePostgres(ctx, cfg, log)
+
+	var purgeErr error
 	switch pm {
 	case "apt-get":
-		return run(ctx, log, "apt-get", "purge", "-y", "postgresql-"+cfg.Version, "postgresql-client-"+cfg.Version)
+		purgeErr = run(ctx, log, "apt-get", "purge", "-y", "postgresql-"+cfg.Version, "postgresql-client-"+cfg.Version)
 	case "dnf":
-		return run(ctx, log, "dnf", "remove", "-y", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
+		purgeErr = run(ctx, log, "dnf", "remove", "-y", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
 	case "apk":
 		pkg := "postgresql" + cfg.Version
-		return run(ctx, log, "apk", "del", pkg, pkg+"-client")
+		purgeErr = run(ctx, log, "apk", "del", pkg, pkg+"-client")
 	case "zypper":
-		return run(ctx, log, "zypper", "--non-interactive", "remove", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
+		purgeErr = run(ctx, log, "zypper", "--non-interactive", "remove", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
 	default:
 		return fmt.Errorf("unsupported package manager: %s", pm)
 	}
+	if purgeErr != nil {
+		return purgeErr
+	}
+
+	if err := removeDataDir(cfg.DataDir); err != nil {
+		return err
+	}
+	if log != nil {
+		log.Info(fmt.Sprintf("removed PostgreSQL data directory: %s", filepath.Clean(cfg.DataDir)))
+	}
+	return nil
 }
 
 func DetectNativeBinDir(ctx context.Context, configuredBinDir string) string {
@@ -96,4 +169,50 @@ func commandAt(path string) bool {
 	}
 	_, err := exec.LookPath(path)
 	return err == nil
+}
+
+func inspectDataDir(dataDir string) (dataPresent bool, dataInitialized bool, err error) {
+	clean := filepath.Clean(dataDir)
+	if clean == "." || clean == string(filepath.Separator) {
+		return false, false, fmt.Errorf("unsafe data directory: %q", dataDir)
+	}
+	if _, err := os.Stat(filepath.Join(clean, "PG_VERSION")); err == nil {
+		return true, true, nil
+	} else if !os.IsNotExist(err) {
+		return false, false, fmt.Errorf("inspect PG_VERSION: %w", err)
+	}
+	entries, err := os.ReadDir(clean)
+	if os.IsNotExist(err) {
+		return false, false, nil
+	}
+	if err != nil {
+		return false, false, fmt.Errorf("inspect data dir: %w", err)
+	}
+	return len(entries) > 0, false, nil
+}
+
+func stopNativePostgres(ctx context.Context, cfg InstallConfig, log LogSink) {
+	binDir := DetectNativeBinDir(ctx, cfg.BinDir)
+	if binDir != "" && commandAt(filepath.Join(binDir, "pg_ctl")) {
+		if err := run(ctx, log, filepath.Join(binDir, "pg_ctl"), "stop", "-D", filepath.Clean(cfg.DataDir), "-m", "fast", "-w", "-t", "30"); err == nil {
+			return
+		}
+	}
+	if commandExists("systemctl") {
+		_ = run(ctx, log, "systemctl", "stop", "postgresql")
+		_ = run(ctx, log, "systemctl", "stop", "postgresql@"+cfg.Version+"-main")
+	}
+}
+
+func removeDataDir(dataDir string) error {
+	clean := filepath.Clean(dataDir)
+	protected := map[string]bool{
+		"/": true, ".": true, "": true,
+		"/etc": true, "/home": true, "/tmp": true,
+		"/usr": true, "/var": true, "/var/lib": true, "/var/lib/postgresql": true,
+	}
+	if !filepath.IsAbs(clean) || protected[clean] {
+		return fmt.Errorf("refusing to remove unsafe data directory %q", dataDir)
+	}
+	return os.RemoveAll(clean)
 }

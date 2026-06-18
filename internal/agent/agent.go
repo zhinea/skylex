@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -32,6 +33,10 @@ type Agent struct {
 	pgBackRest *backup.PgBackRest
 	native     installer.NativeInstaller
 	docker     installer.DockerInstaller
+
+	installMu         sync.RWMutex
+	installationState skylexv1.InstallationState
+	conflictDetails   string
 }
 
 func New(cfg Config) (*Agent, error) {
@@ -59,12 +64,13 @@ func New(cfg Config) (*Agent, error) {
 	pgBackRest := backup.NewPgBackRest(cfg.PGBackRestPath, log)
 
 	return &Agent{
-		cfg:        cfg,
-		log:        log,
-		pg:         pg,
-		pgBackRest: pgBackRest,
-		native:     installer.NativeInstaller{},
-		docker:     installer.DockerInstaller{},
+		cfg:               cfg,
+		log:               log,
+		pg:                pg,
+		pgBackRest:        pgBackRest,
+		native:            installer.NativeInstaller{},
+		docker:            installer.DockerInstaller{},
+		installationState: skylexv1.InstallationState_INSTALLATION_STATE_PENDING_PREFLIGHT,
 	}, nil
 }
 
@@ -167,6 +173,7 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 	postgresRunning := a.pg.IsRunning()
 	pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
 	pgDataInitialized := a.pg.IsDataDirInitialized()
+	installationState, conflictDetails := a.installationReport()
 
 	_, err := a.client.Heartbeat(ctx, &skylexv1.HeartbeatRequest{
 		AgentId: a.agentID,
@@ -183,6 +190,8 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 		PostgresBinVersion:      pgBinVersion,
 		PostgresDataInitialized: pgDataInitialized,
 		NodeStatusDetail:        computeAgentStatusDetail(pgInstalled, pgDataInitialized, postgresRunning),
+		InstallationState:       installationState,
+		ConflictDetails:         conflictDetails,
 	}
 
 	if postgresRunning {
@@ -250,36 +259,63 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
 	switch cmd.GetAction() {
 	case "pg_preflight":
-		pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
-		dockerAvailable := detectDockerAvailable(ctx)
-		return true, fmt.Sprintf("preflight complete: postgres_installed=%v postgres_version=%q docker_available=%v", pgInstalled, pgBinVersion, dockerAvailable), ""
+		result, err := a.native.Preflight(ctx, a.installConfig(), logger)
+		if err != nil {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
+			return false, "", a.enrichError("pg_preflight", err)
+		}
+		if result.State == installer.PreflightPGExists {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_CONFLICT, result.Details())
+		} else {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_NOTHING_FOUND, "")
+		}
+		return true, mustMarshalJSON(result), ""
 
 	case "pg_install_native":
+		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING, "")
 		if installed, version := postgres.DetectInstallation(ctx); installed {
 			binDir := installer.DetectNativeBinDir(ctx, a.cfg.PGBinDir)
 			a.pg.UseNative(binDir, installer.DetectNativeVersion(ctx, version))
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED, "")
 			return true, fmt.Sprintf("PostgreSQL already installed: %s", version), ""
 		}
 		if err := a.native.Install(ctx, a.installConfig(), logger); err != nil {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
 			return false, "", a.enrichError("pg_install_native", err)
 		}
 		binDir := installer.DetectNativeBinDir(ctx, a.cfg.PGBinDir)
 		version := installer.DetectNativeVersion(ctx, a.cfg.PGVersion)
 		a.pg.UseNative(binDir, version)
+		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED, "")
 		return true, fmt.Sprintf("PostgreSQL %s installed natively", version), ""
 
 	case "pg_install_docker":
+		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING, "")
 		if err := a.docker.Install(ctx, a.installConfig(), logger); err != nil {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
 			return false, "", a.enrichError("pg_install_docker", err)
 		}
 		a.pg.UseDocker("postgres:"+a.cfg.PGVersion, installer.DockerContainerName())
+		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED, "")
 		return true, fmt.Sprintf("PostgreSQL Docker container %q installed", installer.DockerContainerName()), ""
 
 	case "pg_purge_native":
+		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING, "")
 		if err := a.native.Purge(ctx, a.installConfig(), logger); err != nil {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
 			return false, "", a.enrichError("pg_purge_native", err)
 		}
-		return true, "Native PostgreSQL packages removed", ""
+		return true, "Native PostgreSQL packages and configured data directory removed", ""
+
+	case "pg_adopt_native":
+		if installed, version := postgres.DetectInstallation(ctx); installed {
+			binDir := installer.DetectNativeBinDir(ctx, a.cfg.PGBinDir)
+			a.pg.UseNative(binDir, installer.DetectNativeVersion(ctx, version))
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_ADOPTED, "")
+			return true, fmt.Sprintf("Adopted existing PostgreSQL installation: %s", version), ""
+		}
+		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, "adopt native failed: no PostgreSQL installation found")
+		return false, "", "adopt native failed: no PostgreSQL installation found"
 
 	case "pg_init":
 		if err := a.pg.InitDB(ctx); err != nil {
@@ -404,6 +440,27 @@ func (a *Agent) installConfig() installer.InstallConfig {
 	}
 }
 
+func mustMarshalJSON(v interface{}) string {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Sprintf("%v", v)
+	}
+	return string(b)
+}
+
+func (a *Agent) setInstallationReport(state skylexv1.InstallationState, details string) {
+	a.installMu.Lock()
+	defer a.installMu.Unlock()
+	a.installationState = state
+	a.conflictDetails = details
+}
+
+func (a *Agent) installationReport() (skylexv1.InstallationState, string) {
+	a.installMu.RLock()
+	defer a.installMu.RUnlock()
+	return a.installationState, a.conflictDetails
+}
+
 // enrichError wraps an error with actionable hints based on the command type
 // and the error message content.
 func (a *Agent) enrichError(action string, err error) string {
@@ -411,6 +468,9 @@ func (a *Agent) enrichError(action string, err error) string {
 	lower := strings.ToLower(msg)
 
 	switch action {
+	case "pg_preflight":
+		return fmt.Sprintf("preflight failed: %s", msg)
+
 	case "pg_init":
 		if strings.Contains(lower, "permission denied") {
 			return fmt.Sprintf("initdb failed: permission denied — check that the data directory %s is owned by the current user", msg)

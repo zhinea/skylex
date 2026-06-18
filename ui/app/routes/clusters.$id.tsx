@@ -5,7 +5,7 @@ import { useNodes } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
 import { useRestartNode } from "~/hooks/useClusters";
-import { useRejoinNode } from "~/hooks/useNodes";
+import { useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
@@ -70,6 +70,8 @@ function statusDetailColor(detail: string): string {
       return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
     case "initializing_data_directory":
       return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400";
+    case "installation_conflict":
+      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
     case "waiting_for_postgres":
       return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
     case "stopped":
@@ -77,6 +79,65 @@ function statusDetailColor(detail: string): string {
     default:
       return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
   }
+}
+
+function InstallationConflictCard({ nodes, onResolve, pending }: {
+  nodes: Node[];
+  onResolve: (nodeId: string, action: "ADOPT" | "PURGE" | "ABORT") => void;
+  pending: boolean;
+}) {
+  if (nodes.length === 0) return null;
+
+  return (
+    <Card title="Native PostgreSQL Conflict">
+      <div className="space-y-4">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-900/20">
+          <p className="text-sm font-medium text-red-900 dark:text-red-100">
+            Existing native PostgreSQL or data was found on {nodes.length} selected node{nodes.length === 1 ? "" : "s"}.
+          </p>
+          <p className="mt-1 text-sm text-red-700 dark:text-red-200">
+            Skylex is paused to avoid unplanned data loss. Choose Use Existing to adopt the detected installation, Remove & Reinstall to purge packages and the configured data directory, or Abort Cluster Creation.
+          </p>
+        </div>
+
+        {nodes.map((node) => (
+          <div key={node.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <div className="font-medium text-gray-900 dark:text-white">{node.hostname}</div>
+                <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  {node.conflictDetails || "Existing PostgreSQL installation or data directory content detected."}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => onResolve(node.id, "ADOPT")}
+                  disabled={pending}
+                  className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Use Existing
+                </button>
+                <button
+                  onClick={() => onResolve(node.id, "PURGE")}
+                  disabled={pending}
+                  className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                >
+                  Remove & Reinstall
+                </button>
+                <button
+                  onClick={() => onResolve(node.id, "ABORT")}
+                  disabled={pending}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
+                >
+                  Abort Cluster Creation
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
 }
 
 function SettingsCard({ clusterId }: { clusterId: string }) {
@@ -286,10 +347,12 @@ export default function ClusterDetailPage() {
   const { data: logsData } = useCommandLogs(id || "");
   const restartNode = useRestartNode();
   const rejoinNode = useRejoinNode();
+  const resolveConflict = useResolveInstallationConflict();
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   const [actionNodeId, setActionNodeId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"restart" | "rejoin" | null>(null);
+  const [conflictAction, setConflictAction] = useState<{ nodeId: string; action: "PURGE" | "ABORT" } | null>(null);
 
   const logs: CommandLog[] = logsData?.logs ?? [];
 
@@ -310,6 +373,7 @@ export default function ClusterDetailPage() {
   }
 
   const nodes = nodesData?.nodes || [];
+  const conflictNodes = nodes.filter((n) => n.installationState === "INSTALLATION_STATE_CONFLICT");
   const onlineNodes = nodes.filter((n) => n.postgresInstalled && n.postgresDataInitialized);
   const totalNodes = nodes.length;
 
@@ -351,6 +415,22 @@ export default function ClusterDetailPage() {
       <div className="mb-6">
         <InstallationProgressCard nodes={nodes} logs={logs} />
       </div>
+
+      {conflictNodes.length > 0 && (
+        <div className="mb-6">
+          <InstallationConflictCard
+            nodes={conflictNodes}
+            pending={resolveConflict.isPending}
+            onResolve={(nodeId, action) => {
+              if (action === "ADOPT") {
+                resolveConflict.mutate({ nodeId, action });
+              } else {
+                setConflictAction({ nodeId, action });
+              }
+            }}
+          />
+        </div>
+      )}
 
       {/* Phase 4: Diagnostics Card */}
       <div className="mb-6">
@@ -418,6 +498,10 @@ export default function ClusterDetailPage() {
                           {n.statusDetail ? (
                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusDetailColor(n.statusDetail)}`}>
                               {n.statusDetail.replace(/_/g, " ")}
+                            </span>
+                          ) : n.installationState === "INSTALLATION_STATE_CONFLICT" ? (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusDetailColor("installation_conflict")}`}>
+                              installation conflict
                             </span>
                           ) : (
                             <Badge label={n.role} />
@@ -614,6 +698,34 @@ export default function ClusterDetailPage() {
           }
         }}
         onCancel={() => { setActionNodeId(null); setActionType(null); }}
+      />
+
+      <ConfirmDialog
+        open={conflictAction?.action === "PURGE"}
+        title="Remove Existing PostgreSQL"
+        message="This will stop PostgreSQL, remove native PostgreSQL packages, and delete the configured data directory on this node before reinstalling. This is destructive and cannot be undone."
+        confirmLabel="Remove & Reinstall"
+        onConfirm={() => {
+          if (conflictAction) {
+            resolveConflict.mutate({ nodeId: conflictAction.nodeId, action: conflictAction.action });
+            setConflictAction(null);
+          }
+        }}
+        onCancel={() => setConflictAction(null)}
+      />
+
+      <ConfirmDialog
+        open={conflictAction?.action === "ABORT"}
+        title="Abort Cluster Creation"
+        message="This will mark the cluster creation as failed. Already queued provisioning work will be skipped where possible."
+        confirmLabel="Abort Cluster Creation"
+        onConfirm={() => {
+          if (conflictAction) {
+            resolveConflict.mutate({ nodeId: conflictAction.nodeId, action: conflictAction.action });
+            setConflictAction(null);
+          }
+        }}
+        onCancel={() => setConflictAction(null)}
       />
     </div>
   );

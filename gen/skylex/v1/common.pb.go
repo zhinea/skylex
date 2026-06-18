@@ -273,6 +273,70 @@ func (ServiceLocation) EnumDescriptor() ([]byte, []int) {
 	return file_skylex_v1_common_proto_rawDescGZIP(), []int{4}
 }
 
+type InstallationState int32
+
+const (
+	InstallationState_INSTALLATION_STATE_UNSPECIFIED       InstallationState = 0
+	InstallationState_INSTALLATION_STATE_PENDING_PREFLIGHT InstallationState = 1
+	InstallationState_INSTALLATION_STATE_NOTHING_FOUND     InstallationState = 2
+	InstallationState_INSTALLATION_STATE_CONFLICT          InstallationState = 3
+	InstallationState_INSTALLATION_STATE_INSTALLING        InstallationState = 4
+	InstallationState_INSTALLATION_STATE_INSTALLED         InstallationState = 5
+	InstallationState_INSTALLATION_STATE_FAILED            InstallationState = 6
+	InstallationState_INSTALLATION_STATE_ADOPTED           InstallationState = 7
+)
+
+// Enum value maps for InstallationState.
+var (
+	InstallationState_name = map[int32]string{
+		0: "INSTALLATION_STATE_UNSPECIFIED",
+		1: "INSTALLATION_STATE_PENDING_PREFLIGHT",
+		2: "INSTALLATION_STATE_NOTHING_FOUND",
+		3: "INSTALLATION_STATE_CONFLICT",
+		4: "INSTALLATION_STATE_INSTALLING",
+		5: "INSTALLATION_STATE_INSTALLED",
+		6: "INSTALLATION_STATE_FAILED",
+		7: "INSTALLATION_STATE_ADOPTED",
+	}
+	InstallationState_value = map[string]int32{
+		"INSTALLATION_STATE_UNSPECIFIED":       0,
+		"INSTALLATION_STATE_PENDING_PREFLIGHT": 1,
+		"INSTALLATION_STATE_NOTHING_FOUND":     2,
+		"INSTALLATION_STATE_CONFLICT":          3,
+		"INSTALLATION_STATE_INSTALLING":        4,
+		"INSTALLATION_STATE_INSTALLED":         5,
+		"INSTALLATION_STATE_FAILED":            6,
+		"INSTALLATION_STATE_ADOPTED":           7,
+	}
+)
+
+func (x InstallationState) Enum() *InstallationState {
+	p := new(InstallationState)
+	*p = x
+	return p
+}
+
+func (x InstallationState) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (InstallationState) Descriptor() protoreflect.EnumDescriptor {
+	return file_skylex_v1_common_proto_enumTypes[5].Descriptor()
+}
+
+func (InstallationState) Type() protoreflect.EnumType {
+	return &file_skylex_v1_common_proto_enumTypes[5]
+}
+
+func (x InstallationState) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use InstallationState.Descriptor instead.
+func (InstallationState) EnumDescriptor() ([]byte, []int) {
+	return file_skylex_v1_common_proto_rawDescGZIP(), []int{5}
+}
+
 type ClusterConfig struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Engine          Engine                 `protobuf:"varint,1,opt,name=engine,proto3,enum=skylex.v1.Engine" json:"engine,omitempty"`
@@ -487,10 +551,12 @@ type Node struct {
 	// Phase 4: human-readable status detail
 	StatusDetail string `protobuf:"bytes,15,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
 	// Phase 2: service location model
-	ServiceLocation ServiceLocation `protobuf:"varint,16,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
-	DockerAvailable bool            `protobuf:"varint,17,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	ServiceLocation   ServiceLocation   `protobuf:"varint,16,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
+	DockerAvailable   bool              `protobuf:"varint,17,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
+	InstallationState InstallationState `protobuf:"varint,18,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
+	ConflictDetails   string            `protobuf:"bytes,19,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -642,6 +708,20 @@ func (x *Node) GetDockerAvailable() bool {
 	return false
 }
 
+func (x *Node) GetInstallationState() InstallationState {
+	if x != nil {
+		return x.InstallationState
+	}
+	return InstallationState_INSTALLATION_STATE_UNSPECIFIED
+}
+
+func (x *Node) GetConflictDetails() string {
+	if x != nil {
+		return x.ConflictDetails
+	}
+	return ""
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -728,7 +808,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12E\n" +
-	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\x99\x06\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\x91\a\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -750,7 +830,9 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x19postgres_data_initialized\x18\x0e \x01(\bR\x17postgresDataInitialized\x12#\n" +
 	"\rstatus_detail\x18\x0f \x01(\tR\fstatusDetail\x12E\n" +
 	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\x12)\n" +
-	"\x10docker_available\x18\x11 \x01(\bR\x0fdockerAvailable\x1a9\n" +
+	"\x10docker_available\x18\x11 \x01(\bR\x0fdockerAvailable\x12K\n" +
+	"\x12installation_state\x18\x12 \x01(\x0e2\x1c.skylex.v1.InstallationStateR\x11installationState\x12)\n" +
+	"\x10conflict_details\x18\x13 \x01(\tR\x0fconflictDetails\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +
@@ -780,7 +862,16 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x0fServiceLocation\x12 \n" +
 	"\x1cSERVICE_LOCATION_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17SERVICE_LOCATION_NATIVE\x10\x01\x12\x1b\n" +
-	"\x17SERVICE_LOCATION_DOCKER\x10\x02B\x92\x01\n" +
+	"\x17SERVICE_LOCATION_DOCKER\x10\x02*\xac\x02\n" +
+	"\x11InstallationState\x12\"\n" +
+	"\x1eINSTALLATION_STATE_UNSPECIFIED\x10\x00\x12(\n" +
+	"$INSTALLATION_STATE_PENDING_PREFLIGHT\x10\x01\x12$\n" +
+	" INSTALLATION_STATE_NOTHING_FOUND\x10\x02\x12\x1f\n" +
+	"\x1bINSTALLATION_STATE_CONFLICT\x10\x03\x12!\n" +
+	"\x1dINSTALLATION_STATE_INSTALLING\x10\x04\x12 \n" +
+	"\x1cINSTALLATION_STATE_INSTALLED\x10\x05\x12\x1d\n" +
+	"\x19INSTALLATION_STATE_FAILED\x10\x06\x12\x1e\n" +
+	"\x1aINSTALLATION_STATE_ADOPTED\x10\aB\x92\x01\n" +
 	"\rcom.skylex.v1B\vCommonProtoP\x01Z/github.com/zhinea/skylex/gen/skylex/v1;skylexv1\xa2\x02\x03SXX\xaa\x02\tSkylex.V1\xca\x02\tSkylex\\V1\xe2\x02\x15Skylex\\V1\\GPBMetadata\xea\x02\n" +
 	"Skylex::V1b\x06proto3"
 
@@ -796,7 +887,7 @@ func file_skylex_v1_common_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_common_proto_rawDescData
 }
 
-var file_skylex_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_skylex_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
 var file_skylex_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_skylex_v1_common_proto_goTypes = []any{
 	(ClusterStatus)(0),            // 0: skylex.v1.ClusterStatus
@@ -804,35 +895,37 @@ var file_skylex_v1_common_proto_goTypes = []any{
 	(ReplicationMode)(0),          // 2: skylex.v1.ReplicationMode
 	(Engine)(0),                   // 3: skylex.v1.Engine
 	(ServiceLocation)(0),          // 4: skylex.v1.ServiceLocation
-	(*ClusterConfig)(nil),         // 5: skylex.v1.ClusterConfig
-	(*Cluster)(nil),               // 6: skylex.v1.Cluster
-	(*Node)(nil),                  // 7: skylex.v1.Node
-	(*Pagination)(nil),            // 8: skylex.v1.Pagination
-	nil,                           // 9: skylex.v1.ClusterConfig.LabelsEntry
-	nil,                           // 10: skylex.v1.Node.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
+	(InstallationState)(0),        // 5: skylex.v1.InstallationState
+	(*ClusterConfig)(nil),         // 6: skylex.v1.ClusterConfig
+	(*Cluster)(nil),               // 7: skylex.v1.Cluster
+	(*Node)(nil),                  // 8: skylex.v1.Node
+	(*Pagination)(nil),            // 9: skylex.v1.Pagination
+	nil,                           // 10: skylex.v1.ClusterConfig.LabelsEntry
+	nil,                           // 11: skylex.v1.Node.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
 }
 var file_skylex_v1_common_proto_depIdxs = []int32{
 	3,  // 0: skylex.v1.ClusterConfig.engine:type_name -> skylex.v1.Engine
 	2,  // 1: skylex.v1.ClusterConfig.replication_mode:type_name -> skylex.v1.ReplicationMode
-	9,  // 2: skylex.v1.ClusterConfig.labels:type_name -> skylex.v1.ClusterConfig.LabelsEntry
+	10, // 2: skylex.v1.ClusterConfig.labels:type_name -> skylex.v1.ClusterConfig.LabelsEntry
 	4,  // 3: skylex.v1.ClusterConfig.service_location:type_name -> skylex.v1.ServiceLocation
-	5,  // 4: skylex.v1.Cluster.config:type_name -> skylex.v1.ClusterConfig
+	6,  // 4: skylex.v1.Cluster.config:type_name -> skylex.v1.ClusterConfig
 	0,  // 5: skylex.v1.Cluster.status:type_name -> skylex.v1.ClusterStatus
-	11, // 6: skylex.v1.Cluster.created_at:type_name -> google.protobuf.Timestamp
-	11, // 7: skylex.v1.Cluster.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 6: skylex.v1.Cluster.created_at:type_name -> google.protobuf.Timestamp
+	12, // 7: skylex.v1.Cluster.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 8: skylex.v1.Cluster.service_location:type_name -> skylex.v1.ServiceLocation
 	1,  // 9: skylex.v1.Node.role:type_name -> skylex.v1.NodeRole
-	10, // 10: skylex.v1.Node.labels:type_name -> skylex.v1.Node.LabelsEntry
-	11, // 11: skylex.v1.Node.last_seen:type_name -> google.protobuf.Timestamp
-	11, // 12: skylex.v1.Node.created_at:type_name -> google.protobuf.Timestamp
-	11, // 13: skylex.v1.Node.updated_at:type_name -> google.protobuf.Timestamp
+	11, // 10: skylex.v1.Node.labels:type_name -> skylex.v1.Node.LabelsEntry
+	12, // 11: skylex.v1.Node.last_seen:type_name -> google.protobuf.Timestamp
+	12, // 12: skylex.v1.Node.created_at:type_name -> google.protobuf.Timestamp
+	12, // 13: skylex.v1.Node.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 14: skylex.v1.Node.service_location:type_name -> skylex.v1.ServiceLocation
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	5,  // 15: skylex.v1.Node.installation_state:type_name -> skylex.v1.InstallationState
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_common_proto_init() }
@@ -845,7 +938,7 @@ func file_skylex_v1_common_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_common_proto_rawDesc), len(file_skylex_v1_common_proto_rawDesc)),
-			NumEnums:      5,
+			NumEnums:      6,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,

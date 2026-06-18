@@ -90,6 +90,7 @@ service NodeService {
   rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
   rpc DrainNode(DrainNodeRequest) returns (DrainNodeResponse);
   rpc RejoinNode(RejoinNodeRequest) returns (RejoinNodeResponse);
+  rpc ResolveInstallationConflict(ResolveInstallationConflictRequest) returns (ResolveInstallationConflictResponse);
   rpc ListNodeCommandLogs(ListNodeCommandLogsRequest) returns (ListNodeCommandLogsResponse);
 }
 
@@ -125,6 +126,22 @@ message RejoinNodeRequest {
 }
 
 message RejoinNodeResponse {
+  Node node = 1;
+}
+
+enum ResolveInstallationConflictAction {
+  RESOLVE_INSTALLATION_CONFLICT_ACTION_UNSPECIFIED = 0;
+  RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT = 1;
+  RESOLVE_INSTALLATION_CONFLICT_ACTION_PURGE = 2;
+  RESOLVE_INSTALLATION_CONFLICT_ACTION_ABORT = 3;
+}
+
+message ResolveInstallationConflictRequest {
+  string node_id = 1;
+  ResolveInstallationConflictAction action = 2;
+}
+
+message ResolveInstallationConflictResponse {
   Node node = 1;
 }
 

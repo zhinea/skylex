@@ -73,6 +73,9 @@ const (
 	NodeServiceDrainNodeProcedure = "/skylex.v1.NodeService/DrainNode"
 	// NodeServiceRejoinNodeProcedure is the fully-qualified name of the NodeService's RejoinNode RPC.
 	NodeServiceRejoinNodeProcedure = "/skylex.v1.NodeService/RejoinNode"
+	// NodeServiceResolveInstallationConflictProcedure is the fully-qualified name of the NodeService's
+	// ResolveInstallationConflict RPC.
+	NodeServiceResolveInstallationConflictProcedure = "/skylex.v1.NodeService/ResolveInstallationConflict"
 	// NodeServiceListNodeCommandLogsProcedure is the fully-qualified name of the NodeService's
 	// ListNodeCommandLogs RPC.
 	NodeServiceListNodeCommandLogsProcedure = "/skylex.v1.NodeService/ListNodeCommandLogs"
@@ -388,6 +391,7 @@ type NodeServiceClient interface {
 	GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error)
 	DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error)
 	RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error)
+	ResolveInstallationConflict(context.Context, *connect.Request[v1.ResolveInstallationConflictRequest]) (*connect.Response[v1.ResolveInstallationConflictResponse], error)
 	ListNodeCommandLogs(context.Context, *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error)
 }
 
@@ -426,6 +430,12 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(nodeServiceMethods.ByName("RejoinNode")),
 			connect.WithClientOptions(opts...),
 		),
+		resolveInstallationConflict: connect.NewClient[v1.ResolveInstallationConflictRequest, v1.ResolveInstallationConflictResponse](
+			httpClient,
+			baseURL+NodeServiceResolveInstallationConflictProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("ResolveInstallationConflict")),
+			connect.WithClientOptions(opts...),
+		),
 		listNodeCommandLogs: connect.NewClient[v1.ListNodeCommandLogsRequest, v1.ListNodeCommandLogsResponse](
 			httpClient,
 			baseURL+NodeServiceListNodeCommandLogsProcedure,
@@ -437,11 +447,12 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // nodeServiceClient implements NodeServiceClient.
 type nodeServiceClient struct {
-	listNodes           *connect.Client[v1.ListNodesRequest, v1.ListNodesResponse]
-	getNode             *connect.Client[v1.GetNodeRequest, v1.GetNodeResponse]
-	drainNode           *connect.Client[v1.DrainNodeRequest, v1.DrainNodeResponse]
-	rejoinNode          *connect.Client[v1.RejoinNodeRequest, v1.RejoinNodeResponse]
-	listNodeCommandLogs *connect.Client[v1.ListNodeCommandLogsRequest, v1.ListNodeCommandLogsResponse]
+	listNodes                   *connect.Client[v1.ListNodesRequest, v1.ListNodesResponse]
+	getNode                     *connect.Client[v1.GetNodeRequest, v1.GetNodeResponse]
+	drainNode                   *connect.Client[v1.DrainNodeRequest, v1.DrainNodeResponse]
+	rejoinNode                  *connect.Client[v1.RejoinNodeRequest, v1.RejoinNodeResponse]
+	resolveInstallationConflict *connect.Client[v1.ResolveInstallationConflictRequest, v1.ResolveInstallationConflictResponse]
+	listNodeCommandLogs         *connect.Client[v1.ListNodeCommandLogsRequest, v1.ListNodeCommandLogsResponse]
 }
 
 // ListNodes calls skylex.v1.NodeService.ListNodes.
@@ -464,6 +475,11 @@ func (c *nodeServiceClient) RejoinNode(ctx context.Context, req *connect.Request
 	return c.rejoinNode.CallUnary(ctx, req)
 }
 
+// ResolveInstallationConflict calls skylex.v1.NodeService.ResolveInstallationConflict.
+func (c *nodeServiceClient) ResolveInstallationConflict(ctx context.Context, req *connect.Request[v1.ResolveInstallationConflictRequest]) (*connect.Response[v1.ResolveInstallationConflictResponse], error) {
+	return c.resolveInstallationConflict.CallUnary(ctx, req)
+}
+
 // ListNodeCommandLogs calls skylex.v1.NodeService.ListNodeCommandLogs.
 func (c *nodeServiceClient) ListNodeCommandLogs(ctx context.Context, req *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error) {
 	return c.listNodeCommandLogs.CallUnary(ctx, req)
@@ -475,6 +491,7 @@ type NodeServiceHandler interface {
 	GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error)
 	DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error)
 	RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error)
+	ResolveInstallationConflict(context.Context, *connect.Request[v1.ResolveInstallationConflictRequest]) (*connect.Response[v1.ResolveInstallationConflictResponse], error)
 	ListNodeCommandLogs(context.Context, *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error)
 }
 
@@ -509,6 +526,12 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(nodeServiceMethods.ByName("RejoinNode")),
 		connect.WithHandlerOptions(opts...),
 	)
+	nodeServiceResolveInstallationConflictHandler := connect.NewUnaryHandler(
+		NodeServiceResolveInstallationConflictProcedure,
+		svc.ResolveInstallationConflict,
+		connect.WithSchema(nodeServiceMethods.ByName("ResolveInstallationConflict")),
+		connect.WithHandlerOptions(opts...),
+	)
 	nodeServiceListNodeCommandLogsHandler := connect.NewUnaryHandler(
 		NodeServiceListNodeCommandLogsProcedure,
 		svc.ListNodeCommandLogs,
@@ -525,6 +548,8 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceDrainNodeHandler.ServeHTTP(w, r)
 		case NodeServiceRejoinNodeProcedure:
 			nodeServiceRejoinNodeHandler.ServeHTTP(w, r)
+		case NodeServiceResolveInstallationConflictProcedure:
+			nodeServiceResolveInstallationConflictHandler.ServeHTTP(w, r)
 		case NodeServiceListNodeCommandLogsProcedure:
 			nodeServiceListNodeCommandLogsHandler.ServeHTTP(w, r)
 		default:
@@ -550,6 +575,10 @@ func (UnimplementedNodeServiceHandler) DrainNode(context.Context, *connect.Reque
 
 func (UnimplementedNodeServiceHandler) RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.NodeService.RejoinNode is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) ResolveInstallationConflict(context.Context, *connect.Request[v1.ResolveInstallationConflictRequest]) (*connect.Response[v1.ResolveInstallationConflictResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.NodeService.ResolveInstallationConflict is not implemented"))
 }
 
 func (UnimplementedNodeServiceHandler) ListNodeCommandLogs(context.Context, *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error) {

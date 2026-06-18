@@ -72,7 +72,7 @@ func queuedActions(t *testing.T, ctx context.Context, svc *ClusterService, agent
 	return actions
 }
 
-func TestClusterService_CreateCluster_QueuesNativeInstallWhenPostgresMissing(t *testing.T) {
+func TestClusterService_CreateCluster_QueuesNativePreflightOnly(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()
 	node, err := svc.nodes.Create(ctx, "", "native-node", "10.0.0.2", 5432, models.NodeRoleReplica, "0.1.0", nil)
@@ -98,7 +98,7 @@ func TestClusterService_CreateCluster_QueuesNativeInstallWhenPostgresMissing(t *
 		t.Fatalf("create cluster: %v", err)
 	}
 
-	want := []string{"pg_preflight", "pg_install_native", "pg_init", "pg_start", "pg_create_repl_user"}
+	want := []string{"pg_preflight"}
 	got := queuedActions(t, ctx, svc, "agent-native", node.ID)
 	if len(got) != len(want) {
 		t.Fatalf("expected actions %v, got %v", want, got)
@@ -110,7 +110,7 @@ func TestClusterService_CreateCluster_QueuesNativeInstallWhenPostgresMissing(t *
 	}
 }
 
-func TestClusterService_CreateCluster_QueuesDockerInstallEvenWhenPostgresMissing(t *testing.T) {
+func TestClusterService_CreateCluster_QueuesDockerInstallWithoutNativePreflight(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()
 	node, err := svc.nodes.Create(ctx, "", "docker-node", "10.0.0.3", 5432, models.NodeRoleReplica, "0.1.0", nil)
@@ -136,7 +136,7 @@ func TestClusterService_CreateCluster_QueuesDockerInstallEvenWhenPostgresMissing
 		t.Fatalf("create cluster: %v", err)
 	}
 
-	want := []string{"pg_preflight", "pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user"}
+	want := []string{"pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user"}
 	got := queuedActions(t, ctx, svc, "agent-docker", node.ID)
 	if len(got) != len(want) {
 		t.Fatalf("expected actions %v, got %v", want, got)

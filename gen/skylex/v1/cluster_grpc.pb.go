@@ -463,11 +463,12 @@ var ClusterService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	NodeService_ListNodes_FullMethodName           = "/skylex.v1.NodeService/ListNodes"
-	NodeService_GetNode_FullMethodName             = "/skylex.v1.NodeService/GetNode"
-	NodeService_DrainNode_FullMethodName           = "/skylex.v1.NodeService/DrainNode"
-	NodeService_RejoinNode_FullMethodName          = "/skylex.v1.NodeService/RejoinNode"
-	NodeService_ListNodeCommandLogs_FullMethodName = "/skylex.v1.NodeService/ListNodeCommandLogs"
+	NodeService_ListNodes_FullMethodName                   = "/skylex.v1.NodeService/ListNodes"
+	NodeService_GetNode_FullMethodName                     = "/skylex.v1.NodeService/GetNode"
+	NodeService_DrainNode_FullMethodName                   = "/skylex.v1.NodeService/DrainNode"
+	NodeService_RejoinNode_FullMethodName                  = "/skylex.v1.NodeService/RejoinNode"
+	NodeService_ResolveInstallationConflict_FullMethodName = "/skylex.v1.NodeService/ResolveInstallationConflict"
+	NodeService_ListNodeCommandLogs_FullMethodName         = "/skylex.v1.NodeService/ListNodeCommandLogs"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -478,6 +479,7 @@ type NodeServiceClient interface {
 	GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error)
 	DrainNode(ctx context.Context, in *DrainNodeRequest, opts ...grpc.CallOption) (*DrainNodeResponse, error)
 	RejoinNode(ctx context.Context, in *RejoinNodeRequest, opts ...grpc.CallOption) (*RejoinNodeResponse, error)
+	ResolveInstallationConflict(ctx context.Context, in *ResolveInstallationConflictRequest, opts ...grpc.CallOption) (*ResolveInstallationConflictResponse, error)
 	ListNodeCommandLogs(ctx context.Context, in *ListNodeCommandLogsRequest, opts ...grpc.CallOption) (*ListNodeCommandLogsResponse, error)
 }
 
@@ -529,6 +531,16 @@ func (c *nodeServiceClient) RejoinNode(ctx context.Context, in *RejoinNodeReques
 	return out, nil
 }
 
+func (c *nodeServiceClient) ResolveInstallationConflict(ctx context.Context, in *ResolveInstallationConflictRequest, opts ...grpc.CallOption) (*ResolveInstallationConflictResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResolveInstallationConflictResponse)
+	err := c.cc.Invoke(ctx, NodeService_ResolveInstallationConflict_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nodeServiceClient) ListNodeCommandLogs(ctx context.Context, in *ListNodeCommandLogsRequest, opts ...grpc.CallOption) (*ListNodeCommandLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListNodeCommandLogsResponse)
@@ -547,6 +559,7 @@ type NodeServiceServer interface {
 	GetNode(context.Context, *GetNodeRequest) (*GetNodeResponse, error)
 	DrainNode(context.Context, *DrainNodeRequest) (*DrainNodeResponse, error)
 	RejoinNode(context.Context, *RejoinNodeRequest) (*RejoinNodeResponse, error)
+	ResolveInstallationConflict(context.Context, *ResolveInstallationConflictRequest) (*ResolveInstallationConflictResponse, error)
 	ListNodeCommandLogs(context.Context, *ListNodeCommandLogsRequest) (*ListNodeCommandLogsResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
@@ -569,6 +582,9 @@ func (UnimplementedNodeServiceServer) DrainNode(context.Context, *DrainNodeReque
 }
 func (UnimplementedNodeServiceServer) RejoinNode(context.Context, *RejoinNodeRequest) (*RejoinNodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RejoinNode not implemented")
+}
+func (UnimplementedNodeServiceServer) ResolveInstallationConflict(context.Context, *ResolveInstallationConflictRequest) (*ResolveInstallationConflictResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResolveInstallationConflict not implemented")
 }
 func (UnimplementedNodeServiceServer) ListNodeCommandLogs(context.Context, *ListNodeCommandLogsRequest) (*ListNodeCommandLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListNodeCommandLogs not implemented")
@@ -666,6 +682,24 @@ func _NodeService_RejoinNode_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_ResolveInstallationConflict_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResolveInstallationConflictRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).ResolveInstallationConflict(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_ResolveInstallationConflict_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).ResolveInstallationConflict(ctx, req.(*ResolveInstallationConflictRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NodeService_ListNodeCommandLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListNodeCommandLogsRequest)
 	if err := dec(in); err != nil {
@@ -706,6 +740,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RejoinNode",
 			Handler:    _NodeService_RejoinNode_Handler,
+		},
+		{
+			MethodName: "ResolveInstallationConflict",
+			Handler:    _NodeService_ResolveInstallationConflict_Handler,
 		},
 		{
 			MethodName: "ListNodeCommandLogs",

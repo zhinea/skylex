@@ -59,6 +59,8 @@ message NodeStatusReport {
   bool postgres_data_initialized = 11;
   // Phase 4: human-readable status detail
   string node_status_detail = 12;
+  InstallationState installation_state = 13;
+  string conflict_details = 14;
 }
 
 message ReportStatusRequest {

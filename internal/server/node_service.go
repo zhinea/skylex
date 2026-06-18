@@ -16,13 +16,14 @@ import (
 type NodeService struct {
 	skylexv1.UnimplementedNodeServiceServer
 	nodes       *db.NodeRepository
+	clusters    *db.ClusterRepository
 	commands    *db.AgentCommandRepository
 	commandLogs *db.CommandLogRepository
 	log         *slog.Logger
 }
 
-func NewNodeService(nodes *db.NodeRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, log *slog.Logger) *NodeService {
-	return &NodeService{nodes: nodes, commands: commands, commandLogs: commandLogs, log: log}
+func NewNodeService(nodes *db.NodeRepository, clusters *db.ClusterRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, log *slog.Logger) *NodeService {
+	return &NodeService{nodes: nodes, clusters: clusters, commands: commands, commandLogs: commandLogs, log: log}
 }
 
 func (s *NodeService) ListNodes(ctx context.Context, req *skylexv1.ListNodesRequest) (*skylexv1.ListNodesResponse, error) {
@@ -144,6 +145,121 @@ func (s *NodeService) RejoinNode(ctx context.Context, req *skylexv1.RejoinNodeRe
 	return &skylexv1.RejoinNodeResponse{}, nil
 }
 
+func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skylexv1.ResolveInstallationConflictRequest) (*skylexv1.ResolveInstallationConflictResponse, error) {
+	if req.GetNodeId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "node_id is required")
+	}
+	node, err := s.nodes.GetByID(ctx, req.GetNodeId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get node: %v", err)
+	}
+	if node == nil {
+		return nil, status.Errorf(codes.NotFound, "node %q not found", req.GetNodeId())
+	}
+	if node.ClusterID == "" {
+		return nil, status.Error(codes.FailedPrecondition, "node is not assigned to a cluster")
+	}
+	if node.ServiceLocation != models.ServiceLocationNative {
+		return nil, status.Error(codes.FailedPrecondition, "installation conflicts are only resolved for native nodes")
+	}
+	if node.InstallationState != models.InstallationStateConflict {
+		return nil, status.Errorf(codes.FailedPrecondition, "node is not in installation conflict state")
+	}
+
+	cluster, err := s.clusters.GetByID(ctx, node.ClusterID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get cluster: %v", err)
+	}
+	if cluster == nil {
+		return nil, status.Errorf(codes.NotFound, "cluster %q not found", node.ClusterID)
+	}
+	if cluster.Status != models.ClusterStatusCreating {
+		return nil, status.Errorf(codes.FailedPrecondition, "cluster is not creating")
+	}
+	if node.AgentID == "" {
+		return nil, status.Errorf(codes.FailedPrecondition, "node %q has no agent_id assigned", node.ID)
+	}
+
+	switch req.GetAction() {
+	case skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT:
+		if err := s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, ""); err != nil {
+			return nil, status.Errorf(codes.Internal, "update installation state: %v", err)
+		}
+		if err := s.queueAdoptCommands(ctx, node); err != nil {
+			return nil, status.Errorf(codes.Internal, "queue adopt commands: %v", err)
+		}
+	case skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_PURGE:
+		if err := s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, ""); err != nil {
+			return nil, status.Errorf(codes.Internal, "update installation state: %v", err)
+		}
+		if err := s.queuePurgeCommands(ctx, node, cluster.Version); err != nil {
+			return nil, status.Errorf(codes.Internal, "queue purge commands: %v", err)
+		}
+	case skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_ABORT:
+		if err := s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateFailed, "cluster creation aborted by user"); err != nil {
+			return nil, status.Errorf(codes.Internal, "update installation state: %v", err)
+		}
+		if err := s.clusters.UpdateStatus(ctx, node.ClusterID, models.ClusterStatusStopped); err != nil {
+			return nil, status.Errorf(codes.Internal, "mark cluster failed: %v", err)
+		}
+	default:
+		return nil, status.Error(codes.InvalidArgument, "action must be ADOPT, PURGE, or ABORT")
+	}
+
+	updated, err := s.nodes.GetByID(ctx, node.ID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get updated node: %v", err)
+	}
+	s.log.Info("installation conflict resolved", "node_id", node.ID, "action", req.GetAction().String())
+	return &skylexv1.ResolveInstallationConflictResponse{Node: nodeToProto(updated)}, nil
+}
+
+func (s *NodeService) queueAdoptCommands(ctx context.Context, node *models.Node) error {
+	commands := []provisioningCommand{{"pg_adopt_native", ""}}
+	if node.Role == models.NodeRolePrimary {
+		commands = append(commands, primaryCommands()...)
+	} else {
+		primary, err := s.nodes.GetPrimary(ctx, node.ClusterID)
+		if err != nil {
+			return fmt.Errorf("get primary: %w", err)
+		}
+		if primary == nil {
+			return fmt.Errorf("no primary found for cluster %q", node.ClusterID)
+		}
+		commands = append(commands, replicaCommands(primary)...)
+	}
+	return s.queueNodeCommands(ctx, node, commands)
+}
+
+func (s *NodeService) queuePurgeCommands(ctx context.Context, node *models.Node, version string) error {
+	commands := []provisioningCommand{{"pg_purge_native", ""}}
+	installNode := *node
+	installNode.PostgresInstalled = false
+	commands = append(commands, installCommands(&installNode, version, models.ServiceLocationNative, true)...)
+	if node.Role == models.NodeRolePrimary {
+		commands = append(commands, primaryCommands()...)
+	} else {
+		primary, err := s.nodes.GetPrimary(ctx, node.ClusterID)
+		if err != nil {
+			return fmt.Errorf("get primary: %w", err)
+		}
+		if primary == nil {
+			return fmt.Errorf("no primary found for cluster %q", node.ClusterID)
+		}
+		commands = append(commands, replicaCommands(primary)...)
+	}
+	return s.queueNodeCommands(ctx, node, commands)
+}
+
+func (s *NodeService) queueNodeCommands(ctx context.Context, node *models.Node, commands []provisioningCommand) error {
+	for _, c := range commands {
+		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, c.action, c.payload); err != nil {
+			return fmt.Errorf("queue %s: %w", c.action, err)
+		}
+	}
+	return nil
+}
+
 func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.ListNodeCommandLogsRequest) (*skylexv1.ListNodeCommandLogsResponse, error) {
 	pageSize := int(req.GetPageSize())
 	if pageSize <= 0 {
@@ -258,5 +374,28 @@ func nodeToProto(n *models.Node) *skylexv1.Node {
 		StatusDetail:            n.StatusDetail,
 		ServiceLocation:         serviceLocation,
 		DockerAvailable:         n.DockerAvailable,
+		InstallationState:       protoInstallationState(n.InstallationState),
+		ConflictDetails:         n.ConflictDetails,
+	}
+}
+
+func protoInstallationState(state models.InstallationState) skylexv1.InstallationState {
+	switch state {
+	case models.InstallationStatePendingPreflight:
+		return skylexv1.InstallationState_INSTALLATION_STATE_PENDING_PREFLIGHT
+	case models.InstallationStateNothingFound:
+		return skylexv1.InstallationState_INSTALLATION_STATE_NOTHING_FOUND
+	case models.InstallationStateConflict:
+		return skylexv1.InstallationState_INSTALLATION_STATE_CONFLICT
+	case models.InstallationStateInstalling:
+		return skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING
+	case models.InstallationStateInstalled:
+		return skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED
+	case models.InstallationStateFailed:
+		return skylexv1.InstallationState_INSTALLATION_STATE_FAILED
+	case models.InstallationStateAdopted:
+		return skylexv1.InstallationState_INSTALLATION_STATE_ADOPTED
+	default:
+		return skylexv1.InstallationState_INSTALLATION_STATE_UNSPECIFIED
 	}
 }

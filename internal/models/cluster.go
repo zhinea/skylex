@@ -41,6 +41,19 @@ const (
 	ServiceLocationDocker      ServiceLocation = "docker"
 )
 
+type InstallationState string
+
+const (
+	InstallationStateUnspecified      InstallationState = ""
+	InstallationStatePendingPreflight InstallationState = "pending_preflight"
+	InstallationStateNothingFound     InstallationState = "nothing_found"
+	InstallationStateConflict         InstallationState = "conflict"
+	InstallationStateInstalling       InstallationState = "installing"
+	InstallationStateInstalled        InstallationState = "installed"
+	InstallationStateFailed           InstallationState = "failed"
+	InstallationStateAdopted          InstallationState = "adopted"
+)
+
 type Cluster struct {
 	ID              string            `json:"id"`
 	Name            string            `json:"name"`
@@ -62,27 +75,27 @@ type Cluster struct {
 type NodeStatus string
 
 const (
-	NodeStatusOnline     NodeStatus = "online"
-	NodeStatusOffline    NodeStatus = "offline"
-	NodeStatusDegraded   NodeStatus = "degraded"
-	NodeStatusSyncing    NodeStatus = "syncing"
-	NodeStatusPromoting  NodeStatus = "promoting"
+	NodeStatusOnline    NodeStatus = "online"
+	NodeStatusOffline   NodeStatus = "offline"
+	NodeStatusDegraded  NodeStatus = "degraded"
+	NodeStatusSyncing   NodeStatus = "syncing"
+	NodeStatusPromoting NodeStatus = "promoting"
 )
 
 type Node struct {
-	ID                      string            `json:"id"`
-	ClusterID               string            `json:"cluster_id"`
-	Hostname                string            `json:"hostname"`
-	Address                 string            `json:"address"`
-	Port                    int               `json:"port"`
-	Role                    NodeRole          `json:"role"`
-	Status                  NodeStatus        `json:"status"`
-	AgentVersion            string            `json:"agent_version"`
-	AgentID                 string            `json:"agent_id"`
-	Labels                  map[string]string `json:"labels,omitempty"`
-	LastSeen                time.Time         `json:"last_seen"`
-	CreatedAt               time.Time         `json:"created_at"`
-	UpdatedAt               time.Time         `json:"updated_at"`
+	ID           string            `json:"id"`
+	ClusterID    string            `json:"cluster_id"`
+	Hostname     string            `json:"hostname"`
+	Address      string            `json:"address"`
+	Port         int               `json:"port"`
+	Role         NodeRole          `json:"role"`
+	Status       NodeStatus        `json:"status"`
+	AgentVersion string            `json:"agent_version"`
+	AgentID      string            `json:"agent_id"`
+	Labels       map[string]string `json:"labels,omitempty"`
+	LastSeen     time.Time         `json:"last_seen"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
 	// Phase 2: PostgreSQL installation & health visibility
 	PostgresInstalled       bool   `json:"postgres_installed"`
 	PostgresVersion         string `json:"postgres_version"`
@@ -92,4 +105,7 @@ type Node struct {
 	// Phase 2: service location model
 	ServiceLocation ServiceLocation `json:"service_location"`
 	DockerAvailable bool            `json:"docker_available"`
+	// Phase 4: native PostgreSQL conflict detection.
+	InstallationState InstallationState `json:"installation_state"`
+	ConflictDetails   string            `json:"conflict_details"`
 }

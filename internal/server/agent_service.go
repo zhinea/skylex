@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/subtle"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -216,6 +218,13 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 		if detail != "" {
 			_ = s.nodes.UpdateStatusDetail(ctx, node.ID, detail)
 		}
+
+		installationState := modelInstallationState(nodeStatus.GetInstallationState())
+		if installationState != models.InstallationStateUnspecified {
+			if err := s.nodes.UpdateInstallationState(ctx, node.ID, installationState, nodeStatus.GetConflictDetails()); err != nil {
+				s.log.Warn("update node installation state (report)", "error", err, "node_id", node.ID)
+			}
+		}
 	}
 
 	return &skylexv1.ReportStatusResponse{}, nil
@@ -253,11 +262,107 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 		return nil, status.Errorf(codes.Internal, "update command result: %v", err)
 	}
 
+	if err := s.handleProvisioningCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetOutput(), req.GetError()); err != nil {
+		s.log.Warn("handle provisioning command result failed", "command_id", req.GetCommandId(), "error", err)
+	}
+
 	if err := s.updateClusterProvisioningStatus(ctx, req.GetCommandId()); err != nil {
 		s.log.Warn("update cluster provisioning status failed", "command_id", req.GetCommandId(), "error", err)
 	}
 
 	return &skylexv1.ReportCommandResultResponse{}, nil
+}
+
+type preflightResult struct {
+	State           string `json:"state"`
+	Version         string `json:"version"`
+	DataDir         string `json:"data_dir"`
+	DataPresent     bool   `json:"data_present"`
+	DataInitialized bool   `json:"data_initialized"`
+}
+
+func (r preflightResult) details() string {
+	if r.State == "NOTHING_FOUND" {
+		return "no native PostgreSQL installation or data directory content found"
+	}
+	version := r.Version
+	if version == "" {
+		version = "unknown"
+	}
+	return fmt.Sprintf("existing PostgreSQL/data detected: version=%s data_dir=%s data_present=%v data_initialized=%v", version, r.DataDir, r.DataPresent, r.DataInitialized)
+}
+
+func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, commandID string, success bool, output, errMsg string) error {
+	cmd, err := s.commands.GetByID(ctx, commandID)
+	if err != nil || cmd == nil || cmd.NodeID == "" {
+		return err
+	}
+	node, err := s.nodes.GetByID(ctx, cmd.NodeID)
+	if err != nil || node == nil {
+		return err
+	}
+
+	if !success {
+		if isProvisioningAction(cmd.Action) {
+			return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateFailed, errMsg)
+		}
+		return nil
+	}
+
+	switch cmd.Action {
+	case "pg_preflight":
+		var result preflightResult
+		if err := json.Unmarshal([]byte(output), &result); err != nil {
+			return fmt.Errorf("parse preflight result: %w", err)
+		}
+		switch result.State {
+		case "PG_EXISTS":
+			return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateConflict, result.details())
+		case "NOTHING_FOUND":
+			if err := s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, ""); err != nil {
+				return err
+			}
+			cluster, err := s.clusters.GetByID(ctx, node.ClusterID)
+			if err != nil || cluster == nil {
+				return err
+			}
+			return s.queueNativeProvisioningContinuation(ctx, node, cluster.Version, false)
+		default:
+			return fmt.Errorf("unknown preflight state %q", result.State)
+		}
+	case "pg_install_native", "pg_install_docker":
+		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalled, "")
+	case "pg_purge_native":
+		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, "")
+	case "pg_adopt_native":
+		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateAdopted, "")
+	}
+	return nil
+}
+
+func (s *AgentService) queueNativeProvisioningContinuation(ctx context.Context, node *models.Node, version string, skipInstall bool) error {
+	commands := installCommands(node, version, models.ServiceLocationNative, true)
+	if skipInstall {
+		commands = nil
+	}
+	if node.Role == models.NodeRolePrimary {
+		commands = append(commands, primaryCommands()...)
+	} else {
+		primary, err := s.nodes.GetPrimary(ctx, node.ClusterID)
+		if err != nil {
+			return fmt.Errorf("get primary: %w", err)
+		}
+		if primary == nil {
+			return fmt.Errorf("no primary found for cluster %q", node.ClusterID)
+		}
+		commands = append(commands, replicaCommands(primary)...)
+	}
+	for _, c := range commands {
+		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, c.action, c.payload); err != nil {
+			return fmt.Errorf("queue %s: %w", c.action, err)
+		}
+	}
+	return nil
 }
 
 func (s *AgentService) updateClusterProvisioningStatus(ctx context.Context, commandID string) error {
@@ -282,6 +387,14 @@ func (s *AgentService) updateClusterProvisioningStatus(ctx context.Context, comm
 	}
 	if len(nodes) == 0 {
 		return nil
+	}
+	for _, n := range nodes {
+		switch n.InstallationState {
+		case models.InstallationStateConflict, models.InstallationStatePendingPreflight, models.InstallationStateInstalling:
+			return nil
+		case models.InstallationStateFailed:
+			return s.updateClusterStatus(ctx, node.ClusterID, models.ClusterStatusStopped)
+		}
 	}
 
 	nodeIDs := make([]string, 0, len(nodes))
@@ -316,7 +429,7 @@ func (s *AgentService) updateClusterProvisioningStatus(ctx context.Context, comm
 
 func isProvisioningAction(action string) bool {
 	switch action {
-	case "pg_preflight", "pg_install_native", "pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica":
+	case "pg_preflight", "pg_install_native", "pg_install_docker", "pg_purge_native", "pg_adopt_native", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica":
 		return true
 	default:
 		return false
@@ -324,7 +437,7 @@ func isProvisioningAction(action string) bool {
 }
 
 func provisioningActions() []string {
-	return []string{"pg_preflight", "pg_install_native", "pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica"}
+	return []string{"pg_preflight", "pg_install_native", "pg_install_docker", "pg_purge_native", "pg_adopt_native", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica"}
 }
 
 func (s *AgentService) updateClusterStatus(ctx context.Context, clusterID string, clusterStatus models.ClusterStatus) error {
@@ -379,6 +492,9 @@ func timeFromMillis(ms int64) time.Time {
 // computeNodeStatusDetail derives a human-readable status detail from the
 // node's current state and the agent's latest status report.
 func computeNodeStatusDetail(node *models.Node, report *skylexv1.NodeStatusReport) string {
+	if report.GetInstallationState() == skylexv1.InstallationState_INSTALLATION_STATE_CONFLICT {
+		return "installation_conflict"
+	}
 	if !report.GetPostgresInstalled() {
 		return "waiting_for_postgres"
 	}
@@ -392,4 +508,25 @@ func computeNodeStatusDetail(node *models.Node, report *skylexv1.NodeStatusRepor
 		return "syncing_replica"
 	}
 	return "healthy"
+}
+
+func modelInstallationState(state skylexv1.InstallationState) models.InstallationState {
+	switch state {
+	case skylexv1.InstallationState_INSTALLATION_STATE_PENDING_PREFLIGHT:
+		return models.InstallationStatePendingPreflight
+	case skylexv1.InstallationState_INSTALLATION_STATE_NOTHING_FOUND:
+		return models.InstallationStateNothingFound
+	case skylexv1.InstallationState_INSTALLATION_STATE_CONFLICT:
+		return models.InstallationStateConflict
+	case skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING:
+		return models.InstallationStateInstalling
+	case skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED:
+		return models.InstallationStateInstalled
+	case skylexv1.InstallationState_INSTALLATION_STATE_FAILED:
+		return models.InstallationStateFailed
+	case skylexv1.InstallationState_INSTALLATION_STATE_ADOPTED:
+		return models.InstallationStateAdopted
+	default:
+		return models.InstallationStateUnspecified
+	}
 }

@@ -345,9 +345,11 @@ type NodeStatusReport struct {
 	PostgresBinVersion      string `protobuf:"bytes,10,opt,name=postgres_bin_version,json=postgresBinVersion,proto3" json:"postgres_bin_version,omitempty"`
 	PostgresDataInitialized bool   `protobuf:"varint,11,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
 	// Phase 4: human-readable status detail
-	NodeStatusDetail string `protobuf:"bytes,12,opt,name=node_status_detail,json=nodeStatusDetail,proto3" json:"node_status_detail,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	NodeStatusDetail  string            `protobuf:"bytes,12,opt,name=node_status_detail,json=nodeStatusDetail,proto3" json:"node_status_detail,omitempty"`
+	InstallationState InstallationState `protobuf:"varint,13,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
+	ConflictDetails   string            `protobuf:"bytes,14,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *NodeStatusReport) Reset() {
@@ -460,6 +462,20 @@ func (x *NodeStatusReport) GetPostgresDataInitialized() bool {
 func (x *NodeStatusReport) GetNodeStatusDetail() string {
 	if x != nil {
 		return x.NodeStatusDetail
+	}
+	return ""
+}
+
+func (x *NodeStatusReport) GetInstallationState() InstallationState {
+	if x != nil {
+		return x.InstallationState
+	}
+	return InstallationState_INSTALLATION_STATE_UNSPECIFIED
+}
+
+func (x *NodeStatusReport) GetConflictDetails() string {
+	if x != nil {
+		return x.ConflictDetails
 	}
 	return ""
 }
@@ -1005,7 +1021,7 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12\x17\n" +
 	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x126\n" +
 	"\fcurrent_role\x18\x03 \x01(\x0e2\x13.skylex.v1.NodeRoleR\vcurrentRole\"\x13\n" +
-	"\x11HeartbeatResponse\"\xad\x04\n" +
+	"\x11HeartbeatResponse\"\xa5\x05\n" +
 	"\x10NodeStatusReport\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12)\n" +
 	"\x10postgres_running\x18\x02 \x01(\bR\x0fpostgresRunning\x12)\n" +
@@ -1019,7 +1035,9 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\x14postgres_bin_version\x18\n" +
 	" \x01(\tR\x12postgresBinVersion\x12:\n" +
 	"\x19postgres_data_initialized\x18\v \x01(\bR\x17postgresDataInitialized\x12,\n" +
-	"\x12node_status_detail\x18\f \x01(\tR\x10nodeStatusDetail\"r\n" +
+	"\x12node_status_detail\x18\f \x01(\tR\x10nodeStatusDetail\x12K\n" +
+	"\x12installation_state\x18\r \x01(\x0e2\x1c.skylex.v1.InstallationStateR\x11installationState\x12)\n" +
+	"\x10conflict_details\x18\x0e \x01(\tR\x0fconflictDetails\"r\n" +
 	"\x13ReportStatusRequest\x12\x19\n" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12@\n" +
 	"\rnode_statuses\x18\x02 \x03(\v2\x1b.skylex.v1.NodeStatusReportR\fnodeStatuses\"\x16\n" +
@@ -1094,31 +1112,33 @@ var file_skylex_v1_agent_proto_goTypes = []any{
 	(*ReportCommandLogResponse)(nil),    // 15: skylex.v1.ReportCommandLogResponse
 	nil,                                 // 16: skylex.v1.RegisterAgentRequest.LabelsEntry
 	(NodeRole)(0),                       // 17: skylex.v1.NodeRole
+	(InstallationState)(0),              // 18: skylex.v1.InstallationState
 }
 var file_skylex_v1_agent_proto_depIdxs = []int32{
 	16, // 0: skylex.v1.RegisterAgentRequest.labels:type_name -> skylex.v1.RegisterAgentRequest.LabelsEntry
 	0,  // 1: skylex.v1.RegisterAgentRequest.capabilities:type_name -> skylex.v1.NodeCapabilities
 	17, // 2: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
-	5,  // 3: skylex.v1.ReportStatusRequest.node_statuses:type_name -> skylex.v1.NodeStatusReport
-	8,  // 4: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
-	13, // 5: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
-	1,  // 6: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
-	3,  // 7: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
-	6,  // 8: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
-	9,  // 9: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
-	11, // 10: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
-	14, // 11: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
-	2,  // 12: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
-	4,  // 13: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
-	7,  // 14: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
-	10, // 15: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
-	12, // 16: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
-	15, // 17: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
-	12, // [12:18] is the sub-list for method output_type
-	6,  // [6:12] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	18, // 3: skylex.v1.NodeStatusReport.installation_state:type_name -> skylex.v1.InstallationState
+	5,  // 4: skylex.v1.ReportStatusRequest.node_statuses:type_name -> skylex.v1.NodeStatusReport
+	8,  // 5: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
+	13, // 6: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
+	1,  // 7: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
+	3,  // 8: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
+	6,  // 9: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
+	9,  // 10: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
+	11, // 11: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
+	14, // 12: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
+	2,  // 13: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
+	4,  // 14: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
+	7,  // 15: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
+	10, // 16: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
+	12, // 17: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
+	15, // 18: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
+	13, // [13:19] is the sub-list for method output_type
+	7,  // [7:13] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_agent_proto_init() }

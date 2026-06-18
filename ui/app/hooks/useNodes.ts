@@ -22,6 +22,8 @@ interface Node {
   // Phase 2: service location model
   serviceLocation: string;
   dockerAvailable: boolean;
+  installationState: string;
+  conflictDetails: string;
 }
 
 interface Pagination {
@@ -60,6 +62,22 @@ export function useRejoinNode() {
       api.post<{ node: Node }>("/skylex.v1.NodeService/RejoinNode", { nodeId }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["nodes"] });
+    },
+  });
+}
+
+export function useResolveInstallationConflict() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ nodeId, action }: { nodeId: string; action: "ADOPT" | "PURGE" | "ABORT" }) =>
+      api.post<{ node: Node }>("/skylex.v1.NodeService/ResolveInstallationConflict", {
+        nodeId,
+        action: `RESOLVE_INSTALLATION_CONFLICT_ACTION_${action}`,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+      qc.invalidateQueries({ queryKey: ["clusters"] });
+      qc.invalidateQueries({ queryKey: ["commandLogs"] });
     },
   });
 }
