@@ -1,16 +1,16 @@
 # Graph Report - skylex  (2026-06-18)
 
 ## Corpus Check
-- 152 files · ~87,367 words
+- 154 files · ~88,232 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3348 nodes · 5848 edges · 196 communities (139 shown, 57 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 250 edges (avg confidence: 0.8)
+- 3352 nodes · 5851 edges · 188 communities (133 shown, 55 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 261 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0d5a94eb`
+- Built from commit: `3adf2c43`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -96,7 +96,6 @@
 - [[_COMMUNITY_Crypto Decryptaes256Gcm|Crypto Decryptaes256Gcm]]
 - [[_COMMUNITY_Protobuf Message Types|Protobuf Message Types]]
 - [[_COMMUNITY_Time Backup|Time Backup]]
-- [[_COMMUNITY_Time Cluster|Time Cluster]]
 - [[_COMMUNITY_Cluster gRPC Service|Cluster gRPC Service]]
 - [[_COMMUNITY_Storage gRPC Service|Storage gRPC Service]]
 - [[_COMMUNITY_Auth gRPC Service|Auth gRPC Service]]
@@ -154,7 +153,6 @@
 - [[_COMMUNITY_Community 145|Community 145]]
 - [[_COMMUNITY_Community 146|Community 146]]
 - [[_COMMUNITY_Community 147|Community 147]]
-- [[_COMMUNITY_Community 148|Community 148]]
 - [[_COMMUNITY_Community 149|Community 149]]
 - [[_COMMUNITY_Community 151|Community 151]]
 - [[_COMMUNITY_Community 152|Community 152]]
@@ -179,7 +177,6 @@
 - [[_COMMUNITY_Community 172|Community 172]]
 - [[_COMMUNITY_Community 173|Community 173]]
 - [[_COMMUNITY_Community 174|Community 174]]
-- [[_COMMUNITY_Community 175|Community 175]]
 - [[_COMMUNITY_Community 176|Community 176]]
 - [[_COMMUNITY_Community 177|Community 177]]
 - [[_COMMUNITY_Community 178|Community 178]]
@@ -192,37 +189,32 @@
 - [[_COMMUNITY_Community 185|Community 185]]
 - [[_COMMUNITY_Community 186|Community 186]]
 - [[_COMMUNITY_Community 188|Community 188]]
-- [[_COMMUNITY_Community 189|Community 189]]
 - [[_COMMUNITY_Community 190|Community 190]]
-- [[_COMMUNITY_Community 191|Community 191]]
 - [[_COMMUNITY_Community 192|Community 192]]
-- [[_COMMUNITY_Community 193|Community 193]]
-- [[_COMMUNITY_Community 194|Community 194]]
-- [[_COMMUNITY_Community 195|Community 195]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `Rebind()` - 60 edges
+1. `Rebind()` - 68 edges
 2. `Request` - 44 edges
 3. `New()` - 43 edges
 4. `Context` - 42 edges
-5. `now()` - 40 edges
+5. `now()` - 41 edges
 6. `Response` - 40 edges
 7. `Context` - 39 edges
 8. `AuthServiceClient` - 39 edges
 9. `Context` - 36 edges
-10. `Server` - 30 edges
+10. `Backup` - 30 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `React Router Template` --semantically_similar_to--> `Frontend Stack (Vite + React Router 7 + Tailwind CSS)`  [INFERRED] [semantically similar]
   ui/README.md → .kilo/plans/skylex-db-control-plane-plan.md
-- `NewGRPCServer()` --calls--> `RegisterAgentServiceServer()`  [INFERRED]
-  internal/server/grpc.go → gen/skylex/v1/agent_grpc.pb.go
-- `NewGRPCServer()` --calls--> `RegisterClusterServiceServer()`  [INFERRED]
-  internal/server/grpc.go → gen/skylex/v1/cluster_grpc.pb.go
-- `NewGRPCServer()` --calls--> `RegisterNodeServiceServer()`  [INFERRED]
-  internal/server/grpc.go → gen/skylex/v1/cluster_grpc.pb.go
 - `main()` --calls--> `New()`  [INFERRED]
   cmd/agent/main.go → internal/agent/agent.go
+- `main()` --calls--> `DefaultConfig()`  [INFERRED]
+  cmd/agent/main.go → internal/agent/config.go
+- `main()` --calls--> `now()`  [INFERRED]
+  cmd/bench/main.go → internal/server/agent_service_test.go
+- `NewGRPCServer()` --calls--> `RegisterAgentServiceServer()`  [INFERRED]
+  internal/server/grpc.go → gen/skylex/v1/agent_grpc.pb.go
 
 ## Import Cycles
 - None detected.
@@ -232,7 +224,7 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (196 total, 57 thin omitted)
+## Communities (188 total, 55 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.05
@@ -264,7 +256,7 @@ Nodes (35): Client, Context, CreateAgentTokenRequest, CreateAgentTokenResponse, 
 
 ### Community 7 - "Storage gRPC Service"
 Cohesion: 0.08
-Nodes (25): NewS3Client(), S3Client, S3Config, Client, Context, Logger, Context, CreateStorageConfigRequest (+17 more)
+Nodes (26): NewS3Client(), S3Client, S3Config, Client, Context, Logger, Reader, Context (+18 more)
 
 ### Community 8 - "Agent gRPC Protocol"
 Cohesion: 0.10
@@ -275,12 +267,12 @@ Cohesion: 0.11
 Nodes (25): ClientConnInterface, Context, CreateStorageConfigRequest, CreateStorageConfigResponse, DeleteStorageConfigRequest, DeleteStorageConfigResponse, GetStorageConfigRequest, GetStorageConfigResponse (+17 more)
 
 ### Community 10 - "Cluster gRPC Service"
-Cohesion: 0.15
-Nodes (9): FailoverClusterRequest, FailoverClusterResponse, GetClusterRequest, GetClusterResponse, ListClustersRequest, ListClustersResponse, ScaleClusterRequest, ScaleClusterResponse (+1 more)
+Cohesion: 0.20
+Nodes (11): Worker, NewWorker(), Cron, EntryID, BackupRepository, BackupSchedule, ClusterRepository, Context (+3 more)
 
 ### Community 11 - "Backup gRPC Service"
-Cohesion: 0.15
-Nodes (19): NewBackupRepository(), scanBackupRow(), scanBackupsRow(), scanRestoreJobRow(), scanRestoreJobsRow(), BackupRepository, Rebind(), Backup (+11 more)
+Cohesion: 0.13
+Nodes (18): NewBackupRepository(), scanBackupRow(), scanBackupsRow(), scanRestoreJobRow(), scanRestoreJobsRow(), BackupRepository, Backup, BackupSchedule (+10 more)
 
 ### Community 12 - "Agent gRPC Protocol"
 Cohesion: 0.15
@@ -303,8 +295,8 @@ Cohesion: 0.08
 Nodes (8): MessageState, SizeCache, UnknownFields, DeleteBackupResponse, DeleteScheduleResponse, GetBackupRequest, ListBackupsRequest, ListSchedulesRequest
 
 ### Community 17 - "Agent gRPC Protocol"
-Cohesion: 0.11
-Nodes (20): AgentCommandRepository, CommandLogRepository, Context, DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse, ListNodeCommandLogsRequest (+12 more)
+Cohesion: 0.05
+Nodes (37): Engine, NewEngine(), NewLeaderElector(), LeaderElector, DrainNodeRequest, DrainNodeResponse, Election, GetNodeRequest (+29 more)
 
 ### Community 18 - "Cluster gRPC Service"
 Cohesion: 0.08
@@ -335,8 +327,8 @@ Cohesion: 0.12
 Nodes (5): EnumDescriptor, EnumNumber, EnumType, BackupStatus, RestoreStatus
 
 ### Community 25 - "Cluster gRPC Service"
-Cohesion: 0.09
-Nodes (6): Cluster, SizeCache, CreateClusterResponse, FailoverClusterResponse, GetClusterResponse, UpdateClusterResponse
+Cohesion: 0.08
+Nodes (5): Cluster, CreateClusterResponse, FailoverClusterResponse, GetClusterResponse, UpdateClusterResponse
 
 ### Community 26 - "Getnode Descriptor"
 Cohesion: 0.08
@@ -344,7 +336,7 @@ Nodes (5): Node, DrainNodeResponse, GetNodeResponse, RejoinNodeResponse, Restart
 
 ### Community 27 - "Cluster gRPC Service"
 Cohesion: 0.15
-Nodes (14): DecryptAES256GCM(), intToBool(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+6 more)
+Nodes (13): DecryptAES256GCM(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger, Row (+5 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.09
@@ -362,10 +354,6 @@ Nodes (10): Config, New(), Client, Context, Store, Duration, LeaseID, Logger (+2
 Cohesion: 0.09
 Nodes (8): MessageState, SizeCache, UnknownFields, DeleteAgentTokenResponse, DeleteAPIKeyResponse, DeleteUserRequest, GetAgentInstallCommandRequest, ListAgentTokensRequest
 
-### Community 32 - "PostgreSQL Backup Engine"
-Cohesion: 0.15
-Nodes (11): Cmd, Duration, Context, Logger, Instance, LogSink, logSinkKey, logSinkFromContext() (+3 more)
-
 ### Community 33 - "Community 33"
 Cohesion: 0.08
 Nodes (24): Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Acceptance Criteria, Agent, Agent, Agent, Architecture Principles (+16 more)
@@ -375,8 +363,8 @@ Cohesion: 0.31
 Nodes (4): App(), AuthProvider(), getQueryClient(), makeQueryClient()
 
 ### Community 35 - "Cluster gRPC Service"
-Cohesion: 0.07
-Nodes (28): Agent, commandLogger, newCommandLogger(), RedactSecrets(), AgentCommand, Worker, NewWorker(), ClientConn (+20 more)
+Cohesion: 0.06
+Nodes (30): Agent, commandLogger, newCommandLogger(), RedactSecrets(), AgentCommand, AgentServiceClient, ClientConn, Cmd (+22 more)
 
 ### Community 38 - "Tsconfig Json"
 Cohesion: 0.11
@@ -403,15 +391,15 @@ Cohesion: 0.15
 Nodes (6): MessageState, SizeCache, UnknownFields, DeleteStorageConfigRequest, DeleteStorageConfigResponse, ValidateStorageConfigRequest
 
 ### Community 47 - "Agent gRPC Protocol"
-Cohesion: 0.22
-Nodes (4): MessageState, UnknownFields, HeartbeatResponse, ReportCommandResultResponse
+Cohesion: 0.16
+Nodes (6): MessageState, SizeCache, UnknownFields, HeartbeatResponse, ReportCommandResultResponse, ReportStatusResponse
 
 ### Community 48 - "Cluster gRPC Service"
 Cohesion: 0.14
 Nodes (3): Pagination, ListClustersResponse, ListNodesResponse
 
 ### Community 49 - "Protobuf Message Types"
-Cohesion: 0.21
+Cohesion: 0.19
 Nodes (3): EnumDescriptor, EnumNumber, ReplicationMode
 
 ### Community 53 - "Backup gRPC Service"
@@ -419,28 +407,32 @@ Cohesion: 0.05
 Nodes (39): Architecture Decisions, `cmd/bench/main.go`, `config.example.yaml` (+9), Connection pool defaults, `deploy/docker-compose/docker-compose.postgres.yaml`, `deploy/docker-compose/docker-compose.yaml` (+91/−27), `deploy/helm/skylex/Chart.yaml`, `deploy/helm/skylex/pyproject.toml` (+31 more)
 
 ### Community 55 - "Protobuf Message Types"
-Cohesion: 0.18
-Nodes (4): file_skylex_v1_common_proto_init(), file_skylex_v1_common_proto_rawDescGZIP(), init(), NodeRole
+Cohesion: 0.20
+Nodes (4): ClusterStatus, file_skylex_v1_common_proto_init(), file_skylex_v1_common_proto_rawDescGZIP(), init()
 
 ### Community 58 - "Agent Command Repo Newagentcommandrepository"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (19): DB, NewAgentCommandRepository(), AgentCommand, AgentCommandRepository, NewNodeRepository(), Context, DB, Logger (+11 more)
 
 ### Community 60 - "Cluster gRPC Service"
 Cohesion: 0.29
-Nodes (9): NewCommandLogRepository(), scanCommandLogs(), CommandLog, CommandLogRepository, Context, DB, Logger, Time (+1 more)
-
-### Community 61 - "Protobuf Message Types"
-Cohesion: 0.17
-Nodes (3): MessageState, DeleteClusterResponse, GetClusterRequest
+Nodes (9): NewCommandLogRepository(), scanCommandLogs(), CommandLog, CommandLogRepository, Context, DB, Logger, Rows (+1 more)
 
 ### Community 62 - "Cluster gRPC Service"
 Cohesion: 0.10
-Nodes (22): AgentTokenRepository, AgentCommandRepository, CommandLogRepository, Config, Context, FetchCommandRequest, FetchCommandResponse, HeartbeatRequest (+14 more)
+Nodes (22): AgentTokenRepository, FetchCommandRequest, FetchCommandResponse, HeartbeatRequest, HeartbeatResponse, AgentCommandRepository, CommandLogRepository, Config (+14 more)
+
+### Community 65 - "Agent gRPC Protocol"
+Cohesion: 0.22
+Nodes (3): file_skylex_v1_agent_proto_init(), init(), FetchCommandRequest
 
 ### Community 67 - "Backup gRPC Service"
 Cohesion: 0.22
 Nodes (3): file_skylex_v1_backup_proto_init(), init(), DeleteBackupRequest
+
+### Community 68 - "Cluster File Skylex V1 Cluster"
+Cohesion: 0.17
+Nodes (3): MessageState, DeleteClusterResponse, RejoinNodeRequest
 
 ### Community 70 - "Auth gRPC Service"
 Cohesion: 0.07
@@ -462,10 +454,6 @@ Nodes (7): MemberInfo, PrimaryInfo, Context, Store, LeaseID, Time, WatchChan
 Cohesion: 0.46
 Nodes (8): Time, Backup, BackupSchedule, BackupStatus, BackupType, RestoreJob, RestoreStatus, RestoreTargetType
 
-### Community 81 - "Time Cluster"
-Cohesion: 0.21
-Nodes (8): NewLeaderElector(), LeaderElector, Election, Context, Logger, Store, WatchChan, Session
-
 ### Community 88 - "Main Config"
 Cohesion: 0.27
 Nodes (10): Config, DefaultConfig(), NewLogger(), applyEnv(), loadConfigFile(), main(), readTokenFile(), Config (+2 more)
@@ -480,11 +468,11 @@ Nodes (4): PgBackRest, NewPgBackRest(), Context, Logger
 
 ### Community 95 - "Restartnoderequest Descriptor"
 Cohesion: 0.15
-Nodes (3): UnknownFields, DrainNodeRequest, RestartNodeRequest
+Nodes (3): SizeCache, GetClusterRequest, RestartNodeRequest
 
-### Community 97 - "Cluster gRPC Service"
+### Community 98 - "Cluster gRPC Service"
 Cohesion: 0.22
-Nodes (3): file_skylex_v1_cluster_proto_init(), init(), FailoverClusterRequest
+Nodes (3): file_skylex_v1_cluster_proto_init(), init(), DeleteClusterRequest
 
 ### Community 102 - "Cluster gRPC Service"
 Cohesion: 0.08
@@ -503,8 +491,8 @@ Cohesion: 0.67
 Nodes (3): Time, AuditAction, AuditLog
 
 ### Community 107 - "Time Storage"
-Cohesion: 0.10
-Nodes (22): AgentService, AuditInterceptor, AuditRepository, AuthInterceptor, CancelFunc, GRPCServer, AuthService, BackupService (+14 more)
+Cohesion: 0.08
+Nodes (26): AgentService, AuditInterceptor, AuthInterceptor, CancelFunc, HashPassword(), GRPCServer, AuditRepository, AuthService (+18 more)
 
 ### Community 112 - "Audit Tsx"
 Cohesion: 0.38
@@ -519,7 +507,7 @@ Cohesion: 0.21
 Nodes (13): Badge(), statusColors, Card(), Cluster, ClusterConfig, Pagination, useClusters(), useCreateCluster() (+5 more)
 
 ### Community 116 - "Clusters Tsx"
-Cohesion: 0.32
+Cohesion: 0.28
 Nodes (9): buildCommand(), InstallAgentModal(), InstallAgentModalProps, useAgentInstallCommand(), Node, Pagination, useDrainNode(), useNodes() (+1 more)
 
 ### Community 120 - "Community 120"
@@ -543,12 +531,12 @@ Cohesion: 0.17
 Nodes (11): Configuration, Database and migrations, Developer commands, Docker Compose reference stack, graphify, Important conventions, Project layout, Protocol buffers and generated code (+3 more)
 
 ### Community 136 - "Community 136"
-Cohesion: 0.18
-Nodes (14): APIKeyRepository, Context, JWTManager, Logger, Role, UnaryServerInterceptor, UserRepository, JWTClaims (+6 more)
+Cohesion: 0.19
+Nodes (13): APIKeyRepository, Context, JWTManager, Logger, Role, UnaryServerInterceptor, UserRepository, JWTClaims (+5 more)
 
 ### Community 137 - "Community 137"
-Cohesion: 0.09
-Nodes (19): HashPassword(), AgentTokenRepository, APIKeyRepository, NewAgentTokenRepository(), NewAPIKeyRepository(), NewUserRepository(), NullTime(), UserRepository (+11 more)
+Cohesion: 0.11
+Nodes (16): AgentTokenRepository, APIKeyRepository, NewAgentTokenRepository(), NewAPIKeyRepository(), NewUserRepository(), NullTime(), UserRepository, AgentToken (+8 more)
 
 ### Community 138 - "Community 138"
 Cohesion: 0.08
@@ -559,8 +547,8 @@ Cohesion: 0.10
 Nodes (19): 1. Clone and build, 2. Run the server, 3. UI development, 4. Full stack with Docker Compose, Configuration, Contributing, Deployment modes, Docker Compose env vars (+11 more)
 
 ### Community 140 - "Community 140"
-Cohesion: 0.20
-Nodes (9): unmarshalLabels(), scanNodeRow(), scanNodesRow(), NodeRepository, Context, Node, NodeRole, NodeStatus (+1 more)
+Cohesion: 0.22
+Nodes (10): scanNodeRow(), scanNodesRow(), NodeRepository, Rebind(), Context, Node, NodeRole, NodeStatus (+2 more)
 
 ### Community 142 - "Community 142"
 Cohesion: 0.32
@@ -571,8 +559,8 @@ Cohesion: 0.39
 Nodes (5): AuditLog, NewAuditRepository(), AuditRepository, DB, Logger
 
 ### Community 144 - "Community 144"
-Cohesion: 0.18
-Nodes (13): ClusterStatus, boolToInt(), NewClusterRepository(), scanClusterRow(), ClusterRepository, EngineType, Cluster, Context (+5 more)
+Cohesion: 0.17
+Nodes (15): ClusterStatus, boolToInt(), intToBool(), NewClusterRepository(), scanClusterRow(), unmarshalLabels(), ClusterRepository, EngineType (+7 more)
 
 ### Community 145 - "Community 145"
 Cohesion: 0.70
@@ -584,27 +572,23 @@ Nodes (23): ActionArgs, Annotations, ClientActionArgs, ClientLoaderArgs, ClientM
 
 ### Community 147 - "Community 147"
 Cohesion: 0.07
-Nodes (25): CreateAgentTokenRequest, CreateAgentTokenResponse, CreateAPIKeyRequest, CreateAPIKeyResponse, DeleteAgentTokenRequest, DeleteAgentTokenResponse, DeleteAPIKeyRequest, DeleteAPIKeyResponse (+17 more)
-
-### Community 148 - "Community 148"
-Cohesion: 0.24
-Nodes (9): Engine, NewEngine(), BackupRepository, BackupType, Context, Logger, PgBackRest, StorageConfigRepository (+1 more)
+Nodes (25): AuthService, Context, CreateAgentTokenRequest, CreateAgentTokenResponse, CreateUserRequest, CreateUserResponse, DeleteAgentTokenRequest, DeleteAgentTokenResponse (+17 more)
 
 ### Community 149 - "Community 149"
 Cohesion: 0.23
 Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
 
 ### Community 151 - "Community 151"
-Cohesion: 0.26
-Nodes (7): Request, Server, T, ResponseWriter, installScript(), versionString(), TestServeVersion()
+Cohesion: 0.24
+Nodes (8): Request, Server, T, ResponseWriter, installScript(), versionString(), extractHTTPAuth(), TestServeVersion()
 
 ### Community 152 - "Community 152"
 Cohesion: 0.09
-Nodes (19): ClusterService, Context, CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest, DeleteClusterResponse, FailoverClusterRequest, FailoverClusterResponse (+11 more)
+Nodes (19): ClusterService, CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest, DeleteClusterResponse, FailoverClusterRequest, FailoverClusterResponse, GetClusterRequest (+11 more)
 
 ### Community 153 - "Community 153"
 Cohesion: 0.10
-Nodes (14): CreateBackupRequest, CreateBackupResponse, CreateRestoreJobRequest, CreateRestoreJobResponse, DeleteBackupRequest, DeleteBackupResponse, GetBackupRequest, GetBackupResponse (+6 more)
+Nodes (14): BackupService, CreateBackupRequest, CreateBackupResponse, CreateRestoreJobRequest, CreateRestoreJobResponse, DeleteBackupRequest, DeleteBackupResponse, GetBackupRequest (+6 more)
 
 ### Community 155 - "Community 155"
 Cohesion: 0.10
@@ -616,7 +600,7 @@ Nodes (19): 1. `internal/server/auth_service.go`, 1. `ui/app/hooks/useAgentInsta
 
 ### Community 157 - "Community 157"
 Cohesion: 0.12
-Nodes (12): CreateStorageConfigRequest, CreateStorageConfigResponse, DeleteStorageConfigRequest, DeleteStorageConfigResponse, GetStorageConfigRequest, GetStorageConfigResponse, StorageService, ListStorageConfigsRequest (+4 more)
+Nodes (12): CreateStorageConfigRequest, CreateStorageConfigResponse, DeleteStorageConfigRequest, DeleteStorageConfigResponse, GetStorageConfigRequest, GetStorageConfigResponse, ListStorageConfigsRequest, ListStorageConfigsResponse (+4 more)
 
 ### Community 158 - "Community 158"
 Cohesion: 0.12
@@ -624,7 +608,7 @@ Nodes (12): DrainNodeRequest, DrainNodeResponse, GetNodeRequest, GetNodeResponse
 
 ### Community 159 - "Community 159"
 Cohesion: 0.15
-Nodes (9): CreateScheduleRequest, CreateScheduleResponse, DeleteScheduleRequest, DeleteScheduleResponse, ListSchedulesRequest, ListSchedulesResponse, connectScheduleService, UpdateScheduleRequest (+1 more)
+Nodes (9): CreateScheduleRequest, CreateScheduleResponse, DeleteScheduleRequest, DeleteScheduleResponse, ListSchedulesRequest, ListSchedulesResponse, UpdateScheduleRequest, UpdateScheduleResponse (+1 more)
 
 ### Community 160 - "Community 160"
 Cohesion: 0.12
@@ -643,8 +627,8 @@ Cohesion: 0.08
 Nodes (23): ActionArgs, Annotations, ClientActionArgs, ClientLoaderArgs, ClientMiddlewareFunction, ComponentProps, ErrorBoundaryProps, HeadersArgs (+15 more)
 
 ### Community 164 - "Community 164"
-Cohesion: 0.39
-Nodes (7): Handler, Server, auditListRequest, connectInterceptors(), extractHTTPAuth(), isUnauthenticated(), isWriteMethod()
+Cohesion: 0.43
+Nodes (6): Handler, Server, auditListRequest, connectInterceptors(), isUnauthenticated(), isWriteMethod()
 
 ### Community 165 - "Community 165"
 Cohesion: 0.08
@@ -686,13 +670,9 @@ Nodes (11): Client, Context, Duration, Logger, Time, DefaultWebhookConfig(), New
 Cohesion: 0.12
 Nodes (15): 1. `cmd/agent/main.go`, 2. `internal/agent/config.go`, 3. `internal/agent/agent.go`, 4. `scripts/install-agent.sh`, 5. `deploy/systemd/skylex-agent.service`, 6. `AGENTS.md`, 7. `deploy/docker-compose/docker-compose.yaml`, Backend changes (+7 more)
 
-### Community 175 - "Community 175"
-Cohesion: 0.15
-Nodes (3): SizeCache, CommandLogEntry, ReportCommandLogRequest
-
 ### Community 176 - "Community 176"
-Cohesion: 0.27
-Nodes (9): AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, clientIPFromContext(), methodToAuditAction(), NewAuditInterceptor() (+1 more)
+Cohesion: 0.24
+Nodes (10): AuditAction, AuditRepository, Context, Logger, UnaryServerInterceptor, clientIPFromContext(), methodToAuditAction(), NewAuditInterceptor() (+2 more)
 
 ### Community 177 - "Community 177"
 Cohesion: 0.17
@@ -710,57 +690,45 @@ Nodes (5): Config, Context, TLSConfig, LoadClientTLSCredentials(), LoadTLSCreden
 Cohesion: 0.21
 Nodes (13): AgentToken, AgentTokenRepository, APIKeyRepository, Config, JWTManager, ListAgentTokensRequest, ListAgentTokensResponse, Logger (+5 more)
 
-### Community 182 - "Community 182"
-Cohesion: 0.26
-Nodes (10): AgentCommandRepository, ClusterRepository, FailoverEngine, Logger, NodeRepository, ReplicationMode, convertReplicationMode(), NewClusterService() (+2 more)
-
 ### Community 183 - "Community 183"
 Cohesion: 0.16
-Nodes (10): DeriveKey(), EncryptAES256GCM(), GenerateToken(), HashToken(), RegisterAgentRequest, RegisterAgentResponse, CreateAgentTokenRequest, CreateAgentTokenResponse (+2 more)
+Nodes (10): DeriveKey(), EncryptAES256GCM(), GenerateToken(), HashToken(), CreateAgentTokenRequest, CreateAgentTokenResponse, CreateAPIKeyRequest, CreateAPIKeyResponse (+2 more)
 
 ### Community 184 - "Community 184"
 Cohesion: 0.40
 Nodes (4): Pages, Register, RouteFiles, RouteModules
 
 ### Community 185 - "Community 185"
-Cohesion: 0.23
-Nodes (8): CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest, DeleteClusterResponse, Context, Node, EngineType, nodeAddress()
-
-### Community 189 - "Community 189"
-Cohesion: 0.25
-Nodes (3): file_skylex_v1_agent_proto_init(), init(), ReportCommandLogResponse
+Cohesion: 0.06
+Nodes (39): Time, AgentCommandRepository, Cluster, ClusterRepository, Context, CreateClusterRequest, CreateClusterResponse, DeleteClusterRequest (+31 more)
 
 ### Community 190 - "Community 190"
-Cohesion: 0.36
+Cohesion: 0.31
 Nodes (6): useCluster(), CommandLog, CommandLogLevel, Pagination, useCommandLogs(), ClusterDetailPage()
-
-### Community 191 - "Community 191"
-Cohesion: 0.48
-Nodes (7): Time, Cluster, ClusterStatus, Node, NodeRole, NodeStatus, ReplicationMode
 
 ### Community 192 - "Community 192"
 Cohesion: 0.40
 Nodes (4): APIKey, ListAPIKeysRequest, ListAPIKeysResponse, apiKeyToProto()
 
 ## Knowledge Gaps
-- **894 isolated node(s):** `Context`, `Architecture Principles`, `Server / API`, `Agent`, `UI` (+889 more)
+- **902 isolated node(s):** `Logger`, `AgentServiceClient`, `ClientConn`, `Instance`, `PgBackRest` (+897 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **57 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `New()` connect `Auth gRPC Service` to `Cluster gRPC Service`, `Auth gRPC Service`, `Auth gRPC Service`, `Cluster gRPC Service`, `Community 140`, `Main Config`, `Auth gRPC Service`?**
-  _High betweenness centrality (0.219) - this node is a cross-community bridge._
-- **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Cluster gRPC Service`, `Backup gRPC Service`, `Storage gRPC Service`, `Community 120`, `Community 189`?**
-  _High betweenness centrality (0.181) - this node is a cross-community bridge._
-- **Why does `now()` connect `Backup gRPC Service` to `PostgreSQL Backup Engine`, `Cluster gRPC Service`, `Cluster gRPC Service`, `Community 137`, `Community 140`, `Community 173`, `Crypto Decryptaes256Gcm`, `Community 142`, `Community 144`, `Community 176`, `Community 177`, `Community 149`, `Community 183`, `Config Close`, `Agent Command Repo Newagentcommandrepository`, `Cluster gRPC Service`, `Cluster gRPC Service`, `Cluster gRPC Service`?**
-  _High betweenness centrality (0.117) - this node is a cross-community bridge._
-- **Are the 59 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.ListPending()`) actually correct?**
-  _`Rebind()` has 59 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `New()` connect `Auth gRPC Service` to `Cluster gRPC Service`, `Auth gRPC Service`, `Auth gRPC Service`, `Community 140`, `Main Config`, `Community 185`, `Auth gRPC Service`?**
+  _High betweenness centrality (0.290) - this node is a cross-community bridge._
+- **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Cluster gRPC Service`, `Backup gRPC Service`, `Storage gRPC Service`, `Community 120`?**
+  _High betweenness centrality (0.272) - this node is a cross-community bridge._
+- **Why does `Role` connect `Auth gRPC Service` to `Community 120`, `Auth gRPC Service`, `Loginresponse Descriptor`?**
+  _High betweenness centrality (0.250) - this node is a cross-community bridge._
+- **Are the 67 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.GetByID()`) actually correct?**
+  _`Rebind()` has 67 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 41 inferred relationships involving `New()` (e.g. with `NewPgBackRest()` and `main()`) actually correct?**
   _`New()` has 41 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 37 inferred relationships involving `now()` (e.g. with `.Log()` and `.createScheduledBackup()`) actually correct?**
-  _`now()` has 37 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Context`, `Architecture Principles`, `Server / API` to the rest of the system?**
-  _895 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Are the 38 inferred relationships involving `now()` (e.g. with `.Log()` and `.createScheduledBackup()`) actually correct?**
+  _`now()` has 38 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `Logger`, `AgentServiceClient`, `ClientConn` to the rest of the system?**
+  _903 weakly-connected nodes found - possible documentation gaps or missing edges._

@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781764918.1728468,
-    "ast_hash": "dd491605cbcbdd89090ba2d21974aa59",
+    "mtime": 1781764956.9457004,
+    "ast_hash": "506e6ec44e430e40bf1a452e7ad75360",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -40,8 +40,8 @@
     "semantic_hash": "42a7e2ef5a6c7f124387f0236c4cdf8f"
   },
   "gen/skylex/v1/agent.pb.go": {
-    "mtime": 1781764127.0343778,
-    "ast_hash": "2d823f8be5e833555cad2585aa5d1825",
+    "mtime": 1781766577.0243855,
+    "ast_hash": "cb5a043c4e23f9eb6b10a71daed358fa",
     "semantic_hash": ""
   },
   "gen/skylex/v1/agent_grpc.pb.go": {
@@ -80,9 +80,9 @@
     "semantic_hash": ""
   },
   "gen/skylex/v1/common.pb.go": {
-    "mtime": 1781559445.678289,
-    "ast_hash": "4ffabab0ba15a49ed9f36eb326003a48",
-    "semantic_hash": "4ffabab0ba15a49ed9f36eb326003a48"
+    "mtime": 1781766493.3060832,
+    "ast_hash": "56caa41e12681b909af5d2ecbced2256",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/skylexv1connect/agent.connect.go": {
     "mtime": 1781764127.0343778,
@@ -120,8 +120,8 @@
     "semantic_hash": "79d7dc359690fa36096f676cab800630"
   },
   "internal/agent/agent.go": {
-    "mtime": 1781764380.2364733,
-    "ast_hash": "5936f3816cdc98e159b1309139de87d6",
+    "mtime": 1781766617.6835556,
+    "ast_hash": "425f71a529fb4fa497dc1516691d64aa",
     "semantic_hash": ""
   },
   "internal/agent/config.go": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "internal/db/node_repo.go": {
-    "mtime": 1781758601.9080238,
-    "ast_hash": "61b88819860a4542411a03d86665f44f",
+    "mtime": 1781766634.3729038,
+    "ast_hash": "bbbc0ff8a4181d67a2a291cc6fd5c042",
     "semantic_hash": ""
   },
   "internal/db/storage_config_repo.go": {
@@ -200,8 +200,8 @@
     "semantic_hash": "4601c5219260a0f1fcc6647e4b034175"
   },
   "internal/models/cluster.go": {
-    "mtime": 1781562215.2800088,
-    "ast_hash": "86c5496e607b16a794572d53c7bd13db",
+    "mtime": 1781766493.3060832,
+    "ast_hash": "560574e049a0e650fd0d9b21112cfacd",
     "semantic_hash": ""
   },
   "internal/models/command.go": {
@@ -220,13 +220,13 @@
     "semantic_hash": "89fdc0aaa3af7bc1a419b9f0ba03602b"
   },
   "internal/postgres/postgres.go": {
-    "mtime": 1781764046.7228444,
-    "ast_hash": "ab5b1b0bbc5c61a6c7cb1938618ee64f",
+    "mtime": 1781766656.753449,
+    "ast_hash": "95c7136eae3d9cb80986a7ba35d04863",
     "semantic_hash": ""
   },
   "internal/server/agent_service.go": {
-    "mtime": 1781763798.6397254,
-    "ast_hash": "b7d831a6b60af663f55ac54293e550ad",
+    "mtime": 1781766493.3060832,
+    "ast_hash": "cc76f29183c4884be5d1d74cbff275df",
     "semantic_hash": ""
   },
   "internal/server/backup_service.go": {
@@ -255,8 +255,8 @@
     "semantic_hash": "de465711b731504faabd97ce5209a327"
   },
   "internal/server/node_service.go": {
-    "mtime": 1781763867.4537241,
-    "ast_hash": "626516b874a18b63e1cfaf9b310c3865",
+    "mtime": 1781766493.3060832,
+    "ast_hash": "4f0f7c75c48bdff3e1da7b35b239c20f",
     "semantic_hash": ""
   },
   "internal/server/server.go": {
@@ -295,8 +295,8 @@
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.$id.tsx": {
-    "mtime": 1781764273.0418818,
-    "ast_hash": "497ccc9e57d2c6fd0fefdbb2c1842831",
+    "mtime": 1781766667.2639625,
+    "ast_hash": "2240f09c853c9dc51239599a044fb3e6",
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.create.tsx": {
@@ -320,8 +320,8 @@
     "semantic_hash": ""
   },
   "ui/app/routes/nodes.tsx": {
-    "mtime": 1781737869.1223862,
-    "ast_hash": "e9cea06eb363c542b9438d2451a63127",
+    "mtime": 1781766493.3086045,
+    "ast_hash": "efd205232872d27cde587284787986d3",
     "semantic_hash": ""
   },
   "ui/app/routes/restore.tsx": {
@@ -660,8 +660,8 @@
     "semantic_hash": ""
   },
   "ui/app/hooks/useNodes.ts": {
-    "mtime": 1781737822.1387658,
-    "ast_hash": "73a865ad046b0a8dab35033c958ecf97",
+    "mtime": 1781766493.3060832,
+    "ast_hash": "c2103efe134f0daa93049c011f8ca9dc",
     "semantic_hash": ""
   },
   "ui/app/hooks/useStorage.ts": {
@@ -822,6 +822,16 @@
   ".kilo/plans/postgres-agent-visibility-phased-plan.md": {
     "mtime": 1781763539.895993,
     "ast_hash": "ed0c840608aa38502bfe64a6788345be",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000004_add_node_pg_status.sql": {
+    "mtime": 1781766493.3060832,
+    "ast_hash": "b7245b6d747771929b1f674e3e5217d7",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000004_add_node_pg_status.sql": {
+    "mtime": 1781766493.3060832,
+    "ast_hash": "8bc67ae4aa52999af16d7f8209cacf71",
     "semantic_hash": ""
   }
 }

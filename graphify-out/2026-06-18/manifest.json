@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781755992.6672516,
-    "ast_hash": "f549854b18a59a03d1bf003701c6913c",
+    "mtime": 1781764918.1728468,
+    "ast_hash": "dd491605cbcbdd89090ba2d21974aa59",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -40,14 +40,14 @@
     "semantic_hash": "42a7e2ef5a6c7f124387f0236c4cdf8f"
   },
   "gen/skylex/v1/agent.pb.go": {
-    "mtime": 1781559445.6760864,
-    "ast_hash": "4d1a8dffca4685ba364fc3c47f415f29",
-    "semantic_hash": "4d1a8dffca4685ba364fc3c47f415f29"
+    "mtime": 1781764127.0343778,
+    "ast_hash": "2d823f8be5e833555cad2585aa5d1825",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/agent_grpc.pb.go": {
-    "mtime": 1781559445.6760864,
-    "ast_hash": "f64738154e7b5c0efe6e446759b8e27e",
-    "semantic_hash": "f64738154e7b5c0efe6e446759b8e27e"
+    "mtime": 1781764127.0343778,
+    "ast_hash": "5b508c9d98650bb42ecc54b664f3f5b0",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/auth.pb.go": {
     "mtime": 1781737499.092157,
@@ -70,14 +70,14 @@
     "semantic_hash": "8eb0cd559d37bb936520c30e1145862c"
   },
   "gen/skylex/v1/cluster.pb.go": {
-    "mtime": 1781559445.6778314,
-    "ast_hash": "d4ab61a5c44a599b251a8526fe5a24db",
-    "semantic_hash": "d4ab61a5c44a599b251a8526fe5a24db"
+    "mtime": 1781764127.0343778,
+    "ast_hash": "2b5a56ef027ac291f888d907e7ac444c",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/cluster_grpc.pb.go": {
-    "mtime": 1781559445.6780708,
-    "ast_hash": "338a198e83fd10df490274a6ccb0f605",
-    "semantic_hash": "338a198e83fd10df490274a6ccb0f605"
+    "mtime": 1781764127.0343778,
+    "ast_hash": "10e04c392365cce9d0578048e07243e7",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/common.pb.go": {
     "mtime": 1781559445.678289,
@@ -85,9 +85,9 @@
     "semantic_hash": "4ffabab0ba15a49ed9f36eb326003a48"
   },
   "gen/skylex/v1/skylexv1connect/agent.connect.go": {
-    "mtime": 1781559445.678605,
-    "ast_hash": "9a37503c7449a1c6a451fbed54eb6cb4",
-    "semantic_hash": "9a37503c7449a1c6a451fbed54eb6cb4"
+    "mtime": 1781764127.0343778,
+    "ast_hash": "61c07276469ea614734d9a574ce1185c",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/skylexv1connect/auth.connect.go": {
     "mtime": 1781737499.092157,
@@ -100,9 +100,9 @@
     "semantic_hash": "f348d3c52cf199667034c02bb564169d"
   },
   "gen/skylex/v1/skylexv1connect/cluster.connect.go": {
-    "mtime": 1781559445.679584,
-    "ast_hash": "3bd8e2ad1971d06c797f6a955abfa1cb",
-    "semantic_hash": "3bd8e2ad1971d06c797f6a955abfa1cb"
+    "mtime": 1781764127.0343778,
+    "ast_hash": "016145b1d832aab631a2d87363b39c35",
+    "semantic_hash": ""
   },
   "gen/skylex/v1/skylexv1connect/storage.connect.go": {
     "mtime": 1781559445.6799583,
@@ -120,8 +120,8 @@
     "semantic_hash": "79d7dc359690fa36096f676cab800630"
   },
   "internal/agent/agent.go": {
-    "mtime": 1781756961.6075356,
-    "ast_hash": "df153343086279e2b61a6e1bdec13c2e",
+    "mtime": 1781764380.2364733,
+    "ast_hash": "5936f3816cdc98e159b1309139de87d6",
     "semantic_hash": ""
   },
   "internal/agent/config.go": {
@@ -155,8 +155,8 @@
     "semantic_hash": "1455a12017ac1c28ef29e974dfc65532"
   },
   "internal/db/agent_command_repo.go": {
-    "mtime": 1781566086.1790972,
-    "ast_hash": "3a5a955be3388b1468feeb8009804171",
+    "mtime": 1781763873.9917965,
+    "ast_hash": "9bd3293b39ec872e19e11e4a457a2010",
     "semantic_hash": ""
   },
   "internal/db/backup_repo.go": {
@@ -220,13 +220,13 @@
     "semantic_hash": "89fdc0aaa3af7bc1a419b9f0ba03602b"
   },
   "internal/postgres/postgres.go": {
-    "mtime": 1781562515.5199237,
-    "ast_hash": "8a382f5304a3efb8bbe54de9457954db",
+    "mtime": 1781764046.7228444,
+    "ast_hash": "ab5b1b0bbc5c61a6c7cb1938618ee64f",
     "semantic_hash": ""
   },
   "internal/server/agent_service.go": {
-    "mtime": 1781759786.7695906,
-    "ast_hash": "ecdf09ef1cc280903806cf0519abe5d6",
+    "mtime": 1781763798.6397254,
+    "ast_hash": "b7d831a6b60af663f55ac54293e550ad",
     "semantic_hash": ""
   },
   "internal/server/backup_service.go": {
@@ -255,13 +255,13 @@
     "semantic_hash": "de465711b731504faabd97ce5209a327"
   },
   "internal/server/node_service.go": {
-    "mtime": 1781759827.7778742,
-    "ast_hash": "3f44acdcbc37d5c7e27e2249b7e469b6",
+    "mtime": 1781763867.4537241,
+    "ast_hash": "626516b874a18b63e1cfaf9b310c3865",
     "semantic_hash": ""
   },
   "internal/server/server.go": {
-    "mtime": 1781737913.5184534,
-    "ast_hash": "24df42d748c094218963282479ab29f4",
+    "mtime": 1781763777.705705,
+    "ast_hash": "c0b87e975cf600e6915ca7ef6f5dc60b",
     "semantic_hash": ""
   },
   "internal/server/storage_service.go": {
@@ -295,8 +295,8 @@
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.$id.tsx": {
-    "mtime": 1781570261.3317568,
-    "ast_hash": "af7a9e8fdb87ab85796cec1a36826a5a",
+    "mtime": 1781764273.0418818,
+    "ast_hash": "497ccc9e57d2c6fd0fefdbb2c1842831",
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.create.tsx": {
@@ -520,87 +520,87 @@
     "semantic_hash": ""
   },
   "internal/server/connect.go": {
-    "mtime": 1781746220.7817345,
-    "ast_hash": "1e9496a2088b1e508c81f90f397ee933",
+    "mtime": 1781763886.9516094,
+    "ast_hash": "537f6d724c4522cebd70c773eb994f66",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+future.ts": {
-    "mtime": 1781758992.6891475,
+    "mtime": 1781764287.3081086,
     "ast_hash": "c40c27a89fe2bfb5c932e43b56408c5e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+routes.ts": {
-    "mtime": 1781758992.6891475,
+    "mtime": 1781764287.3081086,
     "ast_hash": "3e1136465aba78740bc3f6ce223ec43e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+server-build.d.ts": {
-    "mtime": 1781758992.6891475,
+    "mtime": 1781764287.3081086,
     "ast_hash": "feb059bd8a13e59965da5ed7f19ac4ff",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/+types/root.ts": {
-    "mtime": 1781758992.6927383,
+    "mtime": 1781764287.3103206,
     "ast_hash": "be2dbb5fac580743e65bc9134fe35a71",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/layouts/+types/dashboard.ts": {
-    "mtime": 1781758992.7001636,
+    "mtime": 1781764287.3113894,
     "ast_hash": "62bd86419d17344f5e191c25785c45e4",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/audit.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "9c3274db5ff4e951085134cc7bccd35b",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/backups.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "c144b9280a2b3f2ce03c39253fabb078",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.$id.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "179cb8cf0f3110829ccaded493b01833",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.create.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "af2cf528a3babf09dfb618ac48aeca53",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.ts": {
-    "mtime": 1781758992.7001636,
+    "mtime": 1781764287.3113894,
     "ast_hash": "653618381537a0fb4ffffea5da33574e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/dashboard.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "352d3d82b9b8d58ac0e6035df727c532",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/login.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "e3d69a3a3327a82e5473bdfd0bfb76bd",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/nodes.ts": {
-    "mtime": 1781758992.7061286,
+    "mtime": 1781764287.3126202,
     "ast_hash": "fe31755e34048a656f0441120af39589",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/restore.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "e78ca862cc9f426c17d7f9c54c6142c8",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/settings.ts": {
-    "mtime": 1781758992.7085052,
+    "mtime": 1781764287.3126202,
     "ast_hash": "ed1cf7166e2caa960e6e2d68648911e7",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/storage.ts": {
-    "mtime": 1781758992.7293594,
+    "mtime": 1781764287.3126202,
     "ast_hash": "0bd8aefee15d54a28eb887d9d8175809",
     "semantic_hash": ""
   },
@@ -750,8 +750,8 @@
     "semantic_hash": ""
   },
   "internal/server/agent_service_test.go": {
-    "mtime": 1781738967.1617436,
-    "ast_hash": "a3f3f20ddaa62c6fe0499e329d213ef3",
+    "mtime": 1781764178.2395527,
+    "ast_hash": "5990e26134b56e72229e725fe5686033",
     "semantic_hash": ""
   },
   "internal/server/assets.go": {
@@ -789,9 +789,39 @@
     "ast_hash": "9a2f833f6969e8529f35b2de44ba22f0",
     "semantic_hash": ""
   },
+  "internal/agent/log.go": {
+    "mtime": 1781764353.3748412,
+    "ast_hash": "973f878fc9a9458c3d1c1ddfab71ab63",
+    "semantic_hash": ""
+  },
+  "internal/db/agent_command_log_repo.go": {
+    "mtime": 1781763845.273536,
+    "ast_hash": "f5108750f11689cad3faa466860a2d07",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000004_add_command_logs.sql": {
+    "mtime": 1781763742.8291297,
+    "ast_hash": "8ec187abf65ce78242138abf721ba343",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000004_add_command_logs.sql": {
+    "mtime": 1781763742.986181,
+    "ast_hash": "8ec187abf65ce78242138abf721ba343",
+    "semantic_hash": ""
+  },
+  "ui/app/hooks/useCommandLogs.ts": {
+    "mtime": 1781764216.5718,
+    "ast_hash": "95da13810d8331c83d6034597b632a72",
+    "semantic_hash": ""
+  },
   ".kilo/plans/agent-cli-flags.md": {
     "mtime": 1781751298.7074776,
     "ast_hash": "defebb1446fd4b2e118a2627d4af1b62",
+    "semantic_hash": ""
+  },
+  ".kilo/plans/postgres-agent-visibility-phased-plan.md": {
+    "mtime": 1781763539.895993,
+    "ast_hash": "ed0c840608aa38502bfe64a6788345be",
     "semantic_hash": ""
   }
 }
