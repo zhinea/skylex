@@ -168,6 +168,41 @@ func TestAgentService_HeartbeatUpdatesConnectionState(t *testing.T) {
 	}
 }
 
+func TestAgentService_HeartbeatDoesNotOverwriteDrainedNode(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	nodes := db.NewNodeRepository(conn, log)
+
+	node, err := nodes.Create(context.Background(), "", "test-node", "10.0.0.1", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(context.Background(), node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+	if err := nodes.UpdateStatus(context.Background(), node.ID, models.NodeStatusDrained); err != nil {
+		t.Fatalf("mark drained: %v", err)
+	}
+
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewClusterRepository(conn, log), nodes, db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+
+	_, err = svc.Heartbeat(context.Background(), &skylexv1.HeartbeatRequest{
+		AgentId:           "agent-1",
+		ObservedLatencyMs: 25,
+	})
+	if err != nil {
+		t.Fatalf("heartbeat: %v", err)
+	}
+
+	updated, err := nodes.GetByID(context.Background(), node.ID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if updated.Status != models.NodeStatusDrained {
+		t.Fatalf("expected drained status, got %q", updated.Status)
+	}
+}
+
 func TestAgentService_ReportCommandLogStoresEntries(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

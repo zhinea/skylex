@@ -6,6 +6,7 @@ interface Node {
   clusterId: string;
   hostname: string;
   role: string;
+  status: string;
   address: string;
   port: number;
   labels: Record<string, string>;

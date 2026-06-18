@@ -72,7 +72,12 @@ export default function NodesPage() {
                     <td className="px-4 py-3 text-gray-900 dark:text-white">
                       {n.clusterId ? <span className="text-xs text-gray-500">{n.clusterId.substring(0, 8)}...</span> : "-"}
                     </td>
-                    <td className="px-4 py-3"><Badge label={n.role} /></td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge label={n.role} />
+                        {n.status === "drained" && <Badge label="drained" />}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{n.address}:{n.port}</td>
                     <td className="px-4 py-3">
                       <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
@@ -83,7 +88,7 @@ export default function NodesPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {n.clusterId && n.statusDetail === "stopped" && (
+                        {n.clusterId && n.status === "drained" && (
                           <button
                             onClick={() => setRejoinId(n.id)}
                             className="text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
@@ -92,12 +97,14 @@ export default function NodesPage() {
                             Rejoin
                           </button>
                         )}
-                        <button
-                          onClick={() => setDrainId(n.id)}
-                          className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
-                        >
-                          Drain
-                        </button>
+                        {n.status !== "drained" && (
+                          <button
+                            onClick={() => setDrainId(n.id)}
+                            className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
+                          >
+                            Drain
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

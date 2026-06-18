@@ -154,6 +154,9 @@ func (s *AgentService) Heartbeat(ctx context.Context, req *skylexv1.HeartbeatReq
 	if err != nil {
 		return nil, err
 	}
+	if node.Status == models.NodeStatusDrained {
+		return &skylexv1.HeartbeatResponse{}, nil
+	}
 	if err := s.nodes.UpdateHeartbeat(ctx, node.ID, models.NodeStatusOnline, normalizeLatencyMS(req.GetObservedLatencyMs())); err != nil {
 		s.log.Warn("heartbeat update failed", "node_id", node.ID, "error", err)
 	}
@@ -180,6 +183,9 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 			continue
 		}
 		node := agentNode
+		if node.Status == models.NodeStatusDrained {
+			continue
+		}
 
 		if nodeStatus.GetPostgresRunning() {
 			_ = s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline)

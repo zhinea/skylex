@@ -80,6 +80,7 @@ const (
 	NodeStatusDegraded  NodeStatus = "degraded"
 	NodeStatusSyncing   NodeStatus = "syncing"
 	NodeStatusPromoting NodeStatus = "promoting"
+	NodeStatusDrained   NodeStatus = "drained"
 )
 
 type Node struct {

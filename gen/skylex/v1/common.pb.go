@@ -544,6 +544,7 @@ type Node struct {
 	LastSeen     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_seen,json=lastSeen,proto3" json:"last_seen,omitempty"`
 	CreatedAt    *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt    *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Status       string                 `protobuf:"bytes,22,opt,name=status,proto3" json:"status,omitempty"`
 	// Phase 2: PostgreSQL installation & health visibility
 	PostgresInstalled       bool   `protobuf:"varint,12,opt,name=postgres_installed,json=postgresInstalled,proto3" json:"postgres_installed,omitempty"`
 	PostgresVersion         string `protobuf:"bytes,13,opt,name=postgres_version,json=postgresVersion,proto3" json:"postgres_version,omitempty"`
@@ -666,6 +667,13 @@ func (x *Node) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+func (x *Node) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
 }
 
 func (x *Node) GetPostgresInstalled() bool {
@@ -824,7 +832,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12E\n" +
-	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xe4\a\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xfc\a\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -840,7 +848,8 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12-\n" +
+	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x16\n" +
+	"\x06status\x18\x16 \x01(\tR\x06status\x12-\n" +
 	"\x12postgres_installed\x18\f \x01(\bR\x11postgresInstalled\x12)\n" +
 	"\x10postgres_version\x18\r \x01(\tR\x0fpostgresVersion\x12:\n" +
 	"\x19postgres_data_initialized\x18\x0e \x01(\bR\x17postgresDataInitialized\x12#\n" +

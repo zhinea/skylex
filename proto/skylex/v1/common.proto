@@ -82,6 +82,7 @@ message Node {
   google.protobuf.Timestamp last_seen = 9;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
+  string status = 22;
   // Phase 2: PostgreSQL installation & health visibility
   bool postgres_installed = 12;
   string postgres_version = 13;

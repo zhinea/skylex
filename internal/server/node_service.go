@@ -101,8 +101,11 @@ func (s *NodeService) DrainNode(ctx context.Context, req *skylexv1.DrainNodeRequ
 		return &skylexv1.DrainNodeResponse{}, nil
 	}
 
-	if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOffline); err != nil {
+	if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusDrained); err != nil {
 		return nil, status.Errorf(codes.Internal, "update node status: %v", err)
+	}
+	if err := s.nodes.UpdateStatusDetail(ctx, node.ID, "drained"); err != nil {
+		s.log.Warn("update node status detail for drain", "error", err, "node_id", node.ID)
 	}
 
 	if node.AgentID != "" {
@@ -111,8 +114,11 @@ func (s *NodeService) DrainNode(ctx context.Context, req *skylexv1.DrainNodeRequ
 		}
 	}
 
+	node.Status = models.NodeStatusDrained
+	node.StatusDetail = "drained"
+
 	s.log.Info("node drained", "node_id", node.ID)
-	return &skylexv1.DrainNodeResponse{}, nil
+	return &skylexv1.DrainNodeResponse{Node: s.nodeToProto(node)}, nil
 }
 
 func (s *NodeService) RejoinNode(ctx context.Context, req *skylexv1.RejoinNodeRequest) (*skylexv1.RejoinNodeResponse, error) {
@@ -142,9 +148,14 @@ func (s *NodeService) RejoinNode(ctx context.Context, req *skylexv1.RejoinNodeRe
 	if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline); err != nil {
 		s.log.Warn("update node status for rejoin", "error", err)
 	}
+	if err := s.nodes.UpdateStatusDetail(ctx, node.ID, "rejoining"); err != nil {
+		s.log.Warn("update node status detail for rejoin", "error", err, "node_id", node.ID)
+	}
+	node.Status = models.NodeStatusOnline
+	node.StatusDetail = "rejoining"
 
 	s.log.Info("node rejoined", "node_id", node.ID)
-	return &skylexv1.RejoinNodeResponse{}, nil
+	return &skylexv1.RejoinNodeResponse{Node: s.nodeToProto(node)}, nil
 }
 
 func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skylexv1.ResolveInstallationConflictRequest) (*skylexv1.ResolveInstallationConflictResponse, error) {
@@ -372,6 +383,7 @@ func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
 		LastSeen:                timestamppb.New(n.LastSeen),
 		CreatedAt:               timestamppb.New(n.CreatedAt),
 		UpdatedAt:               timestamppb.New(n.UpdatedAt),
+		Status:                  string(n.Status),
 		PostgresInstalled:       n.PostgresInstalled,
 		PostgresVersion:         n.PostgresVersion,
 		PostgresDataInitialized: n.PostgresDataInitialized,
