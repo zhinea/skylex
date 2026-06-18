@@ -33,6 +33,7 @@ type ServerConfig struct {
 	HTTPPort      int    `koanf:"http_port" validate:"required,min=1,max=65535"`
 	MetricsPort   int    `koanf:"metrics_port" validate:"required,min=1,max=65535"`
 	AdvertiseAddr string `koanf:"advertise_addr"`
+	DevMode       bool   `koanf:"dev_mode"`
 }
 
 type DatabaseConfig struct {

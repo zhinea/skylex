@@ -25,7 +25,7 @@ func connectInterceptors(h http.Handler, srv *Server) http.Handler {
 		}
 
 		authCtx := r.Context()
-		if !isUnauthenticated(r.URL.Path) {
+		if !isUnauthenticated(srv, r.URL.Path) {
 			var userID, roleStr, userEmail string
 			var err error
 			userID, roleStr, userEmail, err = extractHTTPAuth(r, srv)
@@ -84,7 +84,10 @@ var writeMethods = map[string]bool{
 	skylexv1connect.AuthServiceDeleteAgentTokenProcedure: true,
 }
 
-func isUnauthenticated(path string) bool {
+func isUnauthenticated(srv *Server, path string) bool {
+	if path == "/install.sh" {
+		return srv.cfg.Server.DevMode
+	}
 	return unauthenticatedPaths[path]
 }
 
@@ -450,6 +453,9 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 	mux.Handle(schedulePath, scheduleHandler)
 
 	mux.HandleFunc("/version", s.serveVersion)
+	if s.cfg.Server.DevMode {
+		mux.HandleFunc("/install.sh", s.serveAgentInstallScript)
+	}
 
 	mux.HandleFunc("/skylex.v1.AuthService/ListAuditLogs", s.handleListAuditLogs)
 
@@ -549,6 +555,17 @@ func (s *Server) handleListAuditLogs(w http.ResponseWriter, r *http.Request) {
 			"total":    total,
 		},
 	})
+}
+
+func (s *Server) serveAgentInstallScript(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	w.Header().Set("Content-Type", "text/x-shellscript")
+	w.Header().Set("Cache-Control", "no-store")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(installScript()))
 }
 
 func (s *Server) serveVersion(w http.ResponseWriter, r *http.Request) {

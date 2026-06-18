@@ -311,7 +311,12 @@ func (s *AuthService) GetAgentInstallCommand(ctx context.Context, req *skylexv1.
 		return nil, err
 	}
 
-	scriptURL := fmt.Sprintf("https://github.com/%s/releases/download/v%s/install-agent.sh", defaultReleaseRepo, versionString())
+	var scriptURL string
+	if s.cfg.Server.DevMode {
+		scriptURL = fmt.Sprintf("http://localhost:%d/install.sh", s.cfg.Server.HTTPPort)
+	} else {
+		scriptURL = fmt.Sprintf("https://github.com/%s/releases/download/v%s/install-agent.sh", defaultReleaseRepo, versionString())
+	}
 
 	return &skylexv1.GetAgentInstallCommandResponse{
 		ScriptUrl:  scriptURL,

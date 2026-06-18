@@ -8,6 +8,7 @@ server:
   grpc_port: 9090
   http_port: 8080
   metrics_port: 9091
+  dev_mode: true
 
 # SQLite (default) — embedded single-file database, no external dependencies
 database:

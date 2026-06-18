@@ -4,9 +4,9 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = ["config.yaml"]
-  cmd = "go build -o ./tmp/main ./cmd/server"
+  cmd = "make assets && go build -o ./tmp/main ./cmd/server"
   entrypoint = ["./tmp/main"]
-  include_ext = ["go", "tpl", "tmpl", "html", "yaml", "yml"]
+  include_ext = ["go", "tpl", "tmpl", "html", "yaml", "yml", "sh", "txt"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata", "ui", "node_modules", "bin", "gen", "graphify-out"]
   exclude_regex = ["_test.go"]
   delay = 1000
