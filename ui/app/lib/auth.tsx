@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { api, setToken, clearToken, ApiError } from "~/lib/api";
 
@@ -17,21 +17,23 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("skylex_token");
-    return null;
-  });
-  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("skylex_refresh_token");
-    return null;
-  });
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setAccessToken(localStorage.getItem("skylex_token"));
+    setRefreshToken(localStorage.getItem("skylex_refresh_token"));
+    setIsLoading(false);
+  }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const data = (await api.post("/skylex.v1.AuthService/Login", { email, password })) as Record<string, unknown>;
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         isAuthenticated: !!accessToken,
+        isLoading,
       }}
     >
       {children}

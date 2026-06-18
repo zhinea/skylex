@@ -147,7 +147,7 @@ function SettingsCard({ clusterId }: { clusterId: string }) {
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [saved, setSaved] = useState(false);
 
-  const parameters = data?.settings?.parameters ?? {};
+  const parameters = useMemo(() => data?.settings?.parameters ?? {}, [data?.settings?.parameters]);
 
   useEffect(() => {
     const next: Record<string, string> = {};
