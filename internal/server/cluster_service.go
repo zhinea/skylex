@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
@@ -56,12 +57,49 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 
 	mode := convertReplicationMode(cfg.GetReplicationMode())
 
+	replicaCount := int(cfg.GetReplicaCount())
+	neededNodes := replicaCount + 1 // primary + replicas
+	idleNodes, err := s.nodes.ListUnassigned(ctx, neededNodes)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list idle nodes: %v", err)
+	}
+	if len(idleNodes) < neededNodes {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"need %d idle node(s) for this cluster, found %d. Register more agents or set replicas to %d",
+			neededNodes, len(idleNodes), max(len(idleNodes)-1, 0))
+	}
+
 	cluster, err := s.clusters.Create(ctx, req.GetName(),
 		cfg.GetStorageConfigId(), "", engine, version, mode,
-		int(cfg.GetReplicaCount()), cfg.GetPitrEnabled(), cfg.GetLabels())
+		replicaCount, cfg.GetPitrEnabled(), cfg.GetLabels())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "create cluster: %v", err)
 	}
+
+	primary := idleNodes[0]
+	if err := s.nodes.AssignToCluster(ctx, primary.ID, cluster.ID, models.NodeRolePrimary); err != nil {
+		return nil, status.Errorf(codes.Internal, "assign primary node: %v", err)
+	}
+	if err := s.queuePrimaryCommands(ctx, primary); err != nil {
+		return nil, status.Errorf(codes.Internal, "queue primary commands: %v", err)
+	}
+
+	for i := 1; i <= replicaCount; i++ {
+		replica := idleNodes[i]
+		if err := s.nodes.AssignToCluster(ctx, replica.ID, cluster.ID, models.NodeRoleReplica); err != nil {
+			return nil, status.Errorf(codes.Internal, "assign replica node: %v", err)
+		}
+		if err := s.queueReplicaCommands(ctx, replica, primary); err != nil {
+			return nil, status.Errorf(codes.Internal, "queue replica commands: %v", err)
+		}
+	}
+
+	s.log.Info("cluster provisioning queued",
+		"cluster_id", cluster.ID,
+		"cluster_name", cluster.Name,
+		"primary", primary.Hostname,
+		"replicas", replicaCount,
+	)
 
 	return &skylexv1.CreateClusterResponse{
 		Cluster: clusterToProto(cluster),
@@ -287,4 +325,40 @@ func convertReplicationMode(mode skylexv1.ReplicationMode) models.ReplicationMod
 	default:
 		return models.ReplicationAsync
 	}
+}
+
+func (s *ClusterService) queuePrimaryCommands(ctx context.Context, node *models.Node) error {
+	commands := []struct{ action, payload string }{
+		{"pg_init", ""},
+		{"pg_start", ""},
+		{"pg_create_repl_user", ""},
+	}
+	for _, c := range commands {
+		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, c.action, c.payload); err != nil {
+			return fmt.Errorf("queue %s: %w", c.action, err)
+		}
+	}
+	return nil
+}
+
+func (s *ClusterService) queueReplicaCommands(ctx context.Context, replica, primary *models.Node) error {
+	payload := fmt.Sprintf("%s:%d", nodeAddress(primary), primary.Port)
+	commands := []struct{ action, payload string }{
+		{"pg_basebackup", payload},
+		{"repoint_replica", payload},
+		{"pg_start", ""},
+	}
+	for _, c := range commands {
+		if _, err := s.commands.Create(ctx, replica.AgentID, replica.ID, c.action, c.payload); err != nil {
+			return fmt.Errorf("queue %s: %w", c.action, err)
+		}
+	}
+	return nil
+}
+
+func nodeAddress(n *models.Node) string {
+	if n.Address != "" {
+		return n.Address
+	}
+	return n.Hostname
 }

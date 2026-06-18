@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -29,8 +30,10 @@ func main() {
 
 	cfg := agent.DefaultConfig()
 
-	// 1. Load config file (optional).
-	if err := loadConfigFile(*configPath, &cfg); err != nil {
+	// 1. Load config file (optional). Permission-denied on the default
+	// system path is expected when running as a non-privileged user and
+	// all settings are supplied via flags/env, so don't warn about it.
+	if err := loadConfigFile(*configPath, &cfg); err != nil && !errors.Is(err, os.ErrPermission) {
 		fmt.Fprintf(os.Stderr, "warning: failed to load config file %s: %v\n", *configPath, err)
 	}
 

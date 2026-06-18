@@ -111,10 +111,15 @@ func (a *Agent) Run(ctx context.Context) error {
 }
 
 func (a *Agent) register(ctx context.Context) error {
+	address := a.cfg.Address
+	if address == "" {
+		address = a.cfg.Hostname
+	}
+
 	resp, err := a.client.RegisterAgent(ctx, &skylexv1.RegisterAgentRequest{
 		AgentToken:   a.cfg.AgentToken,
 		Hostname:     a.cfg.Hostname,
-		Address:      a.cfg.Address,
+		Address:      address,
 		Port:         int32(a.cfg.Port),
 		AgentVersion: "0.1.0",
 		Labels:       a.cfg.Labels,

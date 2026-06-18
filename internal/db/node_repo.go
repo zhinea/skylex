@@ -30,10 +30,15 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 		return nil, fmt.Errorf("marshal labels: %w", err)
 	}
 
+	var clusterIDNull sql.NullString
+	if clusterID != "" {
+		clusterIDNull = sql.NullString{String: clusterID, Valid: true}
+	}
+
 	_, err = r.conn.ExecContext(ctx,
 		Rebind(`INSERT INTO nodes (id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
-		nodeID, clusterID, hostname, address, port, role, models.NodeStatusOnline, agentVersion, "", string(labelsJSON), now, now, now,
+		nodeID, clusterIDNull, hostname, address, port, role, models.NodeStatusOnline, agentVersion, "", string(labelsJSON), now, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert node: %w", err)
@@ -63,15 +68,26 @@ func (r *NodeRepository) GetByID(ctx context.Context, id string) (*models.Node, 
 }
 
 func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, offset, limit int) ([]*models.Node, int, error) {
-	var total int
-	if err := r.conn.QueryRowContext(ctx, Rebind(`SELECT COUNT(*) FROM nodes WHERE cluster_id = ?`), clusterID).Scan(&total); err != nil {
+	var (
+		total int
+		where string
+		args  []interface{}
+	)
+	if clusterID != "" {
+		where = "WHERE cluster_id = ?"
+		args = append(args, clusterID)
+	}
+
+	countQuery := Rebind(fmt.Sprintf(`SELECT COUNT(*) FROM nodes %s`, where))
+	if err := r.conn.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("count nodes: %w", err)
 	}
 
-	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
-		 FROM nodes WHERE cluster_id = ? ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`),
-		clusterID, limit, offset)
+	listQuery := Rebind(fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes %s ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`, where))
+	queryArgs := append(args, limit, offset)
+
+	rows, err := r.conn.QueryContext(ctx, listQuery, queryArgs...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query nodes: %w", err)
 	}
@@ -118,6 +134,48 @@ func (r *NodeRepository) UpdateHeartbeat(ctx context.Context, id string) error {
 		time.Now().UTC(), time.Now().UTC(), id)
 	if err != nil {
 		return fmt.Errorf("update node heartbeat: %w", err)
+	}
+	return nil
+}
+
+// ListUnassigned returns up to limit nodes that are not part of any cluster.
+func (r *NodeRepository) ListUnassigned(ctx context.Context, limit int) ([]*models.Node, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+
+	rows, err := r.conn.QueryContext(ctx,
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		 FROM nodes WHERE (cluster_id IS NULL OR cluster_id = '') ORDER BY created_at ASC LIMIT ?`),
+		limit)
+	if err != nil {
+		return nil, fmt.Errorf("query unassigned nodes: %w", err)
+	}
+	defer rows.Close()
+
+	var nodes []*models.Node
+	for rows.Next() {
+		n, err := scanNodesRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		nodes = append(nodes, n)
+	}
+	return nodes, rows.Err()
+}
+
+// AssignToCluster puts an idle node into a cluster with the given role.
+func (r *NodeRepository) AssignToCluster(ctx context.Context, nodeID, clusterID string, role models.NodeRole) error {
+	var clusterIDNull sql.NullString
+	if clusterID != "" {
+		clusterIDNull = sql.NullString{String: clusterID, Valid: true}
+	}
+
+	_, err := r.conn.ExecContext(ctx,
+		Rebind(`UPDATE nodes SET cluster_id = ?, role = ?, updated_at = ? WHERE id = ?`),
+		clusterIDNull, role, time.Now().UTC(), nodeID)
+	if err != nil {
+		return fmt.Errorf("assign node to cluster: %w", err)
 	}
 	return nil
 }
@@ -185,9 +243,10 @@ func (r *NodeRepository) GetByAgentID(ctx context.Context, agentID string) (*mod
 
 func scanNodeRow(row *sql.Row) (*models.Node, error) {
 	var n models.Node
+	var clusterID sql.NullString
 	var labelsJSON string
 
-	err := row.Scan(&n.ID, &n.ClusterID, &n.Hostname, &n.Address, &n.Port,
+	err := row.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -196,19 +255,22 @@ func scanNodeRow(row *sql.Row) (*models.Node, error) {
 		return nil, fmt.Errorf("scan node: %w", err)
 	}
 
+	n.ClusterID = clusterID.String
 	n.Labels = unmarshalLabels(labelsJSON)
 	return &n, nil
 }
 
 func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	var n models.Node
+	var clusterID sql.NullString
 	var labelsJSON string
 
-	if err := rows.Scan(&n.ID, &n.ClusterID, &n.Hostname, &n.Address, &n.Port,
+	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt); err != nil {
 		return nil, fmt.Errorf("scan node row: %w", err)
 	}
 
+	n.ClusterID = clusterID.String
 	n.Labels = unmarshalLabels(labelsJSON)
 	return &n, nil
 }

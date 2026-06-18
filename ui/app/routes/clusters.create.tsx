@@ -9,7 +9,7 @@ export default function CreateClusterPage() {
   const [name, setName] = useState("");
   const [engine, setEngine] = useState("POSTGRESQL");
   const [version, setVersion] = useState("16");
-  const [replicaCount, setReplicaCount] = useState(1);
+  const [replicaCount, setReplicaCount] = useState(0);
   const [replicationMode, setReplicationMode] = useState("ASYNC");
   const [pitrEnabled, setPitrEnabled] = useState(false);
   const [error, setError] = useState("");
