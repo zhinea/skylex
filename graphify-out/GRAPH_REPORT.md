@@ -1,7 +1,7 @@
 # Graph Report - skylex  (2026-06-18)
 
 ## Corpus Check
-- 166 files · ~99,080 words
+- 166 files · ~99,097 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9bd26053`
+- Built from commit: `08727ed5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -856,7 +856,7 @@ Cohesion: 0.40
 Nodes (4): AgentToken, ListAgentTokensRequest, ListAgentTokensResponse, agentTokenToProto()
 
 ## Knowledge Gaps
-- **935 isolated node(s):** `Logger`, `AgentServiceClient`, `ClientConn`, `Instance`, `PgBackRest` (+930 more)
+- **935 isolated node(s):** `dev.sh script`, `Logger`, `AgentServiceClient`, `ClientConn`, `Instance` (+930 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **60 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -864,16 +864,16 @@ Nodes (4): AgentToken, ListAgentTokensRequest, ListAgentTokensResponse, agentTok
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `New()` connect `Auth gRPC Service` to `Enumtype Getstatus`, `Cluster gRPC Service`, `Auth gRPC Service`, `Auth gRPC Service`, `Community 140`, `Community 175`, `Community 144`, `Agent gRPC Protocol`, `Protobuf Message Types`, `Community 211`, `Clusterconfig Getengine`, `Main Config`, `Community 217`, `Auth gRPC Service`, `Community 189`?**
-  _High betweenness centrality (0.324) - this node is a cross-community bridge._
+  _High betweenness centrality (0.325) - this node is a cross-community bridge._
 - **Why does `file_skylex_v1_common_proto_init()` connect `Community 189` to `Agent gRPC Protocol`, `Backup gRPC Service`, `Storage gRPC Service`, `Community 177`, `Community 120`?**
-  _High betweenness centrality (0.229) - this node is a cross-community bridge._
+  _High betweenness centrality (0.230) - this node is a cross-community bridge._
 - **Why does `NewGRPCServer()` connect `Backup gRPC Service` to `Cluster gRPC Service`, `Auth gRPC Service`, `Agent gRPC Protocol`, `Storage gRPC Service`, `Community 181`, `Agent Command Repo Newagentcommandrepository`?**
-  _High betweenness centrality (0.117) - this node is a cross-community bridge._
+  _High betweenness centrality (0.115) - this node is a cross-community bridge._
 - **Are the 73 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.GetByID()`) actually correct?**
   _`Rebind()` has 73 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 49 inferred relationships involving `New()` (e.g. with `NewPgBackRest()` and `main()`) actually correct?**
   _`New()` has 49 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 42 inferred relationships involving `now()` (e.g. with `.Log()` and `.createScheduledBackup()`) actually correct?**
   _`now()` has 42 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Logger`, `AgentServiceClient`, `ClientConn` to the rest of the system?**
+- **What connects `dev.sh script`, `Logger`, `AgentServiceClient` to the rest of the system?**
   _936 weakly-connected nodes found - possible documentation gaps or missing edges._
