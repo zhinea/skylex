@@ -51,7 +51,7 @@ make docker-down
 - Server config is YAML; pass the path as the first argument (`./skylex-server config.yaml`). `make dev` uses `config.example.yaml`.
 - Settings are merged with `koanf`: YAML file + env vars. Env vars use the prefix `SKYLEX_` and nested keys become `_` (e.g. `SKYLEX_DATABASE_DSN`, `SKYLEX_AUTH_JWT_SECRET`).
 - `config.example.yaml` is committed and works as-is for local development.
-- Defaults exist for most values; see `internal/server/config.go`. If `auth.jwt_secret` is empty, a random secret is generated on startup.
+- Defaults exist for most values; see `internal/server/config.go`. `auth.jwt_secret` defaults to `change-me-in-production` in `config.example.yaml` so dev sessions survive restarts. If `auth.jwt_secret` is left empty, a random secret is generated on startup and a warning is logged; existing JWTs will not validate after a restart.
 - Agent settings are currently hard-coded defaults in `internal/agent/config.go`, but the agent binary also reads `SKYLEX_AGENT_TOKEN` and `SKYLEX_SERVER_ADDR` from the environment.
 
 ## Database and migrations

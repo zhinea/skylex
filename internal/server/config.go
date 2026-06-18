@@ -28,10 +28,10 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	ListenAddr   string `koanf:"listen_addr" validate:"required"`
-	GRPCPort     int    `koanf:"grpc_port" validate:"required,min=1,max=65535"`
-	HTTPPort     int    `koanf:"http_port" validate:"required,min=1,max=65535"`
-	MetricsPort  int    `koanf:"metrics_port" validate:"required,min=1,max=65535"`
+	ListenAddr    string `koanf:"listen_addr" validate:"required"`
+	GRPCPort      int    `koanf:"grpc_port" validate:"required,min=1,max=65535"`
+	HTTPPort      int    `koanf:"http_port" validate:"required,min=1,max=65535"`
+	MetricsPort   int    `koanf:"metrics_port" validate:"required,min=1,max=65535"`
 	AdvertiseAddr string `koanf:"advertise_addr"`
 }
 
@@ -125,6 +125,7 @@ func (c *Config) setDefaults() error {
 			return fmt.Errorf("generate jwt secret: %w", err)
 		}
 		c.Auth.JWTSecret = secret
+		fmt.Fprintf(os.Stderr, "WARN: auth.jwt_secret is empty; generated a random secret. JWTs will not survive server restarts. Set auth.jwt_secret to a stable value for persistent sessions.\n")
 	}
 
 	if c.Server.ListenAddr == "" {

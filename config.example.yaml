@@ -44,7 +44,11 @@ agent:
   # agent_token: "dev-token"
 
 auth:
-  jwt_secret: ""
+  # JWT secret used to sign access/refresh tokens. Must be stable across restarts
+  # or all active sessions will become invalid. Leave empty to generate a random
+  # secret on every startup (not recommended; useful only for ephemeral testing).
+  # The Docker Compose stack defaults to "change-me-in-production".
+  jwt_secret: "change-me-in-production"
   token_expiry: 24h
   refresh_expiry: 168h
 
