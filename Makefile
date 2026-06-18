@@ -10,8 +10,8 @@ ASSETS_DIR = internal/server/assets
 
 assets:
 	@mkdir -p $(ASSETS_DIR)
-	@cp scripts/install-agent.sh $(ASSETS_DIR)/install-agent.sh
-	@cp version.txt $(ASSETS_DIR)/version.txt
+	@if ! cmp -s scripts/install-agent.sh $(ASSETS_DIR)/install-agent.sh; then cp scripts/install-agent.sh $(ASSETS_DIR)/install-agent.sh; fi
+	@if ! cmp -s version.txt $(ASSETS_DIR)/version.txt; then cp version.txt $(ASSETS_DIR)/version.txt; fi
 
 build: assets build-server build-agent build-bench
 
