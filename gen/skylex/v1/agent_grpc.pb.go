@@ -24,6 +24,7 @@ const (
 	AgentService_ReportStatus_FullMethodName        = "/skylex.v1.AgentService/ReportStatus"
 	AgentService_FetchCommand_FullMethodName        = "/skylex.v1.AgentService/FetchCommand"
 	AgentService_ReportCommandResult_FullMethodName = "/skylex.v1.AgentService/ReportCommandResult"
+	AgentService_ReportCommandLog_FullMethodName    = "/skylex.v1.AgentService/ReportCommandLog"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -35,6 +36,7 @@ type AgentServiceClient interface {
 	ReportStatus(ctx context.Context, in *ReportStatusRequest, opts ...grpc.CallOption) (*ReportStatusResponse, error)
 	FetchCommand(ctx context.Context, in *FetchCommandRequest, opts ...grpc.CallOption) (*FetchCommandResponse, error)
 	ReportCommandResult(ctx context.Context, in *ReportCommandResultRequest, opts ...grpc.CallOption) (*ReportCommandResultResponse, error)
+	ReportCommandLog(ctx context.Context, in *ReportCommandLogRequest, opts ...grpc.CallOption) (*ReportCommandLogResponse, error)
 }
 
 type agentServiceClient struct {
@@ -95,6 +97,16 @@ func (c *agentServiceClient) ReportCommandResult(ctx context.Context, in *Report
 	return out, nil
 }
 
+func (c *agentServiceClient) ReportCommandLog(ctx context.Context, in *ReportCommandLogRequest, opts ...grpc.CallOption) (*ReportCommandLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReportCommandLogResponse)
+	err := c.cc.Invoke(ctx, AgentService_ReportCommandLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServiceServer is the server API for AgentService service.
 // All implementations must embed UnimplementedAgentServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type AgentServiceServer interface {
 	ReportStatus(context.Context, *ReportStatusRequest) (*ReportStatusResponse, error)
 	FetchCommand(context.Context, *FetchCommandRequest) (*FetchCommandResponse, error)
 	ReportCommandResult(context.Context, *ReportCommandResultRequest) (*ReportCommandResultResponse, error)
+	ReportCommandLog(context.Context, *ReportCommandLogRequest) (*ReportCommandLogResponse, error)
 	mustEmbedUnimplementedAgentServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedAgentServiceServer) FetchCommand(context.Context, *FetchComma
 }
 func (UnimplementedAgentServiceServer) ReportCommandResult(context.Context, *ReportCommandResultRequest) (*ReportCommandResultResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReportCommandResult not implemented")
+}
+func (UnimplementedAgentServiceServer) ReportCommandLog(context.Context, *ReportCommandLogRequest) (*ReportCommandLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReportCommandLog not implemented")
 }
 func (UnimplementedAgentServiceServer) mustEmbedUnimplementedAgentServiceServer() {}
 func (UnimplementedAgentServiceServer) testEmbeddedByValue()                      {}
@@ -240,6 +256,24 @@ func _AgentService_ReportCommandResult_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_ReportCommandLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportCommandLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ReportCommandLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AgentService_ReportCommandLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ReportCommandLog(ctx, req.(*ReportCommandLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AgentService_ServiceDesc is the grpc.ServiceDesc for AgentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReportCommandResult",
 			Handler:    _AgentService_ReportCommandResult_Handler,
+		},
+		{
+			MethodName: "ReportCommandLog",
+			Handler:    _AgentService_ReportCommandLog_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

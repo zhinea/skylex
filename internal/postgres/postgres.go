@@ -1,15 +1,40 @@
 package postgres
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
+
+// LogSink receives per-line stdout/stderr emitted while a PostgreSQL command
+// is running. It is typically implemented by the agent command logger.
+type LogSink interface {
+	Info(message string)
+	Error(message string)
+}
+
+type logSinkKey struct{}
+
+// WithLogSink adds a LogSink to the context so PostgreSQL helpers can stream
+// command output without changing every method signature.
+func WithLogSink(ctx context.Context, sink LogSink) context.Context {
+	return context.WithValue(ctx, logSinkKey{}, sink)
+}
+
+func logSinkFromContext(ctx context.Context) LogSink {
+	if sink, ok := ctx.Value(logSinkKey{}).(LogSink); ok {
+		return sink
+	}
+	return nil
+}
 
 type Instance struct {
 	DataDir   string
@@ -32,6 +57,64 @@ func New(dataDir, binDir, version string, port int, superuser, replUser, replPas
 		ReplUser:  replUser,
 		ReplPass:  replPass,
 		log:       log,
+	}
+}
+
+// runStreamingCmd executes a command while streaming stdout/stderr to the
+// LogSink in ctx (if any). It returns the combined output so callers can keep
+// returning descriptive error messages.
+func runStreamingCmd(ctx context.Context, cmd *exec.Cmd) ([]byte, error) {
+	sink := logSinkFromContext(ctx)
+
+	if sink == nil {
+		return runStreamingCmd(ctx, cmd)
+	}
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("stdout pipe: %w", err)
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("stderr pipe: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	var outMu sync.Mutex
+	var output []byte
+
+	scan := func(r io.Reader, level string) {
+		scanner := bufio.NewScanner(r)
+		scanner.Buffer(make([]byte, 4096), 1024*1024)
+		for scanner.Scan() {
+			line := scanner.Text()
+			sink.Info(line)
+			outMu.Lock()
+			output = append(output, line...)
+			output = append(output, '\n')
+			outMu.Unlock()
+		}
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() { defer wg.Done(); scan(stdoutPipe, "info") }()
+	go func() { defer wg.Done(); scan(stderrPipe, "error") }()
+
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+
+	select {
+	case <-ctx.Done():
+		_ = cmd.Process.Kill()
+		wg.Wait()
+		return output, ctx.Err()
+	case err := <-done:
+		wg.Wait()
+		return output, err
 	}
 }
 
@@ -73,7 +156,7 @@ func (p *Instance) InitDB(ctx context.Context) error {
 		fmt.Sprintf("PGPASSWORD=%s", p.ReplPass),
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("initdb failed: %w\n%s", err, string(output))
 	}
@@ -107,7 +190,7 @@ func (p *Instance) Start(ctx context.Context) error {
 		"-t", "60",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("pg_ctl start failed: %w\n%s", err, string(output))
 	}
@@ -130,7 +213,7 @@ func (p *Instance) Stop(ctx context.Context) error {
 		"-t", "60",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("pg_ctl stop failed: %w\n%s", err, string(output))
 	}
@@ -164,7 +247,7 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 		fmt.Sprintf("PGPASSWORD=%s", replPass),
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("pg_basebackup failed: %w\n%s", err, string(output))
 	}
@@ -191,7 +274,7 @@ func (p *Instance) CreateReplicationSlot(ctx context.Context, slotName string) e
 		"-c", fmt.Sprintf("SELECT pg_create_physical_replication_slot('%s', true) WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = '%s')", slotName, slotName),
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("create replication slot: %w\n%s", err, string(output))
 	}
@@ -209,7 +292,7 @@ func (p *Instance) CreateReplicationUser(ctx context.Context) error {
 		"-c", fmt.Sprintf("DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '%s') THEN CREATE ROLE %s WITH LOGIN REPLICATION ENCRYPTED PASSWORD '%s'; END IF; END $$", p.ReplUser, p.ReplUser, p.ReplPass),
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("create replication user: %w\n%s", err, string(output))
 	}
@@ -228,7 +311,7 @@ func (p *Instance) HealthCheck(ctx context.Context) error {
 		"-t",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("health check failed: %w\n%s", err, string(output))
 	}
@@ -247,7 +330,7 @@ func (p *Instance) GetReplicationLag(ctx context.Context) (string, error) {
 		"-c", "SELECT COALESCE(pg_wal_lsn_diff(pg_current_wal_lsn(), replay_lsn), 0) FROM pg_stat_replication WHERE application_name = 'skylex_replica'",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return "", fmt.Errorf("replication lag check: %w\n%s", err, string(output))
 	}
@@ -265,7 +348,7 @@ func (p *Instance) GetVersion(ctx context.Context) (string, error) {
 		"-c", "SELECT version()",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return "", fmt.Errorf("version check: %w\n%s", err, string(output))
 	}
@@ -363,7 +446,7 @@ func (p *Instance) Promote(ctx context.Context) error {
 		"-t", "60",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("pg_ctl promote failed: %w\n%s", err, string(output))
 	}
@@ -390,7 +473,7 @@ func (p *Instance) Rewind(ctx context.Context, targetHost string, targetPort int
 		"-P",
 	)
 
-	output, err := cmd.CombinedOutput()
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
 		return fmt.Errorf("pg_rewind failed: %w\n%s", err, string(output))
 	}

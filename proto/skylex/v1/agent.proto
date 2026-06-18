@@ -10,6 +10,7 @@ service AgentService {
   rpc ReportStatus(ReportStatusRequest) returns (ReportStatusResponse);
   rpc FetchCommand(FetchCommandRequest) returns (FetchCommandResponse);
   rpc ReportCommandResult(ReportCommandResultRequest) returns (ReportCommandResultResponse);
+  rpc ReportCommandLog(ReportCommandLogRequest) returns (ReportCommandLogResponse);
 }
 
 message RegisterAgentRequest {
@@ -75,3 +76,17 @@ message ReportCommandResultRequest {
 }
 
 message ReportCommandResultResponse {}
+
+message CommandLogEntry {
+  string command_id = 1;
+  string level = 2;
+  string message = 3;
+  int64 timestamp_ms = 4;
+}
+
+message ReportCommandLogRequest {
+  string agent_id = 1;
+  repeated CommandLogEntry entries = 2;
+}
+
+message ReportCommandLogResponse {}

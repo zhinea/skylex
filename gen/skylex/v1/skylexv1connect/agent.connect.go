@@ -47,6 +47,9 @@ const (
 	// AgentServiceReportCommandResultProcedure is the fully-qualified name of the AgentService's
 	// ReportCommandResult RPC.
 	AgentServiceReportCommandResultProcedure = "/skylex.v1.AgentService/ReportCommandResult"
+	// AgentServiceReportCommandLogProcedure is the fully-qualified name of the AgentService's
+	// ReportCommandLog RPC.
+	AgentServiceReportCommandLogProcedure = "/skylex.v1.AgentService/ReportCommandLog"
 )
 
 // AgentServiceClient is a client for the skylex.v1.AgentService service.
@@ -56,6 +59,7 @@ type AgentServiceClient interface {
 	ReportStatus(context.Context, *connect.Request[v1.ReportStatusRequest]) (*connect.Response[v1.ReportStatusResponse], error)
 	FetchCommand(context.Context, *connect.Request[v1.FetchCommandRequest]) (*connect.Response[v1.FetchCommandResponse], error)
 	ReportCommandResult(context.Context, *connect.Request[v1.ReportCommandResultRequest]) (*connect.Response[v1.ReportCommandResultResponse], error)
+	ReportCommandLog(context.Context, *connect.Request[v1.ReportCommandLogRequest]) (*connect.Response[v1.ReportCommandLogResponse], error)
 }
 
 // NewAgentServiceClient constructs a client for the skylex.v1.AgentService service. By default, it
@@ -99,6 +103,12 @@ func NewAgentServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 			connect.WithSchema(agentServiceMethods.ByName("ReportCommandResult")),
 			connect.WithClientOptions(opts...),
 		),
+		reportCommandLog: connect.NewClient[v1.ReportCommandLogRequest, v1.ReportCommandLogResponse](
+			httpClient,
+			baseURL+AgentServiceReportCommandLogProcedure,
+			connect.WithSchema(agentServiceMethods.ByName("ReportCommandLog")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -109,6 +119,7 @@ type agentServiceClient struct {
 	reportStatus        *connect.Client[v1.ReportStatusRequest, v1.ReportStatusResponse]
 	fetchCommand        *connect.Client[v1.FetchCommandRequest, v1.FetchCommandResponse]
 	reportCommandResult *connect.Client[v1.ReportCommandResultRequest, v1.ReportCommandResultResponse]
+	reportCommandLog    *connect.Client[v1.ReportCommandLogRequest, v1.ReportCommandLogResponse]
 }
 
 // RegisterAgent calls skylex.v1.AgentService.RegisterAgent.
@@ -136,6 +147,11 @@ func (c *agentServiceClient) ReportCommandResult(ctx context.Context, req *conne
 	return c.reportCommandResult.CallUnary(ctx, req)
 }
 
+// ReportCommandLog calls skylex.v1.AgentService.ReportCommandLog.
+func (c *agentServiceClient) ReportCommandLog(ctx context.Context, req *connect.Request[v1.ReportCommandLogRequest]) (*connect.Response[v1.ReportCommandLogResponse], error) {
+	return c.reportCommandLog.CallUnary(ctx, req)
+}
+
 // AgentServiceHandler is an implementation of the skylex.v1.AgentService service.
 type AgentServiceHandler interface {
 	RegisterAgent(context.Context, *connect.Request[v1.RegisterAgentRequest]) (*connect.Response[v1.RegisterAgentResponse], error)
@@ -143,6 +159,7 @@ type AgentServiceHandler interface {
 	ReportStatus(context.Context, *connect.Request[v1.ReportStatusRequest]) (*connect.Response[v1.ReportStatusResponse], error)
 	FetchCommand(context.Context, *connect.Request[v1.FetchCommandRequest]) (*connect.Response[v1.FetchCommandResponse], error)
 	ReportCommandResult(context.Context, *connect.Request[v1.ReportCommandResultRequest]) (*connect.Response[v1.ReportCommandResultResponse], error)
+	ReportCommandLog(context.Context, *connect.Request[v1.ReportCommandLogRequest]) (*connect.Response[v1.ReportCommandLogResponse], error)
 }
 
 // NewAgentServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -182,6 +199,12 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 		connect.WithSchema(agentServiceMethods.ByName("ReportCommandResult")),
 		connect.WithHandlerOptions(opts...),
 	)
+	agentServiceReportCommandLogHandler := connect.NewUnaryHandler(
+		AgentServiceReportCommandLogProcedure,
+		svc.ReportCommandLog,
+		connect.WithSchema(agentServiceMethods.ByName("ReportCommandLog")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.AgentService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AgentServiceRegisterAgentProcedure:
@@ -194,6 +217,8 @@ func NewAgentServiceHandler(svc AgentServiceHandler, opts ...connect.HandlerOpti
 			agentServiceFetchCommandHandler.ServeHTTP(w, r)
 		case AgentServiceReportCommandResultProcedure:
 			agentServiceReportCommandResultHandler.ServeHTTP(w, r)
+		case AgentServiceReportCommandLogProcedure:
+			agentServiceReportCommandLogHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -221,4 +246,8 @@ func (UnimplementedAgentServiceHandler) FetchCommand(context.Context, *connect.R
 
 func (UnimplementedAgentServiceHandler) ReportCommandResult(context.Context, *connect.Request[v1.ReportCommandResultRequest]) (*connect.Response[v1.ReportCommandResultResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AgentService.ReportCommandResult is not implemented"))
+}
+
+func (UnimplementedAgentServiceHandler) ReportCommandLog(context.Context, *connect.Request[v1.ReportCommandLogRequest]) (*connect.Response[v1.ReportCommandLogResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.AgentService.ReportCommandLog is not implemented"))
 }

@@ -299,6 +299,14 @@ func (c *connectNodeService) RejoinNode(ctx context.Context, req *connect.Reques
 	return connect.NewResponse(resp), nil
 }
 
+func (c *connectNodeService) ListNodeCommandLogs(ctx context.Context, req *connect.Request[skylexv1.ListNodeCommandLogsRequest]) (*connect.Response[skylexv1.ListNodeCommandLogsResponse], error) {
+	resp, err := c.svc.ListNodeCommandLogs(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
 type connectStorageService struct {
 	svc *StorageService
 }

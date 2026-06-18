@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { useParams, Link } from "react-router";
 import { useCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
+import { useCommandLogs } from "~/hooks/useCommandLogs";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
@@ -9,6 +11,8 @@ export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
   const { data: nodesData } = useNodes(id || "");
+  const { data: logsData } = useCommandLogs(id || "");
+  const logsEndRef = useRef<HTMLDivElement>(null);
 
   if (clusterLoading) return <PageSpinner />;
 
@@ -23,6 +27,24 @@ export default function ClusterDetailPage() {
   }
 
   const nodes = nodesData?.nodes || [];
+  const logs = logsData?.logs || [];
+
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
+
+  const levelColor = (level: string) => {
+    switch (level.toLowerCase()) {
+      case "error":
+        return "text-red-600 dark:text-red-400";
+      case "warn":
+        return "text-yellow-600 dark:text-yellow-400";
+      case "debug":
+        return "text-gray-500 dark:text-gray-400";
+      default:
+        return "text-blue-600 dark:text-blue-400";
+    }
+  };
 
   return (
     <div>
@@ -115,6 +137,40 @@ export default function ClusterDetailPage() {
           </div>
         )}
       </Card>
+
+      <div className="mt-6">
+        <Card title="Command Logs">
+          {logs.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+              No command logs yet. Logs appear while the agent executes commands.
+            </p>
+          ) : (
+            <div className="overflow-x-auto max-h-96 overflow-y-auto font-mono text-xs">
+              <table className="w-full">
+                <tbody>
+                  {logs.map((log) => (
+                    <tr key={log.id} className="border-b border-gray-100 dark:border-gray-800">
+                      <td className="px-2 py-1.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
+                        {new Date(log.timestampMs).toLocaleTimeString()}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap text-gray-700 dark:text-gray-300">
+                        {log.hostname || log.nodeId?.slice(0, 8) || "-"}
+                      </td>
+                      <td className="px-2 py-1.5 whitespace-nowrap">
+                        <span className={levelColor(log.level)}>{log.level.toUpperCase()}</span>
+                      </td>
+                      <td className="px-2 py-1.5 text-gray-900 dark:text-white break-all">
+                        {log.message}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr><td colSpan={4}><div ref={logsEndRef} /></td></tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }

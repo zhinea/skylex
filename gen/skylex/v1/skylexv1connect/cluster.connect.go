@@ -67,6 +67,9 @@ const (
 	NodeServiceDrainNodeProcedure = "/skylex.v1.NodeService/DrainNode"
 	// NodeServiceRejoinNodeProcedure is the fully-qualified name of the NodeService's RejoinNode RPC.
 	NodeServiceRejoinNodeProcedure = "/skylex.v1.NodeService/RejoinNode"
+	// NodeServiceListNodeCommandLogsProcedure is the fully-qualified name of the NodeService's
+	// ListNodeCommandLogs RPC.
+	NodeServiceListNodeCommandLogsProcedure = "/skylex.v1.NodeService/ListNodeCommandLogs"
 )
 
 // ClusterServiceClient is a client for the skylex.v1.ClusterService service.
@@ -327,6 +330,7 @@ type NodeServiceClient interface {
 	GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error)
 	DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error)
 	RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error)
+	ListNodeCommandLogs(context.Context, *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error)
 }
 
 // NewNodeServiceClient constructs a client for the skylex.v1.NodeService service. By default, it
@@ -364,15 +368,22 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(nodeServiceMethods.ByName("RejoinNode")),
 			connect.WithClientOptions(opts...),
 		),
+		listNodeCommandLogs: connect.NewClient[v1.ListNodeCommandLogsRequest, v1.ListNodeCommandLogsResponse](
+			httpClient,
+			baseURL+NodeServiceListNodeCommandLogsProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("ListNodeCommandLogs")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // nodeServiceClient implements NodeServiceClient.
 type nodeServiceClient struct {
-	listNodes  *connect.Client[v1.ListNodesRequest, v1.ListNodesResponse]
-	getNode    *connect.Client[v1.GetNodeRequest, v1.GetNodeResponse]
-	drainNode  *connect.Client[v1.DrainNodeRequest, v1.DrainNodeResponse]
-	rejoinNode *connect.Client[v1.RejoinNodeRequest, v1.RejoinNodeResponse]
+	listNodes           *connect.Client[v1.ListNodesRequest, v1.ListNodesResponse]
+	getNode             *connect.Client[v1.GetNodeRequest, v1.GetNodeResponse]
+	drainNode           *connect.Client[v1.DrainNodeRequest, v1.DrainNodeResponse]
+	rejoinNode          *connect.Client[v1.RejoinNodeRequest, v1.RejoinNodeResponse]
+	listNodeCommandLogs *connect.Client[v1.ListNodeCommandLogsRequest, v1.ListNodeCommandLogsResponse]
 }
 
 // ListNodes calls skylex.v1.NodeService.ListNodes.
@@ -395,12 +406,18 @@ func (c *nodeServiceClient) RejoinNode(ctx context.Context, req *connect.Request
 	return c.rejoinNode.CallUnary(ctx, req)
 }
 
+// ListNodeCommandLogs calls skylex.v1.NodeService.ListNodeCommandLogs.
+func (c *nodeServiceClient) ListNodeCommandLogs(ctx context.Context, req *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error) {
+	return c.listNodeCommandLogs.CallUnary(ctx, req)
+}
+
 // NodeServiceHandler is an implementation of the skylex.v1.NodeService service.
 type NodeServiceHandler interface {
 	ListNodes(context.Context, *connect.Request[v1.ListNodesRequest]) (*connect.Response[v1.ListNodesResponse], error)
 	GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error)
 	DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error)
 	RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error)
+	ListNodeCommandLogs(context.Context, *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error)
 }
 
 // NewNodeServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -434,6 +451,12 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(nodeServiceMethods.ByName("RejoinNode")),
 		connect.WithHandlerOptions(opts...),
 	)
+	nodeServiceListNodeCommandLogsHandler := connect.NewUnaryHandler(
+		NodeServiceListNodeCommandLogsProcedure,
+		svc.ListNodeCommandLogs,
+		connect.WithSchema(nodeServiceMethods.ByName("ListNodeCommandLogs")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.NodeService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case NodeServiceListNodesProcedure:
@@ -444,6 +467,8 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceDrainNodeHandler.ServeHTTP(w, r)
 		case NodeServiceRejoinNodeProcedure:
 			nodeServiceRejoinNodeHandler.ServeHTTP(w, r)
+		case NodeServiceListNodeCommandLogsProcedure:
+			nodeServiceListNodeCommandLogsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -467,4 +492,8 @@ func (UnimplementedNodeServiceHandler) DrainNode(context.Context, *connect.Reque
 
 func (UnimplementedNodeServiceHandler) RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.NodeService.RejoinNode is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) ListNodeCommandLogs(context.Context, *connect.Request[v1.ListNodeCommandLogsRequest]) (*connect.Response[v1.ListNodeCommandLogsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.NodeService.ListNodeCommandLogs is not implemented"))
 }

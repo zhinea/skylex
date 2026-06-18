@@ -56,6 +56,24 @@ func (r *AgentCommandRepository) Create(ctx context.Context, agentID, nodeID, ac
 	}, nil
 }
 
+func (r *AgentCommandRepository) GetByID(ctx context.Context, id string) (*AgentCommand, error) {
+	row := r.conn.QueryRowContext(ctx,
+		Rebind(`SELECT id, agent_id, node_id, action, payload, status, result, error, created_at, completed_at
+		 FROM agent_commands WHERE id = ?`), id)
+	var c AgentCommand
+	var result, errMsg sql.NullString
+	if err := row.Scan(&c.ID, &c.AgentID, &c.NodeID, &c.Action, &c.Payload,
+		&c.Status, &result, &errMsg, &c.CreatedAt, &c.CompletedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get command by id: %w", err)
+	}
+	c.Result = result.String
+	c.Error = errMsg.String
+	return &c, nil
+}
+
 func (r *AgentCommandRepository) ListPending(ctx context.Context, agentID, nodeID string) ([]*AgentCommand, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT id, agent_id, node_id, action, payload, status, result, error, created_at, completed_at

@@ -15,13 +15,14 @@ import (
 
 type NodeService struct {
 	skylexv1.UnimplementedNodeServiceServer
-	nodes    *db.NodeRepository
-	commands *db.AgentCommandRepository
-	log      *slog.Logger
+	nodes       *db.NodeRepository
+	commands    *db.AgentCommandRepository
+	commandLogs *db.CommandLogRepository
+	log         *slog.Logger
 }
 
-func NewNodeService(nodes *db.NodeRepository, commands *db.AgentCommandRepository, log *slog.Logger) *NodeService {
-	return &NodeService{nodes: nodes, commands: commands, log: log}
+func NewNodeService(nodes *db.NodeRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, log *slog.Logger) *NodeService {
+	return &NodeService{nodes: nodes, commands: commands, commandLogs: commandLogs, log: log}
 }
 
 func (s *NodeService) ListNodes(ctx context.Context, req *skylexv1.ListNodesRequest) (*skylexv1.ListNodesResponse, error) {
@@ -141,6 +142,83 @@ func (s *NodeService) RejoinNode(ctx context.Context, req *skylexv1.RejoinNodeRe
 
 	s.log.Info("node rejoined", "node_id", node.ID)
 	return &skylexv1.RejoinNodeResponse{}, nil
+}
+
+func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.ListNodeCommandLogsRequest) (*skylexv1.ListNodeCommandLogsResponse, error) {
+	pageSize := int(req.GetPageSize())
+	if pageSize <= 0 {
+		pageSize = 50
+	}
+	if pageSize > 1000 {
+		pageSize = 1000
+	}
+
+	page := int(req.GetPage())
+	if page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * pageSize
+
+	var (
+		logs []*db.CommandLog
+		err  error
+	)
+
+	switch {
+	case req.GetCommandId() != "":
+		logs, err = s.commandLogs.ListByCommandID(ctx, req.GetCommandId(), pageSize, offset)
+	case req.GetNodeId() != "":
+		logs, err = s.commandLogs.ListByNodeID(ctx, req.GetNodeId(), pageSize, offset)
+	case req.GetClusterId() != "":
+		logs, err = s.commandLogs.ListByClusterID(ctx, req.GetClusterId(), pageSize, offset)
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "cluster_id, node_id, or command_id is required")
+	}
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list command logs: %v", err)
+	}
+
+	hostnameMap := make(map[string]string)
+	protoLogs := make([]*skylexv1.CommandLog, 0, len(logs))
+	for _, l := range logs {
+		nodeID := ""
+		cmd, _ := s.commands.GetByID(ctx, l.CommandID)
+		if cmd != nil {
+			nodeID = cmd.NodeID
+		}
+
+		hostname := ""
+		if nodeID != "" {
+			if h, ok := hostnameMap[nodeID]; ok {
+				hostname = h
+			} else {
+				node, _ := s.nodes.GetByID(ctx, nodeID)
+				if node != nil {
+					hostname = node.Hostname
+					hostnameMap[nodeID] = hostname
+				}
+			}
+		}
+
+		protoLogs = append(protoLogs, &skylexv1.CommandLog{
+			Id:          l.ID,
+			CommandId:   l.CommandID,
+			NodeId:      nodeID,
+			Hostname:    hostname,
+			Level:       l.Level,
+			Message:     l.Message,
+			TimestampMs: l.CreatedAt.UnixMilli(),
+		})
+	}
+
+	return &skylexv1.ListNodeCommandLogsResponse{
+		Logs: protoLogs,
+		Pagination: &skylexv1.Pagination{
+			Page:     int32(page),
+			PageSize: int32(pageSize),
+			Total:    int32(len(protoLogs)),
+		},
+	}, nil
 }
 
 func nodeToProto(n *models.Node) *skylexv1.Node {

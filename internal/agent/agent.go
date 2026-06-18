@@ -210,7 +210,12 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 
 	for _, cmd := range resp.GetCommands() {
 		a.log.Info("executing command", "command_id", cmd.GetId(), "action", cmd.GetAction())
-		success, output, errMsg := a.executeCommand(ctx, cmd)
+		logger := newCommandLogger(a.agentID, cmd.GetId(), a.client)
+		logger.Info(fmt.Sprintf("executing command: %s", cmd.GetAction()))
+		cmdCtx := postgres.WithLogSink(ctx, logger)
+		success, output, errMsg := a.executeCommand(cmdCtx, cmd, logger)
+		logger.Info(fmt.Sprintf("command finished: success=%v", success))
+		logger.Close()
 		if reportErr := a.reportCommandResult(ctx, cmd.GetId(), success, output, errMsg); reportErr != nil {
 			a.log.Error("report command result failed", "error", reportErr)
 		}
@@ -219,7 +224,7 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 	return nil
 }
 
-func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand) (bool, string, string) {
+func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
 	switch cmd.GetAction() {
 	case "pg_init":
 		if err := a.pg.InitDB(ctx); err != nil {
@@ -271,6 +276,7 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand) 
 		if len(parts) > 1 {
 			fmt.Sscanf(parts[1], "%d", &primaryPort)
 		}
+		logger.Info(fmt.Sprintf("updating standby signal to %s:%d", primaryHost, primaryPort))
 		if err := a.pg.UpdateStandbySignal(primaryHost, primaryPort); err != nil {
 			return false, "", err.Error()
 		}
@@ -326,8 +332,8 @@ func (a *Agent) reportCommandResult(ctx context.Context, commandID string, succe
 		AgentId:   a.agentID,
 		CommandId: commandID,
 		Success:   success,
-		Output:    output,
-		Error:     errMsg,
+		Output:    RedactSecrets(output),
+		Error:     RedactSecrets(errMsg),
 	})
 	return err
 }

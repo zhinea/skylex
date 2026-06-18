@@ -89,6 +89,7 @@ func (s *Server) Start(ctx context.Context) error {
 	clusterRepo := db.NewClusterRepository(conn, s.log)
 	nodeRepo := db.NewNodeRepository(conn, s.log)
 	commandRepo := db.NewAgentCommandRepository(conn, s.log)
+	commandLogRepo := db.NewCommandLogRepository(conn, s.log)
 	userRepo := db.NewUserRepository(conn, s.log)
 	apiKeyRepo := db.NewAPIKeyRepository(conn, s.log)
 	agentTokenRepo := db.NewAgentTokenRepository(conn, s.log)
@@ -107,8 +108,8 @@ func (s *Server) Start(ctx context.Context) error {
 	s.webhookClient = NewWebhookClient(s.cfg.Webhook.URLs, s.cfg.Webhook.Timeout, s.log)
 
 	s.clusterService = NewClusterService(clusterRepo, nodeRepo, commandRepo, s.log)
-	s.nodeService = NewNodeService(nodeRepo, commandRepo, s.log)
-	s.agentService = NewAgentService(s.cfg, nodeRepo, commandRepo, agentTokenRepo, s.log)
+	s.nodeService = NewNodeService(nodeRepo, commandRepo, commandLogRepo, s.log)
+	s.agentService = NewAgentService(s.cfg, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
 
 	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)

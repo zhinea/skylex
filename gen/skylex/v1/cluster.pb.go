@@ -1133,6 +1133,226 @@ func (x *RejoinNodeResponse) GetNode() *Node {
 	return nil
 }
 
+type ListNodeCommandLogsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	NodeId        string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	CommandId     string                 `protobuf:"bytes,3,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNodeCommandLogsRequest) Reset() {
+	*x = ListNodeCommandLogsRequest{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNodeCommandLogsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNodeCommandLogsRequest) ProtoMessage() {}
+
+func (x *ListNodeCommandLogsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNodeCommandLogsRequest.ProtoReflect.Descriptor instead.
+func (*ListNodeCommandLogsRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ListNodeCommandLogsRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+func (x *ListNodeCommandLogsRequest) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *ListNodeCommandLogsRequest) GetCommandId() string {
+	if x != nil {
+		return x.CommandId
+	}
+	return ""
+}
+
+func (x *ListNodeCommandLogsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListNodeCommandLogsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type CommandLog struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CommandId     string                 `protobuf:"bytes,2,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	NodeId        string                 `protobuf:"bytes,3,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Hostname      string                 `protobuf:"bytes,4,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Level         string                 `protobuf:"bytes,5,opt,name=level,proto3" json:"level,omitempty"`
+	Message       string                 `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	TimestampMs   int64                  `protobuf:"varint,7,opt,name=timestamp_ms,json=timestampMs,proto3" json:"timestamp_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommandLog) Reset() {
+	*x = CommandLog{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommandLog) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommandLog) ProtoMessage() {}
+
+func (x *CommandLog) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommandLog.ProtoReflect.Descriptor instead.
+func (*CommandLog) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CommandLog) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CommandLog) GetCommandId() string {
+	if x != nil {
+		return x.CommandId
+	}
+	return ""
+}
+
+func (x *CommandLog) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *CommandLog) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *CommandLog) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *CommandLog) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CommandLog) GetTimestampMs() int64 {
+	if x != nil {
+		return x.TimestampMs
+	}
+	return 0
+}
+
+type ListNodeCommandLogsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Logs          []*CommandLog          `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs,omitempty"`
+	Pagination    *Pagination            `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListNodeCommandLogsResponse) Reset() {
+	*x = ListNodeCommandLogsResponse{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListNodeCommandLogsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListNodeCommandLogsResponse) ProtoMessage() {}
+
+func (x *ListNodeCommandLogsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListNodeCommandLogsResponse.ProtoReflect.Descriptor instead.
+func (*ListNodeCommandLogsResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *ListNodeCommandLogsResponse) GetLogs() []*CommandLog {
+	if x != nil {
+		return x.Logs
+	}
+	return nil
+}
+
+func (x *ListNodeCommandLogsResponse) GetPagination() *Pagination {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
 var File_skylex_v1_cluster_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_cluster_proto_rawDesc = "" +
@@ -1199,7 +1419,30 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\x11RejoinNodeRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\"9\n" +
 	"\x12RejoinNodeResponse\x12#\n" +
-	"\x04node\x18\x01 \x01(\v2\x0f.skylex.v1.NodeR\x04node2\xa1\x05\n" +
+	"\x04node\x18\x01 \x01(\v2\x0f.skylex.v1.NodeR\x04node\"\xa4\x01\n" +
+	"\x1aListNodeCommandLogsRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x17\n" +
+	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x12\x1d\n" +
+	"\n" +
+	"command_id\x18\x03 \x01(\tR\tcommandId\x12\x12\n" +
+	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\"\xc3\x01\n" +
+	"\n" +
+	"CommandLog\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"command_id\x18\x02 \x01(\tR\tcommandId\x12\x17\n" +
+	"\anode_id\x18\x03 \x01(\tR\x06nodeId\x12\x1a\n" +
+	"\bhostname\x18\x04 \x01(\tR\bhostname\x12\x14\n" +
+	"\x05level\x18\x05 \x01(\tR\x05level\x12\x18\n" +
+	"\amessage\x18\x06 \x01(\tR\amessage\x12!\n" +
+	"\ftimestamp_ms\x18\a \x01(\x03R\vtimestampMs\"\x7f\n" +
+	"\x1bListNodeCommandLogsResponse\x12)\n" +
+	"\x04logs\x18\x01 \x03(\v2\x15.skylex.v1.CommandLogR\x04logs\x125\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x15.skylex.v1.PaginationR\n" +
+	"pagination2\xa1\x05\n" +
 	"\x0eClusterService\x12R\n" +
 	"\rCreateCluster\x12\x1f.skylex.v1.CreateClusterRequest\x1a .skylex.v1.CreateClusterResponse\x12I\n" +
 	"\n" +
@@ -1209,13 +1452,14 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\rDeleteCluster\x12\x1f.skylex.v1.DeleteClusterRequest\x1a .skylex.v1.DeleteClusterResponse\x12X\n" +
 	"\x0fFailoverCluster\x12!.skylex.v1.FailoverClusterRequest\x1a\".skylex.v1.FailoverClusterResponse\x12L\n" +
 	"\vRestartNode\x12\x1d.skylex.v1.RestartNodeRequest\x1a\x1e.skylex.v1.RestartNodeResponse\x12O\n" +
-	"\fScaleCluster\x12\x1e.skylex.v1.ScaleClusterRequest\x1a\x1f.skylex.v1.ScaleClusterResponse2\xaa\x02\n" +
+	"\fScaleCluster\x12\x1e.skylex.v1.ScaleClusterRequest\x1a\x1f.skylex.v1.ScaleClusterResponse2\x90\x03\n" +
 	"\vNodeService\x12F\n" +
 	"\tListNodes\x12\x1b.skylex.v1.ListNodesRequest\x1a\x1c.skylex.v1.ListNodesResponse\x12@\n" +
 	"\aGetNode\x12\x19.skylex.v1.GetNodeRequest\x1a\x1a.skylex.v1.GetNodeResponse\x12F\n" +
 	"\tDrainNode\x12\x1b.skylex.v1.DrainNodeRequest\x1a\x1c.skylex.v1.DrainNodeResponse\x12I\n" +
 	"\n" +
-	"RejoinNode\x12\x1c.skylex.v1.RejoinNodeRequest\x1a\x1d.skylex.v1.RejoinNodeResponseB\x93\x01\n" +
+	"RejoinNode\x12\x1c.skylex.v1.RejoinNodeRequest\x1a\x1d.skylex.v1.RejoinNodeResponse\x12d\n" +
+	"\x13ListNodeCommandLogs\x12%.skylex.v1.ListNodeCommandLogsRequest\x1a&.skylex.v1.ListNodeCommandLogsResponseB\x93\x01\n" +
 	"\rcom.skylex.v1B\fClusterProtoP\x01Z/github.com/zhinea/skylex/gen/skylex/v1;skylexv1\xa2\x02\x03SXX\xaa\x02\tSkylex.V1\xca\x02\tSkylex\\V1\xe2\x02\x15Skylex\\V1\\GPBMetadata\xea\x02\n" +
 	"Skylex::V1b\x06proto3"
 
@@ -1231,82 +1475,89 @@ func file_skylex_v1_cluster_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_cluster_proto_rawDescData
 }
 
-var file_skylex_v1_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_skylex_v1_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_skylex_v1_cluster_proto_goTypes = []any{
-	(*CreateClusterRequest)(nil),    // 0: skylex.v1.CreateClusterRequest
-	(*CreateClusterResponse)(nil),   // 1: skylex.v1.CreateClusterResponse
-	(*GetClusterRequest)(nil),       // 2: skylex.v1.GetClusterRequest
-	(*GetClusterResponse)(nil),      // 3: skylex.v1.GetClusterResponse
-	(*ListClustersRequest)(nil),     // 4: skylex.v1.ListClustersRequest
-	(*ListClustersResponse)(nil),    // 5: skylex.v1.ListClustersResponse
-	(*UpdateClusterRequest)(nil),    // 6: skylex.v1.UpdateClusterRequest
-	(*UpdateClusterResponse)(nil),   // 7: skylex.v1.UpdateClusterResponse
-	(*DeleteClusterRequest)(nil),    // 8: skylex.v1.DeleteClusterRequest
-	(*DeleteClusterResponse)(nil),   // 9: skylex.v1.DeleteClusterResponse
-	(*FailoverClusterRequest)(nil),  // 10: skylex.v1.FailoverClusterRequest
-	(*FailoverClusterResponse)(nil), // 11: skylex.v1.FailoverClusterResponse
-	(*RestartNodeRequest)(nil),      // 12: skylex.v1.RestartNodeRequest
-	(*RestartNodeResponse)(nil),     // 13: skylex.v1.RestartNodeResponse
-	(*ScaleClusterRequest)(nil),     // 14: skylex.v1.ScaleClusterRequest
-	(*ScaleClusterResponse)(nil),    // 15: skylex.v1.ScaleClusterResponse
-	(*ListNodesRequest)(nil),        // 16: skylex.v1.ListNodesRequest
-	(*ListNodesResponse)(nil),       // 17: skylex.v1.ListNodesResponse
-	(*GetNodeRequest)(nil),          // 18: skylex.v1.GetNodeRequest
-	(*GetNodeResponse)(nil),         // 19: skylex.v1.GetNodeResponse
-	(*DrainNodeRequest)(nil),        // 20: skylex.v1.DrainNodeRequest
-	(*DrainNodeResponse)(nil),       // 21: skylex.v1.DrainNodeResponse
-	(*RejoinNodeRequest)(nil),       // 22: skylex.v1.RejoinNodeRequest
-	(*RejoinNodeResponse)(nil),      // 23: skylex.v1.RejoinNodeResponse
-	(*ClusterConfig)(nil),           // 24: skylex.v1.ClusterConfig
-	(*Cluster)(nil),                 // 25: skylex.v1.Cluster
-	(*Pagination)(nil),              // 26: skylex.v1.Pagination
-	(*Node)(nil),                    // 27: skylex.v1.Node
+	(*CreateClusterRequest)(nil),        // 0: skylex.v1.CreateClusterRequest
+	(*CreateClusterResponse)(nil),       // 1: skylex.v1.CreateClusterResponse
+	(*GetClusterRequest)(nil),           // 2: skylex.v1.GetClusterRequest
+	(*GetClusterResponse)(nil),          // 3: skylex.v1.GetClusterResponse
+	(*ListClustersRequest)(nil),         // 4: skylex.v1.ListClustersRequest
+	(*ListClustersResponse)(nil),        // 5: skylex.v1.ListClustersResponse
+	(*UpdateClusterRequest)(nil),        // 6: skylex.v1.UpdateClusterRequest
+	(*UpdateClusterResponse)(nil),       // 7: skylex.v1.UpdateClusterResponse
+	(*DeleteClusterRequest)(nil),        // 8: skylex.v1.DeleteClusterRequest
+	(*DeleteClusterResponse)(nil),       // 9: skylex.v1.DeleteClusterResponse
+	(*FailoverClusterRequest)(nil),      // 10: skylex.v1.FailoverClusterRequest
+	(*FailoverClusterResponse)(nil),     // 11: skylex.v1.FailoverClusterResponse
+	(*RestartNodeRequest)(nil),          // 12: skylex.v1.RestartNodeRequest
+	(*RestartNodeResponse)(nil),         // 13: skylex.v1.RestartNodeResponse
+	(*ScaleClusterRequest)(nil),         // 14: skylex.v1.ScaleClusterRequest
+	(*ScaleClusterResponse)(nil),        // 15: skylex.v1.ScaleClusterResponse
+	(*ListNodesRequest)(nil),            // 16: skylex.v1.ListNodesRequest
+	(*ListNodesResponse)(nil),           // 17: skylex.v1.ListNodesResponse
+	(*GetNodeRequest)(nil),              // 18: skylex.v1.GetNodeRequest
+	(*GetNodeResponse)(nil),             // 19: skylex.v1.GetNodeResponse
+	(*DrainNodeRequest)(nil),            // 20: skylex.v1.DrainNodeRequest
+	(*DrainNodeResponse)(nil),           // 21: skylex.v1.DrainNodeResponse
+	(*RejoinNodeRequest)(nil),           // 22: skylex.v1.RejoinNodeRequest
+	(*RejoinNodeResponse)(nil),          // 23: skylex.v1.RejoinNodeResponse
+	(*ListNodeCommandLogsRequest)(nil),  // 24: skylex.v1.ListNodeCommandLogsRequest
+	(*CommandLog)(nil),                  // 25: skylex.v1.CommandLog
+	(*ListNodeCommandLogsResponse)(nil), // 26: skylex.v1.ListNodeCommandLogsResponse
+	(*ClusterConfig)(nil),               // 27: skylex.v1.ClusterConfig
+	(*Cluster)(nil),                     // 28: skylex.v1.Cluster
+	(*Pagination)(nil),                  // 29: skylex.v1.Pagination
+	(*Node)(nil),                        // 30: skylex.v1.Node
 }
 var file_skylex_v1_cluster_proto_depIdxs = []int32{
-	24, // 0: skylex.v1.CreateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
-	25, // 1: skylex.v1.CreateClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	25, // 2: skylex.v1.GetClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	25, // 3: skylex.v1.ListClustersResponse.clusters:type_name -> skylex.v1.Cluster
-	26, // 4: skylex.v1.ListClustersResponse.pagination:type_name -> skylex.v1.Pagination
-	24, // 5: skylex.v1.UpdateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
-	25, // 6: skylex.v1.UpdateClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	25, // 7: skylex.v1.FailoverClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	27, // 8: skylex.v1.RestartNodeResponse.node:type_name -> skylex.v1.Node
-	25, // 9: skylex.v1.ScaleClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	27, // 10: skylex.v1.ListNodesResponse.nodes:type_name -> skylex.v1.Node
-	26, // 11: skylex.v1.ListNodesResponse.pagination:type_name -> skylex.v1.Pagination
-	27, // 12: skylex.v1.GetNodeResponse.node:type_name -> skylex.v1.Node
-	27, // 13: skylex.v1.DrainNodeResponse.node:type_name -> skylex.v1.Node
-	27, // 14: skylex.v1.RejoinNodeResponse.node:type_name -> skylex.v1.Node
-	0,  // 15: skylex.v1.ClusterService.CreateCluster:input_type -> skylex.v1.CreateClusterRequest
-	2,  // 16: skylex.v1.ClusterService.GetCluster:input_type -> skylex.v1.GetClusterRequest
-	4,  // 17: skylex.v1.ClusterService.ListClusters:input_type -> skylex.v1.ListClustersRequest
-	6,  // 18: skylex.v1.ClusterService.UpdateCluster:input_type -> skylex.v1.UpdateClusterRequest
-	8,  // 19: skylex.v1.ClusterService.DeleteCluster:input_type -> skylex.v1.DeleteClusterRequest
-	10, // 20: skylex.v1.ClusterService.FailoverCluster:input_type -> skylex.v1.FailoverClusterRequest
-	12, // 21: skylex.v1.ClusterService.RestartNode:input_type -> skylex.v1.RestartNodeRequest
-	14, // 22: skylex.v1.ClusterService.ScaleCluster:input_type -> skylex.v1.ScaleClusterRequest
-	16, // 23: skylex.v1.NodeService.ListNodes:input_type -> skylex.v1.ListNodesRequest
-	18, // 24: skylex.v1.NodeService.GetNode:input_type -> skylex.v1.GetNodeRequest
-	20, // 25: skylex.v1.NodeService.DrainNode:input_type -> skylex.v1.DrainNodeRequest
-	22, // 26: skylex.v1.NodeService.RejoinNode:input_type -> skylex.v1.RejoinNodeRequest
-	1,  // 27: skylex.v1.ClusterService.CreateCluster:output_type -> skylex.v1.CreateClusterResponse
-	3,  // 28: skylex.v1.ClusterService.GetCluster:output_type -> skylex.v1.GetClusterResponse
-	5,  // 29: skylex.v1.ClusterService.ListClusters:output_type -> skylex.v1.ListClustersResponse
-	7,  // 30: skylex.v1.ClusterService.UpdateCluster:output_type -> skylex.v1.UpdateClusterResponse
-	9,  // 31: skylex.v1.ClusterService.DeleteCluster:output_type -> skylex.v1.DeleteClusterResponse
-	11, // 32: skylex.v1.ClusterService.FailoverCluster:output_type -> skylex.v1.FailoverClusterResponse
-	13, // 33: skylex.v1.ClusterService.RestartNode:output_type -> skylex.v1.RestartNodeResponse
-	15, // 34: skylex.v1.ClusterService.ScaleCluster:output_type -> skylex.v1.ScaleClusterResponse
-	17, // 35: skylex.v1.NodeService.ListNodes:output_type -> skylex.v1.ListNodesResponse
-	19, // 36: skylex.v1.NodeService.GetNode:output_type -> skylex.v1.GetNodeResponse
-	21, // 37: skylex.v1.NodeService.DrainNode:output_type -> skylex.v1.DrainNodeResponse
-	23, // 38: skylex.v1.NodeService.RejoinNode:output_type -> skylex.v1.RejoinNodeResponse
-	27, // [27:39] is the sub-list for method output_type
-	15, // [15:27] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	27, // 0: skylex.v1.CreateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
+	28, // 1: skylex.v1.CreateClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	28, // 2: skylex.v1.GetClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	28, // 3: skylex.v1.ListClustersResponse.clusters:type_name -> skylex.v1.Cluster
+	29, // 4: skylex.v1.ListClustersResponse.pagination:type_name -> skylex.v1.Pagination
+	27, // 5: skylex.v1.UpdateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
+	28, // 6: skylex.v1.UpdateClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	28, // 7: skylex.v1.FailoverClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	30, // 8: skylex.v1.RestartNodeResponse.node:type_name -> skylex.v1.Node
+	28, // 9: skylex.v1.ScaleClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	30, // 10: skylex.v1.ListNodesResponse.nodes:type_name -> skylex.v1.Node
+	29, // 11: skylex.v1.ListNodesResponse.pagination:type_name -> skylex.v1.Pagination
+	30, // 12: skylex.v1.GetNodeResponse.node:type_name -> skylex.v1.Node
+	30, // 13: skylex.v1.DrainNodeResponse.node:type_name -> skylex.v1.Node
+	30, // 14: skylex.v1.RejoinNodeResponse.node:type_name -> skylex.v1.Node
+	25, // 15: skylex.v1.ListNodeCommandLogsResponse.logs:type_name -> skylex.v1.CommandLog
+	29, // 16: skylex.v1.ListNodeCommandLogsResponse.pagination:type_name -> skylex.v1.Pagination
+	0,  // 17: skylex.v1.ClusterService.CreateCluster:input_type -> skylex.v1.CreateClusterRequest
+	2,  // 18: skylex.v1.ClusterService.GetCluster:input_type -> skylex.v1.GetClusterRequest
+	4,  // 19: skylex.v1.ClusterService.ListClusters:input_type -> skylex.v1.ListClustersRequest
+	6,  // 20: skylex.v1.ClusterService.UpdateCluster:input_type -> skylex.v1.UpdateClusterRequest
+	8,  // 21: skylex.v1.ClusterService.DeleteCluster:input_type -> skylex.v1.DeleteClusterRequest
+	10, // 22: skylex.v1.ClusterService.FailoverCluster:input_type -> skylex.v1.FailoverClusterRequest
+	12, // 23: skylex.v1.ClusterService.RestartNode:input_type -> skylex.v1.RestartNodeRequest
+	14, // 24: skylex.v1.ClusterService.ScaleCluster:input_type -> skylex.v1.ScaleClusterRequest
+	16, // 25: skylex.v1.NodeService.ListNodes:input_type -> skylex.v1.ListNodesRequest
+	18, // 26: skylex.v1.NodeService.GetNode:input_type -> skylex.v1.GetNodeRequest
+	20, // 27: skylex.v1.NodeService.DrainNode:input_type -> skylex.v1.DrainNodeRequest
+	22, // 28: skylex.v1.NodeService.RejoinNode:input_type -> skylex.v1.RejoinNodeRequest
+	24, // 29: skylex.v1.NodeService.ListNodeCommandLogs:input_type -> skylex.v1.ListNodeCommandLogsRequest
+	1,  // 30: skylex.v1.ClusterService.CreateCluster:output_type -> skylex.v1.CreateClusterResponse
+	3,  // 31: skylex.v1.ClusterService.GetCluster:output_type -> skylex.v1.GetClusterResponse
+	5,  // 32: skylex.v1.ClusterService.ListClusters:output_type -> skylex.v1.ListClustersResponse
+	7,  // 33: skylex.v1.ClusterService.UpdateCluster:output_type -> skylex.v1.UpdateClusterResponse
+	9,  // 34: skylex.v1.ClusterService.DeleteCluster:output_type -> skylex.v1.DeleteClusterResponse
+	11, // 35: skylex.v1.ClusterService.FailoverCluster:output_type -> skylex.v1.FailoverClusterResponse
+	13, // 36: skylex.v1.ClusterService.RestartNode:output_type -> skylex.v1.RestartNodeResponse
+	15, // 37: skylex.v1.ClusterService.ScaleCluster:output_type -> skylex.v1.ScaleClusterResponse
+	17, // 38: skylex.v1.NodeService.ListNodes:output_type -> skylex.v1.ListNodesResponse
+	19, // 39: skylex.v1.NodeService.GetNode:output_type -> skylex.v1.GetNodeResponse
+	21, // 40: skylex.v1.NodeService.DrainNode:output_type -> skylex.v1.DrainNodeResponse
+	23, // 41: skylex.v1.NodeService.RejoinNode:output_type -> skylex.v1.RejoinNodeResponse
+	26, // 42: skylex.v1.NodeService.ListNodeCommandLogs:output_type -> skylex.v1.ListNodeCommandLogsResponse
+	30, // [30:43] is the sub-list for method output_type
+	17, // [17:30] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_cluster_proto_init() }
@@ -1321,7 +1572,7 @@ func file_skylex_v1_cluster_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_cluster_proto_rawDesc), len(file_skylex_v1_cluster_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   24,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

@@ -387,10 +387,11 @@ var ClusterService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	NodeService_ListNodes_FullMethodName  = "/skylex.v1.NodeService/ListNodes"
-	NodeService_GetNode_FullMethodName    = "/skylex.v1.NodeService/GetNode"
-	NodeService_DrainNode_FullMethodName  = "/skylex.v1.NodeService/DrainNode"
-	NodeService_RejoinNode_FullMethodName = "/skylex.v1.NodeService/RejoinNode"
+	NodeService_ListNodes_FullMethodName           = "/skylex.v1.NodeService/ListNodes"
+	NodeService_GetNode_FullMethodName             = "/skylex.v1.NodeService/GetNode"
+	NodeService_DrainNode_FullMethodName           = "/skylex.v1.NodeService/DrainNode"
+	NodeService_RejoinNode_FullMethodName          = "/skylex.v1.NodeService/RejoinNode"
+	NodeService_ListNodeCommandLogs_FullMethodName = "/skylex.v1.NodeService/ListNodeCommandLogs"
 )
 
 // NodeServiceClient is the client API for NodeService service.
@@ -401,6 +402,7 @@ type NodeServiceClient interface {
 	GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error)
 	DrainNode(ctx context.Context, in *DrainNodeRequest, opts ...grpc.CallOption) (*DrainNodeResponse, error)
 	RejoinNode(ctx context.Context, in *RejoinNodeRequest, opts ...grpc.CallOption) (*RejoinNodeResponse, error)
+	ListNodeCommandLogs(ctx context.Context, in *ListNodeCommandLogsRequest, opts ...grpc.CallOption) (*ListNodeCommandLogsResponse, error)
 }
 
 type nodeServiceClient struct {
@@ -451,6 +453,16 @@ func (c *nodeServiceClient) RejoinNode(ctx context.Context, in *RejoinNodeReques
 	return out, nil
 }
 
+func (c *nodeServiceClient) ListNodeCommandLogs(ctx context.Context, in *ListNodeCommandLogsRequest, opts ...grpc.CallOption) (*ListNodeCommandLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNodeCommandLogsResponse)
+	err := c.cc.Invoke(ctx, NodeService_ListNodeCommandLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NodeServiceServer is the server API for NodeService service.
 // All implementations must embed UnimplementedNodeServiceServer
 // for forward compatibility.
@@ -459,6 +471,7 @@ type NodeServiceServer interface {
 	GetNode(context.Context, *GetNodeRequest) (*GetNodeResponse, error)
 	DrainNode(context.Context, *DrainNodeRequest) (*DrainNodeResponse, error)
 	RejoinNode(context.Context, *RejoinNodeRequest) (*RejoinNodeResponse, error)
+	ListNodeCommandLogs(context.Context, *ListNodeCommandLogsRequest) (*ListNodeCommandLogsResponse, error)
 	mustEmbedUnimplementedNodeServiceServer()
 }
 
@@ -480,6 +493,9 @@ func (UnimplementedNodeServiceServer) DrainNode(context.Context, *DrainNodeReque
 }
 func (UnimplementedNodeServiceServer) RejoinNode(context.Context, *RejoinNodeRequest) (*RejoinNodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RejoinNode not implemented")
+}
+func (UnimplementedNodeServiceServer) ListNodeCommandLogs(context.Context, *ListNodeCommandLogsRequest) (*ListNodeCommandLogsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNodeCommandLogs not implemented")
 }
 func (UnimplementedNodeServiceServer) mustEmbedUnimplementedNodeServiceServer() {}
 func (UnimplementedNodeServiceServer) testEmbeddedByValue()                     {}
@@ -574,6 +590,24 @@ func _NodeService_RejoinNode_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NodeService_ListNodeCommandLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNodeCommandLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).ListNodeCommandLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_ListNodeCommandLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).ListNodeCommandLogs(ctx, req.(*ListNodeCommandLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NodeService_ServiceDesc is the grpc.ServiceDesc for NodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -596,6 +630,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RejoinNode",
 			Handler:    _NodeService_RejoinNode_Handler,
+		},
+		{
+			MethodName: "ListNodeCommandLogs",
+			Handler:    _NodeService_ListNodeCommandLogs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

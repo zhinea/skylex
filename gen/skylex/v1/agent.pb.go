@@ -701,6 +701,162 @@ func (*ReportCommandResultResponse) Descriptor() ([]byte, []int) {
 	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{11}
 }
 
+type CommandLogEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CommandId     string                 `protobuf:"bytes,1,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	Level         string                 `protobuf:"bytes,2,opt,name=level,proto3" json:"level,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TimestampMs   int64                  `protobuf:"varint,4,opt,name=timestamp_ms,json=timestampMs,proto3" json:"timestamp_ms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommandLogEntry) Reset() {
+	*x = CommandLogEntry{}
+	mi := &file_skylex_v1_agent_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommandLogEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommandLogEntry) ProtoMessage() {}
+
+func (x *CommandLogEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_agent_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommandLogEntry.ProtoReflect.Descriptor instead.
+func (*CommandLogEntry) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CommandLogEntry) GetCommandId() string {
+	if x != nil {
+		return x.CommandId
+	}
+	return ""
+}
+
+func (x *CommandLogEntry) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *CommandLogEntry) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *CommandLogEntry) GetTimestampMs() int64 {
+	if x != nil {
+		return x.TimestampMs
+	}
+	return 0
+}
+
+type ReportCommandLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AgentId       string                 `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Entries       []*CommandLogEntry     `protobuf:"bytes,2,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportCommandLogRequest) Reset() {
+	*x = ReportCommandLogRequest{}
+	mi := &file_skylex_v1_agent_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportCommandLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportCommandLogRequest) ProtoMessage() {}
+
+func (x *ReportCommandLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_agent_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportCommandLogRequest.ProtoReflect.Descriptor instead.
+func (*ReportCommandLogRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ReportCommandLogRequest) GetAgentId() string {
+	if x != nil {
+		return x.AgentId
+	}
+	return ""
+}
+
+func (x *ReportCommandLogRequest) GetEntries() []*CommandLogEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type ReportCommandLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReportCommandLogResponse) Reset() {
+	*x = ReportCommandLogResponse{}
+	mi := &file_skylex_v1_agent_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReportCommandLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReportCommandLogResponse) ProtoMessage() {}
+
+func (x *ReportCommandLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_agent_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReportCommandLogResponse.ProtoReflect.Descriptor instead.
+func (*ReportCommandLogResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{14}
+}
+
 var File_skylex_v1_agent_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_agent_proto_rawDesc = "" +
@@ -753,13 +909,24 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\asuccess\x18\x03 \x01(\bR\asuccess\x12\x16\n" +
 	"\x06output\x18\x04 \x01(\tR\x06output\x12\x14\n" +
 	"\x05error\x18\x05 \x01(\tR\x05error\"\x1d\n" +
-	"\x1bReportCommandResultResponse2\xb2\x03\n" +
+	"\x1bReportCommandResultResponse\"\x83\x01\n" +
+	"\x0fCommandLogEntry\x12\x1d\n" +
+	"\n" +
+	"command_id\x18\x01 \x01(\tR\tcommandId\x12\x14\n" +
+	"\x05level\x18\x02 \x01(\tR\x05level\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12!\n" +
+	"\ftimestamp_ms\x18\x04 \x01(\x03R\vtimestampMs\"j\n" +
+	"\x17ReportCommandLogRequest\x12\x19\n" +
+	"\bagent_id\x18\x01 \x01(\tR\aagentId\x124\n" +
+	"\aentries\x18\x02 \x03(\v2\x1a.skylex.v1.CommandLogEntryR\aentries\"\x1a\n" +
+	"\x18ReportCommandLogResponse2\x8f\x04\n" +
 	"\fAgentService\x12R\n" +
 	"\rRegisterAgent\x12\x1f.skylex.v1.RegisterAgentRequest\x1a .skylex.v1.RegisterAgentResponse\x12F\n" +
 	"\tHeartbeat\x12\x1b.skylex.v1.HeartbeatRequest\x1a\x1c.skylex.v1.HeartbeatResponse\x12O\n" +
 	"\fReportStatus\x12\x1e.skylex.v1.ReportStatusRequest\x1a\x1f.skylex.v1.ReportStatusResponse\x12O\n" +
 	"\fFetchCommand\x12\x1e.skylex.v1.FetchCommandRequest\x1a\x1f.skylex.v1.FetchCommandResponse\x12d\n" +
-	"\x13ReportCommandResult\x12%.skylex.v1.ReportCommandResultRequest\x1a&.skylex.v1.ReportCommandResultResponseB\x91\x01\n" +
+	"\x13ReportCommandResult\x12%.skylex.v1.ReportCommandResultRequest\x1a&.skylex.v1.ReportCommandResultResponse\x12[\n" +
+	"\x10ReportCommandLog\x12\".skylex.v1.ReportCommandLogRequest\x1a#.skylex.v1.ReportCommandLogResponseB\x91\x01\n" +
 	"\rcom.skylex.v1B\n" +
 	"AgentProtoP\x01Z/github.com/zhinea/skylex/gen/skylex/v1;skylexv1\xa2\x02\x03SXX\xaa\x02\tSkylex.V1\xca\x02\tSkylex\\V1\xe2\x02\x15Skylex\\V1\\GPBMetadata\xea\x02\n" +
 	"Skylex::V1b\x06proto3"
@@ -776,7 +943,7 @@ func file_skylex_v1_agent_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_agent_proto_rawDescData
 }
 
-var file_skylex_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_skylex_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_skylex_v1_agent_proto_goTypes = []any{
 	(*RegisterAgentRequest)(nil),        // 0: skylex.v1.RegisterAgentRequest
 	(*RegisterAgentResponse)(nil),       // 1: skylex.v1.RegisterAgentResponse
@@ -790,29 +957,35 @@ var file_skylex_v1_agent_proto_goTypes = []any{
 	(*FetchCommandResponse)(nil),        // 9: skylex.v1.FetchCommandResponse
 	(*ReportCommandResultRequest)(nil),  // 10: skylex.v1.ReportCommandResultRequest
 	(*ReportCommandResultResponse)(nil), // 11: skylex.v1.ReportCommandResultResponse
-	nil,                                 // 12: skylex.v1.RegisterAgentRequest.LabelsEntry
-	(NodeRole)(0),                       // 13: skylex.v1.NodeRole
+	(*CommandLogEntry)(nil),             // 12: skylex.v1.CommandLogEntry
+	(*ReportCommandLogRequest)(nil),     // 13: skylex.v1.ReportCommandLogRequest
+	(*ReportCommandLogResponse)(nil),    // 14: skylex.v1.ReportCommandLogResponse
+	nil,                                 // 15: skylex.v1.RegisterAgentRequest.LabelsEntry
+	(NodeRole)(0),                       // 16: skylex.v1.NodeRole
 }
 var file_skylex_v1_agent_proto_depIdxs = []int32{
-	12, // 0: skylex.v1.RegisterAgentRequest.labels:type_name -> skylex.v1.RegisterAgentRequest.LabelsEntry
-	13, // 1: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
+	15, // 0: skylex.v1.RegisterAgentRequest.labels:type_name -> skylex.v1.RegisterAgentRequest.LabelsEntry
+	16, // 1: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
 	4,  // 2: skylex.v1.ReportStatusRequest.node_statuses:type_name -> skylex.v1.NodeStatusReport
 	7,  // 3: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
-	0,  // 4: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
-	2,  // 5: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
-	5,  // 6: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
-	8,  // 7: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
-	10, // 8: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
-	1,  // 9: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
-	3,  // 10: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
-	6,  // 11: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
-	9,  // 12: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
-	11, // 13: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
-	9,  // [9:14] is the sub-list for method output_type
-	4,  // [4:9] is the sub-list for method input_type
-	4,  // [4:4] is the sub-list for extension type_name
-	4,  // [4:4] is the sub-list for extension extendee
-	0,  // [0:4] is the sub-list for field type_name
+	12, // 4: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
+	0,  // 5: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
+	2,  // 6: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
+	5,  // 7: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
+	8,  // 8: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
+	10, // 9: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
+	13, // 10: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
+	1,  // 11: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
+	3,  // 12: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
+	6,  // 13: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
+	9,  // 14: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
+	11, // 15: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
+	14, // 16: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
+	11, // [11:17] is the sub-list for method output_type
+	5,  // [5:11] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_agent_proto_init() }
@@ -827,7 +1000,7 @@ func file_skylex_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_agent_proto_rawDesc), len(file_skylex_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

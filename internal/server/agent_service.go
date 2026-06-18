@@ -21,15 +21,17 @@ type AgentService struct {
 	cfg            *Config
 	nodes          *db.NodeRepository
 	commands       *db.AgentCommandRepository
+	commandLogs    *db.CommandLogRepository
 	agentTokenRepo *db.AgentTokenRepository
 	log            *slog.Logger
 }
 
-func NewAgentService(cfg *Config, nodes *db.NodeRepository, commands *db.AgentCommandRepository, agentTokenRepo *db.AgentTokenRepository, log *slog.Logger) *AgentService {
+func NewAgentService(cfg *Config, nodes *db.NodeRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, agentTokenRepo *db.AgentTokenRepository, log *slog.Logger) *AgentService {
 	return &AgentService{
 		cfg:            cfg,
 		nodes:          nodes,
 		commands:       commands,
+		commandLogs:    commandLogs,
 		agentTokenRepo: agentTokenRepo,
 		log:            log,
 	}
@@ -199,4 +201,46 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	}
 
 	return &skylexv1.ReportCommandResultResponse{}, nil
+}
+
+func (s *AgentService) ReportCommandLog(ctx context.Context, req *skylexv1.ReportCommandLogRequest) (*skylexv1.ReportCommandLogResponse, error) {
+	node, _ := s.nodes.GetByAgentID(ctx, req.GetAgentId())
+	nodeID := ""
+	if node != nil {
+		nodeID = node.ID
+	}
+
+	entries := req.GetEntries()
+	if len(entries) == 0 {
+		return &skylexv1.ReportCommandLogResponse{}, nil
+	}
+
+	logs := make([]*db.CommandLog, 0, len(entries))
+	for _, e := range entries {
+		level := e.GetLevel()
+		if level == "" {
+			level = "info"
+		}
+		logs = append(logs, &db.CommandLog{
+			CommandID: e.GetCommandId(),
+			AgentID:   req.GetAgentId(),
+			Level:     level,
+			Message:   e.GetMessage(),
+			CreatedAt: timeFromMillis(e.GetTimestampMs()),
+		})
+	}
+
+	if err := s.commandLogs.CreateBatch(ctx, logs); err != nil {
+		s.log.Warn("failed to store command logs", "agent_id", req.GetAgentId(), "node_id", nodeID, "count", len(logs), "error", err)
+		return nil, status.Errorf(codes.Internal, "store command logs: %v", err)
+	}
+
+	return &skylexv1.ReportCommandLogResponse{}, nil
+}
+
+func timeFromMillis(ms int64) time.Time {
+	if ms <= 0 {
+		return time.Now().UTC()
+	}
+	return time.UnixMilli(ms).UTC()
 }
