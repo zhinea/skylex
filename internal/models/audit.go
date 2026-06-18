@@ -5,18 +5,21 @@ import "time"
 type AuditAction string
 
 const (
-	AuditActionCreateCluster AuditAction = "cluster.create"
-	AuditActionUpdateCluster AuditAction = "cluster.update"
-	AuditActionDeleteCluster AuditAction = "cluster.delete"
-	AuditActionFailover      AuditAction = "cluster.failover"
-	AuditActionCreateBackup  AuditAction = "backup.create"
-	AuditActionDeleteBackup  AuditAction = "backup.delete"
-	AuditActionRestore       AuditAction = "restore.create"
-	AuditActionLogin         AuditAction = "auth.login"
-	AuditActionCreateUser    AuditAction = "user.create"
-	AuditActionDeleteUser    AuditAction = "user.delete"
-	AuditActionCreateToken   AuditAction = "token.create"
-	AuditActionDeleteToken   AuditAction = "token.delete"
+	AuditActionCreateCluster          AuditAction = "cluster.create"
+	AuditActionUpdateCluster          AuditAction = "cluster.update"
+	AuditActionDeleteCluster          AuditAction = "cluster.delete"
+	AuditActionFailover               AuditAction = "cluster.failover"
+	AuditActionCreateBackup           AuditAction = "backup.create"
+	AuditActionDeleteBackup           AuditAction = "backup.delete"
+	AuditActionRestore                AuditAction = "restore.create"
+	AuditActionLogin                  AuditAction = "auth.login"
+	AuditActionCreateUser             AuditAction = "user.create"
+	AuditActionDeleteUser             AuditAction = "user.delete"
+	AuditActionCreateToken            AuditAction = "token.create"
+	AuditActionDeleteToken            AuditAction = "token.delete"
+	AuditActionDrainNode              AuditAction = "node.drain"
+	AuditActionRejoinNode             AuditAction = "node.rejoin"
+	AuditActionResolveConflict        AuditAction = "node.resolve_conflict"
 )
 
 type AuditLog struct {

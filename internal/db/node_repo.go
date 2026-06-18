@@ -193,32 +193,6 @@ func (r *NodeRepository) GetByIDs(ctx context.Context, ids []string) ([]*models.
 	return result, nil
 }
 
-// ListUnassigned returns up to limit nodes that are not part of any cluster.
-func (r *NodeRepository) ListUnassigned(ctx context.Context, limit int) ([]*models.Node, error) {
-	if limit <= 0 {
-		limit = 100
-	}
-
-	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE (cluster_id IS NULL OR cluster_id = '') ORDER BY created_at ASC LIMIT ?`),
-		limit)
-	if err != nil {
-		return nil, fmt.Errorf("query unassigned nodes: %w", err)
-	}
-	defer rows.Close()
-
-	var nodes []*models.Node
-	for rows.Next() {
-		n, err := scanNodesRow(rows)
-		if err != nil {
-			return nil, err
-		}
-		nodes = append(nodes, n)
-	}
-	return nodes, rows.Err()
-}
-
 // AssignToCluster puts an idle node into a cluster with the given role.
 func (r *NodeRepository) AssignToCluster(ctx context.Context, nodeID, clusterID string, role models.NodeRole) error {
 	var clusterIDNull sql.NullString
