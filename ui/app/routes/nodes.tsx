@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNodes, useDrainNode, useRejoinNode } from "~/hooks/useNodes";
+import { useNodes, useDrainNode, useRejoinNode, useDeleteNode } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
@@ -13,8 +13,10 @@ export default function NodesPage() {
   const { data, isLoading } = useNodes(undefined, page);
   const drainNode = useDrainNode();
   const rejoinNode = useRejoinNode();
+  const deleteNode = useDeleteNode();
   const [drainId, setDrainId] = useState<string | null>(null);
   const [rejoinId, setRejoinId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   if (isLoading) return <PageSpinner />;
 
@@ -76,6 +78,7 @@ export default function NodesPage() {
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge label={n.role} />
                         {n.status === "drained" && <Badge label="drained" />}
+                        {n.status === "deleting" && <Badge label="deleting" />}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{n.address}:{n.port}</td>
@@ -97,12 +100,20 @@ export default function NodesPage() {
                             Rejoin
                           </button>
                         )}
-                        {n.status !== "drained" && (
+                        {n.status !== "drained" && n.status !== "deleting" && (
                           <button
                             onClick={() => setDrainId(n.id)}
                             className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
                           >
                             Drain
+                          </button>
+                        )}
+                        {!n.clusterId && n.status !== "deleting" && (
+                          <button
+                            onClick={() => setDeleteId(n.id)}
+                            className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
+                          >
+                            Delete
                           </button>
                         )}
                       </div>
@@ -154,6 +165,15 @@ export default function NodesPage() {
         confirmLabel="Rejoin"
         onConfirm={() => { if (rejoinId) { rejoinNode.mutate(rejoinId); setRejoinId(null); }}}
         onCancel={() => setRejoinId(null)}
+      />
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Node"
+        message="This will deactivate the agent and remove the node from Skylex. Reinstall the agent to add this machine again. Are you sure?"
+        confirmLabel="Delete"
+        onConfirm={() => { if (deleteId) { deleteNode.mutate(deleteId); setDeleteId(null); }}}
+        onCancel={() => setDeleteId(null)}
       />
 
       <InstallAgentModal open={installOpen} onClose={() => setInstallOpen(false)} />

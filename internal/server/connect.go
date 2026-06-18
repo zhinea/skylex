@@ -68,6 +68,7 @@ var writeMethods = map[string]bool{
 	skylexv1connect.ClusterServiceUpdateClusterSettingsProcedure:    true,
 	skylexv1connect.NodeServiceDrainNodeProcedure:                   true,
 	skylexv1connect.NodeServiceRejoinNodeProcedure:                  true,
+	skylexv1connect.NodeServiceDeleteNodeProcedure:                  true,
 	skylexv1connect.NodeServiceResolveInstallationConflictProcedure: true,
 	skylexv1connect.BackupServiceCreateBackupProcedure:              true,
 	skylexv1connect.BackupServiceDeleteBackupProcedure:              true,
@@ -311,6 +312,14 @@ func (c *connectNodeService) DrainNode(ctx context.Context, req *connect.Request
 
 func (c *connectNodeService) RejoinNode(ctx context.Context, req *connect.Request[skylexv1.RejoinNodeRequest]) (*connect.Response[skylexv1.RejoinNodeResponse], error) {
 	resp, err := c.svc.RejoinNode(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectNodeService) DeleteNode(ctx context.Context, req *connect.Request[skylexv1.DeleteNodeRequest]) (*connect.Response[skylexv1.DeleteNodeResponse], error) {
+	resp, err := c.svc.DeleteNode(ctx, req.Msg)
 	if err != nil {
 		return nil, err
 	}

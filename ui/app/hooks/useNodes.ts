@@ -69,6 +69,17 @@ export function useRejoinNode() {
   });
 }
 
+export function useDeleteNode() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (nodeId: string) =>
+      api.post("/skylex.v1.NodeService/DeleteNode", { nodeId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+    },
+  });
+}
+
 export function useResolveInstallationConflict() {
   const qc = useQueryClient();
   return useMutation({

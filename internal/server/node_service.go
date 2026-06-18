@@ -158,6 +158,40 @@ func (s *NodeService) RejoinNode(ctx context.Context, req *skylexv1.RejoinNodeRe
 	return &skylexv1.RejoinNodeResponse{Node: s.nodeToProto(node)}, nil
 }
 
+func (s *NodeService) DeleteNode(ctx context.Context, req *skylexv1.DeleteNodeRequest) (*skylexv1.DeleteNodeResponse, error) {
+	node, err := s.nodes.GetByID(ctx, req.GetNodeId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get node: %v", err)
+	}
+	if node == nil {
+		return nil, status.Errorf(codes.NotFound, "node %q not found", req.GetNodeId())
+	}
+	if node.ClusterID != "" {
+		return nil, status.Errorf(codes.FailedPrecondition, "node %q belongs to a cluster; drain or remove it from the cluster before deleting", node.ID)
+	}
+
+	if node.AgentID != "" {
+		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, "agent_deactivate", ""); err != nil {
+			return nil, status.Errorf(codes.Internal, "queue agent deactivation: %v", err)
+		}
+		if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusDeleting); err != nil {
+			return nil, status.Errorf(codes.Internal, "mark node deleting: %v", err)
+		}
+		if err := s.nodes.UpdateStatusDetail(ctx, node.ID, "deactivating_agent"); err != nil {
+			s.log.Warn("update node status detail for delete", "error", err, "node_id", node.ID)
+		}
+		s.log.Info("node deletion pending agent deactivation", "node_id", node.ID)
+		return &skylexv1.DeleteNodeResponse{}, nil
+	}
+
+	if err := s.nodes.Delete(ctx, node.ID); err != nil {
+		return nil, status.Errorf(codes.Internal, "delete node: %v", err)
+	}
+
+	s.log.Info("node deleted", "node_id", node.ID)
+	return &skylexv1.DeleteNodeResponse{}, nil
+}
+
 func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skylexv1.ResolveInstallationConflictRequest) (*skylexv1.ResolveInstallationConflictResponse, error) {
 	if req.GetNodeId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "node_id is required")

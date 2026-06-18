@@ -6,8 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/zhinea/skylex/internal/agent"
@@ -78,6 +80,14 @@ func main() {
 	if cfg.Hostname == "" {
 		h, _ := os.Hostname()
 		cfg.Hostname = h
+	}
+
+	if agent.IsDeactivated(cfg) {
+		fmt.Fprintln(os.Stderr, "skylex-agent is deactivated; reinstall the agent to reactivate this node")
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+		defer stop()
+		<-ctx.Done()
+		return
 	}
 
 	if cfg.AgentToken == "" {

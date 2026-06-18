@@ -154,7 +154,7 @@ func (s *AgentService) Heartbeat(ctx context.Context, req *skylexv1.HeartbeatReq
 	if err != nil {
 		return nil, err
 	}
-	if node.Status == models.NodeStatusDrained {
+	if node.Status == models.NodeStatusDrained || node.Status == models.NodeStatusDeleting {
 		return &skylexv1.HeartbeatResponse{}, nil
 	}
 	if err := s.nodes.UpdateHeartbeat(ctx, node.ID, models.NodeStatusOnline, normalizeLatencyMS(req.GetObservedLatencyMs())); err != nil {
@@ -183,7 +183,7 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 			continue
 		}
 		node := agentNode
-		if node.Status == models.NodeStatusDrained {
+		if node.Status == models.NodeStatusDrained || node.Status == models.NodeStatusDeleting {
 			continue
 		}
 
@@ -267,6 +267,12 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 		return nil, status.Errorf(codes.Internal, "update command result: %v", err)
 	}
 
+	if handled, err := s.handleAgentLifecycleCommandResult(ctx, req.GetCommandId(), req.GetSuccess()); err != nil {
+		s.log.Warn("handle agent lifecycle command result failed", "command_id", req.GetCommandId(), "error", err)
+	} else if handled {
+		return &skylexv1.ReportCommandResultResponse{}, nil
+	}
+
 	if err := s.handleProvisioningCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetOutput(), req.GetError()); err != nil {
 		s.log.Warn("handle provisioning command result failed", "command_id", req.GetCommandId(), "error", err)
 	}
@@ -276,6 +282,22 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	}
 
 	return &skylexv1.ReportCommandResultResponse{}, nil
+}
+
+func (s *AgentService) handleAgentLifecycleCommandResult(ctx context.Context, commandID string, success bool) (bool, error) {
+	cmd, err := s.commands.GetByID(ctx, commandID)
+	if err != nil || cmd == nil || cmd.Action != "agent_deactivate" {
+		return false, err
+	}
+
+	if success {
+		return true, s.nodes.Delete(ctx, cmd.NodeID)
+	}
+
+	if err := s.nodes.UpdateStatus(ctx, cmd.NodeID, models.NodeStatusOffline); err != nil {
+		return true, err
+	}
+	return true, s.nodes.UpdateStatusDetail(ctx, cmd.NodeID, "agent_deactivation_failed")
 }
 
 type preflightResult struct {

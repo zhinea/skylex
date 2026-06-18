@@ -3,9 +3,12 @@ package agent
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
+
+const DeactivationMarkerName = ".skylex-agent-deactivated"
 
 type Config struct {
 	ServerAddr        string            `mapstructure:"server_addr" yaml:"server_addr"`
@@ -41,6 +44,43 @@ func DefaultConfig() Config {
 		PGReplPass:        "replicator",
 		PGBackRestPath:    "/usr/bin/pgbackrest",
 	}
+}
+
+func IsDeactivated(cfg Config) bool {
+	for _, path := range deactivationMarkerPaths(cfg) {
+		if _, err := os.Stat(path); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func WriteDeactivationMarker(cfg Config) error {
+	var lastErr error
+	for _, path := range deactivationMarkerPaths(cfg) {
+		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+			lastErr = err
+			continue
+		}
+		if err := os.WriteFile(path, []byte("deactivated\n"), 0600); err != nil {
+			lastErr = err
+			continue
+		}
+		return nil
+	}
+	return lastErr
+}
+
+func deactivationMarkerPaths(cfg Config) []string {
+	paths := []string{
+		"/etc/skylex/" + DeactivationMarkerName,
+		"/var/lib/skylex/" + DeactivationMarkerName,
+		"/tmp/skylex-agent-deactivated",
+	}
+	if cfg.PGDataDir != "" {
+		paths = append(paths, filepath.Join(cfg.PGDataDir, DeactivationMarkerName))
+	}
+	return paths
 }
 
 func NewLogger(level, format string) *slog.Logger {

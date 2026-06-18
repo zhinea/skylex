@@ -33,6 +33,7 @@ type Agent struct {
 	pgBackRest *backup.PgBackRest
 	native     installer.NativeInstaller
 	docker     installer.DockerInstaller
+	shutdown   context.CancelFunc
 
 	installMu          sync.RWMutex
 	installationState  skylexv1.InstallationState
@@ -99,6 +100,7 @@ func (a *Agent) Run(ctx context.Context) error {
 
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
+	a.shutdown = cancel
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -255,6 +257,9 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 		if reportErr := a.reportCommandResult(ctx, cmd.GetId(), success, output, errMsg); reportErr != nil {
 			a.log.Error("report command result failed", "error", reportErr)
 		}
+		if cmd.GetAction() == "agent_deactivate" && success && a.shutdown != nil {
+			a.shutdown()
+		}
 	}
 
 	return nil
@@ -338,6 +343,12 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 			return false, "", a.enrichError("pg_stop", err)
 		}
 		return true, "PostgreSQL stopped gracefully", ""
+
+	case "agent_deactivate":
+		if err := a.deactivate(ctx, logger); err != nil {
+			return false, "", a.enrichError("agent_deactivate", err)
+		}
+		return true, "Skylex agent deactivated", ""
 
 	case "pg_basebackup":
 		primaryHost := cmd.GetPayload()
@@ -499,6 +510,9 @@ func (a *Agent) enrichError(action string, err error) string {
 	case "pg_stop":
 		return fmt.Sprintf("pg_stop failed: %s — the process may need to be terminated manually", msg)
 
+	case "agent_deactivate":
+		return fmt.Sprintf("agent_deactivate failed: %s", msg)
+
 	case "pg_basebackup":
 		if strings.Contains(lower, "connection refused") || strings.Contains(lower, "no route to host") {
 			return fmt.Sprintf("pg_basebackup failed: cannot connect to primary — ensure the primary is running and reachable on the network")
@@ -532,6 +546,80 @@ func (a *Agent) enrichError(action string, err error) string {
 	default:
 		return fmt.Sprintf("%s failed: %s", action, msg)
 	}
+}
+
+func (a *Agent) deactivate(ctx context.Context, logger *commandLogger) error {
+	if err := a.pg.Stop(ctx); err != nil {
+		return err
+	}
+	if err := WriteDeactivationMarker(a.cfg); err != nil {
+		return err
+	}
+	if err := disableSystemdAgent(ctx, logger); err != nil {
+		return err
+	}
+	if err := removeAgentTokenFiles(logger); err != nil {
+		return err
+	}
+	return nil
+}
+
+func disableSystemdAgent(ctx context.Context, logger *commandLogger) error {
+	if _, err := exec.LookPath("systemctl"); err != nil {
+		return nil
+	}
+
+	if err := runAgentLifecycleCommand(ctx, logger, "systemctl", "disable", "skylex-agent"); err != nil {
+		if logger != nil {
+			logger.Error(err.Error())
+		}
+	}
+	if err := runAgentLifecycleCommand(ctx, logger, "systemctl", "reset-failed", "skylex-agent"); err != nil {
+		if logger != nil {
+			logger.Error(err.Error())
+		}
+	}
+	return nil
+}
+
+func removeAgentTokenFiles(logger *commandLogger) error {
+	paths := []string{
+		"/etc/skylex/agent.yaml",
+		"/etc/skylex/token",
+	}
+	for _, path := range paths {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			if logger != nil {
+				logger.Error(fmt.Sprintf("remove %s: %v", path, err))
+			}
+			continue
+		}
+		if logger != nil {
+			logger.Info(fmt.Sprintf("removed %s", path))
+		}
+	}
+
+	return nil
+}
+
+func runAgentLifecycleCommand(ctx context.Context, logger *commandLogger, name string, args ...string) error {
+	if logger != nil {
+		logger.Info("$ " + name + " " + strings.Join(args, " "))
+	}
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Env = os.Environ()
+	out, err := cmd.CombinedOutput()
+	if len(out) > 0 && logger != nil {
+		for _, line := range strings.Split(strings.TrimRight(string(out), "\n"), "\n") {
+			if line != "" {
+				logger.Info(line)
+			}
+		}
+	}
+	if err != nil {
+		return fmt.Errorf("%s failed: %w: %s", name, err, strings.TrimSpace(string(out)))
+	}
+	return nil
 }
 
 func (a *Agent) reportCommandResult(ctx context.Context, commandID string, success bool, output, errMsg string) error {
