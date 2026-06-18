@@ -43,7 +43,7 @@ func TestAgentService_RegisterAgent_RequiresToken(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()
 
-	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewClusterRepository(conn, log), db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
 
 	_, err := svc.RegisterAgent(context.Background(), &skylexv1.RegisterAgentRequest{
 		AgentToken: "",
@@ -60,7 +60,7 @@ func TestAgentService_RegisterAgent_InvalidToken(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()
 
-	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewClusterRepository(conn, log), db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
 
 	_, err := svc.RegisterAgent(context.Background(), &skylexv1.RegisterAgentRequest{
 		AgentToken: "sklx_at_invalidtoken",
@@ -90,7 +90,7 @@ func TestAgentService_RegisterAgent_ValidToken(t *testing.T) {
 		t.Fatalf("create token: %v", err)
 	}
 
-	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), agentTokens, log)
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewClusterRepository(conn, log), db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), agentTokens, log)
 
 	resp, err := svc.RegisterAgent(context.Background(), &skylexv1.RegisterAgentRequest{
 		AgentToken: raw,
@@ -110,7 +110,7 @@ func TestAgentService_RegisterAgent_DevTokenFallback(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()
 
-	svc := NewAgentService(&Config{Agent: AgentConfig{AgentToken: "dev-token"}}, db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+	svc := NewAgentService(&Config{Agent: AgentConfig{AgentToken: "dev-token"}}, db.NewClusterRepository(conn, log), db.NewNodeRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
 
 	resp, err := svc.RegisterAgent(context.Background(), &skylexv1.RegisterAgentRequest{
 		AgentToken: "dev-token",

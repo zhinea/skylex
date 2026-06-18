@@ -476,8 +476,9 @@ export default function CreateClusterPage() {
 
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                After creation, the server will queue initialization commands for the primary node
-                (pg_init, pg_start, pg_create_repl_user) and any replica nodes.
+                After creation, Skylex will queue preflight, installation/provisioning, and initialization
+                commands for every selected node. Native nodes install PostgreSQL when missing; Dockerized
+                clusters pull and run the official Postgres container.
               </p>
             </div>
 

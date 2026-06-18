@@ -59,6 +59,95 @@ func createIdleTestNode(t *testing.T, ctx context.Context, svc *ClusterService) 
 	return node.ID
 }
 
+func queuedActions(t *testing.T, ctx context.Context, svc *ClusterService, agentID, nodeID string) []string {
+	t.Helper()
+	pending, err := svc.commands.ListPending(ctx, agentID, nodeID)
+	if err != nil {
+		t.Fatalf("list pending commands: %v", err)
+	}
+	actions := make([]string, 0, len(pending))
+	for _, cmd := range pending {
+		actions = append(actions, cmd.Action)
+	}
+	return actions
+}
+
+func TestClusterService_CreateCluster_QueuesNativeInstallWhenPostgresMissing(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := context.Background()
+	node, err := svc.nodes.Create(ctx, "", "native-node", "10.0.0.2", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := svc.nodes.UpdateAgentID(ctx, node.ID, "agent-native"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+
+	_, err = svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
+		Name: "native-install-cluster",
+		Config: &skylexv1.ClusterConfig{
+			Engine:          skylexv1.Engine_ENGINE_POSTGRESQL,
+			Version:         "16",
+			ReplicationMode: skylexv1.ReplicationMode_REPLICATION_MODE_ASYNC,
+			ReplicaCount:    0,
+			ServiceLocation: skylexv1.ServiceLocation_SERVICE_LOCATION_NATIVE,
+		},
+		NodeIds: []string{node.ID},
+	})
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+
+	want := []string{"pg_preflight", "pg_install_native", "pg_init", "pg_start", "pg_create_repl_user"}
+	got := queuedActions(t, ctx, svc, "agent-native", node.ID)
+	if len(got) != len(want) {
+		t.Fatalf("expected actions %v, got %v", want, got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("expected actions %v, got %v", want, got)
+		}
+	}
+}
+
+func TestClusterService_CreateCluster_QueuesDockerInstallEvenWhenPostgresMissing(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := context.Background()
+	node, err := svc.nodes.Create(ctx, "", "docker-node", "10.0.0.3", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := svc.nodes.UpdateAgentID(ctx, node.ID, "agent-docker"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+
+	_, err = svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
+		Name: "docker-install-cluster",
+		Config: &skylexv1.ClusterConfig{
+			Engine:          skylexv1.Engine_ENGINE_POSTGRESQL,
+			Version:         "16",
+			ReplicationMode: skylexv1.ReplicationMode_REPLICATION_MODE_ASYNC,
+			ReplicaCount:    0,
+			ServiceLocation: skylexv1.ServiceLocation_SERVICE_LOCATION_DOCKER,
+		},
+		NodeIds: []string{node.ID},
+	})
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+
+	want := []string{"pg_preflight", "pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user"}
+	got := queuedActions(t, ctx, svc, "agent-docker", node.ID)
+	if len(got) != len(want) {
+		t.Fatalf("expected actions %v, got %v", want, got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("expected actions %v, got %v", want, got)
+		}
+	}
+}
+
 func TestClusterService_UpdateClusterSettings_RejectInvalidKey(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()

@@ -153,9 +153,13 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 
 	// Verify all nodes are unassigned.
 	var alreadyAssigned []string
+	var missingAgent []string
 	for _, n := range selectedNodes {
 		if n.ClusterID != "" {
 			alreadyAssigned = append(alreadyAssigned, n.Hostname)
+		}
+		if n.AgentID == "" {
+			missingAgent = append(missingAgent, n.Hostname)
 		}
 	}
 	if len(alreadyAssigned) > 0 {
@@ -163,18 +167,10 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 			"the following node(s) are already assigned to a cluster: %s",
 			strings.Join(alreadyAssigned, ", "))
 	}
-
-	// Preflight: every selected node must have PostgreSQL installed.
-	var missingPg []string
-	for _, n := range selectedNodes {
-		if !n.PostgresInstalled {
-			missingPg = append(missingPg, n.Hostname)
-		}
-	}
-	if len(missingPg) > 0 {
+	if len(missingAgent) > 0 {
 		return nil, status.Errorf(codes.FailedPrecondition,
-			"PostgreSQL is not installed on the following node(s): %s. Install PostgreSQL on those hosts before creating a cluster.",
-			strings.Join(missingPg, ", "))
+			"the following node(s) do not have a linked agent: %s",
+			strings.Join(missingAgent, ", "))
 	}
 
 	// Preflight: warn when Docker location is requested but a node lacks Docker.
@@ -262,13 +258,13 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 	}
 
 	primary := selectedNodes[0]
-	if err = s.queuePrimaryCommands(ctx, primary); err != nil {
+	if err = s.queuePrimaryCommands(ctx, primary, version, serviceLocation); err != nil {
 		return nil, status.Errorf(codes.Internal, "queue primary commands: %v", err)
 	}
 
 	for i := 1; i < len(selectedNodes); i++ {
 		replica := selectedNodes[i]
-		if err = s.queueReplicaCommands(ctx, replica, primary); err != nil {
+		if err = s.queueReplicaCommands(ctx, replica, primary, version, serviceLocation); err != nil {
 			return nil, status.Errorf(codes.Internal, "queue replica commands: %v", err)
 		}
 	}
@@ -616,12 +612,12 @@ func protoServiceLocation(loc models.ServiceLocation) skylexv1.ServiceLocation {
 	}
 }
 
-func (s *ClusterService) queuePrimaryCommands(ctx context.Context, node *models.Node) error {
-	commands := []struct{ action, payload string }{
+func (s *ClusterService) queuePrimaryCommands(ctx context.Context, node *models.Node, version string, serviceLocation models.ServiceLocation) error {
+	commands := append(installCommands(node, version, serviceLocation), []struct{ action, payload string }{
 		{"pg_init", ""},
 		{"pg_start", ""},
 		{"pg_create_repl_user", ""},
-	}
+	}...)
 	for _, c := range commands {
 		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, c.action, c.payload); err != nil {
 			return fmt.Errorf("queue %s: %w", c.action, err)
@@ -630,19 +626,31 @@ func (s *ClusterService) queuePrimaryCommands(ctx context.Context, node *models.
 	return nil
 }
 
-func (s *ClusterService) queueReplicaCommands(ctx context.Context, replica, primary *models.Node) error {
+func (s *ClusterService) queueReplicaCommands(ctx context.Context, replica, primary *models.Node, version string, serviceLocation models.ServiceLocation) error {
 	payload := fmt.Sprintf("%s:%d", nodeAddress(primary), primary.Port)
-	commands := []struct{ action, payload string }{
+	commands := append(installCommands(replica, version, serviceLocation), []struct{ action, payload string }{
 		{"pg_basebackup", payload},
 		{"repoint_replica", payload},
 		{"pg_start", ""},
-	}
+	}...)
 	for _, c := range commands {
 		if _, err := s.commands.Create(ctx, replica.AgentID, replica.ID, c.action, c.payload); err != nil {
 			return fmt.Errorf("queue %s: %w", c.action, err)
 		}
 	}
 	return nil
+}
+
+func installCommands(node *models.Node, version string, serviceLocation models.ServiceLocation) []struct{ action, payload string } {
+	commands := []struct{ action, payload string }{{"pg_preflight", ""}}
+	if serviceLocation == models.ServiceLocationDocker {
+		commands = append(commands, struct{ action, payload string }{"pg_install_docker", version})
+		return commands
+	}
+	if !node.PostgresInstalled {
+		commands = append(commands, struct{ action, payload string }{"pg_install_native", version})
+	}
+	return commands
 }
 
 func nodeAddress(n *models.Node) string {

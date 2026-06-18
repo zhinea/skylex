@@ -45,7 +45,13 @@ type Instance struct {
 	Superuser string
 	ReplUser  string
 	ReplPass  string
+	Docker    *DockerRuntime
 	log       *slog.Logger
+}
+
+type DockerRuntime struct {
+	Image         string
+	ContainerName string
 }
 
 func New(dataDir, binDir, version string, port int, superuser, replUser, replPass string, log *slog.Logger) *Instance {
@@ -59,6 +65,44 @@ func New(dataDir, binDir, version string, port int, superuser, replUser, replPas
 		ReplPass:  replPass,
 		log:       log,
 	}
+}
+
+func (p *Instance) UseDocker(image, containerName string) {
+	p.Docker = &DockerRuntime{Image: image, ContainerName: containerName}
+}
+
+func (p *Instance) UseNative(binDir, version string) {
+	p.BinDir = binDir
+	p.Version = version
+	p.Docker = nil
+}
+
+func (p *Instance) UsesDocker() bool {
+	return p.dockerEnabled()
+}
+
+func (p *Instance) dockerEnabled() bool {
+	return p.Docker != nil && p.Docker.ContainerName != "" && p.Docker.Image != ""
+}
+
+func (p *Instance) pgCmd(ctx context.Context, binary string, args ...string) *exec.Cmd {
+	if !p.dockerEnabled() {
+		return exec.CommandContext(ctx, filepath.Join(p.BinDir, binary), args...)
+	}
+	dockerArgs := []string{"exec", "-e", "PGDATA=/var/lib/postgresql/data", p.Docker.ContainerName, binary}
+	dockerArgs = append(dockerArgs, args...)
+	return exec.CommandContext(ctx, "docker", dockerArgs...)
+}
+
+func (p *Instance) pgDataDir() string {
+	if p.dockerEnabled() {
+		return "/var/lib/postgresql/data"
+	}
+	return p.DataDir
+}
+
+func (p *Instance) dockerRun(ctx context.Context, args ...string) *exec.Cmd {
+	return exec.CommandContext(ctx, "docker", args...)
 }
 
 // runStreamingCmd executes a command while streaming stdout/stderr to the
@@ -92,7 +136,11 @@ func runStreamingCmd(ctx context.Context, cmd *exec.Cmd) ([]byte, error) {
 		scanner.Buffer(make([]byte, 4096), 1024*1024)
 		for scanner.Scan() {
 			line := scanner.Text()
-			sink.Info(line)
+			if level == "error" {
+				sink.Error(line)
+			} else {
+				sink.Info(line)
+			}
 			outMu.Lock()
 			output = append(output, line...)
 			output = append(output, '\n')
@@ -156,6 +204,11 @@ func (p *Instance) IsInitialized() bool {
 }
 
 func (p *Instance) IsRunning() bool {
+	if p.dockerEnabled() {
+		out, err := exec.Command("docker", "inspect", "-f", "{{.State.Running}}", p.Docker.ContainerName).Output()
+		return err == nil && strings.TrimSpace(string(out)) == "true"
+	}
+
 	pidFile := filepath.Join(p.DataDir, "postmaster.pid")
 	data, err := os.ReadFile(pidFile)
 	if err != nil {
@@ -171,14 +224,16 @@ func (p *Instance) InitDB(ctx context.Context) error {
 		p.log.Info("postgresql already initialized", "data_dir", p.DataDir)
 		return nil
 	}
+	if p.dockerEnabled() {
+		return fmt.Errorf("postgresql container is not initialized; check Docker provisioning logs")
+	}
 
 	if err := os.MkdirAll(p.DataDir, 0700); err != nil {
 		return fmt.Errorf("create data dir: %w", err)
 	}
 
-	initdb := filepath.Join(p.BinDir, "initdb")
-	cmd := exec.CommandContext(ctx, initdb,
-		"-D", p.DataDir,
+	cmd := p.pgCmd(ctx, "initdb",
+		"-D", p.pgDataDir(),
 		"--username", p.Superuser,
 		"--auth", "scram-sha-256",
 		"--pwprompt",
@@ -212,10 +267,34 @@ func (p *Instance) Start(ctx context.Context) error {
 		return nil
 	}
 
-	pgCtl := filepath.Join(p.BinDir, "pg_ctl")
-	cmd := exec.CommandContext(ctx, pgCtl,
+	if p.dockerEnabled() {
+		cmd := p.dockerRun(ctx, "start", p.Docker.ContainerName)
+		output, err := runStreamingCmd(ctx, cmd)
+		if err == nil {
+			p.log.Info("postgresql container started", "container", p.Docker.ContainerName)
+			return nil
+		}
+
+		cmd = p.dockerRun(ctx, "run", "-d",
+			"--name", p.Docker.ContainerName,
+			"--restart", "unless-stopped",
+			"-p", fmt.Sprintf("%d:5432", p.Port),
+			"-e", fmt.Sprintf("POSTGRES_USER=%s", p.Superuser),
+			"-e", fmt.Sprintf("POSTGRES_PASSWORD=%s", p.ReplPass),
+			"-v", filepath.Clean(p.DataDir)+":/var/lib/postgresql/data",
+			p.Docker.Image,
+		)
+		output, err = runStreamingCmd(ctx, cmd)
+		if err != nil {
+			return fmt.Errorf("docker run failed: %w\n%s", err, string(output))
+		}
+		p.log.Info("postgresql container created and started", "container", p.Docker.ContainerName)
+		return nil
+	}
+
+	cmd := p.pgCmd(ctx, "pg_ctl",
 		"start",
-		"-D", p.DataDir,
+		"-D", p.pgDataDir(),
 		"-l", filepath.Join(p.DataDir, "pg.log"),
 		"-o", fmt.Sprintf("-p %d", p.Port),
 		"-w",
@@ -236,10 +315,19 @@ func (p *Instance) Stop(ctx context.Context) error {
 		return nil
 	}
 
-	pgCtl := filepath.Join(p.BinDir, "pg_ctl")
-	cmd := exec.CommandContext(ctx, pgCtl,
+	if p.dockerEnabled() {
+		cmd := p.dockerRun(ctx, "stop", p.Docker.ContainerName)
+		output, err := runStreamingCmd(ctx, cmd)
+		if err != nil {
+			return fmt.Errorf("docker stop failed: %w\n%s", err, string(output))
+		}
+		p.log.Info("postgresql container stopped", "container", p.Docker.ContainerName)
+		return nil
+	}
+
+	cmd := p.pgCmd(ctx, "pg_ctl",
 		"stop",
-		"-D", p.DataDir,
+		"-D", p.pgDataDir(),
 		"-m", "fast",
 		"-w",
 		"-t", "60",
@@ -264,12 +352,11 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 		return fmt.Errorf("remove existing data dir: %w", err)
 	}
 
-	pgBasebackup := filepath.Join(p.BinDir, "pg_basebackup")
-	cmd := exec.CommandContext(ctx, pgBasebackup,
+	cmd := p.pgCmd(ctx, "pg_basebackup",
 		"-h", primaryHost,
 		"-p", fmt.Sprintf("%d", primaryPort),
 		"-U", replUser,
-		"-D", p.DataDir,
+		"-D", p.pgDataDir(),
 		"-P",
 		"-v",
 		"--wal-method", "stream",
@@ -278,6 +365,21 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 	cmd.Env = append(os.Environ(),
 		fmt.Sprintf("PGPASSWORD=%s", replPass),
 	)
+	if p.dockerEnabled() {
+		cmd = p.dockerRun(ctx, "run", "--rm",
+			"-e", fmt.Sprintf("PGPASSWORD=%s", replPass),
+			"-v", filepath.Clean(p.DataDir)+":/var/lib/postgresql/data",
+			p.Docker.Image,
+			"pg_basebackup",
+			"-h", primaryHost,
+			"-p", fmt.Sprintf("%d", primaryPort),
+			"-U", replUser,
+			"-D", "/var/lib/postgresql/data",
+			"-P",
+			"-v",
+			"--wal-method", "stream",
+		)
+	}
 
 	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
@@ -298,12 +400,12 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 }
 
 func (p *Instance) CreateReplicationSlot(ctx context.Context, slotName string) error {
-	psql := filepath.Join(p.BinDir, "psql")
-	cmd := exec.CommandContext(ctx, psql,
+	cmd := p.pgCmd(ctx, "psql",
 		"-h", "localhost",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
-		"-c", fmt.Sprintf("SELECT pg_create_physical_replication_slot('%s', true) WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = '%s')", slotName, slotName),
+		"-v", fmt.Sprintf("slot=%s", slotName),
+		"-c", "SELECT pg_create_physical_replication_slot(:'slot', true) WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = :'slot')",
 	)
 
 	output, err := runStreamingCmd(ctx, cmd)
@@ -316,12 +418,11 @@ func (p *Instance) CreateReplicationSlot(ctx context.Context, slotName string) e
 }
 
 func (p *Instance) CreateReplicationUser(ctx context.Context) error {
-	psql := filepath.Join(p.BinDir, "psql")
-	cmd := exec.CommandContext(ctx, psql,
+	cmd := p.pgCmd(ctx, "psql",
 		"-h", "localhost",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
-		"-c", fmt.Sprintf("DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '%s') THEN CREATE ROLE %s WITH LOGIN REPLICATION ENCRYPTED PASSWORD '%s'; END IF; END $$", p.ReplUser, p.ReplUser, p.ReplPass),
+		"-c", fmt.Sprintf("DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = %s) THEN EXECUTE format('CREATE ROLE %%I WITH LOGIN REPLICATION ENCRYPTED PASSWORD %%L', %s, %s); END IF; END $$", pqQuoteLiteral(p.ReplUser), pqQuoteLiteral(p.ReplUser), pqQuoteLiteral(p.ReplPass)),
 	)
 
 	output, err := runStreamingCmd(ctx, cmd)
@@ -333,9 +434,12 @@ func (p *Instance) CreateReplicationUser(ctx context.Context) error {
 	return nil
 }
 
+func pqQuoteLiteral(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
 func (p *Instance) HealthCheck(ctx context.Context) error {
-	psql := filepath.Join(p.BinDir, "psql")
-	cmd := exec.CommandContext(ctx, psql,
+	cmd := p.pgCmd(ctx, "psql",
 		"-h", "localhost",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
@@ -353,8 +457,7 @@ func (p *Instance) HealthCheck(ctx context.Context) error {
 }
 
 func (p *Instance) GetReplicationLag(ctx context.Context) (string, error) {
-	psql := filepath.Join(p.BinDir, "psql")
-	cmd := exec.CommandContext(ctx, psql,
+	cmd := p.pgCmd(ctx, "psql",
 		"-h", "localhost",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
@@ -371,8 +474,7 @@ func (p *Instance) GetReplicationLag(ctx context.Context) (string, error) {
 }
 
 func (p *Instance) GetVersion(ctx context.Context) (string, error) {
-	psql := filepath.Join(p.BinDir, "psql")
-	cmd := exec.CommandContext(ctx, psql,
+	cmd := p.pgCmd(ctx, "psql",
 		"-h", "localhost",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
@@ -470,10 +572,9 @@ func (p *Instance) Promote(ctx context.Context) error {
 		return fmt.Errorf("postgresql is not running, cannot promote")
 	}
 
-	pgCtl := filepath.Join(p.BinDir, "pg_ctl")
-	cmd := exec.CommandContext(ctx, pgCtl,
+	cmd := p.pgCmd(ctx, "pg_ctl",
 		"promote",
-		"-D", p.DataDir,
+		"-D", p.pgDataDir(),
 		"-w",
 		"-t", "60",
 	)
@@ -497,9 +598,8 @@ func (p *Instance) Promote(ctx context.Context) error {
 }
 
 func (p *Instance) Rewind(ctx context.Context, targetHost string, targetPort int, replUser, replPass string) error {
-	pgRewind := filepath.Join(p.BinDir, "pg_rewind")
-	cmd := exec.CommandContext(ctx, pgRewind,
-		"--target-pgdata", p.DataDir,
+	cmd := p.pgCmd(ctx, "pg_rewind",
+		"--target-pgdata", p.pgDataDir(),
 		"--source-server", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=postgres",
 			targetHost, targetPort, replUser, replPass),
 		"-P",
@@ -589,10 +689,9 @@ func (p *Instance) ApplySettings(ctx context.Context, settings map[string]string
 
 // Reload signals PostgreSQL to reload its configuration without restarting.
 func (p *Instance) Reload(ctx context.Context) error {
-	pgCtl := filepath.Join(p.BinDir, "pg_ctl")
-	cmd := exec.CommandContext(ctx, pgCtl,
+	cmd := p.pgCmd(ctx, "pg_ctl",
 		"reload",
-		"-D", p.DataDir,
+		"-D", p.pgDataDir(),
 	)
 
 	output, err := runStreamingCmd(ctx, cmd)

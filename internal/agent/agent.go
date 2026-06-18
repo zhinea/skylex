@@ -13,6 +13,7 @@ import (
 	"time"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
+	"github.com/zhinea/skylex/internal/agent/installer"
 	"github.com/zhinea/skylex/internal/backup"
 	"github.com/zhinea/skylex/internal/postgres"
 	"golang.org/x/sync/errgroup"
@@ -29,6 +30,8 @@ type Agent struct {
 	conn       *grpc.ClientConn
 	pg         *postgres.Instance
 	pgBackRest *backup.PgBackRest
+	native     installer.NativeInstaller
+	docker     installer.DockerInstaller
 }
 
 func New(cfg Config) (*Agent, error) {
@@ -60,6 +63,8 @@ func New(cfg Config) (*Agent, error) {
 		log:        log,
 		pg:         pg,
 		pgBackRest: pgBackRest,
+		native:     installer.NativeInstaller{},
+		docker:     installer.DockerInstaller{},
 	}, nil
 }
 
@@ -186,6 +191,9 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 		report.PostgresVersion = pgVersion
 		report.ReplicationLagBytes = lag
 		report.ReplicationLagSeconds = lag
+	} else if a.pg.UsesDocker() {
+		report.PostgresInstalled = detectDockerAvailable(ctx)
+		report.PostgresBinVersion = a.cfg.PGVersion
 	}
 
 	_, err = a.client.ReportStatus(ctx, &skylexv1.ReportStatusRequest{
@@ -241,6 +249,38 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 
 func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
 	switch cmd.GetAction() {
+	case "pg_preflight":
+		pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
+		dockerAvailable := detectDockerAvailable(ctx)
+		return true, fmt.Sprintf("preflight complete: postgres_installed=%v postgres_version=%q docker_available=%v", pgInstalled, pgBinVersion, dockerAvailable), ""
+
+	case "pg_install_native":
+		if installed, version := postgres.DetectInstallation(ctx); installed {
+			binDir := installer.DetectNativeBinDir(ctx, a.cfg.PGBinDir)
+			a.pg.UseNative(binDir, installer.DetectNativeVersion(ctx, version))
+			return true, fmt.Sprintf("PostgreSQL already installed: %s", version), ""
+		}
+		if err := a.native.Install(ctx, a.installConfig(), logger); err != nil {
+			return false, "", a.enrichError("pg_install_native", err)
+		}
+		binDir := installer.DetectNativeBinDir(ctx, a.cfg.PGBinDir)
+		version := installer.DetectNativeVersion(ctx, a.cfg.PGVersion)
+		a.pg.UseNative(binDir, version)
+		return true, fmt.Sprintf("PostgreSQL %s installed natively", version), ""
+
+	case "pg_install_docker":
+		if err := a.docker.Install(ctx, a.installConfig(), logger); err != nil {
+			return false, "", a.enrichError("pg_install_docker", err)
+		}
+		a.pg.UseDocker("postgres:"+a.cfg.PGVersion, installer.DockerContainerName())
+		return true, fmt.Sprintf("PostgreSQL Docker container %q installed", installer.DockerContainerName()), ""
+
+	case "pg_purge_native":
+		if err := a.native.Purge(ctx, a.installConfig(), logger); err != nil {
+			return false, "", a.enrichError("pg_purge_native", err)
+		}
+		return true, "Native PostgreSQL packages removed", ""
+
 	case "pg_init":
 		if err := a.pg.InitDB(ctx); err != nil {
 			return false, "", a.enrichError("pg_init", err)
@@ -353,6 +393,17 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 	}
 }
 
+func (a *Agent) installConfig() installer.InstallConfig {
+	return installer.InstallConfig{
+		Version:   a.cfg.PGVersion,
+		DataDir:   a.cfg.PGDataDir,
+		BinDir:    a.cfg.PGBinDir,
+		Port:      a.cfg.Port,
+		Superuser: a.cfg.PGSuperuser,
+		Password:  a.cfg.PGReplPass,
+	}
+}
+
 // enrichError wraps an error with actionable hints based on the command type
 // and the error message content.
 func (a *Agent) enrichError(action string, err error) string {
@@ -395,6 +446,24 @@ func (a *Agent) enrichError(action string, err error) string {
 
 	case "pg_apply_settings":
 		return fmt.Sprintf("pg_apply_settings failed: %s — check the parameter values and ensure PostgreSQL can reload", msg)
+
+	case "pg_install_native":
+		if strings.Contains(lower, "permission denied") || strings.Contains(lower, "operation not permitted") {
+			return fmt.Sprintf("native install failed: insufficient permissions — run the agent with package installation privileges: %s", msg)
+		}
+		if strings.Contains(lower, "no supported package manager") {
+			return fmt.Sprintf("native install failed: unsupported operating system package manager: %s", msg)
+		}
+		return fmt.Sprintf("native install failed: %s", msg)
+
+	case "pg_install_docker":
+		if strings.Contains(lower, "docker binary not found") || strings.Contains(lower, "permission denied") {
+			return fmt.Sprintf("docker install failed: Docker is unavailable or the agent cannot access the Docker daemon: %s", msg)
+		}
+		return fmt.Sprintf("docker install failed: %s", msg)
+
+	case "pg_purge_native":
+		return fmt.Sprintf("native purge failed: %s", msg)
 
 	default:
 		return fmt.Sprintf("%s failed: %s", action, msg)

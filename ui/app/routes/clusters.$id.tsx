@@ -11,6 +11,7 @@ import { Card } from "~/components/Card";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
 import { PageSpinner } from "~/components/Spinner";
 import { SettingInput, curatedSettings, validateSettingValue } from "~/components/SettingInput";
+import type { Node } from "~/hooks/useNodes";
 
 function PgStatusBadges({
   installed,
@@ -194,6 +195,90 @@ function SettingsCard({ clusterId }: { clusterId: string }) {
   );
 }
 
+function InstallationProgressCard({ nodes, logs }: { nodes: Node[]; logs: CommandLog[] }) {
+  const nodeList = nodes;
+  const totalNodes = nodeList.length;
+  const readyNodes = nodeList.filter((n) => n.postgresInstalled && n.postgresDataInitialized);
+  const progressPct = totalNodes > 0 ? Math.round((readyNodes.length / totalNodes) * 100) : 0;
+  const tailLogs = logs.slice(-12);
+
+  return (
+    <Card title="Installation Progress">
+      <div className="space-y-4">
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-gray-600 dark:text-gray-400">Provisioning</span>
+            <span className="text-gray-900 dark:text-white font-medium">
+              {readyNodes.length}/{totalNodes} nodes ready
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+            <div
+              className={`h-2.5 rounded-full transition-all duration-500 ${
+                progressPct === 100 ? "bg-green-500" : progressPct > 0 ? "bg-blue-500" : "bg-yellow-500"
+              }`}
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+
+        {nodeList.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Node</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Location</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Install State</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nodeList.map((n) => (
+                  <tr key={n.id} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="px-3 py-2">
+                      <div className="text-gray-900 dark:text-white font-medium">{n.hostname}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{n.role}</div>
+                    </td>
+                    <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                      {n.serviceLocation === "SERVICE_LOCATION_DOCKER" ? "Dockerized" : "Native"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <PgStatusBadges
+                        installed={n.postgresInstalled}
+                        version={n.postgresVersion}
+                        dataInitialized={n.postgresDataInitialized}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div>
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+            Recent Installation Logs
+          </div>
+          {tailLogs.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">Logs appear once agents start executing installation commands.</p>
+          ) : (
+            <div className="max-h-48 overflow-y-auto font-mono text-xs rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+              {tailLogs.map((log) => (
+                <div key={log.id} className="grid grid-cols-[5rem_7rem_1fr] gap-2 px-3 py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+                  <span className="text-gray-500 dark:text-gray-400">{new Date(log.timestampMs).toLocaleTimeString()}</span>
+                  <span className="text-gray-700 dark:text-gray-300 truncate">{log.hostname || log.nodeId?.slice(0, 8) || "-"}</span>
+                  <span className={`${levelColor(log.level)} break-all`}>{log.message}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
@@ -225,7 +310,6 @@ export default function ClusterDetailPage() {
   }
 
   const nodes = nodesData?.nodes || [];
-  const missingPgNodes = nodes.filter((n) => !n.postgresInstalled);
   const onlineNodes = nodes.filter((n) => n.postgresInstalled && n.postgresDataInitialized);
   const totalNodes = nodes.length;
 
@@ -264,17 +348,9 @@ export default function ClusterDetailPage() {
         <Badge label={cluster.status} />
       </div>
 
-      {missingPgNodes.length > 0 && (
-        <div className="mb-4 flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
-          <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
-          <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            {missingPgNodes.length === 1
-              ? `Node "${missingPgNodes[0].hostname}" does not have PostgreSQL installed.`
-              : `${missingPgNodes.length} nodes in this cluster do not have PostgreSQL installed.`}{" "}
-            Install PostgreSQL on those hosts before promoting or replicating.
-          </p>
-        </div>
-      )}
+      <div className="mb-6">
+        <InstallationProgressCard nodes={nodes} logs={logs} />
+      </div>
 
       {/* Phase 4: Diagnostics Card */}
       <div className="mb-6">

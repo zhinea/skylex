@@ -19,6 +19,7 @@ import (
 type AgentService struct {
 	skylexv1.UnimplementedAgentServiceServer
 	cfg            *Config
+	clusters       *db.ClusterRepository
 	nodes          *db.NodeRepository
 	commands       *db.AgentCommandRepository
 	commandLogs    *db.CommandLogRepository
@@ -26,9 +27,10 @@ type AgentService struct {
 	log            *slog.Logger
 }
 
-func NewAgentService(cfg *Config, nodes *db.NodeRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, agentTokenRepo *db.AgentTokenRepository, log *slog.Logger) *AgentService {
+func NewAgentService(cfg *Config, clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, agentTokenRepo *db.AgentTokenRepository, log *slog.Logger) *AgentService {
 	return &AgentService{
 		cfg:            cfg,
+		clusters:       clusters,
 		nodes:          nodes,
 		commands:       commands,
 		commandLogs:    commandLogs,
@@ -226,7 +228,7 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 		nodeID = node.ID
 	}
 
-	cmds, err := s.commands.ListPending(ctx, req.GetAgentId(), nodeID)
+	cmds, err := s.commands.ListPendingLimit(ctx, req.GetAgentId(), nodeID, 1)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "fetch commands: %v", err)
 	}
@@ -251,7 +253,85 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 		return nil, status.Errorf(codes.Internal, "update command result: %v", err)
 	}
 
+	if err := s.updateClusterProvisioningStatus(ctx, req.GetCommandId()); err != nil {
+		s.log.Warn("update cluster provisioning status failed", "command_id", req.GetCommandId(), "error", err)
+	}
+
 	return &skylexv1.ReportCommandResultResponse{}, nil
+}
+
+func (s *AgentService) updateClusterProvisioningStatus(ctx context.Context, commandID string) error {
+	cmd, err := s.commands.GetByID(ctx, commandID)
+	if err != nil || cmd == nil || cmd.NodeID == "" {
+		return err
+	}
+
+	node, err := s.nodes.GetByID(ctx, cmd.NodeID)
+	if err != nil || node == nil || node.ClusterID == "" {
+		return err
+	}
+
+	cluster, err := s.clusters.GetByID(ctx, node.ClusterID)
+	if err != nil || cluster == nil || cluster.Status != models.ClusterStatusCreating {
+		return err
+	}
+
+	nodes, _, err := s.nodes.ListByCluster(ctx, node.ClusterID, 0, 1000)
+	if err != nil {
+		return err
+	}
+	if len(nodes) == 0 {
+		return nil
+	}
+
+	nodeIDs := make([]string, 0, len(nodes))
+	for _, n := range nodes {
+		nodeIDs = append(nodeIDs, n.ID)
+	}
+	cmds, err := s.commands.ListByNodeIDs(ctx, nodeIDs, 1000)
+	if err != nil {
+		return err
+	}
+
+	hasPending := false
+	for _, c := range cmds {
+		if c.CreatedAt.Before(cluster.CreatedAt) || !isProvisioningAction(c.Action) {
+			continue
+		}
+		switch c.Status {
+		case models.CommandStatusFailed:
+			if err := s.commands.MarkPendingFailedByNodeIDs(ctx, nodeIDs, provisioningActions(), "skipped after provisioning failure"); err != nil {
+				s.log.Warn("mark pending provisioning commands failed", "cluster_id", node.ClusterID, "error", err)
+			}
+			return s.updateClusterStatus(ctx, node.ClusterID, models.ClusterStatusStopped)
+		case models.CommandStatusPending:
+			hasPending = true
+		}
+	}
+	if !hasPending {
+		return s.updateClusterStatus(ctx, node.ClusterID, models.ClusterStatusRunning)
+	}
+	return nil
+}
+
+func isProvisioningAction(action string) bool {
+	switch action {
+	case "pg_preflight", "pg_install_native", "pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica":
+		return true
+	default:
+		return false
+	}
+}
+
+func provisioningActions() []string {
+	return []string{"pg_preflight", "pg_install_native", "pg_install_docker", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica"}
+}
+
+func (s *AgentService) updateClusterStatus(ctx context.Context, clusterID string, clusterStatus models.ClusterStatus) error {
+	if s.clusters == nil {
+		return nil
+	}
+	return s.clusters.UpdateStatus(ctx, clusterID, clusterStatus)
 }
 
 func (s *AgentService) ReportCommandLog(ctx context.Context, req *skylexv1.ReportCommandLogRequest) (*skylexv1.ReportCommandLogResponse, error) {

@@ -64,6 +64,15 @@ make run-agent ARGS='--server localhost:9090 --token-file /etc/skylex/token'
 
 - Environment variables are still supported for backwards compatibility and container deployments (`SKYLEX_AGENT_TOKEN`, `SKYLEX_SERVER_ADDR`, `SKYLEX_HOSTNAME`, `SKYLEX_PORT`, `SKYLEX_PG_DATA_DIR`, and `SKYLEX_AGENT_CONFIG`).
 
+## Cluster provisioning workflow
+
+- Cluster creation requires explicit node selection. The first selected node becomes the primary and remaining selected nodes become replicas.
+- The cluster config includes `service_location`: `native` runs PostgreSQL directly on the agent host, while `docker` provisions the official `postgres:<version>` container named `skylex-postgres` with the agent data directory mounted persistently.
+- Agents now execute provisioning commands before initialization: `pg_preflight`, then `pg_install_native` or `pg_install_docker` when needed, then the existing `pg_init`/`pg_start`/replication commands.
+- Native installation detects `apt-get`, `dnf`, `apk`, or `zypper` and installs PostgreSQL via argument-slice `exec.Command` calls; the agent process must have sufficient OS package privileges.
+- Docker provisioning assumes Docker Engine is already installed and reachable by the agent user. Skylex does not install Docker Engine in this phase.
+- Cluster detail pages show installation progress and tail command logs via the existing command-log pipeline.
+
 ## Database and migrations
 
 - Server uses embedded SQLite by default via `modernc.org/sqlite`.

@@ -18,12 +18,18 @@ var (
 	redactPasswordClause = regexp.MustCompile(`(?i)password\s*=\s*\S+`)
 	// redactEncryptedPassword matches ENCRYPTED PASSWORD '...'.
 	redactEncryptedPassword = regexp.MustCompile(`(?i)ENCRYPTED\s+PASSWORD\s+'[^']*'`)
+	// redactPostgresPasswordEnv matches POSTGRES_PASSWORD=value used by Docker provisioning.
+	redactPostgresPasswordEnv = regexp.MustCompile(`(?i)POSTGRES_PASSWORD\s*=\s*\S+`)
+	// redactPsqlVariablePassword matches psql variable arguments containing repl_pass.
+	redactPsqlVariablePassword = regexp.MustCompile(`(?i)repl_pass\s*=\s*\S+`)
 )
 
 // RedactSecrets removes common password patterns from log output before
 // sending it to the server.
 func RedactSecrets(input string) string {
 	s := redactPasswordEnv.ReplaceAllString(input, "PGPASSWORD=***")
+	s = redactPostgresPasswordEnv.ReplaceAllString(s, "POSTGRES_PASSWORD=***")
+	s = redactPsqlVariablePassword.ReplaceAllString(s, "repl_pass=***")
 	s = redactPasswordClause.ReplaceAllString(s, "password=***")
 	s = redactEncryptedPassword.ReplaceAllString(s, "ENCRYPTED PASSWORD '***'")
 	return s

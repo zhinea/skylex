@@ -110,7 +110,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.clusterService = NewClusterService(conn, clusterRepo, nodeRepo, commandRepo, clusterSettingsRepo, s.log)
 	s.nodeService = NewNodeService(nodeRepo, commandRepo, commandLogRepo, s.log)
-	s.agentService = NewAgentService(s.cfg, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
+	s.agentService = NewAgentService(s.cfg, clusterRepo, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
 
 	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
