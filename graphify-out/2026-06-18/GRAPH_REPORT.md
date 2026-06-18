@@ -1,16 +1,16 @@
 # Graph Report - skylex  (2026-06-18)
 
 ## Corpus Check
-- 119 files · ~67,319 words
+- 143 files · ~79,029 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2453 nodes · 4518 edges · 151 communities (95 shown, 56 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 127 edges (avg confidence: 0.8)
+- 2478 nodes · 4557 edges · 155 communities (99 shown, 56 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 128 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d3fe2e37`
+- Built from commit: `9ea29977`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -155,6 +155,9 @@
 - [[_COMMUNITY_Community 147|Community 147]]
 - [[_COMMUNITY_Community 148|Community 148]]
 - [[_COMMUNITY_Community 149|Community 149]]
+- [[_COMMUNITY_Community 151|Community 151]]
+- [[_COMMUNITY_Community 152|Community 152]]
+- [[_COMMUNITY_Community 153|Community 153]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Rebind()` - 60 edges
@@ -188,7 +191,7 @@
 - **Control Plane API Services** — plans_skylex_db_control_plane_plan_cluster_service, plans_skylex_db_control_plane_plan_node_service, plans_skylex_db_control_plane_plan_backup_service, plans_skylex_db_control_plane_plan_agent_service, plans_skylex_db_control_plane_plan_auth_service, plans_skylex_db_control_plane_plan_connect_rpc [EXTRACTED 1.00]
 - **Docker Compose Reference Stack** — docker_compose_docker_compose_skylex_stack, plans_skylex_db_control_plane_plan_skylex_server, plans_skylex_db_control_plane_plan_skylex_agent, plans_skylex_db_control_plane_plan_etcd, plans_skylex_db_control_plane_plan_s3_object_storage [EXTRACTED 1.00]
 
-## Communities (151 total, 56 thin omitted)
+## Communities (155 total, 56 thin omitted)
 
 ### Community 0 - "Backup gRPC Service"
 Cohesion: 0.06
@@ -259,8 +262,8 @@ Cohesion: 0.08
 Nodes (8): MessageState, SizeCache, UnknownFields, DeleteBackupResponse, DeleteScheduleResponse, GetBackupRequest, ListBackupsRequest, ListSchedulesRequest
 
 ### Community 17 - "Agent gRPC Protocol"
-Cohesion: 0.14
-Nodes (15): Agent, AgentCommand, AgentServiceClient, ClientConn, Instance, Config, Context, Context (+7 more)
+Cohesion: 0.10
+Nodes (25): Agent, AgentCommand, AgentServiceClient, ClientConn, DB, Instance, Config, Context (+17 more)
 
 ### Community 18 - "Cluster gRPC Service"
 Cohesion: 0.08
@@ -295,8 +298,8 @@ Cohesion: 0.09
 Nodes (4): Node, DrainNodeResponse, RejoinNodeResponse, RestartNodeResponse
 
 ### Community 27 - "Cluster gRPC Service"
-Cohesion: 0.11
-Nodes (14): DecryptAES256GCM(), EncryptAES256GCM(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+6 more)
+Cohesion: 0.13
+Nodes (11): DecryptAES256GCM(), EncryptAES256GCM(), NewStorageConfigRepository(), scanStorageConfigRow(), StorageConfigRepository, Context, DB, Logger (+3 more)
 
 ### Community 28 - "Auth gRPC Service"
 Cohesion: 0.08
@@ -526,8 +529,20 @@ Nodes (9): Engine, NewEngine(), BackupRepository, BackupType, Context, Logger, P
 Cohesion: 0.23
 Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, JWTManager
 
+### Community 151 - "Community 151"
+Cohesion: 0.36
+Nodes (6): T, installScript(), versionString(), TestServeAgentInstallScript(), TestServeAgentInstallScriptRejectsPost(), TestServeVersion()
+
+### Community 152 - "Community 152"
+Cohesion: 0.70
+Nodes (4): fail(), log(), usage(), install-agent.sh script
+
+### Community 153 - "Community 153"
+Cohesion: 0.67
+Nodes (3): Time, StorageConfig, StorageType
+
 ## Knowledge Gaps
-- **307 isolated node(s):** `Goal`, `Current State`, `Option A: Shared config token (fastest)`, `Option B: Generated agent tokens (recommended)`, `Option C: Pre-built agent bundle` (+302 more)
+- **308 isolated node(s):** `Time`, `DB`, `InstallAgentModalProps`, `InstallCommandData`, `AgentToken` (+303 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **56 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -535,16 +550,16 @@ Nodes (7): Duration, Role, User, RegisteredClaims, NewJWTManager(), JWTClaims, J
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `file_skylex_v1_common_proto_init()` connect `Protobuf Message Types` to `Agent gRPC Protocol`, `Auth gRPC Service`, `Backup gRPC Service`, `Cluster File Skylex V1 Cluster`, `Storage gRPC Service`?**
-  _High betweenness centrality (0.238) - this node is a cross-community bridge._
+  _High betweenness centrality (0.246) - this node is a cross-community bridge._
 - **Why does `New()` connect `Auth gRPC Service` to `Auth gRPC Service`, `Auth gRPC Service`, `Agent gRPC Protocol`, `Community 147`, `Main Config`, `Auth gRPC Service`?**
-  _High betweenness centrality (0.199) - this node is a cross-community bridge._
+  _High betweenness centrality (0.185) - this node is a cross-community bridge._
 - **Why does `file_skylex_v1_auth_proto_init()` connect `Auth gRPC Service` to `Protobuf Message Types`?**
-  _High betweenness centrality (0.177) - this node is a cross-community bridge._
+  _High betweenness centrality (0.179) - this node is a cross-community bridge._
 - **Are the 59 inferred relationships involving `Rebind()` (e.g. with `.Create()` and `.ListPending()`) actually correct?**
   _`Rebind()` has 59 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 39 inferred relationships involving `New()` (e.g. with `NewPgBackRest()` and `main()`) actually correct?**
   _`New()` has 39 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Goal`, `Current State`, `Option A: Shared config token (fastest)` to the rest of the system?**
-  _308 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `Time`, `DB`, `InstallAgentModalProps` to the rest of the system?**
+  _309 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backup gRPC Service` be split into smaller, more focused modules?**
   _Cohesion score 0.05955734406438632 - nodes in this community are weakly interconnected._

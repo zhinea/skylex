@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781740748.9718537,
-    "ast_hash": "3e353fcca9f5165559f18174e7622729",
+    "mtime": 1781742801.7905118,
+    "ast_hash": "12259598bac1301693be14afa562230b",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "internal/server/config.go": {
-    "mtime": 1781737580.165143,
-    "ast_hash": "7ae9af479668de92e7e60de471b1455e",
+    "mtime": 1781742637.7004473,
+    "ast_hash": "0e8fdfa634ea4648610c2f269281c15a",
     "semantic_hash": ""
   },
   "internal/server/grpc.go": {
@@ -365,8 +365,8 @@
     "semantic_hash": "63c427f74edc4879a317624de62aa902"
   },
   "AGENTS.md": {
-    "mtime": 1781734187.0478933,
-    "ast_hash": "bb2d8b5e889d06219cd62781b2bb3be2",
+    "mtime": 1781742763.2465143,
+    "ast_hash": "c788d5e5370ee8eb91f40d9336c0177d",
     "semantic_hash": ""
   },
   "buf.gen.yaml": {
@@ -380,8 +380,8 @@
     "semantic_hash": "a93f9fc26c6cc0ad5d66cbe95944f41f"
   },
   "config.example.yaml": {
-    "mtime": 1781737647.319811,
-    "ast_hash": "d8f1869d537ce108357b389f6e00bf1f",
+    "mtime": 1781741934.3666372,
+    "ast_hash": "5b1de8ad9475659d6565e2ca287c0e70",
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.yaml": {
@@ -760,7 +760,7 @@
     "semantic_hash": ""
   },
   "internal/server/assets/install-agent.sh": {
-    "mtime": 1781739734.497906,
+    "mtime": 1781742161.7585928,
     "ast_hash": "c1e73b07a640b7a2bce3d22307e22994",
     "semantic_hash": ""
   },
@@ -775,7 +775,7 @@
     "semantic_hash": ""
   },
   "internal/server/assets/version.txt": {
-    "mtime": 1781739734.506227,
+    "mtime": 1781742161.7739336,
     "ast_hash": "1347633cdf7cdcb2168d61093630d5ae",
     "semantic_hash": ""
   }

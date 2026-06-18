@@ -56,14 +56,374 @@
   },
   "nodes": [
     {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 130,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "Skylex \u2014 Agent Notes",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_skylex_agent_notes",
+      "community": 130,
+      "norm_label": "skylex \u2014 agent notes"
+    },
+    {
+      "label": "Quick start",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "agents_quick_start",
+      "community": 130,
+      "norm_label": "quick start"
+    },
+    {
+      "label": "Project layout",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "agents_project_layout",
+      "community": 130,
+      "norm_label": "project layout"
+    },
+    {
+      "label": "Developer commands",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "agents_developer_commands",
+      "community": 130,
+      "norm_label": "developer commands"
+    },
+    {
+      "label": "Configuration",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L49",
+      "_origin": "ast",
+      "id": "agents_configuration",
+      "community": 130,
+      "norm_label": "configuration"
+    },
+    {
+      "label": "Database and migrations",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "agents_database_and_migrations",
+      "community": 130,
+      "norm_label": "database and migrations"
+    },
+    {
+      "label": "Protocol buffers and generated code",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "agents_protocol_buffers_and_generated_code",
+      "community": 130,
+      "norm_label": "protocol buffers and generated code"
+    },
+    {
+      "label": "Testing",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "agents_testing",
+      "community": 130,
+      "norm_label": "testing"
+    },
+    {
+      "label": "Docker Compose reference stack",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "agents_docker_compose_reference_stack",
+      "community": 130,
+      "norm_label": "docker compose reference stack"
+    },
+    {
+      "label": "Important conventions",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L82",
+      "_origin": "ast",
+      "id": "agents_important_conventions",
+      "community": 130,
+      "norm_label": "important conventions"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "agents_graphify",
+      "community": 130,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "Config",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "server_config",
+      "community": 155,
+      "norm_label": "config"
+    },
+    {
+      "label": "ServerConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "serverconfig",
+      "community": 155,
+      "norm_label": "serverconfig"
+    },
+    {
+      "label": "DatabaseConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "databaseconfig",
+      "community": 155,
+      "norm_label": "databaseconfig"
+    },
+    {
+      "label": "EtcdConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "etcdconfig",
+      "community": 155,
+      "norm_label": "etcdconfig"
+    },
+    {
+      "label": "BackupConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "backupconfig",
+      "community": 155,
+      "norm_label": "backupconfig"
+    },
+    {
+      "label": "AgentConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "agentconfig",
+      "community": 155,
+      "norm_label": "agentconfig"
+    },
+    {
+      "label": "AuthConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "authconfig",
+      "community": 155,
+      "norm_label": "authconfig"
+    },
+    {
+      "label": "LoggingConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "loggingconfig",
+      "community": 155,
+      "norm_label": "loggingconfig"
+    },
+    {
+      "label": "TLSConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "tlsconfig",
+      "community": 155,
+      "norm_label": "tlsconfig"
+    },
+    {
+      "label": "PostgresConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "postgresconfig",
+      "community": 155,
+      "norm_label": "postgresconfig"
+    },
+    {
+      "label": "WebhookConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "webhookconfig",
+      "community": 155,
+      "norm_label": "webhookconfig"
+    },
+    {
+      "label": "ServerConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "server_serverconfig",
+      "community": 155,
+      "norm_label": "serverconfig"
+    },
+    {
+      "label": "DatabaseConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "server_databaseconfig",
+      "community": 155,
+      "norm_label": "databaseconfig"
+    },
+    {
+      "label": "Duration",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "duration",
+      "community": 155,
+      "norm_label": "duration"
+    },
+    {
+      "label": "EtcdConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "server_etcdconfig",
+      "community": 155,
+      "norm_label": "etcdconfig"
+    },
+    {
+      "label": "BackupConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "server_backupconfig",
+      "community": 155,
+      "norm_label": "backupconfig"
+    },
+    {
+      "label": "AgentConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "server_agentconfig",
+      "community": 155,
+      "norm_label": "agentconfig"
+    },
+    {
+      "label": "AuthConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "server_authconfig",
+      "community": 155,
+      "norm_label": "authconfig"
+    },
+    {
+      "label": "LoggingConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "server_loggingconfig",
+      "community": 155,
+      "norm_label": "loggingconfig"
+    },
+    {
+      "label": "TLSConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "server_tlsconfig",
+      "community": 155,
+      "norm_label": "tlsconfig"
+    },
+    {
+      "label": "PostgresConfig",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "server_postgresconfig",
+      "community": 155,
+      "norm_label": "postgresconfig"
+    },
+    {
+      "label": "LoadConfig()",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "server_config_loadconfig",
+      "community": 155,
+      "norm_label": "loadconfig()"
+    },
+    {
+      "label": ".setDefaults()",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L121",
+      "_origin": "ast",
+      "id": "server_config_setdefaults",
+      "community": 155,
+      "norm_label": ".setdefaults()"
+    },
+    {
+      "label": "generateSecret()",
+      "file_type": "code",
+      "source_file": "internal/server/config.go",
+      "source_location": "L203",
+      "_origin": "ast",
+      "id": "server_config_generatesecret",
+      "community": 155,
+      "norm_label": "generatesecret()"
+    },
+    {
       "label": "agent_service_test.go",
       "file_type": "code",
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "server_agent_service_test",
       "community": 17,
-      "norm_label": "agent_service_test.go"
+      "norm_label": "agent_service_test.go",
+      "id": "server_agent_service_test"
     },
     {
       "label": "mustToken()",
@@ -71,9 +431,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "server_agent_service_test_musttoken",
       "community": 17,
-      "norm_label": "musttoken()"
+      "norm_label": "musttoken()",
+      "id": "server_agent_service_test_musttoken"
     },
     {
       "label": "T",
@@ -81,9 +441,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "internal_server_agent_service_test_go_t",
       "community": 17,
-      "norm_label": "t"
+      "norm_label": "t",
+      "id": "internal_server_agent_service_test_go_t"
     },
     {
       "label": "now()",
@@ -91,9 +451,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "server_agent_service_test_now",
       "community": 17,
-      "norm_label": "now()"
+      "norm_label": "now()",
+      "id": "server_agent_service_test_now"
     },
     {
       "label": "Time",
@@ -101,9 +461,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "time",
       "community": 17,
-      "norm_label": "time"
+      "norm_label": "time",
+      "id": "time"
     },
     {
       "label": "newTestDeps()",
@@ -111,9 +471,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "server_agent_service_test_newtestdeps",
       "community": 17,
-      "norm_label": "newtestdeps()"
+      "norm_label": "newtestdeps()",
+      "id": "server_agent_service_test_newtestdeps"
     },
     {
       "label": "DB",
@@ -121,9 +481,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "db",
       "community": 17,
-      "norm_label": "db"
+      "norm_label": "db",
+      "id": "db"
     },
     {
       "label": "Logger",
@@ -131,9 +491,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L31",
       "_origin": "ast",
-      "id": "logger",
       "community": 17,
-      "norm_label": "logger"
+      "norm_label": "logger",
+      "id": "logger"
     },
     {
       "label": "TestAgentService_RegisterAgent_RequiresToken()",
@@ -141,9 +501,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L42",
       "_origin": "ast",
-      "id": "server_agent_service_test_testagentservice_registeragent_requirestoken",
       "community": 17,
-      "norm_label": "testagentservice_registeragent_requirestoken()"
+      "norm_label": "testagentservice_registeragent_requirestoken()",
+      "id": "server_agent_service_test_testagentservice_registeragent_requirestoken"
     },
     {
       "label": "TestAgentService_RegisterAgent_InvalidToken()",
@@ -151,9 +511,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L59",
       "_origin": "ast",
-      "id": "server_agent_service_test_testagentservice_registeragent_invalidtoken",
       "community": 17,
-      "norm_label": "testagentservice_registeragent_invalidtoken()"
+      "norm_label": "testagentservice_registeragent_invalidtoken()",
+      "id": "server_agent_service_test_testagentservice_registeragent_invalidtoken"
     },
     {
       "label": "TestAgentService_RegisterAgent_ValidToken()",
@@ -161,9 +521,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L76",
       "_origin": "ast",
-      "id": "server_agent_service_test_testagentservice_registeragent_validtoken",
       "community": 17,
-      "norm_label": "testagentservice_registeragent_validtoken()"
+      "norm_label": "testagentservice_registeragent_validtoken()",
+      "id": "server_agent_service_test_testagentservice_registeragent_validtoken"
     },
     {
       "label": "TestAgentService_RegisterAgent_DevTokenFallback()",
@@ -171,9 +531,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L109",
       "_origin": "ast",
-      "id": "server_agent_service_test_testagentservice_registeragent_devtokenfallback",
       "community": 17,
-      "norm_label": "testagentservice_registeragent_devtokenfallback()"
+      "norm_label": "testagentservice_registeragent_devtokenfallback()",
+      "id": "server_agent_service_test_testagentservice_registeragent_devtokenfallback"
     },
     {
       "label": "assets.go",
@@ -181,9 +541,9 @@
       "source_file": "internal/server/assets.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "server_assets",
       "community": 151,
-      "norm_label": "assets.go"
+      "norm_label": "assets.go",
+      "id": "server_assets"
     },
     {
       "label": "versionString()",
@@ -191,9 +551,9 @@
       "source_file": "internal/server/assets.go",
       "source_location": "L14",
       "_origin": "ast",
-      "id": "server_assets_versionstring",
       "community": 151,
-      "norm_label": "versionstring()"
+      "norm_label": "versionstring()",
+      "id": "server_assets_versionstring"
     },
     {
       "label": "installScript()",
@@ -201,9 +561,9 @@
       "source_file": "internal/server/assets.go",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "server_assets_installscript",
       "community": 151,
-      "norm_label": "installscript()"
+      "norm_label": "installscript()",
+      "id": "server_assets_installscript"
     },
     {
       "label": "install-agent.sh",
@@ -215,9 +575,9 @@
         "kind": "file"
       },
       "_origin": "ast",
-      "id": "assets_install_agent",
       "community": 152,
-      "norm_label": "install-agent.sh"
+      "norm_label": "install-agent.sh",
+      "id": "assets_install_agent"
     },
     {
       "label": "install-agent.sh script",
@@ -229,9 +589,9 @@
         "kind": "bash_entrypoint"
       },
       "_origin": "ast",
-      "id": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry",
       "community": 152,
-      "norm_label": "install-agent.sh script"
+      "norm_label": "install-agent.sh script",
+      "id": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry"
     },
     {
       "label": "log()",
@@ -243,9 +603,9 @@
         "kind": "bash_function"
       },
       "_origin": "ast",
-      "id": "assets_install_agent_log",
       "community": 152,
-      "norm_label": "log()"
+      "norm_label": "log()",
+      "id": "assets_install_agent_log"
     },
     {
       "label": "fail()",
@@ -257,9 +617,9 @@
         "kind": "bash_function"
       },
       "_origin": "ast",
-      "id": "assets_install_agent_fail",
       "community": 152,
-      "norm_label": "fail()"
+      "norm_label": "fail()",
+      "id": "assets_install_agent_fail"
     },
     {
       "label": "usage()",
@@ -271,9 +631,9 @@
         "kind": "bash_function"
       },
       "_origin": "ast",
-      "id": "assets_install_agent_usage",
       "community": 152,
-      "norm_label": "usage()"
+      "norm_label": "usage()",
+      "id": "assets_install_agent_usage"
     },
     {
       "label": "connect_test.go",
@@ -281,9 +641,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "server_connect_test",
       "community": 151,
-      "norm_label": "connect_test.go"
+      "norm_label": "connect_test.go",
+      "id": "server_connect_test"
     },
     {
       "label": "TestServeVersion()",
@@ -291,9 +651,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "server_connect_test_testserveversion",
       "community": 151,
-      "norm_label": "testserveversion()"
+      "norm_label": "testserveversion()",
+      "id": "server_connect_test_testserveversion"
     },
     {
       "label": "T",
@@ -301,9 +661,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L10",
       "_origin": "ast",
-      "id": "internal_server_connect_test_go_t",
       "community": 151,
-      "norm_label": "t"
+      "norm_label": "t",
+      "id": "internal_server_connect_test_go_t"
     },
     {
       "label": "TestServeAgentInstallScript()",
@@ -311,9 +671,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L25",
       "_origin": "ast",
-      "id": "server_connect_test_testserveagentinstallscript",
       "community": 151,
-      "norm_label": "testserveagentinstallscript()"
+      "norm_label": "testserveagentinstallscript()",
+      "id": "server_connect_test_testserveagentinstallscript"
     },
     {
       "label": "TestServeAgentInstallScriptRejectsPost()",
@@ -321,9 +681,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L44",
       "_origin": "ast",
-      "id": "server_connect_test_testserveagentinstallscriptrejectspost",
       "community": 151,
-      "norm_label": "testserveagentinstallscriptrejectspost()"
+      "norm_label": "testserveagentinstallscriptrejectspost()",
+      "id": "server_connect_test_testserveagentinstallscriptrejectspost"
     },
     {
       "label": "version.go",
@@ -331,9 +691,9 @@
       "source_file": "internal/server/version.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "server_version",
       "community": 154,
-      "norm_label": "version.go"
+      "norm_label": "version.go",
+      "id": "server_version"
     },
     {
       "label": "InstallAgentModal.tsx",
@@ -341,9 +701,9 @@
       "source_file": "ui/app/components/InstallAgentModal.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "components_installagentmodal",
       "community": 116,
-      "norm_label": "installagentmodal.tsx"
+      "norm_label": "installagentmodal.tsx",
+      "id": "components_installagentmodal"
     },
     {
       "label": "InstallAgentModalProps",
@@ -351,9 +711,9 @@
       "source_file": "ui/app/components/InstallAgentModal.tsx",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "components_installagentmodal_installagentmodalprops",
       "community": 116,
-      "norm_label": "installagentmodalprops"
+      "norm_label": "installagentmodalprops",
+      "id": "components_installagentmodal_installagentmodalprops"
     },
     {
       "label": "InstallAgentModal()",
@@ -361,9 +721,9 @@
       "source_file": "ui/app/components/InstallAgentModal.tsx",
       "source_location": "L11",
       "_origin": "ast",
-      "id": "components_installagentmodal_installagentmodal",
       "community": 116,
-      "norm_label": "installagentmodal()"
+      "norm_label": "installagentmodal()",
+      "id": "components_installagentmodal_installagentmodal"
     },
     {
       "label": "buildCommand()",
@@ -371,9 +731,9 @@
       "source_file": "ui/app/components/InstallAgentModal.tsx",
       "source_location": "L137",
       "_origin": "ast",
-      "id": "components_installagentmodal_buildcommand",
       "community": 116,
-      "norm_label": "buildcommand()"
+      "norm_label": "buildcommand()",
+      "id": "components_installagentmodal_buildcommand"
     },
     {
       "label": "useAgentInstall.ts",
@@ -381,9 +741,9 @@
       "source_file": "ui/app/hooks/useAgentInstall.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "hooks_useagentinstall",
       "community": 103,
-      "norm_label": "useagentinstall.ts"
+      "norm_label": "useagentinstall.ts",
+      "id": "hooks_useagentinstall"
     },
     {
       "label": "InstallCommandData",
@@ -391,9 +751,9 @@
       "source_file": "ui/app/hooks/useAgentInstall.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "hooks_useagentinstall_installcommanddata",
       "community": 103,
-      "norm_label": "installcommanddata"
+      "norm_label": "installcommanddata",
+      "id": "hooks_useagentinstall_installcommanddata"
     },
     {
       "label": "useAgentInstallCommand()",
@@ -401,9 +761,9 @@
       "source_file": "ui/app/hooks/useAgentInstall.ts",
       "source_location": "L9",
       "_origin": "ast",
-      "id": "hooks_useagentinstall_useagentinstallcommand",
       "community": 116,
-      "norm_label": "useagentinstallcommand()"
+      "norm_label": "useagentinstallcommand()",
+      "id": "hooks_useagentinstall_useagentinstallcommand"
     },
     {
       "label": "useScriptUrl()",
@@ -411,9 +771,9 @@
       "source_file": "ui/app/hooks/useAgentInstall.ts",
       "source_location": "L58",
       "_origin": "ast",
-      "id": "hooks_useagentinstall_usescripturl",
       "community": 103,
-      "norm_label": "usescripturl()"
+      "norm_label": "usescripturl()",
+      "id": "hooks_useagentinstall_usescripturl"
     },
     {
       "label": "useAgentTokens.ts",
@@ -421,9 +781,9 @@
       "source_file": "ui/app/hooks/useAgentTokens.ts",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "hooks_useagenttokens",
       "community": 146,
-      "norm_label": "useagenttokens.ts"
+      "norm_label": "useagenttokens.ts",
+      "id": "hooks_useagenttokens"
     },
     {
       "label": "AgentToken",
@@ -431,9 +791,9 @@
       "source_file": "ui/app/hooks/useAgentTokens.ts",
       "source_location": "L4",
       "_origin": "ast",
-      "id": "hooks_useagenttokens_agenttoken",
       "community": 146,
-      "norm_label": "agenttoken"
+      "norm_label": "agenttoken",
+      "id": "hooks_useagenttokens_agenttoken"
     },
     {
       "label": "useAgentTokens()",
@@ -441,9 +801,9 @@
       "source_file": "ui/app/hooks/useAgentTokens.ts",
       "source_location": "L12",
       "_origin": "ast",
-      "id": "hooks_useagenttokens_useagenttokens",
       "community": 146,
-      "norm_label": "useagenttokens()"
+      "norm_label": "useagenttokens()",
+      "id": "hooks_useagenttokens_useagenttokens"
     },
     {
       "label": "useCreateAgentToken()",
@@ -451,9 +811,9 @@
       "source_file": "ui/app/hooks/useAgentTokens.ts",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "hooks_useagenttokens_usecreateagenttoken",
       "community": 146,
-      "norm_label": "usecreateagenttoken()"
+      "norm_label": "usecreateagenttoken()",
+      "id": "hooks_useagenttokens_usecreateagenttoken"
     },
     {
       "label": "useDeleteAgentToken()",
@@ -461,9 +821,9 @@
       "source_file": "ui/app/hooks/useAgentTokens.ts",
       "source_location": "L33",
       "_origin": "ast",
-      "id": "hooks_useagenttokens_usedeleteagenttoken",
       "community": 146,
-      "norm_label": "usedeleteagenttoken()"
+      "norm_label": "usedeleteagenttoken()",
+      "id": "hooks_useagenttokens_usedeleteagenttoken"
     },
     {
       "label": "agent-install-onboarding.md",
@@ -4744,126 +5104,6 @@
       "community": 134,
       "norm_label": "vite.config.ts",
       "id": "ui_vite_config"
-    },
-    {
-      "label": "AGENTS.md",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "agents.md",
-      "id": "agents"
-    },
-    {
-      "label": "Skylex \u2014 Agent Notes",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "skylex \u2014 agent notes",
-      "id": "agents_skylex_agent_notes"
-    },
-    {
-      "label": "Quick start",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L6",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "quick start",
-      "id": "agents_quick_start"
-    },
-    {
-      "label": "Project layout",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L19",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "project layout",
-      "id": "agents_project_layout"
-    },
-    {
-      "label": "Developer commands",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L31",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "developer commands",
-      "id": "agents_developer_commands"
-    },
-    {
-      "label": "Configuration",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L49",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "configuration",
-      "id": "agents_configuration"
-    },
-    {
-      "label": "Database and migrations",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L57",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "database and migrations",
-      "id": "agents_database_and_migrations"
-    },
-    {
-      "label": "Protocol buffers and generated code",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L63",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "protocol buffers and generated code",
-      "id": "agents_protocol_buffers_and_generated_code"
-    },
-    {
-      "label": "Testing",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L69",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "testing",
-      "id": "agents_testing"
-    },
-    {
-      "label": "Docker Compose reference stack",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L74",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "docker compose reference stack",
-      "id": "agents_docker_compose_reference_stack"
-    },
-    {
-      "label": "Important conventions",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L82",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "important conventions",
-      "id": "agents_important_conventions"
-    },
-    {
-      "label": "graphify",
-      "file_type": "document",
-      "source_file": "AGENTS.md",
-      "source_location": "L91",
-      "_origin": "ast",
-      "community": 130,
-      "norm_label": "graphify",
-      "id": "agents_graphify"
     },
     {
       "label": "dev.sh",
@@ -25010,12 +25250,429 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents",
+      "target": "agents_skylex_agent_notes"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_configuration"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_database_and_migrations"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_developer_commands"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L72",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_docker_compose_reference_stack"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L89",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_graphify"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_important_conventions"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_project_layout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_protocol_buffers_and_generated_code"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_quick_start"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L67",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_skylex_agent_notes",
+      "target": "agents_testing"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L22",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "agentconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L23",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "authconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "backupconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L19",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "databaseconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L20",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "etcdconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L24",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "loggingconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L26",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "postgresconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_agentconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L64",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_authconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_backupconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L203",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_config_generatesecret",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L91",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_config_loadconfig",
+      "target": "server_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L121",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_config_setdefaults",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_databaseconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_etcdconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_loggingconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_postgresconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_serverconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L76",
+      "weight": 1.0,
+      "source": "server_config",
+      "target": "server_tlsconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L18",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "serverconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L25",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "tlsconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L27",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_config",
+      "target": "webhookconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L43",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_databaseconfig",
+      "target": "duration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L60",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_agentconfig",
+      "target": "duration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L67",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_authconfig",
+      "target": "duration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L48",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_etcdconfig",
+      "target": "duration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L109",
+      "weight": 1.0,
+      "source": "server_config_loadconfig",
+      "target": "server_config_setdefaults",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/config.go",
+      "source_location": "L123",
+      "weight": 1.0,
+      "source": "server_config_setdefaults",
+      "target": "server_config_generatesecret",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_musttoken",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_musttoken"
     },
     {
       "relation": "contains",
@@ -25023,9 +25680,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L31",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_newtestdeps",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_newtestdeps"
     },
     {
       "relation": "contains",
@@ -25033,9 +25690,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L29",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_now",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_now"
     },
     {
       "relation": "contains",
@@ -25043,9 +25700,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L109",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_testagentservice_registeragent_devtokenfallback",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_testagentservice_registeragent_devtokenfallback"
     },
     {
       "relation": "contains",
@@ -25053,9 +25710,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L59",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_testagentservice_registeragent_invalidtoken",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_testagentservice_registeragent_invalidtoken"
     },
     {
       "relation": "contains",
@@ -25063,9 +25720,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L42",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_testagentservice_registeragent_requirestoken",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_testagentservice_registeragent_requirestoken"
     },
     {
       "relation": "contains",
@@ -25073,9 +25730,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L76",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test",
-      "target": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_testagentservice_registeragent_validtoken"
     },
     {
       "relation": "references",
@@ -25084,9 +25741,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_musttoken",
-      "target": "internal_server_agent_service_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_agent_service_test_go_t"
     },
     {
       "relation": "calls",
@@ -25095,9 +25752,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L81",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "target": "server_agent_service_test_musttoken",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_musttoken"
     },
     {
       "relation": "references",
@@ -25106,9 +25763,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_newtestdeps",
-      "target": "internal_server_agent_service_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_agent_service_test_go_t"
     },
     {
       "relation": "references",
@@ -25117,9 +25774,9 @@
       "source_location": "L109",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_devtokenfallback",
-      "target": "internal_server_agent_service_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_agent_service_test_go_t"
     },
     {
       "relation": "references",
@@ -25128,9 +25785,9 @@
       "source_location": "L59",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_invalidtoken",
-      "target": "internal_server_agent_service_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_agent_service_test_go_t"
     },
     {
       "relation": "references",
@@ -25139,9 +25796,9 @@
       "source_location": "L42",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_requirestoken",
-      "target": "internal_server_agent_service_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_agent_service_test_go_t"
     },
     {
       "relation": "references",
@@ -25150,9 +25807,9 @@
       "source_location": "L76",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "target": "internal_server_agent_service_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_agent_service_test_go_t"
     },
     {
       "relation": "references",
@@ -25161,9 +25818,9 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_now",
-      "target": "time",
-      "confidence_score": 1.0
+      "target": "time"
     },
     {
       "relation": "calls",
@@ -25172,9 +25829,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L87",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "target": "server_agent_service_test_now",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_now"
     },
     {
       "relation": "references",
@@ -25183,9 +25840,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_newtestdeps",
-      "target": "db",
-      "confidence_score": 1.0
+      "target": "db"
     },
     {
       "relation": "references",
@@ -25194,9 +25851,9 @@
       "source_location": "L31",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_newtestdeps",
-      "target": "logger",
-      "confidence_score": 1.0
+      "target": "logger"
     },
     {
       "relation": "calls",
@@ -25205,9 +25862,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L110",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_devtokenfallback",
-      "target": "server_agent_service_test_newtestdeps",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_newtestdeps"
     },
     {
       "relation": "calls",
@@ -25216,9 +25873,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L60",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_invalidtoken",
-      "target": "server_agent_service_test_newtestdeps",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_newtestdeps"
     },
     {
       "relation": "calls",
@@ -25227,9 +25884,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L43",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_requirestoken",
-      "target": "server_agent_service_test_newtestdeps",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_newtestdeps"
     },
     {
       "relation": "calls",
@@ -25238,9 +25895,9 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L77",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "target": "server_agent_service_test_newtestdeps",
-      "confidence_score": 1.0
+      "target": "server_agent_service_test_newtestdeps"
     },
     {
       "relation": "references",
@@ -25259,9 +25916,9 @@
       "source_file": "internal/server/assets.go",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_assets",
-      "target": "server_assets_installscript",
-      "confidence_score": 1.0
+      "target": "server_assets_installscript"
     },
     {
       "relation": "contains",
@@ -25269,9 +25926,9 @@
       "source_file": "internal/server/assets.go",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_assets",
-      "target": "server_assets_versionstring",
-      "confidence_score": 1.0
+      "target": "server_assets_versionstring"
     },
     {
       "relation": "calls",
@@ -25280,9 +25937,9 @@
       "source_file": "internal/server/assets.go",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_assets_installscript",
-      "target": "server_assets_versionstring",
-      "confidence_score": 1.0
+      "target": "server_assets_versionstring"
     },
     {
       "relation": "calls",
@@ -25301,9 +25958,9 @@
       "source_file": "internal/server/assets/install-agent.sh",
       "source_location": "L34",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "assets_install_agent",
-      "target": "assets_install_agent_fail",
-      "confidence_score": 1.0
+      "target": "assets_install_agent_fail"
     },
     {
       "relation": "defines",
@@ -25311,9 +25968,9 @@
       "source_file": "internal/server/assets/install-agent.sh",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "assets_install_agent",
-      "target": "assets_install_agent_log",
-      "confidence_score": 1.0
+      "target": "assets_install_agent_log"
     },
     {
       "relation": "defines",
@@ -25321,9 +25978,9 @@
       "source_file": "internal/server/assets/install-agent.sh",
       "source_location": "L36",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "assets_install_agent",
-      "target": "assets_install_agent_usage",
-      "confidence_score": 1.0
+      "target": "assets_install_agent_usage"
     },
     {
       "relation": "contains",
@@ -25331,9 +25988,9 @@
       "source_file": "internal/server/assets/install-agent.sh",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "assets_install_agent",
-      "target": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry",
-      "confidence_score": 1.0
+      "target": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry"
     },
     {
       "relation": "calls",
@@ -25342,9 +25999,9 @@
       "source_location": "L70",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry",
-      "target": "assets_install_agent_fail",
-      "confidence_score": 1.0
+      "target": "assets_install_agent_fail"
     },
     {
       "relation": "calls",
@@ -25353,9 +26010,9 @@
       "source_location": "L101",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry",
-      "target": "assets_install_agent_log",
-      "confidence_score": 1.0
+      "target": "assets_install_agent_log"
     },
     {
       "relation": "calls",
@@ -25364,9 +26021,9 @@
       "source_location": "L69",
       "weight": 1.0,
       "context": "call",
+      "confidence_score": 1.0,
       "source": "home_zynos_projects_skylex_internal_server_assets_install_agent_sh__entry",
-      "target": "assets_install_agent_usage",
-      "confidence_score": 1.0
+      "target": "assets_install_agent_usage"
     },
     {
       "relation": "contains",
@@ -25374,9 +26031,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_connect_test",
-      "target": "server_connect_test_testserveagentinstallscript",
-      "confidence_score": 1.0
+      "target": "server_connect_test_testserveagentinstallscript"
     },
     {
       "relation": "contains",
@@ -25384,9 +26041,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L44",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_connect_test",
-      "target": "server_connect_test_testserveagentinstallscriptrejectspost",
-      "confidence_score": 1.0
+      "target": "server_connect_test_testserveagentinstallscriptrejectspost"
     },
     {
       "relation": "contains",
@@ -25394,9 +26051,9 @@
       "source_file": "internal/server/connect_test.go",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_connect_test",
-      "target": "server_connect_test_testserveversion",
-      "confidence_score": 1.0
+      "target": "server_connect_test_testserveversion"
     },
     {
       "relation": "references",
@@ -25405,9 +26062,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_connect_test_testserveversion",
-      "target": "internal_server_connect_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_connect_test_go_t"
     },
     {
       "relation": "references",
@@ -25416,9 +26073,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_connect_test_testserveagentinstallscript",
-      "target": "internal_server_connect_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_connect_test_go_t"
     },
     {
       "relation": "references",
@@ -25427,9 +26084,9 @@
       "source_location": "L44",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_connect_test_testserveagentinstallscriptrejectspost",
-      "target": "internal_server_connect_test_go_t",
-      "confidence_score": 1.0
+      "target": "internal_server_connect_test_go_t"
     },
     {
       "relation": "contains",
@@ -34959,116 +35616,6 @@
       "confidence_score": 1.0,
       "source": "routes_nodes",
       "target": "routes_nodes_nodespage"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents",
-      "target": "agents_skylex_agent_notes"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L47",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_configuration"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L55",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_database_and_migrations"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L30",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_developer_commands"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L72",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_docker_compose_reference_stack"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L89",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_graphify"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L80",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_important_conventions"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L18",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_project_layout"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L61",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_protocol_buffers_and_generated_code"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L6",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_quick_start"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "AGENTS.md",
-      "source_location": "L67",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "agents_skylex_agent_notes",
-      "target": "agents_testing"
     },
     {
       "relation": "contains",
@@ -73306,5 +73853,5 @@
       "source_file": "deploy/docker-compose/docker-compose.yaml"
     }
   ],
-  "built_at_commit": "9ea299770540003a9f9b3f494451588d5ed2e193"
+  "built_at_commit": "3cb05138d0cc705acbdfc7088575d9a20d36e402"
 }
