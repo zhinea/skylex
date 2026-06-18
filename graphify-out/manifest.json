@@ -525,82 +525,82 @@
     "semantic_hash": ""
   },
   "ui/.react-router/types/+future.ts": {
-    "mtime": 1781743837.4838681,
+    "mtime": 1781744731.6605542,
     "ast_hash": "c40c27a89fe2bfb5c932e43b56408c5e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+routes.ts": {
-    "mtime": 1781743837.4838681,
+    "mtime": 1781744731.6605542,
     "ast_hash": "3e1136465aba78740bc3f6ce223ec43e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+server-build.d.ts": {
-    "mtime": 1781743837.4838681,
+    "mtime": 1781744731.6617403,
     "ast_hash": "feb059bd8a13e59965da5ed7f19ac4ff",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/+types/root.ts": {
-    "mtime": 1781743837.4899964,
+    "mtime": 1781744731.6643982,
     "ast_hash": "be2dbb5fac580743e65bc9134fe35a71",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/layouts/+types/dashboard.ts": {
-    "mtime": 1781743837.4899964,
+    "mtime": 1781744731.6671872,
     "ast_hash": "62bd86419d17344f5e191c25785c45e4",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/audit.ts": {
-    "mtime": 1781743837.4899964,
+    "mtime": 1781744731.6686215,
     "ast_hash": "9c3274db5ff4e951085134cc7bccd35b",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/backups.ts": {
-    "mtime": 1781743837.4899964,
+    "mtime": 1781744731.671832,
     "ast_hash": "c144b9280a2b3f2ce03c39253fabb078",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.$id.ts": {
-    "mtime": 1781743837.4889243,
+    "mtime": 1781744731.6686215,
     "ast_hash": "179cb8cf0f3110829ccaded493b01833",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.create.ts": {
-    "mtime": 1781743837.4903846,
+    "mtime": 1781744731.6706545,
     "ast_hash": "af2cf528a3babf09dfb618ac48aeca53",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.ts": {
-    "mtime": 1781743837.4903846,
+    "mtime": 1781744731.6671872,
     "ast_hash": "653618381537a0fb4ffffea5da33574e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/dashboard.ts": {
-    "mtime": 1781743837.4903846,
+    "mtime": 1781744731.671832,
     "ast_hash": "352d3d82b9b8d58ac0e6035df727c532",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/login.ts": {
-    "mtime": 1781743837.493408,
+    "mtime": 1781744731.6706545,
     "ast_hash": "e3d69a3a3327a82e5473bdfd0bfb76bd",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/nodes.ts": {
-    "mtime": 1781743837.4903846,
+    "mtime": 1781744731.6706545,
     "ast_hash": "fe31755e34048a656f0441120af39589",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/restore.ts": {
-    "mtime": 1781743837.4945765,
+    "mtime": 1781744731.6706545,
     "ast_hash": "e78ca862cc9f426c17d7f9c54c6142c8",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/settings.ts": {
-    "mtime": 1781743837.4899964,
+    "mtime": 1781744731.6686215,
     "ast_hash": "ed1cf7166e2caa960e6e2d68648911e7",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/storage.ts": {
-    "mtime": 1781743837.4899964,
+    "mtime": 1781744731.671832,
     "ast_hash": "0bd8aefee15d54a28eb887d9d8175809",
     "semantic_hash": ""
   },
@@ -720,13 +720,13 @@
     "semantic_hash": ""
   },
   "ui/app/components/InstallAgentModal.tsx": {
-    "mtime": 1781743826.6223826,
-    "ast_hash": "4a10574859460c0f358a1d72ed9e92d0",
+    "mtime": 1781744718.590247,
+    "ast_hash": "2734268fbea1eb7fb910f77630b06b8b",
     "semantic_hash": ""
   },
   "ui/app/hooks/useAgentInstall.ts": {
-    "mtime": 1781743806.707027,
-    "ast_hash": "d8a05dca9fc16a6246f0ce3ed11198e2",
+    "mtime": 1781744717.238811,
+    "ast_hash": "3f9930cbe44aabe8fe761a23e1fdaf9f",
     "semantic_hash": ""
   },
   "ui/app/hooks/useAgentTokens.ts": {
@@ -777,6 +777,11 @@
   ".kilo/plans/agent-install-github-releases.md": {
     "mtime": 1781743144.83858,
     "ast_hash": "7b2d185c7246313db7b98057ad994a1d",
+    "semantic_hash": ""
+  },
+  "internal/server/auth_install_test.go": {
+    "mtime": 1781744851.537725,
+    "ast_hash": "c84071a09dea26d1344e35adfc1b913a",
     "semantic_hash": ""
   }
 }
