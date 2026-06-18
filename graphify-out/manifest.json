@@ -690,8 +690,8 @@
     "semantic_hash": ""
   },
   "scripts/dev.sh": {
-    "mtime": 1781740563.7603786,
-    "ast_hash": "e18795be7fca97797f06134783dd0063",
+    "mtime": 1781740804.5747917,
+    "ast_hash": "3a90d64966d9cbe03cd5cc85ba3ffe09",
     "semantic_hash": ""
   },
   "deploy/docker-compose/docker-compose.dev.yaml": {
