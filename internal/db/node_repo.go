@@ -83,18 +83,12 @@ func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, of
 		return nil, 0, fmt.Errorf("count nodes: %w", err)
 	}
 
-<<<<<<< ours
 	listQuery := Rebind(fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes %s ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`, where))
 	queryArgs := append(args, limit, offset)
 
 	rows, err := r.conn.QueryContext(ctx, listQuery, queryArgs...)
-=======
-	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
-		 FROM nodes WHERE cluster_id = ? ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`),
-		clusterID, limit, offset)
->>>>>>> theirs
+
 	if err != nil {
 		return nil, 0, fmt.Errorf("query nodes: %w", err)
 	}
@@ -152,7 +146,7 @@ func (r *NodeRepository) ListUnassigned(ctx context.Context, limit int) ([]*mode
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at
+		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized
 		 FROM nodes WHERE (cluster_id IS NULL OR cluster_id = '') ORDER BY created_at ASC LIMIT ?`),
 		limit)
 	if err != nil {
@@ -253,7 +247,7 @@ func scanNodeRow(row *sql.Row) (*models.Node, error) {
 	var clusterID sql.NullString
 	var labelsJSON string
 
-	err := row.Scan(&n.ID, &n.ClusterID, &n.Hostname, &n.Address, &n.Port,
+	err := row.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized)
 	if err == sql.ErrNoRows {
@@ -273,7 +267,7 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	var clusterID sql.NullString
 	var labelsJSON string
 
-	if err := rows.Scan(&n.ID, &n.ClusterID, &n.Hostname, &n.Address, &n.Port,
+	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized); err != nil {
 		return nil, fmt.Errorf("scan node row: %w", err)
@@ -294,8 +288,4 @@ func (r *NodeRepository) UpdatePostgresStatus(ctx context.Context, id string, in
 		return fmt.Errorf("update node postgres status: %w", err)
 	}
 	return nil
-<<<<<<< ours
 }
-=======
-}
->>>>>>> theirs

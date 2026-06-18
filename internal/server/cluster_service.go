@@ -2,8 +2,13 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/db"
@@ -18,21 +23,90 @@ type ClusterService struct {
 	clusters       *db.ClusterRepository
 	nodes          *db.NodeRepository
 	commands       *db.AgentCommandRepository
+	settings       *db.ClusterSettingsRepository
 	failoverEngine *FailoverEngine
 	log            *slog.Logger
 }
 
-func NewClusterService(clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, log *slog.Logger) *ClusterService {
+func NewClusterService(clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, settings *db.ClusterSettingsRepository, log *slog.Logger) *ClusterService {
 	return &ClusterService{
 		clusters: clusters,
 		nodes:    nodes,
 		commands: commands,
+		settings: settings,
 		log:      log,
 	}
 }
 
 func (s *ClusterService) SetFailoverEngine(e *FailoverEngine) {
 	s.failoverEngine = e
+}
+
+// allowedClusterSettings is the curated set of PostgreSQL parameters that can
+// be changed from the UI.  Restricting the surface area prevents typos and
+// accidental outages from invalid configuration keys.
+var allowedClusterSettings = map[string]struct{}{
+	"max_connections": {},
+	"shared_buffers":  {},
+	"wal_level":       {},
+	"max_wal_senders": {},
+	"work_mem":        {},
+}
+
+// memoryUnitPattern accepts PostgreSQL memory units such as 128MB, 1GB, 256kB.
+var memoryUnitPattern = regexp.MustCompile(`(?i)^\d+\s*(kB|MB|GB|TB|k|m|g|t)?$`)
+
+// validateClusterSetting ensures a single key/value pair is safe to write into
+// postgresql.conf.  Invalid values are rejected as gRPC InvalidArgument errors
+// before anything is persisted or queued on an agent.
+func validateClusterSetting(key, value string) error {
+	if _, ok := allowedClusterSettings[key]; !ok {
+		return fmt.Errorf("%q is not an editable PostgreSQL setting", key)
+	}
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("value for %q cannot be empty", key)
+	}
+
+	switch key {
+	case "max_connections", "max_wal_senders":
+		n, err := strconv.Atoi(strings.TrimSpace(value))
+		if err != nil {
+			return fmt.Errorf("%q must be an integer", key)
+		}
+		if n <= 0 {
+			return fmt.Errorf("%q must be greater than 0", key)
+		}
+	case "wal_level":
+		switch strings.ToLower(value) {
+		case "replica", "logical":
+		default:
+			return fmt.Errorf("%q must be replica or logical", key)
+		}
+	case "shared_buffers", "work_mem":
+		if !memoryUnitPattern.MatchString(value) {
+			return fmt.Errorf("%q must be a memory value such as 128MB", key)
+		}
+	}
+
+	return nil
+}
+
+// validateClusterSettingsParameters validates the whole map and returns keys
+// sorted lexicographically so callers can produce deterministic payloads.
+func validateClusterSettingsParameters(parameters map[string]string) ([]string, error) {
+	if len(parameters) == 0 {
+		return nil, nil
+	}
+
+	keys := make([]string, 0, len(parameters))
+	for k := range parameters {
+		if err := validateClusterSetting(k, parameters[k]); err != nil {
+			return nil, err
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys, nil
 }
 
 func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.CreateClusterRequest) (*skylexv1.CreateClusterResponse, error) {
@@ -267,6 +341,90 @@ func (s *ClusterService) ScaleCluster(ctx context.Context, req *skylexv1.ScaleCl
 	return &skylexv1.ScaleClusterResponse{
 		Cluster: clusterToProto(cluster),
 	}, nil
+}
+
+func (s *ClusterService) GetClusterSettings(ctx context.Context, req *skylexv1.GetClusterSettingsRequest) (*skylexv1.GetClusterSettingsResponse, error) {
+	if req.GetClusterId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "cluster_id is required")
+	}
+
+	cluster, err := s.clusters.GetByID(ctx, req.GetClusterId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get cluster: %v", err)
+	}
+	if cluster == nil {
+		return nil, status.Errorf(codes.NotFound, "cluster %q not found", req.GetClusterId())
+	}
+
+	parameters, err := s.settings.GetByClusterID(ctx, req.GetClusterId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get cluster settings: %v", err)
+	}
+
+	return &skylexv1.GetClusterSettingsResponse{
+		Settings: &skylexv1.ClusterSettings{Parameters: parameters},
+	}, nil
+}
+
+func (s *ClusterService) UpdateClusterSettings(ctx context.Context, req *skylexv1.UpdateClusterSettingsRequest) (*skylexv1.UpdateClusterSettingsResponse, error) {
+	if req.GetClusterId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "cluster_id is required")
+	}
+
+	cluster, err := s.clusters.GetByID(ctx, req.GetClusterId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "get cluster: %v", err)
+	}
+	if cluster == nil {
+		return nil, status.Errorf(codes.NotFound, "cluster %q not found", req.GetClusterId())
+	}
+
+	parameters := req.GetSettings().GetParameters()
+	if _, err := validateClusterSettingsParameters(parameters); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid settings: %v", err)
+	}
+
+	if err := s.settings.ReplaceAll(ctx, cluster.ID, parameters); err != nil {
+		return nil, status.Errorf(codes.Internal, "persist cluster settings: %v", err)
+	}
+
+	if err := s.queueApplySettingsCommands(ctx, cluster.ID, parameters); err != nil {
+		return nil, status.Errorf(codes.Internal, "queue apply settings commands: %v", err)
+	}
+
+	s.log.Info("cluster settings updated",
+		"cluster_id", cluster.ID,
+		"keys", len(parameters),
+	)
+
+	return &skylexv1.UpdateClusterSettingsResponse{
+		Cluster: clusterToProto(cluster),
+	}, nil
+}
+
+func (s *ClusterService) queueApplySettingsCommands(ctx context.Context, clusterID string, parameters map[string]string) error {
+	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
+	if err != nil {
+		return fmt.Errorf("list cluster nodes: %w", err)
+	}
+	if len(nodes) == 0 {
+		return nil
+	}
+
+	payload, err := json.Marshal(parameters)
+	if err != nil {
+		return fmt.Errorf("marshal settings payload: %w", err)
+	}
+
+	for _, node := range nodes {
+		if node.AgentID == "" {
+			continue
+		}
+		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, "pg_apply_settings", string(payload)); err != nil {
+			return fmt.Errorf("queue apply settings for node %s: %w", node.ID, err)
+		}
+	}
+	return nil
 }
 
 func clusterToProto(c *models.Cluster) *skylexv1.Cluster {

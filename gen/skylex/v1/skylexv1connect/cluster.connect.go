@@ -59,6 +59,12 @@ const (
 	// ClusterServiceScaleClusterProcedure is the fully-qualified name of the ClusterService's
 	// ScaleCluster RPC.
 	ClusterServiceScaleClusterProcedure = "/skylex.v1.ClusterService/ScaleCluster"
+	// ClusterServiceGetClusterSettingsProcedure is the fully-qualified name of the ClusterService's
+	// GetClusterSettings RPC.
+	ClusterServiceGetClusterSettingsProcedure = "/skylex.v1.ClusterService/GetClusterSettings"
+	// ClusterServiceUpdateClusterSettingsProcedure is the fully-qualified name of the ClusterService's
+	// UpdateClusterSettings RPC.
+	ClusterServiceUpdateClusterSettingsProcedure = "/skylex.v1.ClusterService/UpdateClusterSettings"
 	// NodeServiceListNodesProcedure is the fully-qualified name of the NodeService's ListNodes RPC.
 	NodeServiceListNodesProcedure = "/skylex.v1.NodeService/ListNodes"
 	// NodeServiceGetNodeProcedure is the fully-qualified name of the NodeService's GetNode RPC.
@@ -82,6 +88,8 @@ type ClusterServiceClient interface {
 	FailoverCluster(context.Context, *connect.Request[v1.FailoverClusterRequest]) (*connect.Response[v1.FailoverClusterResponse], error)
 	RestartNode(context.Context, *connect.Request[v1.RestartNodeRequest]) (*connect.Response[v1.RestartNodeResponse], error)
 	ScaleCluster(context.Context, *connect.Request[v1.ScaleClusterRequest]) (*connect.Response[v1.ScaleClusterResponse], error)
+	GetClusterSettings(context.Context, *connect.Request[v1.GetClusterSettingsRequest]) (*connect.Response[v1.GetClusterSettingsResponse], error)
+	UpdateClusterSettings(context.Context, *connect.Request[v1.UpdateClusterSettingsRequest]) (*connect.Response[v1.UpdateClusterSettingsResponse], error)
 }
 
 // NewClusterServiceClient constructs a client for the skylex.v1.ClusterService service. By default,
@@ -143,19 +151,33 @@ func NewClusterServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(clusterServiceMethods.ByName("ScaleCluster")),
 			connect.WithClientOptions(opts...),
 		),
+		getClusterSettings: connect.NewClient[v1.GetClusterSettingsRequest, v1.GetClusterSettingsResponse](
+			httpClient,
+			baseURL+ClusterServiceGetClusterSettingsProcedure,
+			connect.WithSchema(clusterServiceMethods.ByName("GetClusterSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		updateClusterSettings: connect.NewClient[v1.UpdateClusterSettingsRequest, v1.UpdateClusterSettingsResponse](
+			httpClient,
+			baseURL+ClusterServiceUpdateClusterSettingsProcedure,
+			connect.WithSchema(clusterServiceMethods.ByName("UpdateClusterSettings")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // clusterServiceClient implements ClusterServiceClient.
 type clusterServiceClient struct {
-	createCluster   *connect.Client[v1.CreateClusterRequest, v1.CreateClusterResponse]
-	getCluster      *connect.Client[v1.GetClusterRequest, v1.GetClusterResponse]
-	listClusters    *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
-	updateCluster   *connect.Client[v1.UpdateClusterRequest, v1.UpdateClusterResponse]
-	deleteCluster   *connect.Client[v1.DeleteClusterRequest, v1.DeleteClusterResponse]
-	failoverCluster *connect.Client[v1.FailoverClusterRequest, v1.FailoverClusterResponse]
-	restartNode     *connect.Client[v1.RestartNodeRequest, v1.RestartNodeResponse]
-	scaleCluster    *connect.Client[v1.ScaleClusterRequest, v1.ScaleClusterResponse]
+	createCluster         *connect.Client[v1.CreateClusterRequest, v1.CreateClusterResponse]
+	getCluster            *connect.Client[v1.GetClusterRequest, v1.GetClusterResponse]
+	listClusters          *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
+	updateCluster         *connect.Client[v1.UpdateClusterRequest, v1.UpdateClusterResponse]
+	deleteCluster         *connect.Client[v1.DeleteClusterRequest, v1.DeleteClusterResponse]
+	failoverCluster       *connect.Client[v1.FailoverClusterRequest, v1.FailoverClusterResponse]
+	restartNode           *connect.Client[v1.RestartNodeRequest, v1.RestartNodeResponse]
+	scaleCluster          *connect.Client[v1.ScaleClusterRequest, v1.ScaleClusterResponse]
+	getClusterSettings    *connect.Client[v1.GetClusterSettingsRequest, v1.GetClusterSettingsResponse]
+	updateClusterSettings *connect.Client[v1.UpdateClusterSettingsRequest, v1.UpdateClusterSettingsResponse]
 }
 
 // CreateCluster calls skylex.v1.ClusterService.CreateCluster.
@@ -198,6 +220,16 @@ func (c *clusterServiceClient) ScaleCluster(ctx context.Context, req *connect.Re
 	return c.scaleCluster.CallUnary(ctx, req)
 }
 
+// GetClusterSettings calls skylex.v1.ClusterService.GetClusterSettings.
+func (c *clusterServiceClient) GetClusterSettings(ctx context.Context, req *connect.Request[v1.GetClusterSettingsRequest]) (*connect.Response[v1.GetClusterSettingsResponse], error) {
+	return c.getClusterSettings.CallUnary(ctx, req)
+}
+
+// UpdateClusterSettings calls skylex.v1.ClusterService.UpdateClusterSettings.
+func (c *clusterServiceClient) UpdateClusterSettings(ctx context.Context, req *connect.Request[v1.UpdateClusterSettingsRequest]) (*connect.Response[v1.UpdateClusterSettingsResponse], error) {
+	return c.updateClusterSettings.CallUnary(ctx, req)
+}
+
 // ClusterServiceHandler is an implementation of the skylex.v1.ClusterService service.
 type ClusterServiceHandler interface {
 	CreateCluster(context.Context, *connect.Request[v1.CreateClusterRequest]) (*connect.Response[v1.CreateClusterResponse], error)
@@ -208,6 +240,8 @@ type ClusterServiceHandler interface {
 	FailoverCluster(context.Context, *connect.Request[v1.FailoverClusterRequest]) (*connect.Response[v1.FailoverClusterResponse], error)
 	RestartNode(context.Context, *connect.Request[v1.RestartNodeRequest]) (*connect.Response[v1.RestartNodeResponse], error)
 	ScaleCluster(context.Context, *connect.Request[v1.ScaleClusterRequest]) (*connect.Response[v1.ScaleClusterResponse], error)
+	GetClusterSettings(context.Context, *connect.Request[v1.GetClusterSettingsRequest]) (*connect.Response[v1.GetClusterSettingsResponse], error)
+	UpdateClusterSettings(context.Context, *connect.Request[v1.UpdateClusterSettingsRequest]) (*connect.Response[v1.UpdateClusterSettingsResponse], error)
 }
 
 // NewClusterServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -265,6 +299,18 @@ func NewClusterServiceHandler(svc ClusterServiceHandler, opts ...connect.Handler
 		connect.WithSchema(clusterServiceMethods.ByName("ScaleCluster")),
 		connect.WithHandlerOptions(opts...),
 	)
+	clusterServiceGetClusterSettingsHandler := connect.NewUnaryHandler(
+		ClusterServiceGetClusterSettingsProcedure,
+		svc.GetClusterSettings,
+		connect.WithSchema(clusterServiceMethods.ByName("GetClusterSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	clusterServiceUpdateClusterSettingsHandler := connect.NewUnaryHandler(
+		ClusterServiceUpdateClusterSettingsProcedure,
+		svc.UpdateClusterSettings,
+		connect.WithSchema(clusterServiceMethods.ByName("UpdateClusterSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.ClusterService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ClusterServiceCreateClusterProcedure:
@@ -283,6 +329,10 @@ func NewClusterServiceHandler(svc ClusterServiceHandler, opts ...connect.Handler
 			clusterServiceRestartNodeHandler.ServeHTTP(w, r)
 		case ClusterServiceScaleClusterProcedure:
 			clusterServiceScaleClusterHandler.ServeHTTP(w, r)
+		case ClusterServiceGetClusterSettingsProcedure:
+			clusterServiceGetClusterSettingsHandler.ServeHTTP(w, r)
+		case ClusterServiceUpdateClusterSettingsProcedure:
+			clusterServiceUpdateClusterSettingsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -322,6 +372,14 @@ func (UnimplementedClusterServiceHandler) RestartNode(context.Context, *connect.
 
 func (UnimplementedClusterServiceHandler) ScaleCluster(context.Context, *connect.Request[v1.ScaleClusterRequest]) (*connect.Response[v1.ScaleClusterResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.ScaleCluster is not implemented"))
+}
+
+func (UnimplementedClusterServiceHandler) GetClusterSettings(context.Context, *connect.Request[v1.GetClusterSettingsRequest]) (*connect.Response[v1.GetClusterSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.GetClusterSettings is not implemented"))
+}
+
+func (UnimplementedClusterServiceHandler) UpdateClusterSettings(context.Context, *connect.Request[v1.UpdateClusterSettingsRequest]) (*connect.Response[v1.UpdateClusterSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.UpdateClusterSettings is not implemented"))
 }
 
 // NodeServiceClient is a client for the skylex.v1.NodeService service.

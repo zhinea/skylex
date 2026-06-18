@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ClusterService_CreateCluster_FullMethodName   = "/skylex.v1.ClusterService/CreateCluster"
-	ClusterService_GetCluster_FullMethodName      = "/skylex.v1.ClusterService/GetCluster"
-	ClusterService_ListClusters_FullMethodName    = "/skylex.v1.ClusterService/ListClusters"
-	ClusterService_UpdateCluster_FullMethodName   = "/skylex.v1.ClusterService/UpdateCluster"
-	ClusterService_DeleteCluster_FullMethodName   = "/skylex.v1.ClusterService/DeleteCluster"
-	ClusterService_FailoverCluster_FullMethodName = "/skylex.v1.ClusterService/FailoverCluster"
-	ClusterService_RestartNode_FullMethodName     = "/skylex.v1.ClusterService/RestartNode"
-	ClusterService_ScaleCluster_FullMethodName    = "/skylex.v1.ClusterService/ScaleCluster"
+	ClusterService_CreateCluster_FullMethodName         = "/skylex.v1.ClusterService/CreateCluster"
+	ClusterService_GetCluster_FullMethodName            = "/skylex.v1.ClusterService/GetCluster"
+	ClusterService_ListClusters_FullMethodName          = "/skylex.v1.ClusterService/ListClusters"
+	ClusterService_UpdateCluster_FullMethodName         = "/skylex.v1.ClusterService/UpdateCluster"
+	ClusterService_DeleteCluster_FullMethodName         = "/skylex.v1.ClusterService/DeleteCluster"
+	ClusterService_FailoverCluster_FullMethodName       = "/skylex.v1.ClusterService/FailoverCluster"
+	ClusterService_RestartNode_FullMethodName           = "/skylex.v1.ClusterService/RestartNode"
+	ClusterService_ScaleCluster_FullMethodName          = "/skylex.v1.ClusterService/ScaleCluster"
+	ClusterService_GetClusterSettings_FullMethodName    = "/skylex.v1.ClusterService/GetClusterSettings"
+	ClusterService_UpdateClusterSettings_FullMethodName = "/skylex.v1.ClusterService/UpdateClusterSettings"
 )
 
 // ClusterServiceClient is the client API for ClusterService service.
@@ -41,6 +43,8 @@ type ClusterServiceClient interface {
 	FailoverCluster(ctx context.Context, in *FailoverClusterRequest, opts ...grpc.CallOption) (*FailoverClusterResponse, error)
 	RestartNode(ctx context.Context, in *RestartNodeRequest, opts ...grpc.CallOption) (*RestartNodeResponse, error)
 	ScaleCluster(ctx context.Context, in *ScaleClusterRequest, opts ...grpc.CallOption) (*ScaleClusterResponse, error)
+	GetClusterSettings(ctx context.Context, in *GetClusterSettingsRequest, opts ...grpc.CallOption) (*GetClusterSettingsResponse, error)
+	UpdateClusterSettings(ctx context.Context, in *UpdateClusterSettingsRequest, opts ...grpc.CallOption) (*UpdateClusterSettingsResponse, error)
 }
 
 type clusterServiceClient struct {
@@ -131,6 +135,26 @@ func (c *clusterServiceClient) ScaleCluster(ctx context.Context, in *ScaleCluste
 	return out, nil
 }
 
+func (c *clusterServiceClient) GetClusterSettings(ctx context.Context, in *GetClusterSettingsRequest, opts ...grpc.CallOption) (*GetClusterSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetClusterSettingsResponse)
+	err := c.cc.Invoke(ctx, ClusterService_GetClusterSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clusterServiceClient) UpdateClusterSettings(ctx context.Context, in *UpdateClusterSettingsRequest, opts ...grpc.CallOption) (*UpdateClusterSettingsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateClusterSettingsResponse)
+	err := c.cc.Invoke(ctx, ClusterService_UpdateClusterSettings_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClusterServiceServer is the server API for ClusterService service.
 // All implementations must embed UnimplementedClusterServiceServer
 // for forward compatibility.
@@ -143,6 +167,8 @@ type ClusterServiceServer interface {
 	FailoverCluster(context.Context, *FailoverClusterRequest) (*FailoverClusterResponse, error)
 	RestartNode(context.Context, *RestartNodeRequest) (*RestartNodeResponse, error)
 	ScaleCluster(context.Context, *ScaleClusterRequest) (*ScaleClusterResponse, error)
+	GetClusterSettings(context.Context, *GetClusterSettingsRequest) (*GetClusterSettingsResponse, error)
+	UpdateClusterSettings(context.Context, *UpdateClusterSettingsRequest) (*UpdateClusterSettingsResponse, error)
 	mustEmbedUnimplementedClusterServiceServer()
 }
 
@@ -176,6 +202,12 @@ func (UnimplementedClusterServiceServer) RestartNode(context.Context, *RestartNo
 }
 func (UnimplementedClusterServiceServer) ScaleCluster(context.Context, *ScaleClusterRequest) (*ScaleClusterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ScaleCluster not implemented")
+}
+func (UnimplementedClusterServiceServer) GetClusterSettings(context.Context, *GetClusterSettingsRequest) (*GetClusterSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClusterSettings not implemented")
+}
+func (UnimplementedClusterServiceServer) UpdateClusterSettings(context.Context, *UpdateClusterSettingsRequest) (*UpdateClusterSettingsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateClusterSettings not implemented")
 }
 func (UnimplementedClusterServiceServer) mustEmbedUnimplementedClusterServiceServer() {}
 func (UnimplementedClusterServiceServer) testEmbeddedByValue()                        {}
@@ -342,6 +374,42 @@ func _ClusterService_ScaleCluster_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClusterService_GetClusterSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClusterSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServiceServer).GetClusterSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClusterService_GetClusterSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServiceServer).GetClusterSettings(ctx, req.(*GetClusterSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClusterService_UpdateClusterSettings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateClusterSettingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServiceServer).UpdateClusterSettings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClusterService_UpdateClusterSettings_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServiceServer).UpdateClusterSettings(ctx, req.(*UpdateClusterSettingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClusterService_ServiceDesc is the grpc.ServiceDesc for ClusterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -380,6 +448,14 @@ var ClusterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ScaleCluster",
 			Handler:    _ClusterService_ScaleCluster_Handler,
+		},
+		{
+			MethodName: "GetClusterSettings",
+			Handler:    _ClusterService_GetClusterSettings_Handler,
+		},
+		{
+			MethodName: "UpdateClusterSettings",
+			Handler:    _ClusterService_UpdateClusterSettings_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

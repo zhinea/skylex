@@ -20,13 +20,6 @@ message NodeCapabilities {
   string data_dir = 4;
 }
 
-message NodeCapabilities {
-  bool postgres_available = 1;
-  string postgres_version = 2;
-  string postgres_bin_dir = 3;
-  string data_dir = 4;
-}
-
 message RegisterAgentRequest {
   string agent_token = 1;
   string hostname = 2;

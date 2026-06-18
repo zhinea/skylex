@@ -13,6 +13,8 @@ service ClusterService {
   rpc FailoverCluster(FailoverClusterRequest) returns (FailoverClusterResponse);
   rpc RestartNode(RestartNodeRequest) returns (RestartNodeResponse);
   rpc ScaleCluster(ScaleClusterRequest) returns (ScaleClusterResponse);
+  rpc GetClusterSettings(GetClusterSettingsRequest) returns (GetClusterSettingsResponse);
+  rpc UpdateClusterSettings(UpdateClusterSettingsRequest) returns (UpdateClusterSettingsResponse);
 }
 
 message CreateClusterRequest {
@@ -146,4 +148,25 @@ message CommandLog {
 message ListNodeCommandLogsResponse {
   repeated CommandLog logs = 1;
   Pagination pagination = 2;
+}
+
+message ClusterSettings {
+  map<string, string> parameters = 1;
+}
+
+message GetClusterSettingsRequest {
+  string cluster_id = 1;
+}
+
+message GetClusterSettingsResponse {
+  ClusterSettings settings = 1;
+}
+
+message UpdateClusterSettingsRequest {
+  string cluster_id = 1;
+  ClusterSettings settings = 2;
+}
+
+message UpdateClusterSettingsResponse {
+  Cluster cluster = 1;
 }

@@ -1,11 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router";
 import { useCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
-import { useCommandLogs } from "~/hooks/useCommandLogs";
+import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
+import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
+import { SettingInput, curatedSettings, validateSettingValue } from "~/components/SettingInput";
 
 function PgStatusBadges({
   installed,
@@ -41,12 +43,148 @@ function PgStatusBadges({
   );
 }
 
+function levelColor(level: string): string {
+  switch (level.toLowerCase()) {
+    case "error":
+      return "text-red-700 dark:text-red-400";
+    case "warn":
+      return "text-yellow-700 dark:text-yellow-400";
+    case "info":
+      return "text-blue-700 dark:text-blue-400";
+    default:
+      return "text-gray-500 dark:text-gray-400";
+  }
+}
+
+function SettingsCard({ clusterId }: { clusterId: string }) {
+  const { data, isLoading } = useClusterSettings(clusterId);
+  const update = useUpdateClusterSettings();
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const [saved, setSaved] = useState(false);
+
+  const parameters = data?.settings?.parameters ?? {};
+
+  // Reset local form when server data arrives.
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    for (const s of curatedSettings) {
+      next[s.key] = parameters[s.key] ?? "";
+    }
+    setValues(next);
+  }, [parameters]);
+
+  const dirty = useMemo(() => {
+    let changed = false;
+    for (const s of curatedSettings) {
+      if ((values[s.key] ?? "") !== (parameters[s.key] ?? "")) {
+        changed = true;
+      }
+    }
+    return changed;
+  }, [values, parameters]);
+
+  function handleChange(key: string, value: string) {
+    setValues((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: validateSettingValue(key, value) }));
+    setSaved(false);
+  }
+
+  function handleSave() {
+    const nextErrors: Record<string, string | null> = {};
+    const payload: Record<string, string> = {};
+
+    for (const s of curatedSettings) {
+      const v = values[s.key]?.trim() ?? "";
+      const err = validateSettingValue(s.key, v);
+      nextErrors[s.key] = err;
+      if (!err && v) {
+        payload[s.key] = v;
+      }
+    }
+
+    setErrors(nextErrors);
+    if (Object.values(nextErrors).some(Boolean)) {
+      return;
+    }
+
+    update.mutate(
+      { clusterId, settings: payload },
+      {
+        onSuccess: () => {
+          setSaved(true);
+          setTimeout(() => setSaved(false), 3000);
+        },
+      },
+    );
+  }
+
+  return (
+    <Card title="PostgreSQL Settings">
+      {isLoading ? (
+        <PageSpinner />
+      ) : (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Changes are validated, persisted, and applied to every node in the cluster.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {curatedSettings.map((s) => (
+              <SettingInput
+                key={s.key}
+                id={s.key}
+                label={s.label}
+                type={s.type}
+                value={values[s.key] ?? ""}
+                onChange={(v) => handleChange(s.key, v)}
+                hint={s.hint}
+                options={s.options}
+                disabled={update.isPending}
+              />
+            ))}
+          </div>
+          {curatedSettings.map((s) =>
+            errors[s.key] ? (
+              <p key={`${s.key}-err`} className="text-sm text-red-600 dark:text-red-400">
+                {s.label}: {errors[s.key]}
+              </p>
+            ) : null,
+          )}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              onClick={handleSave}
+              disabled={!dirty || update.isPending}
+              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {update.isPending ? "Saving..." : "Apply Settings"}
+            </button>
+            {saved && (
+              <span className="text-sm text-green-600 dark:text-green-400">Settings queued for all nodes.</span>
+            )}
+            {update.isError && (
+              <span className="text-sm text-red-600 dark:text-red-400">
+                {update.error instanceof Error ? update.error.message : "Failed to update settings"}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
   const { data: nodesData } = useNodes(id || "");
   const { data: logsData } = useCommandLogs(id || "");
   const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const logs: CommandLog[] = logsData?.logs ?? [];
+
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
 
   if (clusterLoading) return <PageSpinner />;
 
@@ -130,6 +268,10 @@ export default function ClusterDetailPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">No labels configured</p>
           )}
         </Card>
+      </div>
+
+      <div className="mb-6">
+        <SettingsCard clusterId={id || ""} />
       </div>
 
       <Card title={`Nodes (${nodes.length})`}>

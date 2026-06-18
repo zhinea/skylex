@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -116,7 +117,7 @@ func (a *Agent) register(ctx context.Context) error {
 	resp, err := a.client.RegisterAgent(ctx, &skylexv1.RegisterAgentRequest{
 		AgentToken:   a.cfg.AgentToken,
 		Hostname:     a.cfg.Hostname,
-		Address:      address,
+		Address:      a.cfg.Address,
 		Port:         int32(a.cfg.Port),
 		AgentVersion: "0.1.0",
 		Labels:       a.cfg.Labels,
@@ -302,6 +303,17 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 			return false, "", err.Error()
 		}
 		return true, "replication slot created", ""
+
+	case "pg_apply_settings":
+		settings := make(map[string]string)
+		if err := json.Unmarshal([]byte(cmd.GetPayload()), &settings); err != nil {
+			return false, "", fmt.Sprintf("invalid settings payload: %v", err)
+		}
+		method, err := a.pg.ApplySettings(ctx, settings)
+		if err != nil {
+			return false, "", err.Error()
+		}
+		return true, fmt.Sprintf("settings applied via %s", method), ""
 
 	case "pgbackrest_backup":
 		stanza := cmd.GetPayload()

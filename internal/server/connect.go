@@ -63,8 +63,9 @@ var writeMethods = map[string]bool{
 	skylexv1connect.ClusterServiceUpdateClusterProcedure:  true,
 	skylexv1connect.ClusterServiceDeleteClusterProcedure:  true,
 	skylexv1connect.ClusterServiceFailoverClusterProcedure: true,
-	skylexv1connect.ClusterServiceRestartNodeProcedure:    true,
-	skylexv1connect.ClusterServiceScaleClusterProcedure:   true,
+	skylexv1connect.ClusterServiceRestartNodeProcedure:       true,
+	skylexv1connect.ClusterServiceScaleClusterProcedure:      true,
+	skylexv1connect.ClusterServiceUpdateClusterSettingsProcedure: true,
 	skylexv1connect.NodeServiceDrainNodeProcedure:         true,
 	skylexv1connect.NodeServiceRejoinNodeProcedure:        true,
 	skylexv1connect.BackupServiceCreateBackupProcedure:    true,
@@ -257,6 +258,22 @@ func (c *connectClusterService) RestartNode(ctx context.Context, req *connect.Re
 
 func (c *connectClusterService) ScaleCluster(ctx context.Context, req *connect.Request[skylexv1.ScaleClusterRequest]) (*connect.Response[skylexv1.ScaleClusterResponse], error) {
 	resp, err := c.svc.ScaleCluster(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectClusterService) GetClusterSettings(ctx context.Context, req *connect.Request[skylexv1.GetClusterSettingsRequest]) (*connect.Response[skylexv1.GetClusterSettingsResponse], error) {
+	resp, err := c.svc.GetClusterSettings(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectClusterService) UpdateClusterSettings(ctx context.Context, req *connect.Request[skylexv1.UpdateClusterSettingsRequest]) (*connect.Response[skylexv1.UpdateClusterSettingsResponse], error) {
+	resp, err := c.svc.UpdateClusterSettings(ctx, req.Msg)
 	if err != nil {
 		return nil, err
 	}

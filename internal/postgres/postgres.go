@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -67,7 +68,7 @@ func runStreamingCmd(ctx context.Context, cmd *exec.Cmd) ([]byte, error) {
 	sink := logSinkFromContext(ctx)
 
 	if sink == nil {
-		return runStreamingCmd(ctx, cmd)
+		return cmd.CombinedOutput()
 	}
 
 	stdoutPipe, err := cmd.StdoutPipe()
@@ -393,7 +394,7 @@ func (p *Instance) IsReplicating() bool {
 }
 
 func (p *Instance) writePostgresqlConf() error {
-	conf := fmt.Sprintf(`
+	conf := fmt.Sprintf(`%s
 listen_addresses = '*'
 port = %d
 max_connections = 200
@@ -409,14 +410,14 @@ log_truncate_on_rotation = on
 log_rotation_age = 1d
 log_rotation_size = 0
 logging_collector = on
-`, p.Port)
+`, includeDirective+"\n", p.Port)
 
 	confPath := filepath.Join(p.DataDir, "postgresql.conf")
 	return os.WriteFile(confPath, []byte(conf), 0600)
 }
 
 func (p *Instance) WriteSyncReplicationConf() error {
-	conf := fmt.Sprintf(`
+	conf := fmt.Sprintf(`%s
 listen_addresses = '*'
 port = %d
 max_connections = 200
@@ -434,7 +435,7 @@ log_truncate_on_rotation = on
 log_rotation_age = 1d
 log_rotation_size = 0
 logging_collector = on
-`, p.Port)
+`, includeDirective+"\n", p.Port)
 
 	confPath := filepath.Join(p.DataDir, "postgresql.conf")
 	return os.WriteFile(confPath, []byte(conf), 0600)
@@ -531,4 +532,113 @@ func (p *Instance) WaitForReady(ctx context.Context, timeout time.Duration) erro
 		}
 	}
 	return fmt.Errorf("postgresql did not become ready within %s", timeout)
+}
+
+const (
+	includeFileName  = "skylex.conf.include"
+	includeDirective = "include_if_exists = 'skylex.conf.include'"
+)
+
+// reloadableSettings lists parameters in the curated set that can be changed
+// with a simple SIGHUP reload.  All other curated parameters require a full
+// restart.
+var reloadableSettings = map[string]bool{
+	"work_mem": true,
+}
+
+// ApplySettings writes the provided parameters to an include file, ensures
+// the main postgresql.conf loads it, and reloads or restarts the instance as
+// required.  It returns "reload" or "restart" when successful.
+func (p *Instance) ApplySettings(ctx context.Context, settings map[string]string) (string, error) {
+	if !p.IsInitialized() {
+		return "", fmt.Errorf("data directory is not initialized")
+	}
+
+	if err := p.writeSkylexInclude(settings); err != nil {
+		return "", fmt.Errorf("write include file: %w", err)
+	}
+	if err := p.ensureIncludeDirective(); err != nil {
+		return "", fmt.Errorf("ensure include directive: %w", err)
+	}
+
+	requiresRestart := false
+	for key := range settings {
+		if !reloadableSettings[key] {
+			requiresRestart = true
+			break
+		}
+	}
+
+	if requiresRestart {
+		p.log.Info("restarting postgresql to apply settings", "data_dir", p.DataDir)
+		if err := p.Stop(ctx); err != nil {
+			return "", fmt.Errorf("stop before restart: %w", err)
+		}
+		if err := p.Start(ctx); err != nil {
+			return "", fmt.Errorf("start after restart: %w", err)
+		}
+		return "restart", nil
+	}
+
+	p.log.Info("reloading postgresql to apply settings", "data_dir", p.DataDir)
+	if err := p.Reload(ctx); err != nil {
+		return "", fmt.Errorf("reload settings: %w", err)
+	}
+	return "reload", nil
+}
+
+// Reload signals PostgreSQL to reload its configuration without restarting.
+func (p *Instance) Reload(ctx context.Context) error {
+	pgCtl := filepath.Join(p.BinDir, "pg_ctl")
+	cmd := exec.CommandContext(ctx, pgCtl,
+		"reload",
+		"-D", p.DataDir,
+	)
+
+	output, err := runStreamingCmd(ctx, cmd)
+	if err != nil {
+		return fmt.Errorf("pg_ctl reload failed: %w\n%s", err, string(output))
+	}
+
+	p.log.Info("postgresql configuration reloaded", "data_dir", p.DataDir)
+	return nil
+}
+
+func (p *Instance) writeSkylexInclude(settings map[string]string) error {
+	if len(settings) == 0 {
+		// Write an empty include file so PostgreSQL never complains.
+		return os.WriteFile(filepath.Join(p.DataDir, includeFileName), []byte{}, 0600)
+	}
+
+	keys := make([]string, 0, len(settings))
+	for k := range settings {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("# Managed by Skylex. Last updated: %s\n", time.Now().UTC().Format(time.RFC3339)))
+	for _, k := range keys {
+		b.WriteString(fmt.Sprintf("%s = %s\n", k, settings[k]))
+	}
+
+	return os.WriteFile(filepath.Join(p.DataDir, includeFileName), []byte(b.String()), 0600)
+}
+
+// ensureIncludeDirective ensures the main postgresql.conf loads the Skylex
+// include file.  The directive is added at the top of the file if missing.
+func (p *Instance) ensureIncludeDirective() error {
+	confPath := filepath.Join(p.DataDir, "postgresql.conf")
+	data, err := os.ReadFile(confPath)
+	if err != nil {
+		return fmt.Errorf("read postgresql.conf: %w", err)
+	}
+
+	content := string(data)
+	if strings.Contains(content, includeDirective) {
+		return nil
+	}
+
+	updated := includeDirective + "\n" + content
+	return os.WriteFile(confPath, []byte(updated), 0600)
 }
