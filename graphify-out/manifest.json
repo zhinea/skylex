@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781770190.31214,
-    "ast_hash": "f9365be771e009161996ce22f4e3ed63",
+    "mtime": 1781775769.1074507,
+    "ast_hash": "0dab53c694a50908ab423e09afc765df",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -40,8 +40,8 @@
     "semantic_hash": "42a7e2ef5a6c7f124387f0236c4cdf8f"
   },
   "gen/skylex/v1/agent.pb.go": {
-    "mtime": 1781768147.3382437,
-    "ast_hash": "effa93db0a8b86c00c0f4775de666843",
+    "mtime": 1781776680.627752,
+    "ast_hash": "01d1f5ec2814a176f90ba9ab864874f8",
     "semantic_hash": ""
   },
   "gen/skylex/v1/agent_grpc.pb.go": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "gen/skylex/v1/common.pb.go": {
-    "mtime": 1781766726.6874986,
-    "ast_hash": "56caa41e12681b909af5d2ecbced2256",
+    "mtime": 1781776680.627752,
+    "ast_hash": "b4b7ab03438057a6ad2bb3bf89080a2e",
     "semantic_hash": ""
   },
   "gen/skylex/v1/skylexv1connect/agent.connect.go": {
@@ -120,8 +120,8 @@
     "semantic_hash": "79d7dc359690fa36096f676cab800630"
   },
   "internal/agent/agent.go": {
-    "mtime": 1781768662.297983,
-    "ast_hash": "7c6a767d11c6f57f8a9baec80e9306f9",
+    "mtime": 1781777613.7072158,
+    "ast_hash": "5ec3c18195c236e231bc2e491e6191a1",
     "semantic_hash": ""
   },
   "internal/agent/config.go": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "internal/db/node_repo.go": {
-    "mtime": 1781769198.1210983,
-    "ast_hash": "18706a8e61401793756d3907b66249ba",
+    "mtime": 1781777059.8679948,
+    "ast_hash": "0d58e031795a9f30c3f1f6f69645d2a9",
     "semantic_hash": ""
   },
   "internal/db/storage_config_repo.go": {
@@ -200,8 +200,8 @@
     "semantic_hash": "4601c5219260a0f1fcc6647e4b034175"
   },
   "internal/models/cluster.go": {
-    "mtime": 1781766726.6887724,
-    "ast_hash": "560574e049a0e650fd0d9b21112cfacd",
+    "mtime": 1781776502.0641942,
+    "ast_hash": "ebcbca375ac5ae05423ae0698fe0294e",
     "semantic_hash": ""
   },
   "internal/models/command.go": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "internal/server/agent_service.go": {
-    "mtime": 1781766726.6887724,
-    "ast_hash": "cc76f29183c4884be5d1d74cbff275df",
+    "mtime": 1781777195.4945242,
+    "ast_hash": "a7d7c80049a542e5b2bf23c9d543036c",
     "semantic_hash": ""
   },
   "internal/server/backup_service.go": {
@@ -235,8 +235,8 @@
     "semantic_hash": "5113f404b8196f8fe56ccf9c9f8728a5"
   },
   "internal/server/cluster_service.go": {
-    "mtime": 1781768460.1530252,
-    "ast_hash": "bb028ae4440eea6513b7cbf67232bd70",
+    "mtime": 1781777101.203527,
+    "ast_hash": "f6e539076509ddfc523e90f30e7a8f83",
     "semantic_hash": ""
   },
   "internal/server/config.go": {
@@ -255,8 +255,8 @@
     "semantic_hash": "de465711b731504faabd97ce5209a327"
   },
   "internal/server/node_service.go": {
-    "mtime": 1781766726.6887724,
-    "ast_hash": "4f0f7c75c48bdff3e1da7b35b239c20f",
+    "mtime": 1781777124.7368343,
+    "ast_hash": "3b5a23e35a7ac7b2977bc349187eaae2",
     "semantic_hash": ""
   },
   "internal/server/server.go": {
@@ -295,13 +295,13 @@
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.$id.tsx": {
-    "mtime": 1781768813.1149786,
-    "ast_hash": "0053dc715ab972b03bca8214f16115f3",
+    "mtime": 1781777930.170056,
+    "ast_hash": "7ebb93200cf7b69b571a5a06f0387238",
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.create.tsx": {
-    "mtime": 1781756970.7626047,
-    "ast_hash": "244dd87c9804f40cd06bb49912d2678b",
+    "mtime": 1781777829.6396327,
+    "ast_hash": "1fa6cf56a98bc7b7a3f9844d2fbe3e98",
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.tsx": {
@@ -320,8 +320,8 @@
     "semantic_hash": ""
   },
   "ui/app/routes/nodes.tsx": {
-    "mtime": 1781766726.6903453,
-    "ast_hash": "efd205232872d27cde587284787986d3",
+    "mtime": 1781777986.3855631,
+    "ast_hash": "e7ad604c4665d8b5ced9b9cb6f30204b",
     "semantic_hash": ""
   },
   "ui/app/routes/restore.tsx": {
@@ -365,12 +365,12 @@
     "semantic_hash": "63c427f74edc4879a317624de62aa902"
   },
   "AGENTS.md": {
-    "mtime": 1781753629.017082,
-    "ast_hash": "938393992aa15d070014ebc34a5fdb66",
+    "mtime": 1781777164.3374302,
+    "ast_hash": "faedc93859957368d147a231623a500a",
     "semantic_hash": ""
   },
   "buf.gen.yaml": {
-    "mtime": 1781559445.673538,
+    "mtime": 1781776656.8775213,
     "ast_hash": "4e68c8906208be1b71751d399b2526d2",
     "semantic_hash": "4e68c8906208be1b71751d399b2526d2"
   },
@@ -525,82 +525,82 @@
     "semantic_hash": ""
   },
   "ui/.react-router/types/+future.ts": {
-    "mtime": 1781769335.4276614,
+    "mtime": 1781778028.3047624,
     "ast_hash": "c40c27a89fe2bfb5c932e43b56408c5e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+routes.ts": {
-    "mtime": 1781769335.4276614,
+    "mtime": 1781778028.3058932,
     "ast_hash": "3e1136465aba78740bc3f6ce223ec43e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+server-build.d.ts": {
-    "mtime": 1781769335.4276614,
+    "mtime": 1781778028.3058932,
     "ast_hash": "feb059bd8a13e59965da5ed7f19ac4ff",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/+types/root.ts": {
-    "mtime": 1781769335.4310842,
+    "mtime": 1781778028.310269,
     "ast_hash": "be2dbb5fac580743e65bc9134fe35a71",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/layouts/+types/dashboard.ts": {
-    "mtime": 1781769335.432762,
+    "mtime": 1781778028.308953,
     "ast_hash": "62bd86419d17344f5e191c25785c45e4",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/audit.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "9c3274db5ff4e951085134cc7bccd35b",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/backups.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "c144b9280a2b3f2ce03c39253fabb078",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.$id.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.308953,
     "ast_hash": "179cb8cf0f3110829ccaded493b01833",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.create.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "af2cf528a3babf09dfb618ac48aeca53",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "653618381537a0fb4ffffea5da33574e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/dashboard.ts": {
-    "mtime": 1781769335.432762,
+    "mtime": 1781778028.310269,
     "ast_hash": "352d3d82b9b8d58ac0e6035df727c532",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/login.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "e3d69a3a3327a82e5473bdfd0bfb76bd",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/nodes.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "fe31755e34048a656f0441120af39589",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/restore.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "e78ca862cc9f426c17d7f9c54c6142c8",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/settings.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "ed1cf7166e2caa960e6e2d68648911e7",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/storage.ts": {
-    "mtime": 1781769335.434796,
+    "mtime": 1781778028.310269,
     "ast_hash": "0bd8aefee15d54a28eb887d9d8175809",
     "semantic_hash": ""
   },
@@ -655,13 +655,13 @@
     "semantic_hash": ""
   },
   "ui/app/hooks/useClusters.ts": {
-    "mtime": 1781570022.0864882,
-    "ast_hash": "a73e9d87f0cfb454566fd12b5c0daec2",
+    "mtime": 1781777747.1382926,
+    "ast_hash": "e7cdf504604580bc47e076d70f2a2fa9",
     "semantic_hash": ""
   },
   "ui/app/hooks/useNodes.ts": {
-    "mtime": 1781766726.6900656,
-    "ast_hash": "c2103efe134f0daa93049c011f8ca9dc",
+    "mtime": 1781777732.698812,
+    "ast_hash": "da45caff7e7b1cbb718bcb9a39d0c732",
     "semantic_hash": ""
   },
   "ui/app/hooks/useStorage.ts": {
@@ -855,8 +855,8 @@
     "semantic_hash": ""
   },
   "internal/server/cluster_service_test.go": {
-    "mtime": 1781769227.8700008,
-    "ast_hash": "789464b891b00896f4675f0311907fde",
+    "mtime": 1781777656.520399,
+    "ast_hash": "24633c6ab5f27e2062d8e17a5389fb95",
     "semantic_hash": ""
   },
   "ui/app/components/SettingInput.tsx": {
@@ -867,6 +867,16 @@
   "ui/app/hooks/useClusterSettings.ts": {
     "mtime": 1781768742.7073796,
     "ast_hash": "8e6e62851de1a2b19352470554b709be",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000006_add_node_status_detail.sql": {
+    "mtime": 1781776502.0641942,
+    "ast_hash": "0412c7d0798ad2f2043ed73de2ab08b9",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000006_add_node_status_detail.sql": {
+    "mtime": 1781776502.0641942,
+    "ast_hash": "ecf8483fee75d0fb32e9bd443d196346",
     "semantic_hash": ""
   }
 }
