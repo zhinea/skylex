@@ -61,24 +61,6 @@ export default function ClusterDetailPage() {
   }
 
   const nodes = nodesData?.nodes || [];
-  const logs = logsData?.logs || [];
-
-  useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
-
-  const levelColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case "error":
-        return "text-red-600 dark:text-red-400";
-      case "warn":
-        return "text-yellow-600 dark:text-yellow-400";
-      case "debug":
-        return "text-gray-500 dark:text-gray-400";
-      default:
-        return "text-blue-600 dark:text-blue-400";
-    }
-  };
   const missingPgNodes = nodes.filter((n) => !n.postgresInstalled);
 
   return (
