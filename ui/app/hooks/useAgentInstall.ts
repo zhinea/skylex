@@ -2,8 +2,8 @@ import { useState } from "react";
 import { api, ApiError } from "~/lib/api";
 
 export interface InstallCommandData {
-  script_url: string;
-  server_addr: string;
+  scriptUrl: string;
+  serverAddr: string;
   token: string;
 }
 
@@ -17,12 +17,12 @@ export function useAgentInstallCommand() {
     setError(null);
     try {
       const resp = (await api.post("/skylex.v1.AuthService/GetAgentInstallCommand", {})) as {
-        script_url: string;
-        server_addr: string;
+        scriptUrl: string;
+        serverAddr: string;
         token: string;
       };
 
-      setData({ script_url: resp.script_url, server_addr: resp.server_addr, token: resp.token });
+      setData({ scriptUrl: resp.scriptUrl, serverAddr: resp.serverAddr, token: resp.token });
     } catch (err) {
       const message =
         err instanceof ApiError

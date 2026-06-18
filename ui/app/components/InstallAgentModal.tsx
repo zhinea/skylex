@@ -25,7 +25,7 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
   const currentCount = nodesData?.nodes?.length || 0;
   const newNodesSeen = currentCount > initialCount;
 
-  const command = buildCommand(data?.script_url, data?.server_addr, data?.token, docker);
+  const command = buildCommand(data?.scriptUrl, data?.serverAddr, data?.token, docker);
 
   const handleCopy = async () => {
     if (typeof window === "undefined" || !command) return;
@@ -47,7 +47,7 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
 
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-sm text-amber-800 dark:text-amber-300">
           <strong>Prerequisites:</strong> Linux server, root or sudo access, outbound gRPC to{" "}
-          <code className="font-mono">{data?.server_addr || "skylex-server:9090"}</code>.
+          <code className="font-mono">{data?.serverAddr || "skylex-server:9090"}</code>.
         </div>
 
         <div className="flex gap-2">
