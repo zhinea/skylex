@@ -235,12 +235,13 @@ func (x *RegisterAgentResponse) GetAgentId() string {
 }
 
 type HeartbeatRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AgentId       string                 `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
-	NodeId        string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	CurrentRole   NodeRole               `protobuf:"varint,3,opt,name=current_role,json=currentRole,proto3,enum=skylex.v1.NodeRole" json:"current_role,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	AgentId           string                 `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	NodeId            string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	CurrentRole       NodeRole               `protobuf:"varint,3,opt,name=current_role,json=currentRole,proto3,enum=skylex.v1.NodeRole" json:"current_role,omitempty"`
+	ObservedLatencyMs int64                  `protobuf:"varint,4,opt,name=observed_latency_ms,json=observedLatencyMs,proto3" json:"observed_latency_ms,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *HeartbeatRequest) Reset() {
@@ -292,6 +293,13 @@ func (x *HeartbeatRequest) GetCurrentRole() NodeRole {
 		return x.CurrentRole
 	}
 	return NodeRole_NODE_ROLE_UNSPECIFIED
+}
+
+func (x *HeartbeatRequest) GetObservedLatencyMs() int64 {
+	if x != nil {
+		return x.ObservedLatencyMs
+	}
+	return 0
 }
 
 type HeartbeatResponse struct {
@@ -1016,11 +1024,12 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"2\n" +
 	"\x15RegisterAgentResponse\x12\x19\n" +
-	"\bagent_id\x18\x01 \x01(\tR\aagentId\"~\n" +
+	"\bagent_id\x18\x01 \x01(\tR\aagentId\"\xae\x01\n" +
 	"\x10HeartbeatRequest\x12\x19\n" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12\x17\n" +
 	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x126\n" +
-	"\fcurrent_role\x18\x03 \x01(\x0e2\x13.skylex.v1.NodeRoleR\vcurrentRole\"\x13\n" +
+	"\fcurrent_role\x18\x03 \x01(\x0e2\x13.skylex.v1.NodeRoleR\vcurrentRole\x12.\n" +
+	"\x13observed_latency_ms\x18\x04 \x01(\x03R\x11observedLatencyMs\"\x13\n" +
 	"\x11HeartbeatResponse\"\xa5\x05\n" +
 	"\x10NodeStatusReport\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12)\n" +

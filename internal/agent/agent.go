@@ -34,9 +34,10 @@ type Agent struct {
 	native     installer.NativeInstaller
 	docker     installer.DockerInstaller
 
-	installMu         sync.RWMutex
-	installationState skylexv1.InstallationState
-	conflictDetails   string
+	installMu          sync.RWMutex
+	installationState  skylexv1.InstallationState
+	conflictDetails    string
+	heartbeatLatencyMS int64
 }
 
 func New(cfg Config) (*Agent, error) {
@@ -175,13 +176,16 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 	pgDataInitialized := a.pg.IsDataDirInitialized()
 	installationState, conflictDetails := a.installationReport()
 
+	start := time.Now()
 	_, err := a.client.Heartbeat(ctx, &skylexv1.HeartbeatRequest{
-		AgentId: a.agentID,
-		NodeId:  a.nodeID,
+		AgentId:           a.agentID,
+		NodeId:            a.nodeID,
+		ObservedLatencyMs: a.heartbeatLatencyMS,
 	})
 	if err != nil {
 		return fmt.Errorf("heartbeat rpc: %w", err)
 	}
+	a.heartbeatLatencyMS = time.Since(start).Milliseconds()
 
 	report := &skylexv1.NodeStatusReport{
 		NodeId:                  a.nodeID,

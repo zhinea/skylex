@@ -26,24 +26,25 @@ const (
 
 var (
 	unauthenticatedMethods = map[string]bool{
-		"/skylex.v1.AuthService/Login":               true,
-		"/skylex.v1.AuthService/RefreshToken":        true,
-		"/skylex.v1.AgentService/RegisterAgent":      true,
-		"/skylex.v1.AgentService/Heartbeat":          true,
-		"/skylex.v1.AgentService/ReportStatus":       true,
-		"/skylex.v1.AgentService/FetchCommand":       true,
+		"/skylex.v1.AuthService/Login":                true,
+		"/skylex.v1.AuthService/RefreshToken":         true,
+		"/skylex.v1.AgentService/RegisterAgent":       true,
+		"/skylex.v1.AgentService/Heartbeat":           true,
+		"/skylex.v1.AgentService/ReportStatus":        true,
+		"/skylex.v1.AgentService/FetchCommand":        true,
 		"/skylex.v1.AgentService/ReportCommandResult": true,
+		"/skylex.v1.AgentService/ReportCommandLog":    true,
 	}
 
 	viewerAllowedMethods = map[string]bool{
-		"/skylex.v1.ClusterService/GetCluster":  true,
+		"/skylex.v1.ClusterService/GetCluster":   true,
 		"/skylex.v1.ClusterService/ListClusters": true,
-		"/skylex.v1.NodeService/ListNodes":      true,
-		"/skylex.v1.NodeService/GetNode":        true,
-		"/skylex.v1.BackupService/GetBackup":    true,
-		"/skylex.v1.BackupService/ListBackups":  true,
-		"/skylex.v1.AuthService/ListUsers":      true,
-		"/skylex.v1.AuthService/ListAPIKeys":    true,
+		"/skylex.v1.NodeService/ListNodes":       true,
+		"/skylex.v1.NodeService/GetNode":         true,
+		"/skylex.v1.BackupService/GetBackup":     true,
+		"/skylex.v1.BackupService/ListBackups":   true,
+		"/skylex.v1.AuthService/ListUsers":       true,
+		"/skylex.v1.AuthService/ListAPIKeys":     true,
 	}
 )
 

@@ -109,7 +109,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.webhookClient = NewWebhookClient(s.cfg.Webhook.URLs, s.cfg.Webhook.Timeout, s.log)
 
 	s.clusterService = NewClusterService(conn, clusterRepo, nodeRepo, commandRepo, clusterSettingsRepo, s.log)
-	s.nodeService = NewNodeService(nodeRepo, clusterRepo, commandRepo, commandLogRepo, s.log)
+	s.nodeService = NewNodeService(nodeRepo, clusterRepo, commandRepo, commandLogRepo, s.cfg.Agent.HeartbeatTimeout, s.log)
 	s.agentService = NewAgentService(s.cfg, clusterRepo, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
 
 	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))

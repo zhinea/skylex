@@ -1,0 +1,1 @@
+ALTER TABLE nodes ADD COLUMN agent_latency_ms INTEGER NOT NULL DEFAULT 0;

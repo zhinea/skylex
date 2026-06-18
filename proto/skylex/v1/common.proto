@@ -93,6 +93,8 @@ message Node {
   bool docker_available = 17;
   InstallationState installation_state = 18;
   string conflict_details = 19;
+  bool agent_connected = 20;
+  int64 agent_latency_ms = 21;
 }
 
 message Pagination {

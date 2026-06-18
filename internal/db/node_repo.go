@@ -18,6 +18,8 @@ type NodeRepository struct {
 	log  *slog.Logger
 }
 
+const nodeSelectColumns = `id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details, agent_latency_ms`
+
 func NewNodeRepository(conn *sql.DB, log *slog.Logger) *NodeRepository {
 	return &NodeRepository{conn: conn, log: log}
 }
@@ -39,7 +41,7 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 	_, err = r.conn.ExecContext(ctx,
 		Rebind(`INSERT INTO nodes (id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
-		nodeID, clusterIDNull, hostname, address, port, role, models.NodeStatusOnline, agentVersion, "", string(labelsJSON), now, now, now,
+		nodeID, clusterIDNull, hostname, address, port, role, models.NodeStatusOffline, agentVersion, "", string(labelsJSON), now, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert node: %w", err)
@@ -52,8 +54,9 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 		Address:      address,
 		Port:         port,
 		Role:         role,
-		Status:       models.NodeStatusOnline,
+		Status:       models.NodeStatusOffline,
 		AgentVersion: agentVersion,
+		AgentID:      "",
 		Labels:       labels,
 		LastSeen:     now,
 		CreatedAt:    now,
@@ -63,8 +66,7 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 
 func (r *NodeRepository) GetByID(ctx context.Context, id string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE id = ?`), id)
+		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE id = ?`), id)
 	return scanNodeRow(row)
 }
 
@@ -84,8 +86,8 @@ func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, of
 		return nil, 0, fmt.Errorf("count nodes: %w", err)
 	}
 
-	listQuery := Rebind(fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes %s ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`, where))
+	listQuery := Rebind(fmt.Sprintf(`SELECT %s
+		 FROM nodes %s ORDER BY role ASC, created_at ASC LIMIT ? OFFSET ?`, nodeSelectColumns, where))
 	queryArgs := append(args, limit, offset)
 
 	rows, err := r.conn.QueryContext(ctx, listQuery, queryArgs...)
@@ -130,10 +132,14 @@ func (r *NodeRepository) UpdateRole(ctx context.Context, id string, role models.
 	return nil
 }
 
-func (r *NodeRepository) UpdateHeartbeat(ctx context.Context, id string) error {
+func (r *NodeRepository) UpdateHeartbeat(ctx context.Context, id string, status models.NodeStatus, latencyMS int64) error {
+	if latencyMS < 0 {
+		latencyMS = 0
+	}
+	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
-		Rebind(`UPDATE nodes SET last_seen = ?, updated_at = ? WHERE id = ?`),
-		time.Now().UTC(), time.Now().UTC(), id)
+		Rebind(`UPDATE nodes SET status = ?, last_seen = ?, agent_latency_ms = ?, updated_at = ? WHERE id = ?`),
+		status, now, latencyMS, now, id)
 	if err != nil {
 		return fmt.Errorf("update node heartbeat: %w", err)
 	}
@@ -154,8 +160,8 @@ func (r *NodeRepository) GetByIDs(ctx context.Context, ids []string) ([]*models.
 		args[i] = id
 	}
 
-	query := fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE id IN (%s)`, strings.Join(placeholders, ", "))
+	query := fmt.Sprintf(`SELECT %s
+		 FROM nodes WHERE id IN (%s)`, nodeSelectColumns, strings.Join(placeholders, ", "))
 
 	rows, err := r.conn.QueryContext(ctx, Rebind(query), args...)
 	if err != nil {
@@ -211,16 +217,14 @@ func (r *NodeRepository) AssignToCluster(ctx context.Context, nodeID, clusterID 
 
 func (r *NodeRepository) GetPrimary(ctx context.Context, clusterID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE cluster_id = ? AND role = ? LIMIT 1`),
+		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE cluster_id = ? AND role = ? LIMIT 1`),
 		clusterID, models.NodeRolePrimary)
 	return scanNodeRow(row)
 }
 
 func (r *NodeRepository) GetReplicas(ctx context.Context, clusterID string) ([]*models.Node, error) {
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE cluster_id = ? AND role = ? ORDER BY created_at ASC`),
+		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE cluster_id = ? AND role = ? ORDER BY created_at ASC`),
 		clusterID, models.NodeRoleReplica)
 	if err != nil {
 		return nil, fmt.Errorf("query replicas: %w", err)
@@ -258,15 +262,13 @@ func (r *NodeRepository) UpdateAgentID(ctx context.Context, id, agentID string) 
 
 func (r *NodeRepository) GetByHostname(ctx context.Context, hostname string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE hostname = ? LIMIT 1`), hostname)
+		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE hostname = ? LIMIT 1`), hostname)
 	return scanNodeRow(row)
 }
 
 func (r *NodeRepository) GetByAgentID(ctx context.Context, agentID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details
-		 FROM nodes WHERE agent_id = ? LIMIT 1`), agentID)
+		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE agent_id = ? LIMIT 1`), agentID)
 	return scanNodeRow(row)
 }
 
@@ -278,7 +280,7 @@ func scanNodeRow(row *sql.Row) (*models.Node, error) {
 	err := row.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
-		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails)
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -299,7 +301,7 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
-		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails); err != nil {
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS); err != nil {
 		return nil, fmt.Errorf("scan node row: %w", err)
 	}
 

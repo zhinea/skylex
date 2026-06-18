@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/db"
@@ -19,11 +20,12 @@ type NodeService struct {
 	clusters    *db.ClusterRepository
 	commands    *db.AgentCommandRepository
 	commandLogs *db.CommandLogRepository
+	statusTTL   time.Duration
 	log         *slog.Logger
 }
 
-func NewNodeService(nodes *db.NodeRepository, clusters *db.ClusterRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, log *slog.Logger) *NodeService {
-	return &NodeService{nodes: nodes, clusters: clusters, commands: commands, commandLogs: commandLogs, log: log}
+func NewNodeService(nodes *db.NodeRepository, clusters *db.ClusterRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, statusTTL time.Duration, log *slog.Logger) *NodeService {
+	return &NodeService{nodes: nodes, clusters: clusters, commands: commands, commandLogs: commandLogs, statusTTL: statusTTL, log: log}
 }
 
 func (s *NodeService) ListNodes(ctx context.Context, req *skylexv1.ListNodesRequest) (*skylexv1.ListNodesResponse, error) {
@@ -48,7 +50,7 @@ func (s *NodeService) ListNodes(ctx context.Context, req *skylexv1.ListNodesRequ
 
 	var protoNodes []*skylexv1.Node
 	for _, n := range nodes {
-		protoNodes = append(protoNodes, nodeToProto(n))
+		protoNodes = append(protoNodes, s.nodeToProto(n))
 	}
 
 	return &skylexv1.ListNodesResponse{
@@ -71,7 +73,7 @@ func (s *NodeService) GetNode(ctx context.Context, req *skylexv1.GetNodeRequest)
 	}
 
 	return &skylexv1.GetNodeResponse{
-		Node: nodeToProto(node),
+		Node: s.nodeToProto(node),
 	}, nil
 }
 
@@ -211,7 +213,7 @@ func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skyl
 		return nil, status.Errorf(codes.Internal, "get updated node: %v", err)
 	}
 	s.log.Info("installation conflict resolved", "node_id", node.ID, "action", req.GetAction().String())
-	return &skylexv1.ResolveInstallationConflictResponse{Node: nodeToProto(updated)}, nil
+	return &skylexv1.ResolveInstallationConflictResponse{Node: s.nodeToProto(updated)}, nil
 }
 
 func (s *NodeService) queueAdoptCommands(ctx context.Context, node *models.Node) error {
@@ -337,7 +339,9 @@ func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.Lis
 	}, nil
 }
 
-func nodeToProto(n *models.Node) *skylexv1.Node {
+func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
+	applyAgentConnectionStatus(n, s.statusTTL)
+
 	var role skylexv1.NodeRole
 	switch n.Role {
 	case models.NodeRolePrimary:
@@ -376,6 +380,28 @@ func nodeToProto(n *models.Node) *skylexv1.Node {
 		DockerAvailable:         n.DockerAvailable,
 		InstallationState:       protoInstallationState(n.InstallationState),
 		ConflictDetails:         n.ConflictDetails,
+		AgentConnected:          n.AgentConnected,
+		AgentLatencyMs:          n.AgentLatencyMS,
+	}
+}
+
+func applyAgentConnectionStatus(n *models.Node, statusTTL time.Duration) {
+	if statusTTL <= 0 {
+		statusTTL = 30 * time.Second
+	}
+	if n.LastSeen.IsZero() {
+		n.AgentConnected = false
+		n.AgentLatencyMS = 0
+		return
+	}
+
+	latency := time.Since(n.LastSeen)
+	if latency < 0 {
+		latency = 0
+	}
+	n.AgentConnected = latency <= statusTTL
+	if !n.AgentConnected || n.AgentLatencyMS < 0 {
+		n.AgentLatencyMS = 0
 	}
 }
 

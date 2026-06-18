@@ -555,6 +555,8 @@ type Node struct {
 	DockerAvailable   bool              `protobuf:"varint,17,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
 	InstallationState InstallationState `protobuf:"varint,18,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
 	ConflictDetails   string            `protobuf:"bytes,19,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	AgentConnected    bool              `protobuf:"varint,20,opt,name=agent_connected,json=agentConnected,proto3" json:"agent_connected,omitempty"`
+	AgentLatencyMs    int64             `protobuf:"varint,21,opt,name=agent_latency_ms,json=agentLatencyMs,proto3" json:"agent_latency_ms,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -722,6 +724,20 @@ func (x *Node) GetConflictDetails() string {
 	return ""
 }
 
+func (x *Node) GetAgentConnected() bool {
+	if x != nil {
+		return x.AgentConnected
+	}
+	return false
+}
+
+func (x *Node) GetAgentLatencyMs() int64 {
+	if x != nil {
+		return x.AgentLatencyMs
+	}
+	return 0
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -808,7 +824,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12E\n" +
-	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\x91\a\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xe4\a\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -832,7 +848,9 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\x12)\n" +
 	"\x10docker_available\x18\x11 \x01(\bR\x0fdockerAvailable\x12K\n" +
 	"\x12installation_state\x18\x12 \x01(\x0e2\x1c.skylex.v1.InstallationStateR\x11installationState\x12)\n" +
-	"\x10conflict_details\x18\x13 \x01(\tR\x0fconflictDetails\x1a9\n" +
+	"\x10conflict_details\x18\x13 \x01(\tR\x0fconflictDetails\x12'\n" +
+	"\x0fagent_connected\x18\x14 \x01(\bR\x0eagentConnected\x12(\n" +
+	"\x10agent_latency_ms\x18\x15 \x01(\x03R\x0eagentLatencyMs\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +

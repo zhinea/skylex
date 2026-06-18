@@ -108,4 +108,6 @@ type Node struct {
 	// Phase 4: native PostgreSQL conflict detection.
 	InstallationState InstallationState `json:"installation_state"`
 	ConflictDetails   string            `json:"conflict_details"`
+	AgentConnected    bool              `json:"agent_connected"`
+	AgentLatencyMS    int64             `json:"agent_latency_ms"`
 }

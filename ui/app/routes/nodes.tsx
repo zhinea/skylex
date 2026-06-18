@@ -5,6 +5,7 @@ import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
 import { InstallAgentModal } from "~/components/InstallAgentModal";
+import { AgentStatus } from "~/components/AgentStatus";
 
 function PgStatusBadges({
   installed,
@@ -123,6 +124,7 @@ export default function NodesPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Status</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent Version</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
@@ -144,6 +146,9 @@ export default function NodesPage() {
                         version={n.postgresVersion}
                         dataInitialized={n.postgresDataInitialized}
                       />
+                    </td>
+                    <td className="px-4 py-3">
+                      <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
                     </td>
                     <td className="px-4 py-3">
                       <StatusDetailTooltip detail={n.statusDetail} />

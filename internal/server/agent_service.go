@@ -91,6 +91,9 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 		if err := s.nodes.UpdateAgentID(ctx, node.ID, agentID); err != nil {
 			s.log.Warn("update node agent_id", "error", err, "node_id", node.ID)
 		}
+		if err := s.nodes.UpdateHeartbeat(ctx, node.ID, models.NodeStatusOnline, 0); err != nil {
+			s.log.Warn("update node heartbeat (register)", "error", err, "node_id", node.ID)
+		}
 		// Persist capabilities reported at registration time.
 		if caps != nil {
 			if err := s.nodes.UpdatePostgresStatus(ctx, node.ID,
@@ -118,6 +121,9 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 			if err := s.nodes.UpdateAgentID(ctx, node.ID, agentID); err != nil {
 				s.log.Warn("set agent_id on new node", "error", err)
 			}
+			if err := s.nodes.UpdateHeartbeat(ctx, node.ID, models.NodeStatusOnline, 0); err != nil {
+				s.log.Warn("update node heartbeat (register new)", "error", err, "node_id", node.ID)
+			}
 			if caps != nil {
 				if err := s.nodes.UpdatePostgresStatus(ctx, node.ID,
 					caps.GetPostgresAvailable(),
@@ -144,50 +150,36 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 }
 
 func (s *AgentService) Heartbeat(ctx context.Context, req *skylexv1.HeartbeatRequest) (*skylexv1.HeartbeatResponse, error) {
-	if req.GetAgentId() != "" {
-		node, err := s.nodes.GetByAgentID(ctx, req.GetAgentId())
-		if err != nil {
-			s.log.Warn("lookup node for heartbeat failed", "agent_id", req.GetAgentId(), "error", err)
-		} else if node == nil {
-			// Unknown agent_ids are usually stale/orphaned agents from a
-			// previous registration. Log at debug to avoid log spam.
-			s.log.Debug("node not found for heartbeat", "agent_id", req.GetAgentId())
-		} else {
-			if err := s.nodes.UpdateHeartbeat(ctx, node.ID); err != nil {
-				s.log.Warn("heartbeat update failed", "node_id", node.ID, "error", err)
-			}
-		}
+	node, err := s.nodeForAgent(ctx, req.GetAgentId())
+	if err != nil {
+		return nil, err
+	}
+	if err := s.nodes.UpdateHeartbeat(ctx, node.ID, models.NodeStatusOnline, normalizeLatencyMS(req.GetObservedLatencyMs())); err != nil {
+		s.log.Warn("heartbeat update failed", "node_id", node.ID, "error", err)
 	}
 
 	return &skylexv1.HeartbeatResponse{}, nil
 }
 
+func normalizeLatencyMS(latency int64) int64 {
+	if latency < 0 {
+		return 0
+	}
+	return latency
+}
+
 func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportStatusRequest) (*skylexv1.ReportStatusResponse, error) {
+	agentNode, err := s.nodeForAgent(ctx, req.GetAgentId())
+	if err != nil {
+		return nil, err
+	}
+
 	for _, nodeStatus := range req.GetNodeStatuses() {
-		var node *models.Node
-		var err error
-
-		if nodeStatus.GetNodeId() != "" {
-			node, err = s.nodes.GetByID(ctx, nodeStatus.GetNodeId())
-		} else {
-			node, err = s.nodes.GetByAgentID(ctx, req.GetAgentId())
-		}
-
-		if err != nil {
-			s.log.Warn("lookup node for status report failed",
-				"node_id", nodeStatus.GetNodeId(),
-				"agent_id", req.GetAgentId(),
-				"error", err,
-			)
+		if nodeStatus.GetNodeId() != "" && nodeStatus.GetNodeId() != agentNode.ID {
+			s.log.Warn("agent attempted to report status for another node", "agent_id", req.GetAgentId(), "node_id", nodeStatus.GetNodeId())
 			continue
 		}
-		if node == nil {
-			s.log.Debug("node not found for status report",
-				"node_id", nodeStatus.GetNodeId(),
-				"agent_id", req.GetAgentId(),
-			)
-			continue
-		}
+		node := agentNode
 
 		if nodeStatus.GetPostgresRunning() {
 			_ = s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline)
@@ -231,13 +223,12 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 }
 
 func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchCommandRequest) (*skylexv1.FetchCommandResponse, error) {
-	node, _ := s.nodes.GetByAgentID(ctx, req.GetAgentId())
-	nodeID := ""
-	if node != nil {
-		nodeID = node.ID
+	node, err := s.nodeForAgent(ctx, req.GetAgentId())
+	if err != nil {
+		return nil, err
 	}
 
-	cmds, err := s.commands.ListPendingLimit(ctx, req.GetAgentId(), nodeID, 1)
+	cmds, err := s.commands.ListPendingLimit(ctx, req.GetAgentId(), node.ID, 1)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "fetch commands: %v", err)
 	}
@@ -258,6 +249,14 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 }
 
 func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.ReportCommandResultRequest) (*skylexv1.ReportCommandResultResponse, error) {
+	node, err := s.nodeForAgent(ctx, req.GetAgentId())
+	if err != nil {
+		return nil, err
+	}
+	if err := s.requireCommandForAgent(ctx, req.GetAgentId(), node.ID, req.GetCommandId()); err != nil {
+		return nil, err
+	}
+
 	if err := s.commands.UpdateResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetOutput(), req.GetError()); err != nil {
 		return nil, status.Errorf(codes.Internal, "update command result: %v", err)
 	}
@@ -448,10 +447,9 @@ func (s *AgentService) updateClusterStatus(ctx context.Context, clusterID string
 }
 
 func (s *AgentService) ReportCommandLog(ctx context.Context, req *skylexv1.ReportCommandLogRequest) (*skylexv1.ReportCommandLogResponse, error) {
-	node, _ := s.nodes.GetByAgentID(ctx, req.GetAgentId())
-	nodeID := ""
-	if node != nil {
-		nodeID = node.ID
+	node, err := s.nodeForAgent(ctx, req.GetAgentId())
+	if err != nil {
+		return nil, err
 	}
 
 	entries := req.GetEntries()
@@ -460,13 +458,25 @@ func (s *AgentService) ReportCommandLog(ctx context.Context, req *skylexv1.Repor
 	}
 
 	logs := make([]*db.CommandLog, 0, len(entries))
+	validatedCommands := make(map[string]bool)
 	for _, e := range entries {
+		commandID := e.GetCommandId()
+		if commandID == "" {
+			return nil, status.Error(codes.InvalidArgument, "command_id is required")
+		}
+		if !validatedCommands[commandID] {
+			if err := s.requireCommandForAgent(ctx, req.GetAgentId(), node.ID, commandID); err != nil {
+				return nil, err
+			}
+			validatedCommands[commandID] = true
+		}
+
 		level := e.GetLevel()
 		if level == "" {
 			level = "info"
 		}
 		logs = append(logs, &db.CommandLog{
-			CommandID: e.GetCommandId(),
+			CommandID: commandID,
 			AgentID:   req.GetAgentId(),
 			Level:     level,
 			Message:   e.GetMessage(),
@@ -475,11 +485,43 @@ func (s *AgentService) ReportCommandLog(ctx context.Context, req *skylexv1.Repor
 	}
 
 	if err := s.commandLogs.CreateBatch(ctx, logs); err != nil {
-		s.log.Warn("failed to store command logs", "agent_id", req.GetAgentId(), "node_id", nodeID, "count", len(logs), "error", err)
+		s.log.Warn("failed to store command logs", "agent_id", req.GetAgentId(), "node_id", node.ID, "count", len(logs), "error", err)
 		return nil, status.Errorf(codes.Internal, "store command logs: %v", err)
 	}
 
 	return &skylexv1.ReportCommandLogResponse{}, nil
+}
+
+func (s *AgentService) nodeForAgent(ctx context.Context, agentID string) (*models.Node, error) {
+	if agentID == "" {
+		return nil, status.Error(codes.Unauthenticated, "agent_id is required")
+	}
+	node, err := s.nodes.GetByAgentID(ctx, agentID)
+	if err != nil {
+		s.log.Warn("lookup node for agent failed", "agent_id", agentID, "error", err)
+		return nil, status.Errorf(codes.Internal, "lookup agent node: %v", err)
+	}
+	if node == nil {
+		return nil, status.Error(codes.Unauthenticated, "unknown agent")
+	}
+	return node, nil
+}
+
+func (s *AgentService) requireCommandForAgent(ctx context.Context, agentID, nodeID, commandID string) error {
+	if commandID == "" {
+		return status.Error(codes.InvalidArgument, "command_id is required")
+	}
+	cmd, err := s.commands.GetByID(ctx, commandID)
+	if err != nil {
+		return status.Errorf(codes.Internal, "get command: %v", err)
+	}
+	if cmd == nil {
+		return status.Error(codes.NotFound, "command not found")
+	}
+	if cmd.AgentID != agentID && cmd.NodeID != nodeID {
+		return status.Error(codes.PermissionDenied, "command does not belong to agent")
+	}
+	return nil
 }
 
 func timeFromMillis(ms int64) time.Time {

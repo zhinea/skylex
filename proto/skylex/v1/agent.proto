@@ -40,6 +40,7 @@ message HeartbeatRequest {
   string agent_id = 1;
   string node_id = 2;
   NodeRole current_role = 3;
+  int64 observed_latency_ms = 4;
 }
 
 message HeartbeatResponse {}

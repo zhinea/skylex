@@ -24,6 +24,8 @@ interface Node {
   dockerAvailable: boolean;
   installationState: string;
   conflictDetails: string;
+  agentConnected: boolean;
+  agentLatencyMs: number;
 }
 
 interface Pagination {

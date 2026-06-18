@@ -11,6 +11,7 @@ import { Card } from "~/components/Card";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
 import { PageSpinner } from "~/components/Spinner";
 import { SettingInput, curatedSettings, validateSettingValue } from "~/components/SettingInput";
+import { AgentStatus } from "~/components/AgentStatus";
 import type { Node } from "~/hooks/useNodes";
 
 function PgStatusBadges({
@@ -603,6 +604,7 @@ export default function ClusterDetailPage() {
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Version</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
                 </tr>
@@ -619,6 +621,9 @@ export default function ClusterDetailPage() {
                         version={n.postgresVersion}
                         dataInitialized={n.postgresDataInitialized}
                       />
+                    </td>
+                    <td className="px-4 py-3">
+                      <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
                     </td>
                     <td className="px-4 py-3 text-gray-900 dark:text-white">{n.agentVersion || "-"}</td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
