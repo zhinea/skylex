@@ -8,7 +8,8 @@ COMPOSE="docker compose \
   -f deploy/docker-compose/docker-compose.dev.yaml"
 
 echo "[dev] starting dev infrastructure (etcd + minio)..."
-eval "$COMPOSE up -d etcd minio minio-init"
+# eval "$COMPOSE up -d etcd minio minio-init"
+eval "$COMPOSE up -d etcd"
 
 CLEANUP_DONE=0
 cleanup() {
