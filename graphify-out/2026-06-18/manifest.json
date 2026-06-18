@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781751375.1793969,
-    "ast_hash": "a02713d6683b696b553693a3922e569e",
+    "mtime": 1781755992.6672516,
+    "ast_hash": "f549854b18a59a03d1bf003701c6913c",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -30,8 +30,8 @@
     "semantic_hash": "d0707362e90f00edd12435e9d3b9d71c"
   },
   "cmd/agent/main.go": {
-    "mtime": 1781752686.7116783,
-    "ast_hash": "19bd9cabb3e60f93c8b7863fee0f1480",
+    "mtime": 1781756851.2142437,
+    "ast_hash": "ba10caedfe3ad13d1941427dfe600210",
     "semantic_hash": ""
   },
   "cmd/server/main.go": {
@@ -120,8 +120,8 @@
     "semantic_hash": "79d7dc359690fa36096f676cab800630"
   },
   "internal/agent/agent.go": {
-    "mtime": 1781737925.4424477,
-    "ast_hash": "4e13d2156f2678db93631973db1fb333",
+    "mtime": 1781756961.6075356,
+    "ast_hash": "df153343086279e2b61a6e1bdec13c2e",
     "semantic_hash": ""
   },
   "internal/agent/config.go": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "internal/db/node_repo.go": {
-    "mtime": 1781565962.7580225,
-    "ast_hash": "3cfbf164f656b6f6171a507853921696",
+    "mtime": 1781758601.9080238,
+    "ast_hash": "61b88819860a4542411a03d86665f44f",
     "semantic_hash": ""
   },
   "internal/db/storage_config_repo.go": {
@@ -235,8 +235,8 @@
     "semantic_hash": "5113f404b8196f8fe56ccf9c9f8728a5"
   },
   "internal/server/cluster_service.go": {
-    "mtime": 1781562585.9839332,
-    "ast_hash": "d15135af60464b6a2ddf2d506183a3c5",
+    "mtime": 1781757271.1318164,
+    "ast_hash": "7835c5c4c3c09481508c3c3bc77dbd93",
     "semantic_hash": ""
   },
   "internal/server/config.go": {
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.create.tsx": {
-    "mtime": 1781570240.7069216,
-    "ast_hash": "c5276a8e698e67eeddfe2fabd1b99309",
+    "mtime": 1781756970.7626047,
+    "ast_hash": "244dd87c9804f40cd06bb49912d2678b",
     "semantic_hash": ""
   },
   "ui/app/routes/clusters.tsx": {
