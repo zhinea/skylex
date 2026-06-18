@@ -56,14 +56,494 @@
   },
   "nodes": [
     {
+      "label": "agent_service.go",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "server_agent_service",
+      "community": 62,
+      "norm_label": "agent_service.go"
+    },
+    {
+      "label": "AgentService",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "server_agentservice",
+      "community": 62,
+      "norm_label": "agentservice"
+    },
+    {
+      "label": "UnimplementedAgentServiceServer",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "unimplementedagentserviceserver",
+      "community": 62,
+      "norm_label": "unimplementedagentserviceserver"
+    },
+    {
+      "label": "Config",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "config",
+      "community": 62,
+      "norm_label": "config"
+    },
+    {
+      "label": "NodeRepository",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "internal_server_agent_service_go_noderepository",
+      "community": 62,
+      "norm_label": "noderepository"
+    },
+    {
+      "label": "AgentCommandRepository",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "internal_server_agent_service_go_agentcommandrepository",
+      "community": 62,
+      "norm_label": "agentcommandrepository"
+    },
+    {
+      "label": "AgentTokenRepository",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "agenttokenrepository",
+      "community": 62,
+      "norm_label": "agenttokenrepository"
+    },
+    {
+      "label": "Logger",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "internal_server_agent_service_go_logger",
+      "community": 62,
+      "norm_label": "logger"
+    },
+    {
+      "label": "NewAgentService()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "server_agent_service_newagentservice",
+      "community": 62,
+      "norm_label": "newagentservice()"
+    },
+    {
+      "label": ".validateAgentToken()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "server_agentservice_validateagenttoken",
+      "community": 183,
+      "norm_label": ".validateagenttoken()"
+    },
+    {
+      "label": ".RegisterAgent()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "server_agentservice_registeragent",
+      "community": 183,
+      "norm_label": ".registeragent()"
+    },
+    {
+      "label": "Context",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "internal_server_agent_service_go_context",
+      "community": 62,
+      "norm_label": "context"
+    },
+    {
+      "label": "RegisterAgentRequest",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "registeragentrequest",
+      "community": 183,
+      "norm_label": "registeragentrequest"
+    },
+    {
+      "label": "RegisterAgentResponse",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "_origin": "ast",
+      "id": "registeragentresponse",
+      "community": 183,
+      "norm_label": "registeragentresponse"
+    },
+    {
+      "label": ".Heartbeat()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "server_agentservice_heartbeat",
+      "community": 62,
+      "norm_label": ".heartbeat()"
+    },
+    {
+      "label": "HeartbeatRequest",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "heartbeatrequest",
+      "community": 62,
+      "norm_label": "heartbeatrequest"
+    },
+    {
+      "label": "HeartbeatResponse",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "heartbeatresponse",
+      "community": 62,
+      "norm_label": "heartbeatresponse"
+    },
+    {
+      "label": ".ReportStatus()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "server_agentservice_reportstatus",
+      "community": 62,
+      "norm_label": ".reportstatus()"
+    },
+    {
+      "label": "ReportStatusRequest",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "reportstatusrequest",
+      "community": 62,
+      "norm_label": "reportstatusrequest"
+    },
+    {
+      "label": "ReportStatusResponse",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "reportstatusresponse",
+      "community": 62,
+      "norm_label": "reportstatusresponse"
+    },
+    {
+      "label": ".FetchCommand()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "server_agentservice_fetchcommand",
+      "community": 62,
+      "norm_label": ".fetchcommand()"
+    },
+    {
+      "label": "FetchCommandRequest",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "fetchcommandrequest",
+      "community": 62,
+      "norm_label": "fetchcommandrequest"
+    },
+    {
+      "label": "FetchCommandResponse",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "fetchcommandresponse",
+      "community": 62,
+      "norm_label": "fetchcommandresponse"
+    },
+    {
+      "label": ".ReportCommandResult()",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L196",
+      "_origin": "ast",
+      "id": "server_agentservice_reportcommandresult",
+      "community": 62,
+      "norm_label": ".reportcommandresult()"
+    },
+    {
+      "label": "ReportCommandResultRequest",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L196",
+      "_origin": "ast",
+      "id": "reportcommandresultrequest",
+      "community": 62,
+      "norm_label": "reportcommandresultrequest"
+    },
+    {
+      "label": "ReportCommandResultResponse",
+      "file_type": "code",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L196",
+      "_origin": "ast",
+      "id": "reportcommandresultresponse",
+      "community": 62,
+      "norm_label": "reportcommandresultresponse"
+    },
+    {
+      "label": "node_service.go",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "server_node_service",
+      "community": 81,
+      "norm_label": "node_service.go"
+    },
+    {
+      "label": "NodeService",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "server_nodeservice",
+      "community": 81,
+      "norm_label": "nodeservice"
+    },
+    {
+      "label": "UnimplementedNodeServiceServer",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "unimplementednodeserviceserver",
+      "community": 81,
+      "norm_label": "unimplementednodeserviceserver"
+    },
+    {
+      "label": "NodeRepository",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "internal_server_node_service_go_noderepository",
+      "community": 81,
+      "norm_label": "noderepository"
+    },
+    {
+      "label": "AgentCommandRepository",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "internal_server_node_service_go_agentcommandrepository",
+      "community": 81,
+      "norm_label": "agentcommandrepository"
+    },
+    {
+      "label": "Logger",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "internal_server_node_service_go_logger",
+      "community": 81,
+      "norm_label": "logger"
+    },
+    {
+      "label": "NewNodeService()",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "server_node_service_newnodeservice",
+      "community": 81,
+      "norm_label": "newnodeservice()"
+    },
+    {
+      "label": ".ListNodes()",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "server_nodeservice_listnodes",
+      "community": 81,
+      "norm_label": ".listnodes()"
+    },
+    {
+      "label": "Context",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "internal_server_node_service_go_context",
+      "community": 81,
+      "norm_label": "context"
+    },
+    {
+      "label": "ListNodesRequest",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "listnodesrequest",
+      "community": 81,
+      "norm_label": "listnodesrequest"
+    },
+    {
+      "label": "ListNodesResponse",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "listnodesresponse",
+      "community": 81,
+      "norm_label": "listnodesresponse"
+    },
+    {
+      "label": ".GetNode()",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "server_nodeservice_getnode",
+      "community": 81,
+      "norm_label": ".getnode()"
+    },
+    {
+      "label": "GetNodeRequest",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "getnoderequest",
+      "community": 81,
+      "norm_label": "getnoderequest"
+    },
+    {
+      "label": "GetNodeResponse",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "getnoderesponse",
+      "community": 81,
+      "norm_label": "getnoderesponse"
+    },
+    {
+      "label": ".DrainNode()",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "server_nodeservice_drainnode",
+      "community": 81,
+      "norm_label": ".drainnode()"
+    },
+    {
+      "label": "DrainNodeRequest",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "drainnoderequest",
+      "community": 81,
+      "norm_label": "drainnoderequest"
+    },
+    {
+      "label": "DrainNodeResponse",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L76",
+      "_origin": "ast",
+      "id": "drainnoderesponse",
+      "community": 81,
+      "norm_label": "drainnoderesponse"
+    },
+    {
+      "label": ".RejoinNode()",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "server_nodeservice_rejoinnode",
+      "community": 81,
+      "norm_label": ".rejoinnode()"
+    },
+    {
+      "label": "RejoinNodeRequest",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "rejoinnoderequest",
+      "community": 81,
+      "norm_label": "rejoinnoderequest"
+    },
+    {
+      "label": "RejoinNodeResponse",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "rejoinnoderesponse",
+      "community": 81,
+      "norm_label": "rejoinnoderesponse"
+    },
+    {
+      "label": "nodeToProto()",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L146",
+      "_origin": "ast",
+      "id": "server_node_service_nodetoproto",
+      "community": 81,
+      "norm_label": "nodetoproto()"
+    },
+    {
+      "label": "Node",
+      "file_type": "code",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L146",
+      "_origin": "ast",
+      "id": "node",
+      "community": 81,
+      "norm_label": "node"
+    },
+    {
       "label": "main.go",
       "file_type": "code",
       "source_file": "cmd/agent/main.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "agent_main",
       "community": 88,
-      "norm_label": "main.go"
+      "norm_label": "main.go",
+      "id": "agent_main"
     },
     {
       "label": "main()",
@@ -71,9 +551,9 @@
       "source_file": "cmd/agent/main.go",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "agent_main_main",
       "community": 88,
-      "norm_label": "main()"
+      "norm_label": "main()",
+      "id": "agent_main_main"
     },
     {
       "label": "loadConfigFile()",
@@ -81,9 +561,9 @@
       "source_file": "cmd/agent/main.go",
       "source_location": "L100",
       "_origin": "ast",
-      "id": "agent_main_loadconfigfile",
       "community": 88,
-      "norm_label": "loadconfigfile()"
+      "norm_label": "loadconfigfile()",
+      "id": "agent_main_loadconfigfile"
     },
     {
       "label": "Config",
@@ -91,9 +571,9 @@
       "source_file": "cmd/agent/main.go",
       "source_location": "L100",
       "_origin": "ast",
-      "id": "cmd_agent_main_go_config",
       "community": 88,
-      "norm_label": "config"
+      "norm_label": "config",
+      "id": "cmd_agent_main_go_config"
     },
     {
       "label": "applyEnv()",
@@ -101,9 +581,9 @@
       "source_file": "cmd/agent/main.go",
       "source_location": "L128",
       "_origin": "ast",
-      "id": "agent_main_applyenv",
       "community": 88,
-      "norm_label": "applyenv()"
+      "norm_label": "applyenv()",
+      "id": "agent_main_applyenv"
     },
     {
       "label": "readTokenFile()",
@@ -111,9 +591,9 @@
       "source_file": "cmd/agent/main.go",
       "source_location": "L149",
       "_origin": "ast",
-      "id": "agent_main_readtokenfile",
       "community": 88,
-      "norm_label": "readtokenfile()"
+      "norm_label": "readtokenfile()",
+      "id": "agent_main_readtokenfile"
     },
     {
       "label": "Agent",
@@ -121,9 +601,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L21",
       "_origin": "ast",
-      "id": "agent_agent",
       "community": 17,
-      "norm_label": "agent"
+      "norm_label": "agent",
+      "id": "agent_agent"
     },
     {
       "label": "Config",
@@ -131,9 +611,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "internal_agent_agent_go_config",
-      "community": 17,
-      "norm_label": "config"
+      "community": 5,
+      "norm_label": "config",
+      "id": "internal_agent_agent_go_config"
     },
     {
       "label": "Logger",
@@ -141,9 +621,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L23",
       "_origin": "ast",
-      "id": "internal_agent_agent_go_logger",
       "community": 17,
-      "norm_label": "logger"
+      "norm_label": "logger",
+      "id": "internal_agent_agent_go_logger"
     },
     {
       "label": "AgentServiceClient",
@@ -151,9 +631,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L26",
       "_origin": "ast",
-      "id": "agentserviceclient",
       "community": 17,
-      "norm_label": "agentserviceclient"
+      "norm_label": "agentserviceclient",
+      "id": "agentserviceclient"
     },
     {
       "label": "ClientConn",
@@ -161,9 +641,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L27",
       "_origin": "ast",
-      "id": "clientconn",
       "community": 17,
-      "norm_label": "clientconn"
+      "norm_label": "clientconn",
+      "id": "clientconn"
     },
     {
       "label": "Instance",
@@ -171,9 +651,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L28",
       "_origin": "ast",
-      "id": "instance",
       "community": 17,
-      "norm_label": "instance"
+      "norm_label": "instance",
+      "id": "instance"
     },
     {
       "label": "PgBackRest",
@@ -181,9 +661,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "pgbackrest",
       "community": 17,
-      "norm_label": "pgbackrest"
+      "norm_label": "pgbackrest",
+      "id": "pgbackrest"
     },
     {
       "label": "New()",
@@ -191,9 +671,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L32",
       "_origin": "ast",
-      "id": "agent_agent_new",
       "community": 5,
-      "norm_label": "new()"
+      "norm_label": "new()",
+      "id": "agent_agent_new"
     },
     {
       "label": ".Run()",
@@ -201,9 +681,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L64",
       "_origin": "ast",
-      "id": "agent_agent_run",
       "community": 17,
-      "norm_label": ".run()"
+      "norm_label": ".run()",
+      "id": "agent_agent_run"
     },
     {
       "label": "Context",
@@ -211,9 +691,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L64",
       "_origin": "ast",
-      "id": "internal_agent_agent_go_context",
       "community": 17,
-      "norm_label": "context"
+      "norm_label": "context",
+      "id": "internal_agent_agent_go_context"
     },
     {
       "label": ".register()",
@@ -221,9 +701,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L113",
       "_origin": "ast",
-      "id": "agent_agent_register",
       "community": 17,
-      "norm_label": ".register()"
+      "norm_label": ".register()",
+      "id": "agent_agent_register"
     },
     {
       "label": ".heartbeatLoop()",
@@ -231,9 +711,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L136",
       "_origin": "ast",
-      "id": "agent_agent_heartbeatloop",
       "community": 17,
-      "norm_label": ".heartbeatloop()"
+      "norm_label": ".heartbeatloop()",
+      "id": "agent_agent_heartbeatloop"
     },
     {
       "label": ".sendHeartbeat()",
@@ -241,9 +721,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L152",
       "_origin": "ast",
-      "id": "agent_agent_sendheartbeat",
       "community": 17,
-      "norm_label": ".sendheartbeat()"
+      "norm_label": ".sendheartbeat()",
+      "id": "agent_agent_sendheartbeat"
     },
     {
       "label": ".commandLoop()",
@@ -251,9 +731,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L187",
       "_origin": "ast",
-      "id": "agent_agent_commandloop",
       "community": 17,
-      "norm_label": ".commandloop()"
+      "norm_label": ".commandloop()",
+      "id": "agent_agent_commandloop"
     },
     {
       "label": ".fetchCommands()",
@@ -261,9 +741,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L203",
       "_origin": "ast",
-      "id": "agent_agent_fetchcommands",
       "community": 17,
-      "norm_label": ".fetchcommands()"
+      "norm_label": ".fetchcommands()",
+      "id": "agent_agent_fetchcommands"
     },
     {
       "label": ".executeCommand()",
@@ -271,9 +751,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L222",
       "_origin": "ast",
-      "id": "agent_agent_executecommand",
       "community": 17,
-      "norm_label": ".executecommand()"
+      "norm_label": ".executecommand()",
+      "id": "agent_agent_executecommand"
     },
     {
       "label": "AgentCommand",
@@ -281,9 +761,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L222",
       "_origin": "ast",
-      "id": "agentcommand",
       "community": 17,
-      "norm_label": "agentcommand"
+      "norm_label": "agentcommand",
+      "id": "agentcommand"
     },
     {
       "label": ".reportCommandResult()",
@@ -291,9 +771,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L324",
       "_origin": "ast",
-      "id": "agent_agent_reportcommandresult",
       "community": 17,
-      "norm_label": ".reportcommandresult()"
+      "norm_label": ".reportcommandresult()",
+      "id": "agent_agent_reportcommandresult"
     },
     {
       "label": "node_repo.go",
@@ -301,9 +781,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "db_node_repo",
       "community": 140,
-      "norm_label": "node_repo.go"
+      "norm_label": "node_repo.go",
+      "id": "db_node_repo"
     },
     {
       "label": "NodeRepository",
@@ -311,9 +791,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L15",
       "_origin": "ast",
-      "id": "db_noderepository",
       "community": 140,
-      "norm_label": "noderepository"
+      "norm_label": "noderepository",
+      "id": "db_noderepository"
     },
     {
       "label": "DB",
@@ -321,9 +801,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "db",
       "community": 140,
-      "norm_label": "db"
+      "norm_label": "db",
+      "id": "db"
     },
     {
       "label": "Logger",
@@ -331,9 +811,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "internal_db_node_repo_go_logger",
       "community": 140,
-      "norm_label": "logger"
+      "norm_label": "logger",
+      "id": "internal_db_node_repo_go_logger"
     },
     {
       "label": "NewNodeRepository()",
@@ -341,9 +821,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "db_node_repo_newnoderepository",
       "community": 140,
-      "norm_label": "newnoderepository()"
+      "norm_label": "newnoderepository()",
+      "id": "db_node_repo_newnoderepository"
     },
     {
       "label": ".Create()",
@@ -351,9 +831,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "db_noderepository_create",
       "community": 140,
-      "norm_label": ".create()"
+      "norm_label": ".create()",
+      "id": "db_noderepository_create"
     },
     {
       "label": "Context",
@@ -361,9 +841,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "internal_db_node_repo_go_context",
       "community": 140,
-      "norm_label": "context"
+      "norm_label": "context",
+      "id": "internal_db_node_repo_go_context"
     },
     {
       "label": "NodeRole",
@@ -371,9 +851,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "noderole",
       "community": 140,
-      "norm_label": "noderole"
+      "norm_label": "noderole",
+      "id": "noderole"
     },
     {
       "label": "Node",
@@ -381,9 +861,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L24",
       "_origin": "ast",
-      "id": "internal_db_node_repo_go_node",
       "community": 140,
-      "norm_label": "node"
+      "norm_label": "node",
+      "id": "internal_db_node_repo_go_node"
     },
     {
       "label": ".GetByID()",
@@ -391,9 +871,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L63",
       "_origin": "ast",
-      "id": "db_noderepository_getbyid",
       "community": 140,
-      "norm_label": ".getbyid()"
+      "norm_label": ".getbyid()",
+      "id": "db_noderepository_getbyid"
     },
     {
       "label": ".ListByCluster()",
@@ -401,9 +881,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L70",
       "_origin": "ast",
-      "id": "db_noderepository_listbycluster",
       "community": 140,
-      "norm_label": ".listbycluster()"
+      "norm_label": ".listbycluster()",
+      "id": "db_noderepository_listbycluster"
     },
     {
       "label": ".UpdateStatus()",
@@ -411,9 +891,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L111",
       "_origin": "ast",
-      "id": "db_noderepository_updatestatus",
       "community": 140,
-      "norm_label": ".updatestatus()"
+      "norm_label": ".updatestatus()",
+      "id": "db_noderepository_updatestatus"
     },
     {
       "label": "NodeStatus",
@@ -421,9 +901,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L111",
       "_origin": "ast",
-      "id": "nodestatus",
       "community": 140,
-      "norm_label": "nodestatus"
+      "norm_label": "nodestatus",
+      "id": "nodestatus"
     },
     {
       "label": ".UpdateRole()",
@@ -431,9 +911,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L121",
       "_origin": "ast",
-      "id": "db_noderepository_updaterole",
       "community": 140,
-      "norm_label": ".updaterole()"
+      "norm_label": ".updaterole()",
+      "id": "db_noderepository_updaterole"
     },
     {
       "label": ".UpdateHeartbeat()",
@@ -441,9 +921,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L131",
       "_origin": "ast",
-      "id": "db_noderepository_updateheartbeat",
-      "community": 140,
-      "norm_label": ".updateheartbeat()"
+      "community": 11,
+      "norm_label": ".updateheartbeat()",
+      "id": "db_noderepository_updateheartbeat"
     },
     {
       "label": ".ListUnassigned()",
@@ -451,9 +931,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L142",
       "_origin": "ast",
-      "id": "db_noderepository_listunassigned",
       "community": 140,
-      "norm_label": ".listunassigned()"
+      "norm_label": ".listunassigned()",
+      "id": "db_noderepository_listunassigned"
     },
     {
       "label": ".AssignToCluster()",
@@ -461,9 +941,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L168",
       "_origin": "ast",
-      "id": "db_noderepository_assigntocluster",
       "community": 140,
-      "norm_label": ".assigntocluster()"
+      "norm_label": ".assigntocluster()",
+      "id": "db_noderepository_assigntocluster"
     },
     {
       "label": ".GetPrimary()",
@@ -471,9 +951,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L183",
       "_origin": "ast",
-      "id": "db_noderepository_getprimary",
       "community": 140,
-      "norm_label": ".getprimary()"
+      "norm_label": ".getprimary()",
+      "id": "db_noderepository_getprimary"
     },
     {
       "label": ".GetReplicas()",
@@ -481,9 +961,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L191",
       "_origin": "ast",
-      "id": "db_noderepository_getreplicas",
       "community": 140,
-      "norm_label": ".getreplicas()"
+      "norm_label": ".getreplicas()",
+      "id": "db_noderepository_getreplicas"
     },
     {
       "label": ".Delete()",
@@ -491,9 +971,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L212",
       "_origin": "ast",
-      "id": "db_noderepository_delete",
       "community": 140,
-      "norm_label": ".delete()"
+      "norm_label": ".delete()",
+      "id": "db_noderepository_delete"
     },
     {
       "label": ".UpdateAgentID()",
@@ -501,9 +981,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L220",
       "_origin": "ast",
-      "id": "db_noderepository_updateagentid",
-      "community": 140,
-      "norm_label": ".updateagentid()"
+      "community": 11,
+      "norm_label": ".updateagentid()",
+      "id": "db_noderepository_updateagentid"
     },
     {
       "label": ".GetByHostname()",
@@ -511,9 +991,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L230",
       "_origin": "ast",
-      "id": "db_noderepository_getbyhostname",
       "community": 140,
-      "norm_label": ".getbyhostname()"
+      "norm_label": ".getbyhostname()",
+      "id": "db_noderepository_getbyhostname"
     },
     {
       "label": ".GetByAgentID()",
@@ -521,9 +1001,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L237",
       "_origin": "ast",
-      "id": "db_noderepository_getbyagentid",
       "community": 140,
-      "norm_label": ".getbyagentid()"
+      "norm_label": ".getbyagentid()",
+      "id": "db_noderepository_getbyagentid"
     },
     {
       "label": "scanNodeRow()",
@@ -531,9 +1011,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L244",
       "_origin": "ast",
-      "id": "db_node_repo_scannoderow",
       "community": 140,
-      "norm_label": "scannoderow()"
+      "norm_label": "scannoderow()",
+      "id": "db_node_repo_scannoderow"
     },
     {
       "label": "Row",
@@ -541,9 +1021,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L244",
       "_origin": "ast",
-      "id": "row",
       "community": 140,
-      "norm_label": "row"
+      "norm_label": "row",
+      "id": "row"
     },
     {
       "label": "scanNodesRow()",
@@ -551,9 +1031,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L263",
       "_origin": "ast",
-      "id": "db_node_repo_scannodesrow",
       "community": 140,
-      "norm_label": "scannodesrow()"
+      "norm_label": "scannodesrow()",
+      "id": "db_node_repo_scannodesrow"
     },
     {
       "label": "Rows",
@@ -561,9 +1041,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L263",
       "_origin": "ast",
-      "id": "rows",
       "community": 140,
-      "norm_label": "rows"
+      "norm_label": "rows",
+      "id": "rows"
     },
     {
       "label": "cluster_service.go",
@@ -571,9 +1051,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "server_cluster_service",
       "community": 10,
-      "norm_label": "cluster_service.go"
+      "norm_label": "cluster_service.go",
+      "id": "server_cluster_service"
     },
     {
       "label": "ClusterService",
@@ -581,9 +1061,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L16",
       "_origin": "ast",
-      "id": "server_clusterservice",
       "community": 10,
-      "norm_label": "clusterservice"
+      "norm_label": "clusterservice",
+      "id": "server_clusterservice"
     },
     {
       "label": "UnimplementedClusterServiceServer",
@@ -591,9 +1071,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L17",
       "_origin": "ast",
-      "id": "unimplementedclusterserviceserver",
       "community": 10,
-      "norm_label": "unimplementedclusterserviceserver"
+      "norm_label": "unimplementedclusterserviceserver",
+      "id": "unimplementedclusterserviceserver"
     },
     {
       "label": "ClusterRepository",
@@ -601,9 +1081,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L18",
       "_origin": "ast",
-      "id": "clusterrepository",
       "community": 10,
-      "norm_label": "clusterrepository"
+      "norm_label": "clusterrepository",
+      "id": "clusterrepository"
     },
     {
       "label": "NodeRepository",
@@ -611,9 +1091,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L19",
       "_origin": "ast",
-      "id": "noderepository",
       "community": 10,
-      "norm_label": "noderepository"
+      "norm_label": "noderepository",
+      "id": "noderepository"
     },
     {
       "label": "AgentCommandRepository",
@@ -621,9 +1101,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L20",
       "_origin": "ast",
-      "id": "agentcommandrepository",
       "community": 10,
-      "norm_label": "agentcommandrepository"
+      "norm_label": "agentcommandrepository",
+      "id": "agentcommandrepository"
     },
     {
       "label": "FailoverEngine",
@@ -631,9 +1111,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L21",
       "_origin": "ast",
-      "id": "failoverengine",
       "community": 10,
-      "norm_label": "failoverengine"
+      "norm_label": "failoverengine",
+      "id": "failoverengine"
     },
     {
       "label": "Logger",
@@ -641,9 +1121,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L22",
       "_origin": "ast",
-      "id": "internal_server_cluster_service_go_logger",
       "community": 10,
-      "norm_label": "logger"
+      "norm_label": "logger",
+      "id": "internal_server_cluster_service_go_logger"
     },
     {
       "label": "NewClusterService()",
@@ -651,9 +1131,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L25",
       "_origin": "ast",
-      "id": "server_cluster_service_newclusterservice",
       "community": 10,
-      "norm_label": "newclusterservice()"
+      "norm_label": "newclusterservice()",
+      "id": "server_cluster_service_newclusterservice"
     },
     {
       "label": ".SetFailoverEngine()",
@@ -661,9 +1141,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L34",
       "_origin": "ast",
-      "id": "server_clusterservice_setfailoverengine",
       "community": 10,
-      "norm_label": ".setfailoverengine()"
+      "norm_label": ".setfailoverengine()",
+      "id": "server_clusterservice_setfailoverengine"
     },
     {
       "label": ".CreateCluster()",
@@ -671,9 +1151,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "server_clusterservice_createcluster",
       "community": 10,
-      "norm_label": ".createcluster()"
+      "norm_label": ".createcluster()",
+      "id": "server_clusterservice_createcluster"
     },
     {
       "label": "Context",
@@ -681,9 +1161,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "internal_server_cluster_service_go_context",
       "community": 10,
-      "norm_label": "context"
+      "norm_label": "context",
+      "id": "internal_server_cluster_service_go_context"
     },
     {
       "label": "CreateClusterRequest",
@@ -691,9 +1171,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "createclusterrequest",
       "community": 10,
-      "norm_label": "createclusterrequest"
+      "norm_label": "createclusterrequest",
+      "id": "createclusterrequest"
     },
     {
       "label": "CreateClusterResponse",
@@ -701,9 +1181,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L38",
       "_origin": "ast",
-      "id": "createclusterresponse",
       "community": 10,
-      "norm_label": "createclusterresponse"
+      "norm_label": "createclusterresponse",
+      "id": "createclusterresponse"
     },
     {
       "label": ".GetCluster()",
@@ -711,9 +1191,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L109",
       "_origin": "ast",
-      "id": "server_clusterservice_getcluster",
       "community": 10,
-      "norm_label": ".getcluster()"
+      "norm_label": ".getcluster()",
+      "id": "server_clusterservice_getcluster"
     },
     {
       "label": "GetClusterRequest",
@@ -721,9 +1201,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L109",
       "_origin": "ast",
-      "id": "getclusterrequest",
       "community": 10,
-      "norm_label": "getclusterrequest"
+      "norm_label": "getclusterrequest",
+      "id": "getclusterrequest"
     },
     {
       "label": "GetClusterResponse",
@@ -731,9 +1211,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L109",
       "_origin": "ast",
-      "id": "getclusterresponse",
       "community": 10,
-      "norm_label": "getclusterresponse"
+      "norm_label": "getclusterresponse",
+      "id": "getclusterresponse"
     },
     {
       "label": ".ListClusters()",
@@ -741,9 +1221,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L123",
       "_origin": "ast",
-      "id": "server_clusterservice_listclusters",
       "community": 10,
-      "norm_label": ".listclusters()"
+      "norm_label": ".listclusters()",
+      "id": "server_clusterservice_listclusters"
     },
     {
       "label": "ListClustersRequest",
@@ -751,9 +1231,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L123",
       "_origin": "ast",
-      "id": "listclustersrequest",
       "community": 10,
-      "norm_label": "listclustersrequest"
+      "norm_label": "listclustersrequest",
+      "id": "listclustersrequest"
     },
     {
       "label": "ListClustersResponse",
@@ -761,9 +1241,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L123",
       "_origin": "ast",
-      "id": "listclustersresponse",
       "community": 10,
-      "norm_label": "listclustersresponse"
+      "norm_label": "listclustersresponse",
+      "id": "listclustersresponse"
     },
     {
       "label": ".UpdateCluster()",
@@ -771,9 +1251,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L158",
       "_origin": "ast",
-      "id": "server_clusterservice_updatecluster",
       "community": 10,
-      "norm_label": ".updatecluster()"
+      "norm_label": ".updatecluster()",
+      "id": "server_clusterservice_updatecluster"
     },
     {
       "label": "UpdateClusterRequest",
@@ -781,9 +1261,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L158",
       "_origin": "ast",
-      "id": "updateclusterrequest",
       "community": 10,
-      "norm_label": "updateclusterrequest"
+      "norm_label": "updateclusterrequest",
+      "id": "updateclusterrequest"
     },
     {
       "label": "UpdateClusterResponse",
@@ -791,9 +1271,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L158",
       "_origin": "ast",
-      "id": "updateclusterresponse",
       "community": 10,
-      "norm_label": "updateclusterresponse"
+      "norm_label": "updateclusterresponse",
+      "id": "updateclusterresponse"
     },
     {
       "label": ".DeleteCluster()",
@@ -801,9 +1281,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L162",
       "_origin": "ast",
-      "id": "server_clusterservice_deletecluster",
       "community": 10,
-      "norm_label": ".deletecluster()"
+      "norm_label": ".deletecluster()",
+      "id": "server_clusterservice_deletecluster"
     },
     {
       "label": "DeleteClusterRequest",
@@ -811,9 +1291,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L162",
       "_origin": "ast",
-      "id": "deleteclusterrequest",
       "community": 10,
-      "norm_label": "deleteclusterrequest"
+      "norm_label": "deleteclusterrequest",
+      "id": "deleteclusterrequest"
     },
     {
       "label": "DeleteClusterResponse",
@@ -821,9 +1301,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L162",
       "_origin": "ast",
-      "id": "deleteclusterresponse",
       "community": 10,
-      "norm_label": "deleteclusterresponse"
+      "norm_label": "deleteclusterresponse",
+      "id": "deleteclusterresponse"
     },
     {
       "label": ".FailoverCluster()",
@@ -831,9 +1311,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L182",
       "_origin": "ast",
-      "id": "server_clusterservice_failovercluster",
       "community": 10,
-      "norm_label": ".failovercluster()"
+      "norm_label": ".failovercluster()",
+      "id": "server_clusterservice_failovercluster"
     },
     {
       "label": "FailoverClusterRequest",
@@ -841,9 +1321,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L182",
       "_origin": "ast",
-      "id": "failoverclusterrequest",
       "community": 10,
-      "norm_label": "failoverclusterrequest"
+      "norm_label": "failoverclusterrequest",
+      "id": "failoverclusterrequest"
     },
     {
       "label": "FailoverClusterResponse",
@@ -851,9 +1331,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L182",
       "_origin": "ast",
-      "id": "failoverclusterresponse",
       "community": 10,
-      "norm_label": "failoverclusterresponse"
+      "norm_label": "failoverclusterresponse",
+      "id": "failoverclusterresponse"
     },
     {
       "label": ".RestartNode()",
@@ -861,9 +1341,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L218",
       "_origin": "ast",
-      "id": "server_clusterservice_restartnode",
       "community": 10,
-      "norm_label": ".restartnode()"
+      "norm_label": ".restartnode()",
+      "id": "server_clusterservice_restartnode"
     },
     {
       "label": "RestartNodeRequest",
@@ -871,9 +1351,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L218",
       "_origin": "ast",
-      "id": "restartnoderequest",
       "community": 10,
-      "norm_label": "restartnoderequest"
+      "norm_label": "restartnoderequest",
+      "id": "restartnoderequest"
     },
     {
       "label": "RestartNodeResponse",
@@ -881,9 +1361,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L218",
       "_origin": "ast",
-      "id": "restartnoderesponse",
       "community": 10,
-      "norm_label": "restartnoderesponse"
+      "norm_label": "restartnoderesponse",
+      "id": "restartnoderesponse"
     },
     {
       "label": ".ScaleCluster()",
@@ -891,9 +1371,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L248",
       "_origin": "ast",
-      "id": "server_clusterservice_scalecluster",
       "community": 10,
-      "norm_label": ".scalecluster()"
+      "norm_label": ".scalecluster()",
+      "id": "server_clusterservice_scalecluster"
     },
     {
       "label": "ScaleClusterRequest",
@@ -901,9 +1381,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L248",
       "_origin": "ast",
-      "id": "scaleclusterrequest",
       "community": 10,
-      "norm_label": "scaleclusterrequest"
+      "norm_label": "scaleclusterrequest",
+      "id": "scaleclusterrequest"
     },
     {
       "label": "ScaleClusterResponse",
@@ -911,9 +1391,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L248",
       "_origin": "ast",
-      "id": "scaleclusterresponse",
       "community": 10,
-      "norm_label": "scaleclusterresponse"
+      "norm_label": "scaleclusterresponse",
+      "id": "scaleclusterresponse"
     },
     {
       "label": "clusterToProto()",
@@ -921,9 +1401,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L272",
       "_origin": "ast",
-      "id": "server_cluster_service_clustertoproto",
       "community": 10,
-      "norm_label": "clustertoproto()"
+      "norm_label": "clustertoproto()",
+      "id": "server_cluster_service_clustertoproto"
     },
     {
       "label": "Cluster",
@@ -931,9 +1411,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L272",
       "_origin": "ast",
-      "id": "cluster",
       "community": 10,
-      "norm_label": "cluster"
+      "norm_label": "cluster",
+      "id": "cluster"
     },
     {
       "label": "convertReplicationMode()",
@@ -941,9 +1421,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L319",
       "_origin": "ast",
-      "id": "server_cluster_service_convertreplicationmode",
       "community": 10,
-      "norm_label": "convertreplicationmode()"
+      "norm_label": "convertreplicationmode()",
+      "id": "server_cluster_service_convertreplicationmode"
     },
     {
       "label": "ReplicationMode",
@@ -951,9 +1431,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L319",
       "_origin": "ast",
-      "id": "replicationmode",
       "community": 10,
-      "norm_label": "replicationmode"
+      "norm_label": "replicationmode",
+      "id": "replicationmode"
     },
     {
       "label": ".queuePrimaryCommands()",
@@ -961,9 +1441,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L330",
       "_origin": "ast",
-      "id": "server_clusterservice_queueprimarycommands",
       "community": 10,
-      "norm_label": ".queueprimarycommands()"
+      "norm_label": ".queueprimarycommands()",
+      "id": "server_clusterservice_queueprimarycommands"
     },
     {
       "label": "Node",
@@ -971,9 +1451,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L330",
       "_origin": "ast",
-      "id": "internal_server_cluster_service_go_node",
       "community": 10,
-      "norm_label": "node"
+      "norm_label": "node",
+      "id": "internal_server_cluster_service_go_node"
     },
     {
       "label": ".queueReplicaCommands()",
@@ -981,9 +1461,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L344",
       "_origin": "ast",
-      "id": "server_clusterservice_queuereplicacommands",
       "community": 10,
-      "norm_label": ".queuereplicacommands()"
+      "norm_label": ".queuereplicacommands()",
+      "id": "server_clusterservice_queuereplicacommands"
     },
     {
       "label": "nodeAddress()",
@@ -991,9 +1471,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L359",
       "_origin": "ast",
-      "id": "server_cluster_service_nodeaddress",
       "community": 10,
-      "norm_label": "nodeaddress()"
+      "norm_label": "nodeaddress()",
+      "id": "server_cluster_service_nodeaddress"
     },
     {
       "label": "clusters.create.tsx",
@@ -1001,9 +1481,9 @@
       "source_file": "ui/app/routes/clusters.create.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "routes_clusters_create",
       "community": 114,
-      "norm_label": "clusters.create.tsx"
+      "norm_label": "clusters.create.tsx",
+      "id": "routes_clusters_create"
     },
     {
       "label": "CreateClusterPage()",
@@ -1011,9 +1491,9 @@
       "source_file": "ui/app/routes/clusters.create.tsx",
       "source_location": "L6",
       "_origin": "ast",
-      "id": "routes_clusters_create_createclusterpage",
       "community": 114,
-      "norm_label": "createclusterpage()"
+      "norm_label": "createclusterpage()",
+      "id": "routes_clusters_create_createclusterpage"
     },
     {
       "label": "agent-cli-flags.md",
@@ -17381,7 +17861,7 @@
       "source_file": "internal/crypto/crypto.go",
       "source_location": "L16",
       "_origin": "ast",
-      "community": 143,
+      "community": 107,
       "norm_label": "hashpassword()",
       "id": "crypto_crypto_hashpassword"
     },
@@ -17551,7 +18031,7 @@
       "source_file": "internal/db/agent_command_repo.go",
       "source_location": "L84",
       "_origin": "ast",
-      "community": 58,
+      "community": 11,
       "norm_label": ".updateresult()",
       "id": "db_agentcommandrepository_updateresult"
     },
@@ -18161,7 +18641,7 @@
       "source_file": "internal/db/cluster_repo.go",
       "source_location": "L154",
       "_origin": "ast",
-      "community": 144,
+      "community": 27,
       "norm_label": "booltoint()",
       "id": "db_cluster_repo_booltoint"
     },
@@ -19896,266 +20376,6 @@
       "id": "internal_postgres_postgres_go_duration"
     },
     {
-      "label": "agent_service.go",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "agent_service.go",
-      "id": "server_agent_service"
-    },
-    {
-      "label": "AgentService",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L19",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "agentservice",
-      "id": "server_agentservice"
-    },
-    {
-      "label": "UnimplementedAgentServiceServer",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L20",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "unimplementedagentserviceserver",
-      "id": "unimplementedagentserviceserver"
-    },
-    {
-      "label": "Config",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L21",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "config",
-      "id": "internal_server_agent_service_go_config"
-    },
-    {
-      "label": "NodeRepository",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L22",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "noderepository",
-      "id": "internal_server_agent_service_go_noderepository"
-    },
-    {
-      "label": "AgentCommandRepository",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L23",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "agentcommandrepository",
-      "id": "internal_server_agent_service_go_agentcommandrepository"
-    },
-    {
-      "label": "AgentTokenRepository",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L24",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "agenttokenrepository",
-      "id": "internal_server_agent_service_go_agenttokenrepository"
-    },
-    {
-      "label": "Logger",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L25",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "logger",
-      "id": "internal_server_agent_service_go_logger"
-    },
-    {
-      "label": "NewAgentService()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "newagentservice()",
-      "id": "server_agent_service_newagentservice"
-    },
-    {
-      "label": ".validateAgentToken()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L38",
-      "_origin": "ast",
-      "community": 183,
-      "norm_label": ".validateagenttoken()",
-      "id": "server_agentservice_validateagenttoken"
-    },
-    {
-      "label": ".RegisterAgent()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "_origin": "ast",
-      "community": 183,
-      "norm_label": ".registeragent()",
-      "id": "server_agentservice_registeragent"
-    },
-    {
-      "label": "Context",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "context",
-      "id": "internal_server_agent_service_go_context"
-    },
-    {
-      "label": "RegisterAgentRequest",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "_origin": "ast",
-      "community": 183,
-      "norm_label": "registeragentrequest",
-      "id": "internal_server_agent_service_go_registeragentrequest"
-    },
-    {
-      "label": "RegisterAgentResponse",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "_origin": "ast",
-      "community": 183,
-      "norm_label": "registeragentresponse",
-      "id": "internal_server_agent_service_go_registeragentresponse"
-    },
-    {
-      "label": ".Heartbeat()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": ".heartbeat()",
-      "id": "server_agentservice_heartbeat"
-    },
-    {
-      "label": "HeartbeatRequest",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "heartbeatrequest",
-      "id": "internal_server_agent_service_go_heartbeatrequest"
-    },
-    {
-      "label": "HeartbeatResponse",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "heartbeatresponse",
-      "id": "internal_server_agent_service_go_heartbeatresponse"
-    },
-    {
-      "label": ".ReportStatus()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": ".reportstatus()",
-      "id": "server_agentservice_reportstatus"
-    },
-    {
-      "label": "ReportStatusRequest",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "reportstatusrequest",
-      "id": "internal_server_agent_service_go_reportstatusrequest"
-    },
-    {
-      "label": "ReportStatusResponse",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "reportstatusresponse",
-      "id": "internal_server_agent_service_go_reportstatusresponse"
-    },
-    {
-      "label": ".FetchCommand()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": ".fetchcommand()",
-      "id": "server_agentservice_fetchcommand"
-    },
-    {
-      "label": "FetchCommandRequest",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "fetchcommandrequest",
-      "id": "internal_server_agent_service_go_fetchcommandrequest"
-    },
-    {
-      "label": "FetchCommandResponse",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "fetchcommandresponse",
-      "id": "internal_server_agent_service_go_fetchcommandresponse"
-    },
-    {
-      "label": ".ReportCommandResult()",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": ".reportcommandresult()",
-      "id": "server_agentservice_reportcommandresult"
-    },
-    {
-      "label": "ReportCommandResultRequest",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "reportcommandresultrequest",
-      "id": "internal_server_agent_service_go_reportcommandresultrequest"
-    },
-    {
-      "label": "ReportCommandResultResponse",
-      "file_type": "code",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "_origin": "ast",
-      "community": 62,
-      "norm_label": "reportcommandresultresponse",
-      "id": "internal_server_agent_service_go_reportcommandresultresponse"
-    },
-    {
       "label": "agent_service_test.go",
       "file_type": "code",
       "source_file": "internal/server/agent_service_test.go",
@@ -20191,7 +20411,7 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L29",
       "_origin": "ast",
-      "community": 140,
+      "community": 11,
       "norm_label": "now()",
       "id": "server_agent_service_test_now"
     },
@@ -20201,7 +20421,7 @@
       "source_file": "internal/server/agent_service_test.go",
       "source_location": "L29",
       "_origin": "ast",
-      "community": 140,
+      "community": 11,
       "norm_label": "time",
       "id": "internal_server_agent_service_test_go_time"
     },
@@ -20631,7 +20851,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "auth_service.go",
       "id": "server_auth_service"
     },
@@ -20641,7 +20861,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "authservice",
       "id": "server_authservice"
     },
@@ -20651,7 +20871,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L23",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "unimplementedauthserviceserver",
       "id": "unimplementedauthserviceserver"
     },
@@ -20661,7 +20881,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L24",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "config",
       "id": "internal_server_auth_service_go_config"
     },
@@ -20671,7 +20891,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "userrepository",
       "id": "internal_server_auth_service_go_userrepository"
     },
@@ -20681,7 +20901,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "apikeyrepository",
       "id": "internal_server_auth_service_go_apikeyrepository"
     },
@@ -20691,7 +20911,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L27",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "agenttokenrepository",
       "id": "internal_server_auth_service_go_agenttokenrepository"
     },
@@ -20701,7 +20921,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L28",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "jwtmanager",
       "id": "internal_server_auth_service_go_jwtmanager"
     },
@@ -20711,7 +20931,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L29",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "logger",
       "id": "internal_server_auth_service_go_logger"
     },
@@ -20721,7 +20941,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L32",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "newauthservice()",
       "id": "server_auth_service_newauthservice"
     },
@@ -20921,7 +21141,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L213",
       "_origin": "ast",
-      "community": 181,
+      "community": 160,
       "norm_label": ".listapikeys()",
       "id": "server_authservice_listapikeys"
     },
@@ -20931,7 +21151,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L213",
       "_origin": "ast",
-      "community": 181,
+      "community": 160,
       "norm_label": "listapikeysrequest",
       "id": "internal_server_auth_service_go_listapikeysrequest"
     },
@@ -20941,7 +21161,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L213",
       "_origin": "ast",
-      "community": 181,
+      "community": 160,
       "norm_label": "listapikeysresponse",
       "id": "internal_server_auth_service_go_listapikeysresponse"
     },
@@ -21011,7 +21231,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L284",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": ".listagenttokens()",
       "id": "server_authservice_listagenttokens"
     },
@@ -21021,7 +21241,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L284",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "listagenttokensrequest",
       "id": "internal_server_auth_service_go_listagenttokensrequest"
     },
@@ -21031,7 +21251,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L284",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "listagenttokensresponse",
       "id": "internal_server_auth_service_go_listagenttokensresponse"
     },
@@ -21121,7 +21341,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L346",
       "_origin": "ast",
-      "community": 181,
+      "community": 160,
       "norm_label": "apikeytoproto()",
       "id": "server_auth_service_apikeytoproto"
     },
@@ -21131,7 +21351,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L346",
       "_origin": "ast",
-      "community": 181,
+      "community": 160,
       "norm_label": "apikey",
       "id": "internal_server_auth_service_go_apikey"
     },
@@ -21141,7 +21361,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L358",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "agenttokentoproto()",
       "id": "server_auth_service_agenttokentoproto"
     },
@@ -21151,7 +21371,7 @@
       "source_file": "internal/server/auth_service.go",
       "source_location": "L358",
       "_origin": "ast",
-      "community": 175,
+      "community": 160,
       "norm_label": "agenttoken",
       "id": "internal_server_auth_service_go_agenttoken"
     },
@@ -23341,7 +23561,7 @@
       "source_file": "internal/server/connect.go",
       "source_location": "L434",
       "_origin": "ast",
-      "community": 3,
+      "community": 2,
       "norm_label": ".serveconnecthttp()",
       "id": "server_server_serveconnecthttp"
     },
@@ -23996,226 +24216,6 @@
       "id": "server_metadatabackup_restoresqlite"
     },
     {
-      "label": "node_service.go",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L1",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "node_service.go",
-      "id": "server_node_service"
-    },
-    {
-      "label": "NodeService",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L16",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "nodeservice",
-      "id": "server_nodeservice"
-    },
-    {
-      "label": "UnimplementedNodeServiceServer",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L17",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "unimplementednodeserviceserver",
-      "id": "unimplementednodeserviceserver"
-    },
-    {
-      "label": "NodeRepository",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L18",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "noderepository",
-      "id": "internal_server_node_service_go_noderepository"
-    },
-    {
-      "label": "AgentCommandRepository",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L19",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "agentcommandrepository",
-      "id": "internal_server_node_service_go_agentcommandrepository"
-    },
-    {
-      "label": "Logger",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L20",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "logger",
-      "id": "internal_server_node_service_go_logger"
-    },
-    {
-      "label": "NewNodeService()",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L23",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "newnodeservice()",
-      "id": "server_node_service_newnodeservice"
-    },
-    {
-      "label": ".ListNodes()",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L27",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": ".listnodes()",
-      "id": "server_nodeservice_listnodes"
-    },
-    {
-      "label": "Context",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L27",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "context",
-      "id": "internal_server_node_service_go_context"
-    },
-    {
-      "label": "ListNodesRequest",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L27",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "listnodesrequest",
-      "id": "internal_server_node_service_go_listnodesrequest"
-    },
-    {
-      "label": "ListNodesResponse",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L27",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "listnodesresponse",
-      "id": "internal_server_node_service_go_listnodesresponse"
-    },
-    {
-      "label": ".GetNode()",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L62",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": ".getnode()",
-      "id": "server_nodeservice_getnode"
-    },
-    {
-      "label": "GetNodeRequest",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L62",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "getnoderequest",
-      "id": "internal_server_node_service_go_getnoderequest"
-    },
-    {
-      "label": "GetNodeResponse",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L62",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "getnoderesponse",
-      "id": "internal_server_node_service_go_getnoderesponse"
-    },
-    {
-      "label": ".DrainNode()",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L76",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": ".drainnode()",
-      "id": "server_nodeservice_drainnode"
-    },
-    {
-      "label": "DrainNodeRequest",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L76",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "drainnoderequest",
-      "id": "internal_server_node_service_go_drainnoderequest"
-    },
-    {
-      "label": "DrainNodeResponse",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L76",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "drainnoderesponse",
-      "id": "internal_server_node_service_go_drainnoderesponse"
-    },
-    {
-      "label": ".RejoinNode()",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L99",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": ".rejoinnode()",
-      "id": "server_nodeservice_rejoinnode"
-    },
-    {
-      "label": "RejoinNodeRequest",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L99",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "rejoinnoderequest",
-      "id": "internal_server_node_service_go_rejoinnoderequest"
-    },
-    {
-      "label": "RejoinNodeResponse",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L99",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "rejoinnoderesponse",
-      "id": "internal_server_node_service_go_rejoinnoderesponse"
-    },
-    {
-      "label": "nodeToProto()",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L131",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "nodetoproto()",
-      "id": "server_node_service_nodetoproto"
-    },
-    {
-      "label": "Node",
-      "file_type": "code",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L131",
-      "_origin": "ast",
-      "community": 33,
-      "norm_label": "node",
-      "id": "internal_server_node_service_go_node"
-    },
-    {
       "label": "Server",
       "file_type": "code",
       "source_file": "internal/server/server.go",
@@ -24451,7 +24451,7 @@
       "source_file": "internal/server/server.go",
       "source_location": "L64",
       "_origin": "ast",
-      "community": 143,
+      "community": 107,
       "norm_label": ".start()",
       "id": "server_server_start"
     },
@@ -24461,7 +24461,7 @@
       "source_file": "internal/server/server.go",
       "source_location": "L64",
       "_origin": "ast",
-      "community": 143,
+      "community": 107,
       "norm_label": "context",
       "id": "internal_server_server_go_context"
     },
@@ -24471,7 +24471,7 @@
       "source_file": "internal/server/server.go",
       "source_location": "L244",
       "_origin": "ast",
-      "community": 143,
+      "community": 107,
       "norm_label": ".ensuredefaultadmin()",
       "id": "server_server_ensuredefaultadmin"
     },
@@ -24481,7 +24481,7 @@
       "source_file": "internal/server/server.go",
       "source_location": "L244",
       "_origin": "ast",
-      "community": 143,
+      "community": 107,
       "norm_label": "userrepository",
       "id": "internal_server_server_go_userrepository"
     },
@@ -24521,7 +24521,7 @@
       "source_file": "internal/server/server.go",
       "source_location": "L288",
       "_origin": "ast",
-      "community": 143,
+      "community": 107,
       "norm_label": ".servemetrics()",
       "id": "server_server_servemetrics"
     },
@@ -32210,6 +32210,814 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agent_service",
+      "target": "server_agent_service_newagentservice"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agent_service",
+      "target": "server_agentservice"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "server_agent_service_newagentservice",
+      "target": "server_agentservice"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L24",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_agentservice",
+      "target": "agenttokenrepository",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "field",
+      "source": "server_agentservice",
+      "target": "config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L23",
+      "weight": 1.0,
+      "context": "field",
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "internal_server_agent_service_go_agentcommandrepository"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L25",
+      "weight": 1.0,
+      "context": "field",
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "internal_server_agent_service_go_logger"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L22",
+      "weight": 1.0,
+      "context": "field",
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "internal_server_agent_service_go_noderepository"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L157",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "server_agentservice_fetchcommand"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "server_agentservice_heartbeat"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "server_agentservice_registeragent"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L184",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "server_agentservice_reportcommandresult"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L128",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "server_agentservice_reportstatus"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "server_agentservice_validateagenttoken"
+    },
+    {
+      "relation": "embeds",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice",
+      "target": "unimplementedagentserviceserver"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agent_service_newagentservice",
+      "target": "config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agent_service_newagentservice",
+      "target": "internal_server_agent_service_go_noderepository"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agent_service_newagentservice",
+      "target": "internal_server_agent_service_go_agentcommandrepository"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agent_service_newagentservice",
+      "target": "agenttokenrepository",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L28",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agent_service_newagentservice",
+      "target": "internal_server_agent_service_go_logger"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service_test.go",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "server_agent_service_test_testagentservice_registeragent_devtokenfallback",
+      "target": "server_agent_service_newagentservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service_test.go",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "server_agent_service_test_testagentservice_registeragent_invalidtoken",
+      "target": "server_agent_service_newagentservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service_test.go",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "server_agent_service_test_testagentservice_registeragent_requirestoken",
+      "target": "server_agent_service_newagentservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service_test.go",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
+      "target": "server_agent_service_newagentservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/server.go",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "server_server_start",
+      "target": "server_agent_service_newagentservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L68",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_agentservice_registeragent",
+      "target": "server_agentservice_validateagenttoken"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "server_agentservice_validateagenttoken",
+      "target": "crypto_crypto_hashtoken"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L49",
+      "weight": 1.0,
+      "source": "server_agentservice_validateagenttoken",
+      "target": "server_agent_service_test_now"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L76",
+      "weight": 1.0,
+      "source": "server_agentservice_registeragent",
+      "target": "crypto_crypto_generatetoken"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agentservice_registeragent",
+      "target": "internal_server_agent_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agentservice_registeragent",
+      "target": "registeragentrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L63",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_agentservice_registeragent",
+      "target": "registeragentresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L157",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agentservice_fetchcommand",
+      "target": "internal_server_agent_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agentservice_heartbeat",
+      "target": "internal_server_agent_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L184",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agentservice_reportcommandresult",
+      "target": "internal_server_agent_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L128",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_agentservice_reportstatus",
+      "target": "internal_server_agent_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agentservice_heartbeat",
+      "target": "heartbeatrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L113",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_agentservice_heartbeat",
+      "target": "heartbeatresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L132",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agentservice_reportstatus",
+      "target": "reportstatusrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L132",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_agentservice_reportstatus",
+      "target": "reportstatusresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L169",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agentservice_fetchcommand",
+      "target": "fetchcommandrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L169",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_agentservice_fetchcommand",
+      "target": "fetchcommandresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L196",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_agentservice_reportcommandresult",
+      "target": "reportcommandresultrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/agent_service.go",
+      "source_location": "L196",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_agentservice_reportcommandresult",
+      "target": "reportcommandresultresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L21",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_node_service",
+      "target": "server_node_service_newnodeservice"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_node_service",
+      "target": "server_node_service_nodetoproto"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_node_service",
+      "target": "server_nodeservice"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "server_node_service_newnodeservice",
+      "target": "server_nodeservice"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L19",
+      "weight": 1.0,
+      "context": "field",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "internal_server_node_service_go_agentcommandrepository"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L18",
+      "weight": 1.0,
+      "context": "field",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "internal_server_node_service_go_logger"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L17",
+      "weight": 1.0,
+      "context": "field",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "internal_server_node_service_go_noderepository"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L74",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "server_nodeservice_drainnode"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L60",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "server_nodeservice_getnode"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "server_nodeservice_listnodes"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L78",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "server_nodeservice_rejoinnode"
+    },
+    {
+      "relation": "embeds",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice",
+      "target": "unimplementednodeserviceserver"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_node_service_newnodeservice",
+      "target": "internal_server_node_service_go_noderepository"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L23",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_node_service_newnodeservice",
+      "target": "internal_server_node_service_go_agentcommandrepository"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L21",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_node_service_newnodeservice",
+      "target": "internal_server_node_service_go_logger"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "internal/server/server.go",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "server_server_start",
+      "target": "server_node_service_newnodeservice"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L25",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice_listnodes",
+      "target": "internal_server_node_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L27",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_nodeservice_listnodes",
+      "target": "listnodesrequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L27",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_nodeservice_listnodes",
+      "target": "listnodesresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L47",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice_listnodes",
+      "target": "server_node_service_nodetoproto"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L74",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice_drainnode",
+      "target": "internal_server_node_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L60",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice_getnode",
+      "target": "internal_server_node_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L78",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "confidence_score": 1.0,
+      "source": "server_nodeservice_rejoinnode",
+      "target": "internal_server_node_service_go_context"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L62",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_nodeservice_getnode",
+      "target": "getnoderequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L62",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_nodeservice_getnode",
+      "target": "getnoderesponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_nodeservice_getnode",
+      "target": "server_node_service_nodetoproto"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L76",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_nodeservice_drainnode",
+      "target": "drainnoderequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L76",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_nodeservice_drainnode",
+      "target": "drainnoderesponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L114",
+      "weight": 1.0,
+      "context": "parameter_type",
+      "source": "server_nodeservice_rejoinnode",
+      "target": "rejoinnoderequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L114",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_nodeservice_rejoinnode",
+      "target": "rejoinnoderesponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/server/node_service.go",
+      "source_location": "L146",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "server_node_service_nodetoproto",
+      "target": "node",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "cmd/agent/main.go",
       "source_location": "L125",
       "weight": 1.0,
@@ -32309,9 +33117,9 @@
       "source_location": "L100",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "agent_main_loadconfigfile",
-      "target": "cmd_agent_main_go_config",
-      "confidence_score": 1.0
+      "target": "cmd_agent_main_go_config"
     },
     {
       "relation": "references",
@@ -32320,9 +33128,9 @@
       "source_location": "L128",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "agent_main_applyenv",
-      "target": "cmd_agent_main_go_config",
-      "confidence_score": 1.0
+      "target": "cmd_agent_main_go_config"
     },
     {
       "relation": "contains",
@@ -32330,9 +33138,9 @@
       "source_file": "internal/agent/agent.go",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "agent_agent",
-      "target": "agent_agent",
-      "confidence_score": 1.0
+      "target": "agent_agent"
     },
     {
       "relation": "method",
@@ -32373,17 +33181,6 @@
       "confidence_score": 1.0,
       "source": "agent_agent",
       "target": "agent_agent_heartbeatloop"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/agent/agent.go",
-      "source_location": "L31",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "agent_agent_new",
-      "target": "agent_agent"
     },
     {
       "relation": "method",
@@ -32487,9 +33284,20 @@
       "source_location": "L29",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "agent_agent",
-      "target": "pgbackrest",
-      "confidence_score": 1.0
+      "target": "pgbackrest"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "internal/agent/agent.go",
+      "source_location": "L31",
+      "weight": 1.0,
+      "context": "return_type",
+      "confidence_score": 1.0,
+      "source": "agent_agent_new",
+      "target": "agent_agent"
     },
     {
       "relation": "references",
@@ -33187,9 +33995,9 @@
       "source_location": "L16",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "db_noderepository",
-      "target": "db",
-      "confidence_score": 1.0
+      "target": "db"
     },
     {
       "relation": "method",
@@ -33197,9 +34005,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L168",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "db_noderepository",
-      "target": "db_noderepository_assigntocluster",
-      "confidence_score": 1.0
+      "target": "db_noderepository_assigntocluster"
     },
     {
       "relation": "method",
@@ -33287,9 +34095,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L142",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "db_noderepository",
-      "target": "db_noderepository_listunassigned",
-      "confidence_score": 1.0
+      "target": "db_noderepository_listunassigned"
     },
     {
       "relation": "method",
@@ -33349,9 +34157,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_node_repo_newnoderepository",
-      "target": "db",
-      "confidence_score": 1.0
+      "target": "db"
     },
     {
       "relation": "references",
@@ -33459,9 +34267,9 @@
       "source_location": "L24",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_noderepository_create",
-      "target": "noderole",
-      "confidence_score": 1.0
+      "target": "noderole"
     },
     {
       "relation": "calls",
@@ -33481,9 +34289,9 @@
       "source_location": "L168",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_noderepository_assigntocluster",
-      "target": "internal_db_node_repo_go_context",
-      "confidence_score": 1.0
+      "target": "internal_db_node_repo_go_context"
     },
     {
       "relation": "references",
@@ -33569,9 +34377,9 @@
       "source_location": "L142",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_noderepository_listunassigned",
-      "target": "internal_db_node_repo_go_context",
-      "confidence_score": 1.0
+      "target": "internal_db_node_repo_go_context"
     },
     {
       "relation": "references",
@@ -33624,9 +34432,9 @@
       "source_location": "L168",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_noderepository_assigntocluster",
-      "target": "noderole",
-      "confidence_score": 1.0
+      "target": "noderole"
     },
     {
       "relation": "references",
@@ -33635,9 +34443,9 @@
       "source_location": "L121",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_noderepository_updaterole",
-      "target": "noderole",
-      "confidence_score": 1.0
+      "target": "noderole"
     },
     {
       "relation": "references",
@@ -33734,9 +34542,9 @@
       "source_location": "L142",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "db_noderepository_listunassigned",
-      "target": "internal_db_node_repo_go_node",
-      "confidence_score": 1.0
+      "target": "internal_db_node_repo_go_node"
     },
     {
       "relation": "calls",
@@ -33866,9 +34674,9 @@
       "source_file": "internal/db/node_repo.go",
       "source_location": "L158",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "db_noderepository_listunassigned",
-      "target": "db_node_repo_scannodesrow",
-      "confidence_score": 1.0
+      "target": "db_node_repo_scannodesrow"
     },
     {
       "relation": "calls",
@@ -34009,9 +34817,9 @@
       "source_location": "L244",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_node_repo_scannoderow",
-      "target": "row",
-      "confidence_score": 1.0
+      "target": "row"
     },
     {
       "relation": "calls",
@@ -34031,9 +34839,9 @@
       "source_location": "L263",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "db_node_repo_scannodesrow",
-      "target": "rows",
-      "confidence_score": 1.0
+      "target": "rows"
     },
     {
       "relation": "contains",
@@ -34071,9 +34879,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L359",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_cluster_service",
-      "target": "server_cluster_service_nodeaddress",
-      "confidence_score": 1.0
+      "target": "server_cluster_service_nodeaddress"
     },
     {
       "relation": "contains",
@@ -34103,9 +34911,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "server_clusterservice",
-      "target": "agentcommandrepository",
-      "confidence_score": 1.0
+      "target": "agentcommandrepository"
     },
     {
       "relation": "references",
@@ -34114,9 +34922,9 @@
       "source_location": "L18",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "server_clusterservice",
-      "target": "clusterrepository",
-      "confidence_score": 1.0
+      "target": "clusterrepository"
     },
     {
       "relation": "references",
@@ -34125,9 +34933,9 @@
       "source_location": "L21",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "server_clusterservice",
-      "target": "failoverengine",
-      "confidence_score": 1.0
+      "target": "failoverengine"
     },
     {
       "relation": "references",
@@ -34147,9 +34955,9 @@
       "source_location": "L19",
       "weight": 1.0,
       "context": "field",
+      "confidence_score": 1.0,
       "source": "server_clusterservice",
-      "target": "noderepository",
-      "confidence_score": 1.0
+      "target": "noderepository"
     },
     {
       "relation": "method",
@@ -34207,9 +35015,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L330",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_clusterservice",
-      "target": "server_clusterservice_queueprimarycommands",
-      "confidence_score": 1.0
+      "target": "server_clusterservice_queueprimarycommands"
     },
     {
       "relation": "method",
@@ -34217,9 +35025,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L344",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_clusterservice",
-      "target": "server_clusterservice_queuereplicacommands",
-      "confidence_score": 1.0
+      "target": "server_clusterservice_queuereplicacommands"
     },
     {
       "relation": "method",
@@ -34278,9 +35086,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_cluster_service_newclusterservice",
-      "target": "clusterrepository",
-      "confidence_score": 1.0
+      "target": "clusterrepository"
     },
     {
       "relation": "references",
@@ -34289,9 +35097,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_cluster_service_newclusterservice",
-      "target": "noderepository",
-      "confidence_score": 1.0
+      "target": "noderepository"
     },
     {
       "relation": "references",
@@ -34300,9 +35108,9 @@
       "source_location": "L25",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_cluster_service_newclusterservice",
-      "target": "agentcommandrepository",
-      "confidence_score": 1.0
+      "target": "agentcommandrepository"
     },
     {
       "relation": "references",
@@ -34311,9 +35119,9 @@
       "source_location": "L34",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_setfailoverengine",
-      "target": "failoverengine",
-      "confidence_score": 1.0
+      "target": "failoverengine"
     },
     {
       "relation": "references",
@@ -34344,9 +35152,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_createcluster",
-      "target": "createclusterrequest",
-      "confidence_score": 1.0
+      "target": "createclusterrequest"
     },
     {
       "relation": "references",
@@ -34355,9 +35163,9 @@
       "source_location": "L38",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_createcluster",
-      "target": "createclusterresponse",
-      "confidence_score": 1.0
+      "target": "createclusterresponse"
     },
     {
       "relation": "references",
@@ -34410,9 +35218,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L83",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_clusterservice_createcluster",
-      "target": "server_clusterservice_queueprimarycommands",
-      "confidence_score": 1.0
+      "target": "server_clusterservice_queueprimarycommands"
     },
     {
       "relation": "calls",
@@ -34421,9 +35229,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L92",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_clusterservice_createcluster",
-      "target": "server_clusterservice_queuereplicacommands",
-      "confidence_score": 1.0
+      "target": "server_clusterservice_queuereplicacommands"
     },
     {
       "relation": "references",
@@ -34476,9 +35284,9 @@
       "source_location": "L330",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_queueprimarycommands",
-      "target": "internal_server_cluster_service_go_context",
-      "confidence_score": 1.0
+      "target": "internal_server_cluster_service_go_context"
     },
     {
       "relation": "references",
@@ -34487,9 +35295,9 @@
       "source_location": "L344",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_queuereplicacommands",
-      "target": "internal_server_cluster_service_go_context",
-      "confidence_score": 1.0
+      "target": "internal_server_cluster_service_go_context"
     },
     {
       "relation": "references",
@@ -34531,9 +35339,9 @@
       "source_location": "L109",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_getcluster",
-      "target": "getclusterrequest",
-      "confidence_score": 1.0
+      "target": "getclusterrequest"
     },
     {
       "relation": "references",
@@ -34542,9 +35350,9 @@
       "source_location": "L109",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_getcluster",
-      "target": "getclusterresponse",
-      "confidence_score": 1.0
+      "target": "getclusterresponse"
     },
     {
       "relation": "calls",
@@ -34564,9 +35372,9 @@
       "source_location": "L123",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_listclusters",
-      "target": "listclustersrequest",
-      "confidence_score": 1.0
+      "target": "listclustersrequest"
     },
     {
       "relation": "references",
@@ -34575,9 +35383,9 @@
       "source_location": "L123",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_listclusters",
-      "target": "listclustersresponse",
-      "confidence_score": 1.0
+      "target": "listclustersresponse"
     },
     {
       "relation": "calls",
@@ -34597,9 +35405,9 @@
       "source_location": "L158",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_updatecluster",
-      "target": "updateclusterrequest",
-      "confidence_score": 1.0
+      "target": "updateclusterrequest"
     },
     {
       "relation": "references",
@@ -34608,9 +35416,9 @@
       "source_location": "L158",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_updatecluster",
-      "target": "updateclusterresponse",
-      "confidence_score": 1.0
+      "target": "updateclusterresponse"
     },
     {
       "relation": "references",
@@ -34619,9 +35427,9 @@
       "source_location": "L162",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_deletecluster",
-      "target": "deleteclusterrequest",
-      "confidence_score": 1.0
+      "target": "deleteclusterrequest"
     },
     {
       "relation": "references",
@@ -34630,9 +35438,9 @@
       "source_location": "L162",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_deletecluster",
-      "target": "deleteclusterresponse",
-      "confidence_score": 1.0
+      "target": "deleteclusterresponse"
     },
     {
       "relation": "references",
@@ -34641,9 +35449,9 @@
       "source_location": "L182",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_failovercluster",
-      "target": "failoverclusterrequest",
-      "confidence_score": 1.0
+      "target": "failoverclusterrequest"
     },
     {
       "relation": "references",
@@ -34652,9 +35460,9 @@
       "source_location": "L182",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_failovercluster",
-      "target": "failoverclusterresponse",
-      "confidence_score": 1.0
+      "target": "failoverclusterresponse"
     },
     {
       "relation": "calls",
@@ -34674,9 +35482,9 @@
       "source_location": "L218",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_restartnode",
-      "target": "restartnoderequest",
-      "confidence_score": 1.0
+      "target": "restartnoderequest"
     },
     {
       "relation": "references",
@@ -34685,9 +35493,9 @@
       "source_location": "L218",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_restartnode",
-      "target": "restartnoderesponse",
-      "confidence_score": 1.0
+      "target": "restartnoderesponse"
     },
     {
       "relation": "references",
@@ -34696,9 +35504,9 @@
       "source_location": "L248",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_scalecluster",
-      "target": "scaleclusterrequest",
-      "confidence_score": 1.0
+      "target": "scaleclusterrequest"
     },
     {
       "relation": "references",
@@ -34707,9 +35515,9 @@
       "source_location": "L248",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_scalecluster",
-      "target": "scaleclusterresponse",
-      "confidence_score": 1.0
+      "target": "scaleclusterresponse"
     },
     {
       "relation": "calls",
@@ -34729,9 +35537,9 @@
       "source_location": "L272",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_cluster_service_clustertoproto",
-      "target": "cluster",
-      "confidence_score": 1.0
+      "target": "cluster"
     },
     {
       "relation": "references",
@@ -34740,9 +35548,9 @@
       "source_location": "L319",
       "weight": 1.0,
       "context": "return_type",
+      "confidence_score": 1.0,
       "source": "server_cluster_service_convertreplicationmode",
-      "target": "replicationmode",
-      "confidence_score": 1.0
+      "target": "replicationmode"
     },
     {
       "relation": "references",
@@ -34751,9 +35559,9 @@
       "source_location": "L330",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_queueprimarycommands",
-      "target": "internal_server_cluster_service_go_node",
-      "confidence_score": 1.0
+      "target": "internal_server_cluster_service_go_node"
     },
     {
       "relation": "references",
@@ -34762,9 +35570,9 @@
       "source_location": "L359",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_cluster_service_nodeaddress",
-      "target": "internal_server_cluster_service_go_node",
-      "confidence_score": 1.0
+      "target": "internal_server_cluster_service_go_node"
     },
     {
       "relation": "references",
@@ -34773,9 +35581,9 @@
       "source_location": "L344",
       "weight": 1.0,
       "context": "parameter_type",
+      "confidence_score": 1.0,
       "source": "server_clusterservice_queuereplicacommands",
-      "target": "internal_server_cluster_service_go_node",
-      "confidence_score": 1.0
+      "target": "internal_server_cluster_service_go_node"
     },
     {
       "relation": "calls",
@@ -34784,9 +35592,9 @@
       "source_file": "internal/server/cluster_service.go",
       "source_location": "L345",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "server_clusterservice_queuereplicacommands",
-      "target": "server_cluster_service_nodeaddress",
-      "confidence_score": 1.0
+      "target": "server_cluster_service_nodeaddress"
     },
     {
       "relation": "imports_from",
@@ -68041,17 +68849,6 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L76",
-      "weight": 1.0,
-      "source": "server_agentservice_registeragent",
-      "target": "crypto_crypto_generatetoken"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
       "source_file": "internal/server/auth_service.go",
       "source_location": "L244",
       "weight": 1.0,
@@ -68078,17 +68875,6 @@
       "source_location": "L85",
       "weight": 1.0,
       "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "target": "crypto_crypto_hashtoken"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L43",
-      "weight": 1.0,
-      "source": "server_agentservice_validateagenttoken",
       "target": "crypto_crypto_hashtoken"
     },
     {
@@ -73556,459 +74342,6 @@
       "weight": 1.0,
       "source": "postgres_instance_waitforready",
       "target": "server_agent_service_test_now"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agent_service",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agent_service",
-      "target": "server_agentservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_agent_service_newagentservice",
-      "target": "server_agentservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L23",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "internal_server_agent_service_go_agentcommandrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L24",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "internal_server_agent_service_go_agenttokenrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L21",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "internal_server_agent_service_go_config"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L25",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "internal_server_agent_service_go_logger"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L22",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "internal_server_agent_service_go_noderepository"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "server_agentservice_fetchcommand"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "server_agentservice_heartbeat"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "server_agentservice_registeragent"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "server_agentservice_reportcommandresult"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "server_agentservice_reportstatus"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L38",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "server_agentservice_validateagenttoken"
-    },
-    {
-      "relation": "embeds",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice",
-      "target": "unimplementedagentserviceserver"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agent_service_newagentservice",
-      "target": "internal_server_agent_service_go_config"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agent_service_newagentservice",
-      "target": "internal_server_agent_service_go_noderepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agent_service_newagentservice",
-      "target": "internal_server_agent_service_go_agentcommandrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agent_service_newagentservice",
-      "target": "internal_server_agent_service_go_agenttokenrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L28",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agent_service_newagentservice",
-      "target": "internal_server_agent_service_go_logger"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service_test.go",
-      "source_location": "L113",
-      "weight": 1.0,
-      "source": "server_agent_service_test_testagentservice_registeragent_devtokenfallback",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service_test.go",
-      "source_location": "L63",
-      "weight": 1.0,
-      "source": "server_agent_service_test_testagentservice_registeragent_invalidtoken",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service_test.go",
-      "source_location": "L46",
-      "weight": 1.0,
-      "source": "server_agent_service_test_testagentservice_registeragent_requirestoken",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service_test.go",
-      "source_location": "L93",
-      "weight": 1.0,
-      "source": "server_agent_service_test_testagentservice_registeragent_validtoken",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L111",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_agent_service_newagentservice"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L68",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_agentservice_registeragent",
-      "target": "server_agentservice_validateagenttoken"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L49",
-      "weight": 1.0,
-      "source": "server_agentservice_validateagenttoken",
-      "target": "server_agent_service_test_now"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_registeragent",
-      "target": "internal_server_agent_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_registeragent",
-      "target": "internal_server_agent_service_go_registeragentrequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L63",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_registeragent",
-      "target": "internal_server_agent_service_go_registeragentresponse"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_fetchcommand",
-      "target": "internal_server_agent_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_heartbeat",
-      "target": "internal_server_agent_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_reportcommandresult",
-      "target": "internal_server_agent_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_reportstatus",
-      "target": "internal_server_agent_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_heartbeat",
-      "target": "internal_server_agent_service_go_heartbeatrequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L113",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_heartbeat",
-      "target": "internal_server_agent_service_go_heartbeatresponse"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_reportstatus",
-      "target": "internal_server_agent_service_go_reportstatusrequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L128",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_reportstatus",
-      "target": "internal_server_agent_service_go_reportstatusresponse"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_fetchcommand",
-      "target": "internal_server_agent_service_go_fetchcommandrequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L157",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_fetchcommand",
-      "target": "internal_server_agent_service_go_fetchcommandresponse"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_reportcommandresult",
-      "target": "internal_server_agent_service_go_reportcommandresultrequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/agent_service.go",
-      "source_location": "L184",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_agentservice_reportcommandresult",
-      "target": "internal_server_agent_service_go_reportcommandresultresponse"
     },
     {
       "relation": "contains",
@@ -81075,339 +81408,6 @@
       "confidence_score": 1.0,
       "source": "server_metadatabackup_restore",
       "target": "server_metadatabackup_restoresqlite"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L21",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_node_service",
-      "target": "server_node_service_newnodeservice"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L82",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_node_service",
-      "target": "server_node_service_nodetoproto"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L15",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_node_service",
-      "target": "server_nodeservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L21",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_node_service_newnodeservice",
-      "target": "server_nodeservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L19",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "internal_server_node_service_go_agentcommandrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L18",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "internal_server_node_service_go_logger"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L17",
-      "weight": 1.0,
-      "context": "field",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "internal_server_node_service_go_noderepository"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L74",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "server_nodeservice_drainnode"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L60",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "server_nodeservice_getnode"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L25",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "server_nodeservice_listnodes"
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L78",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "server_nodeservice_rejoinnode"
-    },
-    {
-      "relation": "embeds",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L16",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice",
-      "target": "unimplementednodeserviceserver"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L21",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_node_service_newnodeservice",
-      "target": "internal_server_node_service_go_noderepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L23",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_node_service_newnodeservice",
-      "target": "internal_server_node_service_go_agentcommandrepository"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L21",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_node_service_newnodeservice",
-      "target": "internal_server_node_service_go_logger"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "internal/server/server.go",
-      "source_location": "L110",
-      "weight": 1.0,
-      "source": "server_server_start",
-      "target": "server_node_service_newnodeservice"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L25",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_listnodes",
-      "target": "internal_server_node_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L27",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_listnodes",
-      "target": "internal_server_node_service_go_listnodesrequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L27",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_listnodes",
-      "target": "internal_server_node_service_go_listnodesresponse"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L47",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_listnodes",
-      "target": "server_node_service_nodetoproto"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L74",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_drainnode",
-      "target": "internal_server_node_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L60",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_getnode",
-      "target": "internal_server_node_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L78",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_rejoinnode",
-      "target": "internal_server_node_service_go_context"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L62",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_getnode",
-      "target": "internal_server_node_service_go_getnoderequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L62",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_getnode",
-      "target": "internal_server_node_service_go_getnoderesponse"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L70",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_getnode",
-      "target": "server_node_service_nodetoproto"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L76",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_drainnode",
-      "target": "internal_server_node_service_go_drainnoderequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L76",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_drainnode",
-      "target": "internal_server_node_service_go_drainnoderesponse"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L99",
-      "weight": 1.0,
-      "context": "parameter_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_rejoinnode",
-      "target": "internal_server_node_service_go_rejoinnoderequest"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L99",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_nodeservice_rejoinnode",
-      "target": "internal_server_node_service_go_rejoinnoderesponse"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "source_file": "internal/server/node_service.go",
-      "source_location": "L82",
-      "weight": 1.0,
-      "context": "return_type",
-      "confidence_score": 1.0,
-      "source": "server_node_service_nodetoproto",
-      "target": "internal_server_node_service_go_node"
     },
     {
       "relation": "references",
@@ -91017,5 +91017,5 @@
       "source_file": "deploy/docker-compose/docker-compose.yaml"
     }
   ],
-  "built_at_commit": "c41eccedcf06c4cca03523e975cbe6b954bfa2f4"
+  "built_at_commit": "d25a82deb5819f21c3a81b409a121b885c5b0d7b"
 }
