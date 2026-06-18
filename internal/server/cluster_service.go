@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -9,9 +10,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/db"
+	"github.com/zhinea/skylex/internal/id"
 	"github.com/zhinea/skylex/internal/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -20,6 +23,7 @@ import (
 
 type ClusterService struct {
 	skylexv1.UnimplementedClusterServiceServer
+	conn           *sql.DB
 	clusters       *db.ClusterRepository
 	nodes          *db.NodeRepository
 	commands       *db.AgentCommandRepository
@@ -28,8 +32,9 @@ type ClusterService struct {
 	log            *slog.Logger
 }
 
-func NewClusterService(clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, settings *db.ClusterSettingsRepository, log *slog.Logger) *ClusterService {
+func NewClusterService(conn *sql.DB, clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, settings *db.ClusterSettingsRepository, log *slog.Logger) *ClusterService {
 	return &ClusterService{
+		conn:     conn,
 		clusters: clusters,
 		nodes:    nodes,
 		commands: commands,
@@ -130,22 +135,38 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 	}
 
 	mode := convertReplicationMode(cfg.GetReplicationMode())
-
 	replicaCount := int(cfg.GetReplicaCount())
-	neededNodes := replicaCount + 1 // primary + replicas
-	idleNodes, err := s.nodes.ListUnassigned(ctx, neededNodes)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "list idle nodes: %v", err)
-	}
-	if len(idleNodes) < neededNodes {
-		return nil, status.Errorf(codes.FailedPrecondition,
-			"need %d idle node(s) for this cluster, found %d. Register more agents or set replicas to %d",
-			neededNodes, len(idleNodes), max(len(idleNodes)-1, 0))
+	neededNodes := replicaCount + 1
+
+	nodeIDs := req.GetNodeIds()
+	if len(nodeIDs) != neededNodes {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"node_ids must have exactly %d entries (1 primary + %d replica(s)), got %d",
+			neededNodes, replicaCount, len(nodeIDs))
 	}
 
-	// Phase 4: preflight — every candidate node must have PostgreSQL installed.
+	// Fetch and validate nodes exist (GetByIDs returns them in input order).
+	selectedNodes, err := s.nodes.GetByIDs(ctx, nodeIDs)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "resolve node_ids: %v", err)
+	}
+
+	// Verify all nodes are unassigned.
+	var alreadyAssigned []string
+	for _, n := range selectedNodes {
+		if n.ClusterID != "" {
+			alreadyAssigned = append(alreadyAssigned, n.Hostname)
+		}
+	}
+	if len(alreadyAssigned) > 0 {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"the following node(s) are already assigned to a cluster: %s",
+			strings.Join(alreadyAssigned, ", "))
+	}
+
+	// Preflight: every selected node must have PostgreSQL installed.
 	var missingPg []string
-	for _, n := range idleNodes[:neededNodes] {
+	for _, n := range selectedNodes {
 		if !n.PostgresInstalled {
 			missingPg = append(missingPg, n.Hostname)
 		}
@@ -156,27 +177,79 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 			strings.Join(missingPg, ", "))
 	}
 
-	cluster, err := s.clusters.Create(ctx, req.GetName(),
-		cfg.GetStorageConfigId(), "", engine, version, mode,
-		replicaCount, cfg.GetPitrEnabled(), cfg.GetLabels())
+	// Wrap cluster creation and node assignment in a transaction.
+	clusterID := id.New()
+	now := time.Now().UTC()
+
+	labelsJSON, err := json.Marshal(cfg.GetLabels())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "marshal labels: %v", err)
+	}
+
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "begin transaction: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	_, err = tx.ExecContext(ctx,
+		db.Rebind(`INSERT INTO clusters (id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+		clusterID, req.GetName(), engine, version, mode, replicaCount,
+		cfg.GetStorageConfigId(), "", boolToInt(cfg.GetPitrEnabled()),
+		models.ClusterStatusCreating, string(labelsJSON), now, now,
+	)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "create cluster: %v", err)
 	}
 
-	primary := idleNodes[0]
-	if err := s.nodes.AssignToCluster(ctx, primary.ID, cluster.ID, models.NodeRolePrimary); err != nil {
-		return nil, status.Errorf(codes.Internal, "assign primary node: %v", err)
+	roles := make([]models.NodeRole, len(selectedNodes))
+	roles[0] = models.NodeRolePrimary
+	for i := 1; i < len(selectedNodes); i++ {
+		roles[i] = models.NodeRoleReplica
 	}
-	if err := s.queuePrimaryCommands(ctx, primary); err != nil {
+
+	for i, n := range selectedNodes {
+		_, err = tx.ExecContext(ctx,
+			db.Rebind(`UPDATE nodes SET cluster_id = ?, role = ?, updated_at = ? WHERE id = ?`),
+			clusterID, roles[i], now, n.ID,
+		)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "assign node %s: %v", n.ID, err)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, status.Errorf(codes.Internal, "commit transaction: %v", err)
+	}
+
+	cluster := &models.Cluster{
+		ID:              clusterID,
+		Name:            req.GetName(),
+		Engine:          engine,
+		Version:         version,
+		ReplicationMode: mode,
+		Replicas:        replicaCount,
+		StorageConfigID: cfg.GetStorageConfigId(),
+		PITREnabled:     cfg.GetPitrEnabled(),
+		Status:          models.ClusterStatusCreating,
+		Tags:            cfg.GetLabels(),
+		CreatedAt:       now,
+		UpdatedAt:       now,
+	}
+
+	primary := selectedNodes[0]
+	if err = s.queuePrimaryCommands(ctx, primary); err != nil {
 		return nil, status.Errorf(codes.Internal, "queue primary commands: %v", err)
 	}
 
-	for i := 1; i <= replicaCount; i++ {
-		replica := idleNodes[i]
-		if err := s.nodes.AssignToCluster(ctx, replica.ID, cluster.ID, models.NodeRoleReplica); err != nil {
-			return nil, status.Errorf(codes.Internal, "assign replica node: %v", err)
-		}
-		if err := s.queueReplicaCommands(ctx, replica, primary); err != nil {
+	for i := 1; i < len(selectedNodes); i++ {
+		replica := selectedNodes[i]
+		if err = s.queueReplicaCommands(ctx, replica, primary); err != nil {
 			return nil, status.Errorf(codes.Internal, "queue replica commands: %v", err)
 		}
 	}
@@ -532,4 +605,11 @@ func nodeAddress(n *models.Node) string {
 		return n.Address
 	}
 	return n.Hostname
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }

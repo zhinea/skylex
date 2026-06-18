@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781775769.1074507,
-    "ast_hash": "0dab53c694a50908ab423e09afc765df",
+    "mtime": 1781780194.2660885,
+    "ast_hash": "c570b61c7fd85147dda193c54c30e40b",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -799,19 +799,9 @@
     "ast_hash": "f5108750f11689cad3faa466860a2d07",
     "semantic_hash": ""
   },
-  "internal/db/migrations/postgres/000004_add_command_logs.sql": {
-    "mtime": 1781763742.8291297,
-    "ast_hash": "8ec187abf65ce78242138abf721ba343",
-    "semantic_hash": ""
-  },
   "internal/db/migrations/postgres/000004_add_node_pg_status.sql": {
     "mtime": 1781766726.6874986,
     "ast_hash": "b7245b6d747771929b1f674e3e5217d7",
-    "semantic_hash": ""
-  },
-  "internal/db/migrations/sqlite/000004_add_command_logs.sql": {
-    "mtime": 1781763742.986181,
-    "ast_hash": "8ec187abf65ce78242138abf721ba343",
     "semantic_hash": ""
   },
   "internal/db/migrations/sqlite/000004_add_node_pg_status.sql": {
@@ -844,16 +834,6 @@
     "ast_hash": "bebd67e92d545fa094173cfded21b5ec",
     "semantic_hash": ""
   },
-  "internal/db/migrations/postgres/000005_add_cluster_settings.sql": {
-    "mtime": 1781768318.4321184,
-    "ast_hash": "f46a7407c577e0d10686b72a3779ef8a",
-    "semantic_hash": ""
-  },
-  "internal/db/migrations/sqlite/000005_add_cluster_settings.sql": {
-    "mtime": 1781768317.50521,
-    "ast_hash": "02ac10ba824b2b1e8f3c8c377f37fc1d",
-    "semantic_hash": ""
-  },
   "internal/server/cluster_service_test.go": {
     "mtime": 1781777656.520399,
     "ast_hash": "24633c6ab5f27e2062d8e17a5389fb95",
@@ -869,14 +849,39 @@
     "ast_hash": "8e6e62851de1a2b19352470554b709be",
     "semantic_hash": ""
   },
-  "internal/db/migrations/postgres/000006_add_node_status_detail.sql": {
+  "internal/db/migrations/postgres/000005_add_command_logs.sql": {
+    "mtime": 1781763742.8291297,
+    "ast_hash": "8ec187abf65ce78242138abf721ba343",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000006_add_cluster_settings.sql": {
+    "mtime": 1781768318.4321184,
+    "ast_hash": "f46a7407c577e0d10686b72a3779ef8a",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/postgres/000007_add_node_status_detail.sql": {
     "mtime": 1781776502.0641942,
     "ast_hash": "0412c7d0798ad2f2043ed73de2ab08b9",
     "semantic_hash": ""
   },
-  "internal/db/migrations/sqlite/000006_add_node_status_detail.sql": {
+  "internal/db/migrations/sqlite/000005_add_command_logs.sql": {
+    "mtime": 1781763742.986181,
+    "ast_hash": "8ec187abf65ce78242138abf721ba343",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000006_add_cluster_settings.sql": {
+    "mtime": 1781768317.50521,
+    "ast_hash": "02ac10ba824b2b1e8f3c8c377f37fc1d",
+    "semantic_hash": ""
+  },
+  "internal/db/migrations/sqlite/000007_add_node_status_detail.sql": {
     "mtime": 1781776502.0641942,
     "ast_hash": "ecf8483fee75d0fb32e9bd443d196346",
+    "semantic_hash": ""
+  },
+  ".kilo/plans/cluster-node-selection-automated-pg-install-plan.md": {
+    "mtime": 1781779639.3549511,
+    "ast_hash": "4b686033a1a8696a598403a86fba9301",
     "semantic_hash": ""
   }
 }

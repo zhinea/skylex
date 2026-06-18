@@ -20,11 +20,11 @@ func newClusterServiceTestDeps(t *testing.T) (*db.DB, *ClusterService) {
 	commands := db.NewAgentCommandRepository(conn, log)
 	settings := db.NewClusterSettingsRepository(conn, log)
 
-	svc := NewClusterService(clusters, nodes, commands, settings, log)
+	svc := NewClusterService(conn, clusters, nodes, commands, settings, log)
 	return database, svc
 }
 
-func createTestCluster(t *testing.T, ctx context.Context, svc *ClusterService) string {
+func createTestCluster(t *testing.T, ctx context.Context, svc *ClusterService, nodeID string) string {
 	t.Helper()
 	resp, err := svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
 		Name: "test-settings-cluster",
@@ -35,6 +35,7 @@ func createTestCluster(t *testing.T, ctx context.Context, svc *ClusterService) s
 			ReplicaCount:    0,
 			PitrEnabled:     false,
 		},
+		NodeIds: []string{nodeID},
 	})
 	if err != nil {
 		t.Fatalf("create cluster: %v", err)
@@ -61,8 +62,8 @@ func createIdleTestNode(t *testing.T, ctx context.Context, svc *ClusterService) 
 func TestClusterService_UpdateClusterSettings_RejectInvalidKey(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()
-	createIdleTestNode(t, ctx, svc)
-	clusterID := createTestCluster(t, ctx, svc)
+	nodeID := createIdleTestNode(t, ctx, svc)
+	clusterID := createTestCluster(t, ctx, svc, nodeID)
 
 	_, err := svc.UpdateClusterSettings(ctx, &skylexv1.UpdateClusterSettingsRequest{
 		ClusterId: clusterID,
@@ -78,8 +79,8 @@ func TestClusterService_UpdateClusterSettings_RejectInvalidKey(t *testing.T) {
 func TestClusterService_UpdateClusterSettings_RejectInvalidValue(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()
-	createIdleTestNode(t, ctx, svc)
-	clusterID := createTestCluster(t, ctx, svc)
+	nodeID := createIdleTestNode(t, ctx, svc)
+	clusterID := createTestCluster(t, ctx, svc, nodeID)
 
 	_, err := svc.UpdateClusterSettings(ctx, &skylexv1.UpdateClusterSettingsRequest{
 		ClusterId: clusterID,
@@ -95,8 +96,8 @@ func TestClusterService_UpdateClusterSettings_RejectInvalidValue(t *testing.T) {
 func TestClusterService_UpdateClusterSettings_PersistsAndQueuesApply(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()
-	createIdleTestNode(t, ctx, svc)
-	clusterID := createTestCluster(t, ctx, svc)
+	nodeID := createIdleTestNode(t, ctx, svc)
+	clusterID := createTestCluster(t, ctx, svc, nodeID)
 
 	params := map[string]string{
 		"max_connections": "250",
@@ -131,9 +132,9 @@ func TestClusterService_UpdateClusterSettings_PersistsAndQueuesApply(t *testing.
 	if len(nodes) != 1 {
 		t.Fatalf("expected 1 cluster node, got %d", len(nodes))
 	}
-	nodeID := nodes[0].ID
+	assignedNodeID := nodes[0].ID
 
-	pending, err := svc.commands.ListPending(ctx, "agent-1", nodeID)
+	pending, err := svc.commands.ListPending(ctx, "agent-1", assignedNodeID)
 	if err != nil {
 		t.Fatalf("list pending commands: %v", err)
 	}

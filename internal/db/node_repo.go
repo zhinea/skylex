@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/zhinea/skylex/internal/id"
@@ -137,6 +138,59 @@ func (r *NodeRepository) UpdateHeartbeat(ctx context.Context, id string) error {
 		return fmt.Errorf("update node heartbeat: %w", err)
 	}
 	return nil
+}
+
+// GetByIDs returns nodes matching the given IDs, preserving input order.
+// Returns an error if any ID is not found.
+func (r *NodeRepository) GetByIDs(ctx context.Context, ids []string) ([]*models.Node, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail
+		 FROM nodes WHERE id IN (%s)`, strings.Join(placeholders, ", "))
+
+	rows, err := r.conn.QueryContext(ctx, Rebind(query), args...)
+	if err != nil {
+		return nil, fmt.Errorf("query nodes by ids: %w", err)
+	}
+	defer rows.Close()
+
+	byID := make(map[string]*models.Node, len(ids))
+	for rows.Next() {
+		n, err := scanNodesRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		byID[n.ID] = n
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate nodes: %w", err)
+	}
+
+	// Validate all requested IDs were found, preserving input order.
+	result := make([]*models.Node, 0, len(ids))
+	var missing []string
+	for _, id := range ids {
+		n, ok := byID[id]
+		if !ok {
+			missing = append(missing, id)
+			continue
+		}
+		result = append(result, n)
+	}
+	if len(missing) > 0 {
+		return nil, fmt.Errorf("node(s) not found: %s", strings.Join(missing, ", "))
+	}
+
+	return result, nil
 }
 
 // ListUnassigned returns up to limit nodes that are not part of any cluster.

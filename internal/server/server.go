@@ -108,7 +108,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.webhookClient = NewWebhookClient(s.cfg.Webhook.URLs, s.cfg.Webhook.Timeout, s.log)
 
-	s.clusterService = NewClusterService(clusterRepo, nodeRepo, commandRepo, clusterSettingsRepo, s.log)
+	s.clusterService = NewClusterService(conn, clusterRepo, nodeRepo, commandRepo, clusterSettingsRepo, s.log)
 	s.nodeService = NewNodeService(nodeRepo, commandRepo, commandLogRepo, s.log)
 	s.agentService = NewAgentService(s.cfg, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
 

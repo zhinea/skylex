@@ -6,7 +6,7 @@ import { Card } from "~/components/Card";
 import { Badge } from "~/components/Badge";
 import { PageSpinner } from "~/components/Spinner";
 
-const STEPS = ["Verify Nodes", "Configure", "Review"] as const;
+const STEPS = ["Select Nodes", "Configure", "Review"] as const;
 
 export default function CreateClusterPage() {
   const navigate = useNavigate();
@@ -20,30 +20,37 @@ export default function CreateClusterPage() {
   const [replicaCount, setReplicaCount] = useState(0);
   const [replicationMode, setReplicationMode] = useState("ASYNC");
   const [pitrEnabled, setPitrEnabled] = useState(false);
+  // Ordered list of selected node IDs; first = primary, rest = replicas.
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const idleNodes = useMemo(
-    () => (nodesData?.nodes || []).filter((n) => !n.clusterId),
-    [nodesData],
-  );
+  const allNodes = nodesData?.nodes ?? [];
+  const idleNodes = useMemo(() => allNodes.filter((n) => !n.clusterId), [allNodes]);
 
   const neededNodes = replicaCount + 1;
-  const pgReadyNodes = useMemo(
-    () => idleNodes.filter((n) => n.postgresInstalled),
-    [idleNodes],
-  );
-  const missingPgNodes = useMemo(
-    () => idleNodes.filter((n) => !n.postgresInstalled),
-    [idleNodes],
-  );
 
-  const canProceedFromStep0 = idleNodes.length >= neededNodes && missingPgNodes.length === 0;
+  const toggleNode = (nodeId: string) => {
+    setSelectedNodeIds((prev) => {
+      if (prev.includes(nodeId)) {
+        return prev.filter((id) => id !== nodeId);
+      }
+      return [...prev, nodeId];
+    });
+  };
+
+  const canProceedFromStep0 =
+    selectedNodeIds.length === neededNodes &&
+    selectedNodeIds.every((id) => {
+      const n = allNodes.find((n) => n.id === id);
+      return n && !n.clusterId;
+    });
+
   const canProceedFromStep1 = name.trim().length > 0;
 
   const handleSubmit = async () => {
     setError("");
     try {
-      await createCluster.mutateAsync({
+      const result = await createCluster.mutateAsync({
         name,
         config: {
           engine,
@@ -52,8 +59,9 @@ export default function CreateClusterPage() {
           replicationMode,
           pitrEnabled,
         },
+        nodeIds: selectedNodeIds,
       });
-      navigate("/clusters");
+      navigate(`/clusters/${result.cluster.id}`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create cluster");
     }
@@ -68,7 +76,7 @@ export default function CreateClusterPage() {
         {STEPS.map((label, i) => (
           <div key={label} className="flex items-center gap-2">
             <button
-              onClick={() => i < step ? setStep(i) : undefined}
+              onClick={() => (i < step ? setStep(i) : undefined)}
               disabled={i > step}
               className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-colors
                 ${i < step ? "bg-green-600 text-white cursor-pointer" : ""}
@@ -100,79 +108,43 @@ export default function CreateClusterPage() {
         </div>
       )}
 
-      {/* Step 0: Verify Nodes */}
+      {/* Step 0: Select Nodes */}
       {step === 0 && (
-        <Card title="Step 1: Verify Available Nodes">
+        <Card title="Step 1: Select Nodes">
           {!nodesData ? (
             <PageSpinner />
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Your cluster needs {neededNodes} node{neededNodes !== 1 ? "s" : ""} (1 primary + {replicaCount} replica{replicaCount !== 1 ? "s" : ""}).
-                Each node must have PostgreSQL installed.
+                Select <strong className="text-gray-900 dark:text-white">{neededNodes} node{neededNodes !== 1 ? "s" : ""}</strong> for
+                this cluster — 1 primary + {replicaCount} replica{replicaCount !== 1 ? "s" : ""}.
+                The first selected node becomes the primary. Adjust replica count in the Configure step.
               </p>
 
-              {/* Idle nodes summary */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{idleNodes.length}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Idle Nodes Available</div>
-                </div>
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-green-700 dark:text-green-400">{pgReadyNodes.length}</div>
-                  <div className="text-xs text-green-600 dark:text-green-400 mt-1">PG Ready</div>
-                </div>
-                <div className={`rounded-lg p-4 text-center ${missingPgNodes.length > 0 ? "bg-yellow-50 dark:bg-yellow-900/20" : "bg-gray-50 dark:bg-gray-700/50"}`}>
-                  <div className={`text-2xl font-bold ${missingPgNodes.length > 0 ? "text-yellow-700 dark:text-yellow-400" : "text-gray-900 dark:text-white"}`}>
-                    {missingPgNodes.length}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Missing PostgreSQL</div>
-                </div>
+              {/* Selection status */}
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-gray-700 dark:text-gray-300">
+                  {selectedNodeIds.length} / {neededNodes} selected
+                </span>
+                {selectedNodeIds.length === neededNodes && (
+                  <span className="text-green-600 dark:text-green-400 font-medium">✓ Ready</span>
+                )}
               </div>
 
-              {/* Validation warnings */}
-              {idleNodes.length < neededNodes && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-700">
-                  <span className="text-red-600 dark:text-red-400 mt-0.5">✗</span>
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    Not enough idle nodes. You need {neededNodes} but only {idleNodes.length} are available.
-                    Decrease replica count or register more agents.
-                  </p>
-                </div>
-              )}
-
-              {missingPgNodes.length > 0 && (
+              {allNodes.length === 0 ? (
                 <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
                   <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
-                  <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                    <p className="font-medium mb-1">PostgreSQL not installed on:</p>
-                    <ul className="list-disc list-inside space-y-0.5">
-                      {missingPgNodes.map((n) => (
-                        <li key={n.id}>{n.hostname}</li>
-                      ))}
-                    </ul>
-                    <p className="mt-2">
-                      Install PostgreSQL on these hosts before creating a cluster.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {canProceedFromStep0 && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-700">
-                  <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
-                  <p className="text-sm text-green-800 dark:text-green-200">
-                    All {neededNodes} required node{neededNodes !== 1 ? "s" : ""} are available with PostgreSQL installed.
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    No agents registered. Register agents before creating a cluster.
                   </p>
                 </div>
-              )}
-
-              {/* Idle nodes table */}
-              {idleNodes.length > 0 && (
+              ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400 w-8"></th>
+                        <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Role</th>
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Hostname</th>
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Address</th>
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
@@ -180,28 +152,85 @@ export default function CreateClusterPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {idleNodes.map((n) => (
-                        <tr key={n.id} className="border-b border-gray-100 dark:border-gray-800">
-                          <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{n.hostname}</td>
-                          <td className="px-3 py-2 text-gray-500 dark:text-gray-400">{n.address}:{n.port}</td>
-                          <td className="px-3 py-2">
-                            {n.postgresInstalled ? (
-                              <span className="text-xs text-green-600 dark:text-green-400">{n.postgresVersion || "installed"}</span>
+                      {allNodes.map((n) => {
+                        const isAssigned = !!n.clusterId;
+                        const isSelected = selectedNodeIds.includes(n.id);
+                        const selectionIndex = selectedNodeIds.indexOf(n.id);
+                        const wouldExceedLimit =
+                          !isSelected && selectedNodeIds.length >= neededNodes;
+                        const isDisabled = isAssigned || wouldExceedLimit;
+
+                        let roleLabel: React.ReactNode = null;
+                        if (isSelected) {
+                          roleLabel =
+                            selectionIndex === 0 ? (
+                              <Badge label="primary" />
                             ) : (
-                              <Badge label="not installed" />
-                            )}
-                          </td>
-                          <td className="px-3 py-2">
-                            {n.statusDetail ? (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">{n.statusDetail}</span>
-                            ) : (
-                              <Badge label={n.clusterId ? "assigned" : "idle"} />
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                              <Badge label="replica" />
+                            );
+                        }
+
+                        return (
+                          <tr
+                            key={n.id}
+                            className={`border-b border-gray-100 dark:border-gray-800 transition-colors
+                              ${isDisabled ? "opacity-50" : "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40"}
+                              ${isSelected ? "bg-blue-50 dark:bg-blue-900/20" : ""}
+                            `}
+                            onClick={() => !isDisabled && toggleNode(n.id)}
+                          >
+                            <td className="px-3 py-2">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                disabled={isDisabled}
+                                onChange={() => !isDisabled && toggleNode(n.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="rounded border-gray-300 dark:border-gray-600 text-blue-600"
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              {roleLabel ?? (isAssigned ? <Badge label="assigned" /> : null)}
+                            </td>
+                            <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">
+                              {n.hostname}
+                            </td>
+                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
+                              {n.address}:{n.port}
+                            </td>
+                            <td className="px-3 py-2">
+                              {n.postgresInstalled ? (
+                                <span className="text-xs text-green-600 dark:text-green-400">
+                                  {n.postgresVersion || "installed"}
+                                </span>
+                              ) : (
+                                <Badge label="not installed" />
+                              )}
+                            </td>
+                            <td className="px-3 py-2">
+                              {n.statusDetail ? (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {n.statusDetail}
+                                </span>
+                              ) : (
+                                <Badge label={n.clusterId ? "assigned" : "idle"} />
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
+                </div>
+              )}
+
+              {idleNodes.length < neededNodes && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-700">
+                  <span className="text-red-600 dark:text-red-400 mt-0.5">✗</span>
+                  <p className="text-sm text-red-800 dark:text-red-200">
+                    Only {idleNodes.length} idle node{idleNodes.length !== 1 ? "s" : ""} available. Need {neededNodes}.
+                    Decrease replica count or register more agents.
+                  </p>
                 </div>
               )}
 
@@ -268,12 +297,17 @@ export default function CreateClusterPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Replicas ({idleNodes.length - 1} available)
+                  Replicas
                 </label>
                 <input
                   type="number"
                   value={replicaCount}
-                  onChange={(e) => setReplicaCount(Number(e.target.value))}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setReplicaCount(val);
+                    // Reset node selection when replica count changes to avoid stale selections.
+                    setSelectedNodeIds([]);
+                  }}
                   min={0}
                   max={Math.max(0, idleNodes.length - 1)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -307,10 +341,14 @@ export default function CreateClusterPage() {
               <label htmlFor="pitr" className="text-sm text-gray-700 dark:text-gray-300">Enable PITR (Point-in-Time Recovery)</label>
             </div>
 
-            {replicaCount > 0 && !pgReadyNodes.length && (
-              <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                No idle nodes have PostgreSQL installed. You may need to install it before replicas can be provisioned.
-              </p>
+            {selectedNodeIds.length !== neededNodes && (
+              <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
+                <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  Replica count changed — you need to re-select nodes (need {neededNodes}, currently have {selectedNodeIds.length} selected).
+                  Go back to update your selection.
+                </p>
+              </div>
             )}
 
             <div className="flex gap-3 pt-2">
@@ -322,7 +360,7 @@ export default function CreateClusterPage() {
               </button>
               <button
                 onClick={() => setStep(2)}
-                disabled={!canProceedFromStep1}
+                disabled={!canProceedFromStep1 || selectedNodeIds.length !== neededNodes}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg"
               >
                 Next: Review
@@ -365,11 +403,31 @@ export default function CreateClusterPage() {
                 <dt className="text-gray-500 dark:text-gray-400">PITR</dt>
                 <dd className="text-gray-900 dark:text-white">{pitrEnabled ? "Enabled" : "Disabled"}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500 dark:text-gray-400">Idle Nodes Available</dt>
-                <dd className="text-gray-900 dark:text-white">{idleNodes.length}</dd>
-              </div>
             </dl>
+
+            {/* Node assignment summary */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                Node Assignment
+              </div>
+              <table className="w-full text-sm">
+                <tbody>
+                  {selectedNodeIds.map((nodeId, i) => {
+                    const n = allNodes.find((n) => n.id === nodeId);
+                    return (
+                      <tr key={nodeId} className="border-t border-gray-100 dark:border-gray-800">
+                        <td className="px-4 py-2 text-gray-900 dark:text-white font-medium">
+                          {n?.hostname ?? nodeId}
+                        </td>
+                        <td className="px-4 py-2">
+                          <Badge label={i === 0 ? "primary" : "replica"} />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">

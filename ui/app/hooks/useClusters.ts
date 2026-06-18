@@ -49,7 +49,7 @@ export function useCluster(id: string) {
 export function useCreateCluster() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { name: string; config: ClusterConfig }) =>
+    mutationFn: (input: { name: string; config: ClusterConfig; nodeIds: string[] }) =>
       api.post<{ cluster: Cluster }>("/skylex.v1.ClusterService/CreateCluster", input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clusters"] });

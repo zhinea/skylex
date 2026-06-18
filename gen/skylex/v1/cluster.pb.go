@@ -25,6 +25,7 @@ type CreateClusterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Config        *ClusterConfig         `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	NodeIds       []string               `protobuf:"bytes,3,rep,name=node_ids,json=nodeIds,proto3" json:"node_ids,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,6 +70,13 @@ func (x *CreateClusterRequest) GetName() string {
 func (x *CreateClusterRequest) GetConfig() *ClusterConfig {
 	if x != nil {
 		return x.Config
+	}
+	return nil
+}
+
+func (x *CreateClusterRequest) GetNodeIds() []string {
+	if x != nil {
+		return x.NodeIds
 	}
 	return nil
 }
@@ -1585,10 +1593,11 @@ var File_skylex_v1_cluster_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\n" +
-	"\x17skylex/v1/cluster.proto\x12\tskylex.v1\x1a\x16skylex/v1/common.proto\"\\\n" +
+	"\x17skylex/v1/cluster.proto\x12\tskylex.v1\x1a\x16skylex/v1/common.proto\"w\n" +
 	"\x14CreateClusterRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x120\n" +
-	"\x06config\x18\x02 \x01(\v2\x18.skylex.v1.ClusterConfigR\x06config\"E\n" +
+	"\x06config\x18\x02 \x01(\v2\x18.skylex.v1.ClusterConfigR\x06config\x12\x19\n" +
+	"\bnode_ids\x18\x03 \x03(\tR\anodeIds\"E\n" +
 	"\x15CreateClusterResponse\x12,\n" +
 	"\acluster\x18\x01 \x01(\v2\x12.skylex.v1.ClusterR\acluster\"#\n" +
 	"\x11GetClusterRequest\x12\x0e\n" +
