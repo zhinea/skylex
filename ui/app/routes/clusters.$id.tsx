@@ -387,6 +387,14 @@ export default function ClusterDetailPage() {
               <dd className="text-gray-900 dark:text-white">{cluster.config?.version || "16"}</dd>
             </div>
             <div className="flex justify-between">
+              <dt className="text-gray-500 dark:text-gray-400">Service Location</dt>
+              <dd className="text-gray-900 dark:text-white">
+                {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER"
+                  ? "Dockerized"
+                  : "Native"}
+              </dd>
+            </div>
+            <div className="flex justify-between">
               <dt className="text-gray-500 dark:text-gray-400">Replication</dt>
               <dd className="text-gray-900 dark:text-white">{cluster.config?.replicationMode || "ASYNC"}</dd>
             </div>

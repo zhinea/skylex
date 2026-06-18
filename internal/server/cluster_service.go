@@ -177,6 +177,24 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 			strings.Join(missingPg, ", "))
 	}
 
+	// Preflight: warn when Docker location is requested but a node lacks Docker.
+	serviceLocation := convertServiceLocation(cfg.GetServiceLocation())
+	if serviceLocation == models.ServiceLocationDocker {
+		var noDocker []string
+		for _, n := range selectedNodes {
+			if !n.DockerAvailable {
+				noDocker = append(noDocker, n.Hostname)
+			}
+		}
+		if len(noDocker) > 0 {
+			s.log.Warn("docker not available on selected node(s); proceeding anyway",
+				"nodes", strings.Join(noDocker, ", "))
+		}
+	}
+	if serviceLocation == models.ServiceLocationUnspecified {
+		serviceLocation = models.ServiceLocationNative
+	}
+
 	// Wrap cluster creation and node assignment in a transaction.
 	clusterID := id.New()
 	now := time.Now().UTC()
@@ -197,11 +215,11 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 	}()
 
 	_, err = tx.ExecContext(ctx,
-		db.Rebind(`INSERT INTO clusters (id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+		db.Rebind(`INSERT INTO clusters (id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, service_location, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		clusterID, req.GetName(), engine, version, mode, replicaCount,
 		cfg.GetStorageConfigId(), "", boolToInt(cfg.GetPitrEnabled()),
-		models.ClusterStatusCreating, string(labelsJSON), now, now,
+		models.ClusterStatusCreating, string(labelsJSON), serviceLocation, now, now,
 	)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "create cluster: %v", err)
@@ -215,8 +233,8 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 
 	for i, n := range selectedNodes {
 		_, err = tx.ExecContext(ctx,
-			db.Rebind(`UPDATE nodes SET cluster_id = ?, role = ?, updated_at = ? WHERE id = ?`),
-			clusterID, roles[i], now, n.ID,
+			db.Rebind(`UPDATE nodes SET cluster_id = ?, role = ?, service_location = ?, updated_at = ? WHERE id = ?`),
+			clusterID, roles[i], serviceLocation, now, n.ID,
 		)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "assign node %s: %v", n.ID, err)
@@ -237,6 +255,7 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 		StorageConfigID: cfg.GetStorageConfigId(),
 		PITREnabled:     cfg.GetPitrEnabled(),
 		Status:          models.ClusterStatusCreating,
+		ServiceLocation: serviceLocation,
 		Tags:            cfg.GetLabels(),
 		CreatedAt:       now,
 		UpdatedAt:       now,
@@ -528,19 +547,21 @@ func clusterToProto(c *models.Cluster) *skylexv1.Cluster {
 		mode = skylexv1.ReplicationMode_REPLICATION_MODE_ASYNC
 	}
 
-	var status skylexv1.ClusterStatus
+	var clusterStatus skylexv1.ClusterStatus
 	switch c.Status {
 	case models.ClusterStatusCreating:
-		status = skylexv1.ClusterStatus_CLUSTER_STATUS_CREATING
+		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_CREATING
 	case models.ClusterStatusRunning:
-		status = skylexv1.ClusterStatus_CLUSTER_STATUS_HEALTHY
+		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_HEALTHY
 	case models.ClusterStatusDegraded:
-		status = skylexv1.ClusterStatus_CLUSTER_STATUS_DEGRADED
+		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_DEGRADED
 	case models.ClusterStatusDeleting:
-		status = skylexv1.ClusterStatus_CLUSTER_STATUS_DELETING
+		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_DELETING
 	case models.ClusterStatusStopped:
-		status = skylexv1.ClusterStatus_CLUSTER_STATUS_FAILED
+		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_FAILED
 	}
+
+	serviceLocation := protoServiceLocation(c.ServiceLocation)
 
 	return &skylexv1.Cluster{
 		Id:   c.ID,
@@ -553,10 +574,12 @@ func clusterToProto(c *models.Cluster) *skylexv1.Cluster {
 			StorageConfigId: c.StorageConfigID,
 			PitrEnabled:     c.PITREnabled,
 			Labels:          c.Tags,
+			ServiceLocation: serviceLocation,
 		},
-		Status:    status,
-		CreatedAt: timestamppb.New(c.CreatedAt),
-		UpdatedAt: timestamppb.New(c.UpdatedAt),
+		Status:          clusterStatus,
+		ServiceLocation: serviceLocation,
+		CreatedAt:       timestamppb.New(c.CreatedAt),
+		UpdatedAt:       timestamppb.New(c.UpdatedAt),
 	}
 }
 
@@ -568,6 +591,28 @@ func convertReplicationMode(mode skylexv1.ReplicationMode) models.ReplicationMod
 		fallthrough
 	default:
 		return models.ReplicationAsync
+	}
+}
+
+func convertServiceLocation(loc skylexv1.ServiceLocation) models.ServiceLocation {
+	switch loc {
+	case skylexv1.ServiceLocation_SERVICE_LOCATION_DOCKER:
+		return models.ServiceLocationDocker
+	case skylexv1.ServiceLocation_SERVICE_LOCATION_NATIVE:
+		return models.ServiceLocationNative
+	default:
+		return models.ServiceLocationUnspecified
+	}
+}
+
+func protoServiceLocation(loc models.ServiceLocation) skylexv1.ServiceLocation {
+	switch loc {
+	case models.ServiceLocationDocker:
+		return skylexv1.ServiceLocation_SERVICE_LOCATION_DOCKER
+	case models.ServiceLocationNative:
+		return skylexv1.ServiceLocation_SERVICE_LOCATION_NATIVE
+	default:
+		return skylexv1.ServiceLocation_SERVICE_LOCATION_UNSPECIFIED
 	}
 }
 

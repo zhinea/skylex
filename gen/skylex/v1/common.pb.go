@@ -224,6 +224,55 @@ func (Engine) EnumDescriptor() ([]byte, []int) {
 	return file_skylex_v1_common_proto_rawDescGZIP(), []int{3}
 }
 
+type ServiceLocation int32
+
+const (
+	ServiceLocation_SERVICE_LOCATION_UNSPECIFIED ServiceLocation = 0
+	ServiceLocation_SERVICE_LOCATION_NATIVE      ServiceLocation = 1
+	ServiceLocation_SERVICE_LOCATION_DOCKER      ServiceLocation = 2
+)
+
+// Enum value maps for ServiceLocation.
+var (
+	ServiceLocation_name = map[int32]string{
+		0: "SERVICE_LOCATION_UNSPECIFIED",
+		1: "SERVICE_LOCATION_NATIVE",
+		2: "SERVICE_LOCATION_DOCKER",
+	}
+	ServiceLocation_value = map[string]int32{
+		"SERVICE_LOCATION_UNSPECIFIED": 0,
+		"SERVICE_LOCATION_NATIVE":      1,
+		"SERVICE_LOCATION_DOCKER":      2,
+	}
+)
+
+func (x ServiceLocation) Enum() *ServiceLocation {
+	p := new(ServiceLocation)
+	*p = x
+	return p
+}
+
+func (x ServiceLocation) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ServiceLocation) Descriptor() protoreflect.EnumDescriptor {
+	return file_skylex_v1_common_proto_enumTypes[4].Descriptor()
+}
+
+func (ServiceLocation) Type() protoreflect.EnumType {
+	return &file_skylex_v1_common_proto_enumTypes[4]
+}
+
+func (x ServiceLocation) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ServiceLocation.Descriptor instead.
+func (ServiceLocation) EnumDescriptor() ([]byte, []int) {
+	return file_skylex_v1_common_proto_rawDescGZIP(), []int{4}
+}
+
 type ClusterConfig struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Engine          Engine                 `protobuf:"varint,1,opt,name=engine,proto3,enum=skylex.v1.Engine" json:"engine,omitempty"`
@@ -233,6 +282,8 @@ type ClusterConfig struct {
 	StorageConfigId string                 `protobuf:"bytes,5,opt,name=storage_config_id,json=storageConfigId,proto3" json:"storage_config_id,omitempty"`
 	PitrEnabled     bool                   `protobuf:"varint,6,opt,name=pitr_enabled,json=pitrEnabled,proto3" json:"pitr_enabled,omitempty"`
 	Labels          map[string]string      `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Phase 2: service location model
+	ServiceLocation ServiceLocation `protobuf:"varint,8,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -316,16 +367,25 @@ func (x *ClusterConfig) GetLabels() map[string]string {
 	return nil
 }
 
+func (x *ClusterConfig) GetServiceLocation() ServiceLocation {
+	if x != nil {
+		return x.ServiceLocation
+	}
+	return ServiceLocation_SERVICE_LOCATION_UNSPECIFIED
+}
+
 type Cluster struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Config        *ClusterConfig         `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
-	Status        ClusterStatus          `protobuf:"varint,4,opt,name=status,proto3,enum=skylex.v1.ClusterStatus" json:"status,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name      string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Config    *ClusterConfig         `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
+	Status    ClusterStatus          `protobuf:"varint,4,opt,name=status,proto3,enum=skylex.v1.ClusterStatus" json:"status,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Phase 2: service location model
+	ServiceLocation ServiceLocation `protobuf:"varint,16,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Cluster) Reset() {
@@ -400,6 +460,13 @@ func (x *Cluster) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Cluster) GetServiceLocation() ServiceLocation {
+	if x != nil {
+		return x.ServiceLocation
+	}
+	return ServiceLocation_SERVICE_LOCATION_UNSPECIFIED
+}
+
 type Node struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -418,9 +485,12 @@ type Node struct {
 	PostgresVersion         string `protobuf:"bytes,13,opt,name=postgres_version,json=postgresVersion,proto3" json:"postgres_version,omitempty"`
 	PostgresDataInitialized bool   `protobuf:"varint,14,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
 	// Phase 4: human-readable status detail
-	StatusDetail  string `protobuf:"bytes,15,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	StatusDetail string `protobuf:"bytes,15,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
+	// Phase 2: service location model
+	ServiceLocation ServiceLocation `protobuf:"varint,16,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
+	DockerAvailable bool            `protobuf:"varint,17,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -558,6 +628,20 @@ func (x *Node) GetStatusDetail() string {
 	return ""
 }
 
+func (x *Node) GetServiceLocation() ServiceLocation {
+	if x != nil {
+		return x.ServiceLocation
+	}
+	return ServiceLocation_SERVICE_LOCATION_UNSPECIFIED
+}
+
+func (x *Node) GetDockerAvailable() bool {
+	if x != nil {
+		return x.DockerAvailable
+	}
+	return false
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -622,7 +706,7 @@ var File_skylex_v1_common_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x16skylex/v1/common.proto\x12\tskylex.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x88\x03\n" +
+	"\x16skylex/v1/common.proto\x12\tskylex.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcf\x03\n" +
 	"\rClusterConfig\x12)\n" +
 	"\x06engine\x18\x01 \x01(\x0e2\x11.skylex.v1.EngineR\x06engine\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12E\n" +
@@ -630,10 +714,11 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\rreplica_count\x18\x04 \x01(\x05R\freplicaCount\x12*\n" +
 	"\x11storage_config_id\x18\x05 \x01(\tR\x0fstorageConfigId\x12!\n" +
 	"\fpitr_enabled\x18\x06 \x01(\bR\vpitrEnabled\x12<\n" +
-	"\x06labels\x18\a \x03(\v2$.skylex.v1.ClusterConfig.LabelsEntryR\x06labels\x1a9\n" +
+	"\x06labels\x18\a \x03(\v2$.skylex.v1.ClusterConfig.LabelsEntryR\x06labels\x12E\n" +
+	"\x10service_location\x18\b \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x87\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xce\x02\n" +
 	"\aCluster\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x120\n" +
@@ -642,7 +727,8 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xa7\x05\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12E\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\x99\x06\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -662,7 +748,9 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x12postgres_installed\x18\f \x01(\bR\x11postgresInstalled\x12)\n" +
 	"\x10postgres_version\x18\r \x01(\tR\x0fpostgresVersion\x12:\n" +
 	"\x19postgres_data_initialized\x18\x0e \x01(\bR\x17postgresDataInitialized\x12#\n" +
-	"\rstatus_detail\x18\x0f \x01(\tR\fstatusDetail\x1a9\n" +
+	"\rstatus_detail\x18\x0f \x01(\tR\fstatusDetail\x12E\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\x12)\n" +
+	"\x10docker_available\x18\x11 \x01(\bR\x0fdockerAvailable\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +
@@ -688,7 +776,11 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x15REPLICATION_MODE_SYNC\x10\x02*7\n" +
 	"\x06Engine\x12\x16\n" +
 	"\x12ENGINE_UNSPECIFIED\x10\x00\x12\x15\n" +
-	"\x11ENGINE_POSTGRESQL\x10\x01B\x92\x01\n" +
+	"\x11ENGINE_POSTGRESQL\x10\x01*m\n" +
+	"\x0fServiceLocation\x12 \n" +
+	"\x1cSERVICE_LOCATION_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17SERVICE_LOCATION_NATIVE\x10\x01\x12\x1b\n" +
+	"\x17SERVICE_LOCATION_DOCKER\x10\x02B\x92\x01\n" +
 	"\rcom.skylex.v1B\vCommonProtoP\x01Z/github.com/zhinea/skylex/gen/skylex/v1;skylexv1\xa2\x02\x03SXX\xaa\x02\tSkylex.V1\xca\x02\tSkylex\\V1\xe2\x02\x15Skylex\\V1\\GPBMetadata\xea\x02\n" +
 	"Skylex::V1b\x06proto3"
 
@@ -704,39 +796,43 @@ func file_skylex_v1_common_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_common_proto_rawDescData
 }
 
-var file_skylex_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_skylex_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_skylex_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_skylex_v1_common_proto_goTypes = []any{
 	(ClusterStatus)(0),            // 0: skylex.v1.ClusterStatus
 	(NodeRole)(0),                 // 1: skylex.v1.NodeRole
 	(ReplicationMode)(0),          // 2: skylex.v1.ReplicationMode
 	(Engine)(0),                   // 3: skylex.v1.Engine
-	(*ClusterConfig)(nil),         // 4: skylex.v1.ClusterConfig
-	(*Cluster)(nil),               // 5: skylex.v1.Cluster
-	(*Node)(nil),                  // 6: skylex.v1.Node
-	(*Pagination)(nil),            // 7: skylex.v1.Pagination
-	nil,                           // 8: skylex.v1.ClusterConfig.LabelsEntry
-	nil,                           // 9: skylex.v1.Node.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 10: google.protobuf.Timestamp
+	(ServiceLocation)(0),          // 4: skylex.v1.ServiceLocation
+	(*ClusterConfig)(nil),         // 5: skylex.v1.ClusterConfig
+	(*Cluster)(nil),               // 6: skylex.v1.Cluster
+	(*Node)(nil),                  // 7: skylex.v1.Node
+	(*Pagination)(nil),            // 8: skylex.v1.Pagination
+	nil,                           // 9: skylex.v1.ClusterConfig.LabelsEntry
+	nil,                           // 10: skylex.v1.Node.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 }
 var file_skylex_v1_common_proto_depIdxs = []int32{
 	3,  // 0: skylex.v1.ClusterConfig.engine:type_name -> skylex.v1.Engine
 	2,  // 1: skylex.v1.ClusterConfig.replication_mode:type_name -> skylex.v1.ReplicationMode
-	8,  // 2: skylex.v1.ClusterConfig.labels:type_name -> skylex.v1.ClusterConfig.LabelsEntry
-	4,  // 3: skylex.v1.Cluster.config:type_name -> skylex.v1.ClusterConfig
-	0,  // 4: skylex.v1.Cluster.status:type_name -> skylex.v1.ClusterStatus
-	10, // 5: skylex.v1.Cluster.created_at:type_name -> google.protobuf.Timestamp
-	10, // 6: skylex.v1.Cluster.updated_at:type_name -> google.protobuf.Timestamp
-	1,  // 7: skylex.v1.Node.role:type_name -> skylex.v1.NodeRole
-	9,  // 8: skylex.v1.Node.labels:type_name -> skylex.v1.Node.LabelsEntry
-	10, // 9: skylex.v1.Node.last_seen:type_name -> google.protobuf.Timestamp
-	10, // 10: skylex.v1.Node.created_at:type_name -> google.protobuf.Timestamp
-	10, // 11: skylex.v1.Node.updated_at:type_name -> google.protobuf.Timestamp
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	9,  // 2: skylex.v1.ClusterConfig.labels:type_name -> skylex.v1.ClusterConfig.LabelsEntry
+	4,  // 3: skylex.v1.ClusterConfig.service_location:type_name -> skylex.v1.ServiceLocation
+	5,  // 4: skylex.v1.Cluster.config:type_name -> skylex.v1.ClusterConfig
+	0,  // 5: skylex.v1.Cluster.status:type_name -> skylex.v1.ClusterStatus
+	11, // 6: skylex.v1.Cluster.created_at:type_name -> google.protobuf.Timestamp
+	11, // 7: skylex.v1.Cluster.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 8: skylex.v1.Cluster.service_location:type_name -> skylex.v1.ServiceLocation
+	1,  // 9: skylex.v1.Node.role:type_name -> skylex.v1.NodeRole
+	10, // 10: skylex.v1.Node.labels:type_name -> skylex.v1.Node.LabelsEntry
+	11, // 11: skylex.v1.Node.last_seen:type_name -> google.protobuf.Timestamp
+	11, // 12: skylex.v1.Node.created_at:type_name -> google.protobuf.Timestamp
+	11, // 13: skylex.v1.Node.updated_at:type_name -> google.protobuf.Timestamp
+	4,  // 14: skylex.v1.Node.service_location:type_name -> skylex.v1.ServiceLocation
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_common_proto_init() }
@@ -749,7 +845,7 @@ func file_skylex_v1_common_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_common_proto_rawDesc), len(file_skylex_v1_common_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,

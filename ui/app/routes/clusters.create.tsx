@@ -20,6 +20,7 @@ export default function CreateClusterPage() {
   const [replicaCount, setReplicaCount] = useState(0);
   const [replicationMode, setReplicationMode] = useState("ASYNC");
   const [pitrEnabled, setPitrEnabled] = useState(false);
+  const [serviceLocation, setServiceLocation] = useState("SERVICE_LOCATION_NATIVE");
   // Ordered list of selected node IDs; first = primary, rest = replicas.
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [error, setError] = useState("");
@@ -58,6 +59,7 @@ export default function CreateClusterPage() {
           replicaCount,
           replicationMode,
           pitrEnabled,
+          serviceLocation,
         },
         nodeIds: selectedNodeIds,
       });
@@ -148,6 +150,7 @@ export default function CreateClusterPage() {
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Hostname</th>
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Address</th>
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
+                        <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Docker</th>
                         <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Status</th>
                       </tr>
                     </thead>
@@ -208,6 +211,13 @@ export default function CreateClusterPage() {
                               )}
                             </td>
                             <td className="px-3 py-2">
+                              {n.dockerAvailable ? (
+                                <span className="text-xs text-green-600 dark:text-green-400">available</span>
+                              ) : (
+                                <span className="text-xs text-gray-400 dark:text-gray-500">unavailable</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2">
                               {n.statusDetail ? (
                                 <span className="text-xs text-gray-500 dark:text-gray-400">
                                   {n.statusDetail}
@@ -233,6 +243,20 @@ export default function CreateClusterPage() {
                   </p>
                 </div>
               )}
+
+              {serviceLocation === "SERVICE_LOCATION_DOCKER" &&
+                selectedNodeIds.some((id) => {
+                  const n = allNodes.find((n) => n.id === id);
+                  return n && !n.dockerAvailable;
+                }) && (
+                  <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
+                    <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      One or more selected nodes do not have Docker available. Install Docker on those hosts
+                      or switch to Native service location.
+                    </p>
+                  </div>
+                )}
 
               <div className="flex gap-3 pt-2">
                 <button
@@ -341,6 +365,21 @@ export default function CreateClusterPage() {
               <label htmlFor="pitr" className="text-sm text-gray-700 dark:text-gray-300">Enable PITR (Point-in-Time Recovery)</label>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service Location</label>
+              <select
+                value={serviceLocation}
+                onChange={(e) => setServiceLocation(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="SERVICE_LOCATION_NATIVE">Native (run PostgreSQL directly on host)</option>
+                <option value="SERVICE_LOCATION_DOCKER">Dockerized (run PostgreSQL inside Docker)</option>
+              </select>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Native runs the PostgreSQL process directly on the host. Dockerized wraps it in a container.
+              </p>
+            </div>
+
             {selectedNodeIds.length !== neededNodes && (
               <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
                 <span className="text-yellow-600 dark:text-yellow-400 mt-0.5">⚠</span>
@@ -402,6 +441,12 @@ export default function CreateClusterPage() {
               <div className="flex justify-between">
                 <dt className="text-gray-500 dark:text-gray-400">PITR</dt>
                 <dd className="text-gray-900 dark:text-white">{pitrEnabled ? "Enabled" : "Disabled"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-gray-500 dark:text-gray-400">Service Location</dt>
+                <dd className="text-gray-900 dark:text-white">
+                  {serviceLocation === "SERVICE_LOCATION_DOCKER" ? "Dockerized" : "Native"}
+                </dd>
               </div>
             </dl>
 

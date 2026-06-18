@@ -230,8 +230,18 @@ func nodeToProto(n *models.Node) *skylexv1.Node {
 		role = skylexv1.NodeRole_NODE_ROLE_REPLICA
 	}
 
+	var serviceLocation skylexv1.ServiceLocation
+	switch n.ServiceLocation {
+	case models.ServiceLocationDocker:
+		serviceLocation = skylexv1.ServiceLocation_SERVICE_LOCATION_DOCKER
+	case models.ServiceLocationNative:
+		serviceLocation = skylexv1.ServiceLocation_SERVICE_LOCATION_NATIVE
+	default:
+		serviceLocation = skylexv1.ServiceLocation_SERVICE_LOCATION_UNSPECIFIED
+	}
+
 	return &skylexv1.Node{
-		Id:                     n.ID,
+		Id:                      n.ID,
 		ClusterId:               n.ClusterID,
 		Hostname:                n.Hostname,
 		Role:                    role,
@@ -246,5 +256,7 @@ func nodeToProto(n *models.Node) *skylexv1.Node {
 		PostgresVersion:         n.PostgresVersion,
 		PostgresDataInitialized: n.PostgresDataInitialized,
 		StatusDetail:            n.StatusDetail,
+		ServiceLocation:         serviceLocation,
+		DockerAvailable:         n.DockerAvailable,
 	}
 }

@@ -96,6 +96,9 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 			); err != nil {
 				s.log.Warn("update node postgres status (register)", "error", err, "node_id", node.ID)
 			}
+			if err := s.nodes.UpdateDockerAvailable(ctx, node.ID, caps.GetDockerAvailable()); err != nil {
+				s.log.Warn("update node docker_available (register)", "error", err, "node_id", node.ID)
+			}
 		}
 		s.log.Info("agent linked to existing node",
 			"agent_id", agentID,
@@ -118,6 +121,9 @@ func (s *AgentService) RegisterAgent(ctx context.Context, req *skylexv1.Register
 					false,
 				); err != nil {
 					s.log.Warn("update node postgres status (register new)", "error", err, "node_id", node.ID)
+				}
+				if err := s.nodes.UpdateDockerAvailable(ctx, node.ID, caps.GetDockerAvailable()); err != nil {
+					s.log.Warn("update node docker_available (register new)", "error", err, "node_id", node.ID)
 				}
 			}
 			s.log.Info("agent registered with new node",

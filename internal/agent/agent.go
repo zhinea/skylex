@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -113,6 +114,7 @@ func (a *Agent) Run(ctx context.Context) error {
 
 func (a *Agent) register(ctx context.Context) error {
 	pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
+	dockerAvailable := detectDockerAvailable(ctx)
 
 	resp, err := a.client.RegisterAgent(ctx, &skylexv1.RegisterAgentRequest{
 		AgentToken:   a.cfg.AgentToken,
@@ -126,6 +128,7 @@ func (a *Agent) register(ctx context.Context) error {
 			PostgresVersion:   pgBinVersion,
 			PostgresBinDir:    a.cfg.PGBinDir,
 			DataDir:           a.cfg.PGDataDir,
+			DockerAvailable:   dockerAvailable,
 		},
 	})
 	if err != nil {
@@ -134,7 +137,8 @@ func (a *Agent) register(ctx context.Context) error {
 
 	a.agentID = resp.GetAgentId()
 	a.log.Info("agent registered", "agent_id", a.agentID,
-		"pg_installed", pgInstalled, "pg_bin_version", pgBinVersion)
+		"pg_installed", pgInstalled, "pg_bin_version", pgBinVersion,
+		"docker_available", dockerAvailable)
 	return nil
 }
 
@@ -421,4 +425,15 @@ func computeAgentStatusDetail(pgInstalled, pgDataInitialized, pgRunning bool) st
 		return "stopped"
 	}
 	return "running"
+}
+
+// detectDockerAvailable returns true when the `docker version` command succeeds,
+// indicating Docker Engine is installed and the daemon is reachable.
+func detectDockerAvailable(ctx context.Context) bool {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "docker", "version", "--format", "{{.Server.Version}}")
+	err := cmd.Run()
+	return err == nil
 }

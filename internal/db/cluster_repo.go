@@ -60,13 +60,13 @@ func (r *ClusterRepository) Create(ctx context.Context, name, storageConfigID, d
 
 func (r *ClusterRepository) GetByID(ctx context.Context, id string) (*models.Cluster, error) {
 	return r.scanCluster(r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
+		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at, service_location
 		 FROM clusters WHERE id = ?`), id))
 }
 
 func (r *ClusterRepository) GetByName(ctx context.Context, name string) (*models.Cluster, error) {
 	return r.scanCluster(r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
+		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at, service_location
 		 FROM clusters WHERE name = ?`), name))
 }
 
@@ -77,7 +77,7 @@ func (r *ClusterRepository) List(ctx context.Context, offset, limit int) ([]*mod
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at
+		Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at, service_location
 		 FROM clusters ORDER BY created_at DESC LIMIT ? OFFSET ?`), limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("query clusters: %w", err)
@@ -123,7 +123,8 @@ func (r *ClusterRepository) scanCluster(row *sql.Row) (*models.Cluster, error) {
 	var pitrInt int
 
 	err := row.Scan(&c.ID, &c.Name, &c.Engine, &c.Version, &c.ReplicationMode, &c.Replicas,
-		&c.StorageConfigID, &c.DataDir, &pitrInt, &c.Status, &labelsJSON, &c.CreatedAt, &c.UpdatedAt)
+		&c.StorageConfigID, &c.DataDir, &pitrInt, &c.Status, &labelsJSON, &c.CreatedAt, &c.UpdatedAt,
+		&c.ServiceLocation)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -142,7 +143,8 @@ func scanClusterRow(rows *sql.Rows) (*models.Cluster, error) {
 	var pitrInt int
 
 	if err := rows.Scan(&c.ID, &c.Name, &c.Engine, &c.Version, &c.ReplicationMode, &c.Replicas,
-		&c.StorageConfigID, &c.DataDir, &pitrInt, &c.Status, &labelsJSON, &c.CreatedAt, &c.UpdatedAt); err != nil {
+		&c.StorageConfigID, &c.DataDir, &pitrInt, &c.Status, &labelsJSON, &c.CreatedAt, &c.UpdatedAt,
+		&c.ServiceLocation); err != nil {
 		return nil, fmt.Errorf("scan cluster row: %w", err)
 	}
 

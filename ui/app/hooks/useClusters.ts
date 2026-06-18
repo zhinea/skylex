@@ -9,6 +9,8 @@ interface ClusterConfig {
   storageConfigId?: string;
   pitrEnabled?: boolean;
   labels?: Record<string, string>;
+  // Phase 2: service location model
+  serviceLocation?: string;
 }
 
 interface Cluster {
@@ -16,6 +18,8 @@ interface Cluster {
   name: string;
   config: ClusterConfig;
   status: string;
+  // Phase 2: service location model
+  serviceLocation?: string;
   createdAt: string;
   updatedAt: string;
 }

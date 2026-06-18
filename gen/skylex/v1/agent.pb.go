@@ -27,8 +27,10 @@ type NodeCapabilities struct {
 	PostgresVersion   string                 `protobuf:"bytes,2,opt,name=postgres_version,json=postgresVersion,proto3" json:"postgres_version,omitempty"`
 	PostgresBinDir    string                 `protobuf:"bytes,3,opt,name=postgres_bin_dir,json=postgresBinDir,proto3" json:"postgres_bin_dir,omitempty"`
 	DataDir           string                 `protobuf:"bytes,4,opt,name=data_dir,json=dataDir,proto3" json:"data_dir,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Phase 2: service location model
+	DockerAvailable bool `protobuf:"varint,5,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *NodeCapabilities) Reset() {
@@ -87,6 +89,13 @@ func (x *NodeCapabilities) GetDataDir() string {
 		return x.DataDir
 	}
 	return ""
+}
+
+func (x *NodeCapabilities) GetDockerAvailable() bool {
+	if x != nil {
+		return x.DockerAvailable
+	}
+	return false
 }
 
 type RegisterAgentRequest struct {
@@ -971,12 +980,13 @@ var File_skylex_v1_agent_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\n" +
-	"\x15skylex/v1/agent.proto\x12\tskylex.v1\x1a\x16skylex/v1/common.proto\"\xb1\x01\n" +
+	"\x15skylex/v1/agent.proto\x12\tskylex.v1\x1a\x16skylex/v1/common.proto\"\xdc\x01\n" +
 	"\x10NodeCapabilities\x12-\n" +
 	"\x12postgres_available\x18\x01 \x01(\bR\x11postgresAvailable\x12)\n" +
 	"\x10postgres_version\x18\x02 \x01(\tR\x0fpostgresVersion\x12(\n" +
 	"\x10postgres_bin_dir\x18\x03 \x01(\tR\x0epostgresBinDir\x12\x19\n" +
-	"\bdata_dir\x18\x04 \x01(\tR\adataDir\"\xe7\x02\n" +
+	"\bdata_dir\x18\x04 \x01(\tR\adataDir\x12)\n" +
+	"\x10docker_available\x18\x05 \x01(\bR\x0fdockerAvailable\"\xe7\x02\n" +
 	"\x14RegisterAgentRequest\x12\x1f\n" +
 	"\vagent_token\x18\x01 \x01(\tR\n" +
 	"agentToken\x12\x1a\n" +

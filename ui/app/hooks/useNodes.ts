@@ -19,6 +19,9 @@ interface Node {
   postgresDataInitialized: boolean;
   // Phase 4: human-readable status detail
   statusDetail: string;
+  // Phase 2: service location model
+  serviceLocation: string;
+  dockerAvailable: boolean;
 }
 
 interface Pagination {

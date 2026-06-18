@@ -30,6 +30,12 @@ enum Engine {
   ENGINE_POSTGRESQL = 1;
 }
 
+enum ServiceLocation {
+  SERVICE_LOCATION_UNSPECIFIED = 0;
+  SERVICE_LOCATION_NATIVE = 1;
+  SERVICE_LOCATION_DOCKER = 2;
+}
+
 message ClusterConfig {
   Engine engine = 1;
   string version = 2;
@@ -38,6 +44,8 @@ message ClusterConfig {
   string storage_config_id = 5;
   bool pitr_enabled = 6;
   map<string, string> labels = 7;
+  // Phase 2: service location model
+  ServiceLocation service_location = 8;
 }
 
 message Cluster {
@@ -47,6 +55,8 @@ message Cluster {
   ClusterStatus status = 4;
   google.protobuf.Timestamp created_at = 5;
   google.protobuf.Timestamp updated_at = 6;
+  // Phase 2: service location model
+  ServiceLocation service_location = 16;
 }
 
 message Node {
@@ -67,6 +77,9 @@ message Node {
   bool postgres_data_initialized = 14;
   // Phase 4: human-readable status detail
   string status_detail = 15;
+  // Phase 2: service location model
+  ServiceLocation service_location = 16;
+  bool docker_available = 17;
 }
 
 message Pagination {
