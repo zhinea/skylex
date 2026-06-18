@@ -1,7 +1,7 @@
 {
   ".kilo/agent-manager.json": {
-    "mtime": 1781742801.7905118,
-    "ast_hash": "12259598bac1301693be14afa562230b",
+    "mtime": 1781743378.522487,
+    "ast_hash": "2935bea7811341eab241e09305e9578d",
     "semantic_hash": ""
   },
   ".kilo/kilo.json": {
@@ -435,8 +435,8 @@
     "semantic_hash": ""
   },
   "internal/server/auth_service.go": {
-    "mtime": 1781737635.9328113,
-    "ast_hash": "5685de358c9bdfc7be3bd01144deef2c",
+    "mtime": 1781743758.8184001,
+    "ast_hash": "de9aba0915bb84b261d60053cbafc09d",
     "semantic_hash": ""
   },
   "internal/server/jwt.go": {
@@ -520,87 +520,87 @@
     "semantic_hash": ""
   },
   "internal/server/connect.go": {
-    "mtime": 1781737945.6383395,
-    "ast_hash": "d13246a92c93c1d9ef1fc14f2dc355e4",
+    "mtime": 1781743768.5423837,
+    "ast_hash": "5c5cc0a2a38f01876661ab12ed6e2582",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+future.ts": {
-    "mtime": 1781739863.7429156,
+    "mtime": 1781743837.4838681,
     "ast_hash": "c40c27a89fe2bfb5c932e43b56408c5e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+routes.ts": {
-    "mtime": 1781739863.7429156,
+    "mtime": 1781743837.4838681,
     "ast_hash": "3e1136465aba78740bc3f6ce223ec43e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/+server-build.d.ts": {
-    "mtime": 1781739863.7429156,
+    "mtime": 1781743837.4838681,
     "ast_hash": "feb059bd8a13e59965da5ed7f19ac4ff",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/+types/root.ts": {
-    "mtime": 1781739863.7469156,
+    "mtime": 1781743837.4899964,
     "ast_hash": "be2dbb5fac580743e65bc9134fe35a71",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/layouts/+types/dashboard.ts": {
-    "mtime": 1781739863.7629156,
+    "mtime": 1781743837.4899964,
     "ast_hash": "62bd86419d17344f5e191c25785c45e4",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/audit.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4899964,
     "ast_hash": "9c3274db5ff4e951085134cc7bccd35b",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/backups.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4899964,
     "ast_hash": "c144b9280a2b3f2ce03c39253fabb078",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.$id.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4889243,
     "ast_hash": "179cb8cf0f3110829ccaded493b01833",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.create.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4903846,
     "ast_hash": "af2cf528a3babf09dfb618ac48aeca53",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/clusters.ts": {
-    "mtime": 1781739863.7629156,
+    "mtime": 1781743837.4903846,
     "ast_hash": "653618381537a0fb4ffffea5da33574e",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/dashboard.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4903846,
     "ast_hash": "352d3d82b9b8d58ac0e6035df727c532",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/login.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.493408,
     "ast_hash": "e3d69a3a3327a82e5473bdfd0bfb76bd",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/nodes.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4903846,
     "ast_hash": "fe31755e34048a656f0441120af39589",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/restore.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4945765,
     "ast_hash": "e78ca862cc9f426c17d7f9c54c6142c8",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/settings.ts": {
-    "mtime": 1781739863.7709155,
+    "mtime": 1781743837.4899964,
     "ast_hash": "ed1cf7166e2caa960e6e2d68648911e7",
     "semantic_hash": ""
   },
   "ui/.react-router/types/app/routes/+types/storage.ts": {
-    "mtime": 1781739863.7669156,
+    "mtime": 1781743837.4899964,
     "ast_hash": "0bd8aefee15d54a28eb887d9d8175809",
     "semantic_hash": ""
   },
@@ -720,13 +720,13 @@
     "semantic_hash": ""
   },
   "ui/app/components/InstallAgentModal.tsx": {
-    "mtime": 1781739679.3389938,
-    "ast_hash": "4fc7dff3bbe876bd6f5c96f4379c51c5",
+    "mtime": 1781743826.6223826,
+    "ast_hash": "4a10574859460c0f358a1d72ed9e92d0",
     "semantic_hash": ""
   },
   "ui/app/hooks/useAgentInstall.ts": {
-    "mtime": 1781739852.0669212,
-    "ast_hash": "687a07cb7b15a7c161f5834cf773d201",
+    "mtime": 1781743806.707027,
+    "ast_hash": "d8a05dca9fc16a6246f0ce3ed11198e2",
     "semantic_hash": ""
   },
   "ui/app/hooks/useAgentTokens.ts": {
@@ -735,8 +735,8 @@
     "semantic_hash": ""
   },
   ".github/workflows/release.yml": {
-    "mtime": 1781737888.3624337,
-    "ast_hash": "a5a1502d4456e61602f6566eddbe249a",
+    "mtime": 1781743791.2743902,
+    "ast_hash": "ec76b5b6f52686af497627f8b18f6892",
     "semantic_hash": ""
   },
   ".kilo/plans/agent-install-onboarding.md": {
@@ -755,18 +755,13 @@
     "semantic_hash": ""
   },
   "internal/server/assets.go": {
-    "mtime": 1781738031.0984924,
-    "ast_hash": "db7c001abb0d2e377ca25c53344297d4",
-    "semantic_hash": ""
-  },
-  "internal/server/assets/install-agent.sh": {
-    "mtime": 1781742161.7585928,
-    "ast_hash": "c1e73b07a640b7a2bce3d22307e22994",
+    "mtime": 1781743761.5559514,
+    "ast_hash": "12df1a95d2c19549d607d5b9c8952b44",
     "semantic_hash": ""
   },
   "internal/server/connect_test.go": {
-    "mtime": 1781739412.0526347,
-    "ast_hash": "55ddfb0b2733ef10839570c27f941eec",
+    "mtime": 1781743782.0538595,
+    "ast_hash": "f787f97eeedd01d5f3de07e87a3f8da5",
     "semantic_hash": ""
   },
   "internal/server/version.go": {
@@ -775,8 +770,13 @@
     "semantic_hash": ""
   },
   "internal/server/assets/version.txt": {
-    "mtime": 1781742161.7739336,
+    "mtime": 1781743849.7842984,
     "ast_hash": "1347633cdf7cdcb2168d61093630d5ae",
+    "semantic_hash": ""
+  },
+  ".kilo/plans/agent-install-github-releases.md": {
+    "mtime": 1781743144.83858,
+    "ast_hash": "7b2d185c7246313db7b98057ad994a1d",
     "semantic_hash": ""
   }
 }
