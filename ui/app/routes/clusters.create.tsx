@@ -323,14 +323,17 @@ export default function CreateClusterPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Replicas
                 </label>
-                <input
+                  <input
                   type="number"
                   value={replicaCount}
                   onChange={(e) => {
-                    const val = Number(e.target.value);
+                    const maxReplicas = Math.max(0, idleNodes.length - 1);
+                    const val = Math.max(0, Math.min(maxReplicas, Number(e.target.value) || 0));
+                    const newNeeded = val + 1;
                     setReplicaCount(val);
-                    // Reset node selection when replica count changes to avoid stale selections.
-                    setSelectedNodeIds([]);
+                    // Trim the existing selection to the new required count instead
+                    // of clearing it, so changing replicas to 0 keeps the primary.
+                    setSelectedNodeIds((prev) => prev.slice(0, newNeeded));
                   }}
                   min={0}
                   max={Math.max(0, idleNodes.length - 1)}

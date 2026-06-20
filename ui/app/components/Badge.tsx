@@ -19,11 +19,13 @@ const statusColors: Record<string, string> = {
   Disconnected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
-export function Badge({ label, className = "" }: { label: string; className?: string }) {
-  const color = statusColors[label] || statusColors[label.toLowerCase()] || "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+export function Badge({ label, className = "" }: { label?: string | null; className?: string }) {
+  const normalized = label ?? "-";
+  const color =
+    statusColors[normalized] || statusColors[normalized.toLowerCase()] || "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color} ${className}`}>
-      {label}
+      {normalized}
     </span>
   );
 }
