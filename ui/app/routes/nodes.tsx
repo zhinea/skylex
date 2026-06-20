@@ -17,6 +17,7 @@ export default function NodesPage() {
   const [drainId, setDrainId] = useState<string | null>(null);
   const [rejoinId, setRejoinId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [reconnectNode, setReconnectNode] = useState<{ id: string; hostname: string } | null>(null);
 
   if (isLoading) return <PageSpinner />;
 
@@ -91,6 +92,15 @@ export default function NodesPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {!n.agentConnected && n.status !== "deleting" && (
+                          <button
+                            onClick={() => setReconnectNode({ id: n.id, hostname: n.hostname })}
+                            className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                            title="Show reconnect command"
+                          >
+                            Reconnect
+                          </button>
+                        )}
                         {n.clusterId && n.status === "drained" && (
                           <button
                             onClick={() => setRejoinId(n.id)}
@@ -177,6 +187,12 @@ export default function NodesPage() {
       />
 
       <InstallAgentModal open={installOpen} onClose={() => setInstallOpen(false)} />
+      <InstallAgentModal
+        open={!!reconnectNode}
+        mode="reconnect"
+        hostname={reconnectNode?.hostname}
+        onClose={() => setReconnectNode(null)}
+      />
     </div>
   );
 }

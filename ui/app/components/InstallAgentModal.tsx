@@ -6,9 +6,11 @@ import { useNodes } from "~/hooks/useNodes";
 interface InstallAgentModalProps {
   open: boolean;
   onClose: () => void;
+  mode?: "install" | "reconnect";
+  hostname?: string;
 }
 
-export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
+export function InstallAgentModal({ open, onClose, mode = "install", hostname }: InstallAgentModalProps) {
   const { data, isLoading, error, generate } = useAgentInstallCommand();
   const { data: nodesData } = useNodes(undefined, 1, 100);
   const [docker, setDocker] = useState(false);
@@ -38,11 +40,15 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
     }
   };
 
+  const isReconnect = mode === "reconnect";
+
   return (
-    <Modal open={open} title="Install Agent" onClose={onClose}>
+    <Modal open={open} title={isReconnect ? "Reconnect Agent" : "Install Agent"} onClose={onClose}>
       <div className="space-y-5">
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Run the one-liner below on a Linux database server to install and register the Skylex agent.
+          {isReconnect
+            ? `Run the one-liner below on ${hostname || "the disconnected host"} to reconnect its Skylex agent.`
+            : "Run the one-liner below on a Linux database server to install and register the Skylex agent."}
         </p>
 
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-sm text-amber-800 dark:text-amber-300">
@@ -81,7 +87,7 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
         {command && !isLoading && (
           <div className="space-y-2">
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-              Copy this command and run it on the target server
+              Copy this command and run it on {isReconnect ? "the disconnected server" : "the target server"}
             </label>
             <div className="relative">
               <pre className="bg-gray-900 text-gray-100 text-xs p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all pr-20">
@@ -113,7 +119,9 @@ export function InstallAgentModal({ open, onClose }: InstallAgentModalProps) {
             )}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            The Nodes list refreshes automatically. It may take a few seconds for the agent to appear.
+            {isReconnect
+              ? "The Nodes list refreshes automatically. It may take a few seconds for the agent to reconnect."
+              : "The Nodes list refreshes automatically. It may take a few seconds for the agent to appear."}
           </p>
         </div>
       </div>
