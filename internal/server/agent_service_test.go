@@ -203,6 +203,55 @@ func TestAgentService_HeartbeatDoesNotOverwriteDrainedNode(t *testing.T) {
 	}
 }
 
+func TestAgentService_ReportStatusStoresDockerPostgresState(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	nodes := db.NewNodeRepository(conn, log)
+
+	node, err := nodes.Create(context.Background(), "", "docker-node", "10.0.0.1", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(context.Background(), node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewClusterRepository(conn, log), nodes, db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+
+	_, err = svc.ReportStatus(context.Background(), &skylexv1.ReportStatusRequest{
+		AgentId: "agent-1",
+		NodeStatuses: []*skylexv1.NodeStatusReport{{
+			PostgresRunning:         true,
+			PostgresInstalled:       true,
+			PostgresBinVersion:      "16",
+			PostgresVersion:         "PostgreSQL 16.1",
+			PostgresDataInitialized: true,
+			NodeStatusDetail:        "running",
+			InstallationState:       skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED,
+		}},
+	})
+	if err != nil {
+		t.Fatalf("report status: %v", err)
+	}
+
+	updated, err := nodes.GetByID(context.Background(), node.ID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if !updated.PostgresInstalled || !updated.PostgresDataInitialized {
+		t.Fatalf("expected installed initialized postgres state, got installed=%v initialized=%v", updated.PostgresInstalled, updated.PostgresDataInitialized)
+	}
+	if updated.Status != models.NodeStatusOnline {
+		t.Fatalf("expected online status, got %q", updated.Status)
+	}
+	if updated.StatusDetail != "running" {
+		t.Fatalf("expected running status detail, got %q", updated.StatusDetail)
+	}
+	if updated.InstallationState != models.InstallationStateInstalled {
+		t.Fatalf("expected installed state, got %q", updated.InstallationState)
+	}
+}
+
 func TestAgentService_ReportStatusStoresMetricHistory(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

@@ -200,6 +200,24 @@ func TestClusterService_UpdateClusterSettings_RejectInvalidValue(t *testing.T) {
 	}
 }
 
+func TestClusterService_GetClusterSettings_ReturnsDefaults(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := context.Background()
+	nodeID := createIdleTestNode(t, ctx, svc)
+	clusterID := createTestCluster(t, ctx, svc, nodeID)
+
+	settings, err := svc.GetClusterSettings(ctx, &skylexv1.GetClusterSettingsRequest{ClusterId: clusterID})
+	if err != nil {
+		t.Fatalf("get cluster settings: %v", err)
+	}
+	got := settings.GetSettings().GetParameters()
+	for key, want := range defaultClusterSettings {
+		if got[key] != want {
+			t.Fatalf("expected default %s=%q, got %q", key, want, got[key])
+		}
+	}
+}
+
 func TestClusterService_UpdateClusterSettings_PersistsAndQueuesApply(t *testing.T) {
 	_, svc := newClusterServiceTestDeps(t)
 	ctx := context.Background()

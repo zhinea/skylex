@@ -58,6 +58,25 @@ var allowedClusterSettings = map[string]struct{}{
 	"work_mem":        {},
 }
 
+var defaultClusterSettings = map[string]string{
+	"max_connections": "200",
+	"shared_buffers":  "128MB",
+	"wal_level":       "replica",
+	"max_wal_senders": "10",
+	"work_mem":        "4MB",
+}
+
+func clusterSettingsWithDefaults(parameters map[string]string) map[string]string {
+	merged := make(map[string]string, len(defaultClusterSettings)+len(parameters))
+	for key, value := range defaultClusterSettings {
+		merged[key] = value
+	}
+	for key, value := range parameters {
+		merged[key] = value
+	}
+	return merged
+}
+
 // memoryUnitPattern accepts PostgreSQL memory units such as 128MB, 1GB, 256kB.
 var memoryUnitPattern = regexp.MustCompile(`(?i)^\d+\s*(kB|MB|GB|TB|k|m|g|t)?$`)
 
@@ -521,7 +540,7 @@ func (s *ClusterService) GetClusterSettings(ctx context.Context, req *skylexv1.G
 	}
 
 	return &skylexv1.GetClusterSettingsResponse{
-		Settings: &skylexv1.ClusterSettings{Parameters: parameters},
+		Settings: &skylexv1.ClusterSettings{Parameters: clusterSettingsWithDefaults(parameters)},
 	}, nil
 }
 

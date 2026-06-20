@@ -207,7 +207,17 @@ func (p *Instance) IsDataDirInitialized() bool {
 }
 
 func (p *Instance) IsInitialized() bool {
-	_, err := os.Stat(filepath.Join(p.DataDir, "PG_VERSION"))
+	if _, err := os.Stat(filepath.Join(p.DataDir, "PG_VERSION")); err == nil {
+		return true
+	}
+
+	if !p.dockerEnabled() {
+		return false
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	err := p.dockerRun(ctx, "exec", p.Docker.ContainerName, "test", "-f", filepath.Join(p.pgDataDir(), "PG_VERSION")).Run()
 	return err == nil
 }
 

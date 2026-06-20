@@ -182,6 +182,15 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 	pgInstalled, pgBinVersion := postgres.DetectInstallation(ctx)
 	pgDataInitialized := a.pg.IsDataDirInitialized()
 	installationState, conflictDetails := a.installationReport()
+	if a.pg.UsesDocker() {
+		pgInstalled = detectDockerAvailable(ctx)
+		if pgBinVersion == "" {
+			pgBinVersion = a.cfg.PGVersion
+		}
+		if postgresRunning {
+			pgDataInitialized = true
+		}
+	}
 
 	start := time.Now()
 	_, err := a.client.Heartbeat(ctx, &skylexv1.HeartbeatRequest{
@@ -212,9 +221,6 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 		report.PostgresVersion = pgVersion
 		report.ReplicationLagBytes = lag
 		report.ReplicationLagSeconds = lag
-	} else if a.pg.UsesDocker() {
-		report.PostgresInstalled = detectDockerAvailable(ctx)
-		report.PostgresBinVersion = a.cfg.PGVersion
 	}
 
 	_, err = a.client.ReportStatus(ctx, &skylexv1.ReportStatusRequest{
