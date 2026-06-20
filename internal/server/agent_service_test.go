@@ -252,6 +252,110 @@ func TestAgentService_ReportStatusStoresDockerPostgresState(t *testing.T) {
 	}
 }
 
+func TestAgentService_ReportCommandResultMarksDockerInstallVisible(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	clusters := db.NewClusterRepository(conn, log)
+	nodes := db.NewNodeRepository(conn, log)
+	commands := db.NewAgentCommandRepository(conn, log)
+
+	cluster, err := clusters.Create(context.Background(), "docker-cluster", "", "/var/lib/postgresql/data", models.EnginePostgreSQL, "16", models.ReplicationAsync, 0, false, nil)
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+	node, err := nodes.Create(context.Background(), cluster.ID, "docker-node", "10.0.0.1", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(context.Background(), node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+	if err := nodes.UpdateInstallationState(context.Background(), node.ID, models.InstallationStateInstalling, ""); err != nil {
+		t.Fatalf("update installation state: %v", err)
+	}
+	cmd, err := commands.Create(context.Background(), "agent-1", node.ID, "pg_install_docker", "")
+	if err != nil {
+		t.Fatalf("create command: %v", err)
+	}
+
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, clusters, nodes, commands, db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+	_, err = svc.ReportCommandResult(context.Background(), &skylexv1.ReportCommandResultRequest{
+		AgentId:   "agent-1",
+		CommandId: cmd.ID,
+		Success:   true,
+		Output:    "PostgreSQL Docker container installed",
+	})
+	if err != nil {
+		t.Fatalf("report command result: %v", err)
+	}
+
+	updated, err := nodes.GetByID(context.Background(), node.ID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if !updated.PostgresInstalled {
+		t.Fatal("expected postgres_installed to be true after successful docker install command")
+	}
+	if updated.PostgresVersion != "16" {
+		t.Fatalf("expected postgres version 16, got %q", updated.PostgresVersion)
+	}
+	if updated.InstallationState != models.InstallationStateInstalled {
+		t.Fatalf("expected installed state, got %q", updated.InstallationState)
+	}
+}
+
+func TestAgentService_ReportCommandResultMarksPostgresRunningVisible(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	clusters := db.NewClusterRepository(conn, log)
+	nodes := db.NewNodeRepository(conn, log)
+	commands := db.NewAgentCommandRepository(conn, log)
+
+	cluster, err := clusters.Create(context.Background(), "docker-cluster", "", "/var/lib/postgresql/data", models.EnginePostgreSQL, "16", models.ReplicationAsync, 0, false, nil)
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+	node, err := nodes.Create(context.Background(), cluster.ID, "docker-node", "10.0.0.1", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(context.Background(), node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+	if err := nodes.UpdateInstallationState(context.Background(), node.ID, models.InstallationStateInstalled, ""); err != nil {
+		t.Fatalf("update installation state: %v", err)
+	}
+	cmd, err := commands.Create(context.Background(), "agent-1", node.ID, "pg_start", "")
+	if err != nil {
+		t.Fatalf("create command: %v", err)
+	}
+
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, clusters, nodes, commands, db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+	_, err = svc.ReportCommandResult(context.Background(), &skylexv1.ReportCommandResultRequest{
+		AgentId:   "agent-1",
+		CommandId: cmd.ID,
+		Success:   true,
+		Output:    "PostgreSQL started on port 5432",
+	})
+	if err != nil {
+		t.Fatalf("report command result: %v", err)
+	}
+
+	updated, err := nodes.GetByID(context.Background(), node.ID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if !updated.PostgresInstalled || !updated.PostgresDataInitialized {
+		t.Fatalf("expected installed initialized state, got installed=%v initialized=%v", updated.PostgresInstalled, updated.PostgresDataInitialized)
+	}
+	if updated.Status != models.NodeStatusOnline {
+		t.Fatalf("expected online status, got %q", updated.Status)
+	}
+	if updated.StatusDetail != "healthy" {
+		t.Fatalf("expected healthy status detail, got %q", updated.StatusDetail)
+	}
+}
+
 func TestAgentService_ReportStatusStoresMetricHistory(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

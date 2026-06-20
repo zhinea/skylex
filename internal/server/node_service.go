@@ -435,6 +435,9 @@ func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
 	if metric == nil {
 		metric = &models.NodeMetric{}
 	}
+	postgresInstalled := effectivePostgresInstalled(n)
+	postgresDataInitialized := effectivePostgresDataInitialized(n)
+	statusDetail := effectiveStatusDetail(n, postgresInstalled, postgresDataInitialized)
 	return &skylexv1.Node{
 		Id:                      n.ID,
 		ClusterId:               n.ClusterID,
@@ -448,10 +451,10 @@ func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
 		CreatedAt:               timestamppb.New(n.CreatedAt),
 		UpdatedAt:               timestamppb.New(n.UpdatedAt),
 		Status:                  string(n.Status),
-		PostgresInstalled:       n.PostgresInstalled,
+		PostgresInstalled:       postgresInstalled,
 		PostgresVersion:         n.PostgresVersion,
-		PostgresDataInitialized: n.PostgresDataInitialized,
-		StatusDetail:            n.StatusDetail,
+		PostgresDataInitialized: postgresDataInitialized,
+		StatusDetail:            statusDetail,
 		ServiceLocation:         serviceLocation,
 		DockerAvailable:         n.DockerAvailable,
 		InstallationState:       protoInstallationState(n.InstallationState),
@@ -479,6 +482,37 @@ func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
 		UptimeSeconds:           metric.UptimeSeconds,
 		LatestMetric:            nodeMetricToProto(n.LatestMetrics),
 	}
+}
+
+func effectivePostgresInstalled(n *models.Node) bool {
+	return n.PostgresInstalled || n.InstallationState == models.InstallationStateInstalled || n.InstallationState == models.InstallationStateAdopted
+}
+
+func effectivePostgresDataInitialized(n *models.Node) bool {
+	return n.PostgresDataInitialized
+}
+
+func effectiveStatusDetail(n *models.Node, postgresInstalled, postgresDataInitialized bool) string {
+	if n.StatusDetail != "waiting_for_postgres" && n.StatusDetail != "initializing_data_directory" {
+		return n.StatusDetail
+	}
+	if !postgresInstalled {
+		return n.StatusDetail
+	}
+	if !postgresDataInitialized {
+		return "initializing_data_directory"
+	}
+	if n.Status == models.NodeStatusOnline {
+		if n.Role == models.NodeRoleReplica {
+			return "syncing_replica"
+		}
+		return "healthy"
+	}
+	return "stopped"
+}
+
+func dockerProvisioningInstalled(n *models.Node) bool {
+	return n.ServiceLocation == models.ServiceLocationDocker && (n.InstallationState == models.InstallationStateInstalled || n.InstallationState == models.InstallationStateAdopted)
 }
 
 func nodeMetricToProto(m *models.NodeMetric) *skylexv1.NodeMetric {

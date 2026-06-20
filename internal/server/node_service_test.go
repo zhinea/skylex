@@ -133,6 +133,38 @@ func TestNodeService_ListNodeMetricsReturnsRecentSamplesAscending(t *testing.T) 
 	}
 }
 
+func TestNodeService_ListNodesUsesInstallationStateForInstalledDisplay(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	nodes := db.NewNodeRepository(conn, log)
+	clusters := db.NewClusterRepository(conn, log)
+
+	cluster, err := clusters.Create(context.Background(), "cluster-1", "", "/var/lib/postgresql/data", models.EnginePostgreSQL, "16", models.ReplicationAsync, 0, false, nil)
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+	node, err := nodes.Create(context.Background(), cluster.ID, "test-node", "10.0.0.1", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateInstallationState(context.Background(), node.ID, models.InstallationStateInstalled, ""); err != nil {
+		t.Fatalf("update installation state: %v", err)
+	}
+
+	svc := NewNodeService(nodes, clusters, db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), 30*time.Second, log)
+	resp, err := svc.ListNodes(context.Background(), &skylexv1.ListNodesRequest{ClusterId: cluster.ID})
+	if err != nil {
+		t.Fatalf("list nodes: %v", err)
+	}
+	got := resp.GetNodes()
+	if len(got) != 1 {
+		t.Fatalf("expected one node, got %d", len(got))
+	}
+	if !got[0].GetPostgresInstalled() {
+		t.Fatal("expected proto postgres_installed to be true from installed provisioning state")
+	}
+}
+
 func TestAgentService_ReportAgentDeactivateDeletesNode(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

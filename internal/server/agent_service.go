@@ -194,15 +194,24 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 		}
 
 		// Store PostgreSQL installation/health state whenever the agent reports it.
-		if nodeStatus.GetPostgresInstalled() || nodeStatus.GetPostgresBinVersion() != "" {
+		if nodeStatus.GetPostgresInstalled() || nodeStatus.GetPostgresBinVersion() != "" || dockerProvisioningInstalled(node) {
+			pgInstalled := nodeStatus.GetPostgresInstalled()
+			pgDataInitialized := nodeStatus.GetPostgresDataInitialized()
 			pgVersion := nodeStatus.GetPostgresBinVersion()
 			if pgVersion == "" {
 				pgVersion = nodeStatus.GetPostgresVersion()
 			}
+			if dockerProvisioningInstalled(node) {
+				pgInstalled = true
+				pgDataInitialized = pgDataInitialized || node.PostgresDataInitialized
+				if pgVersion == "" {
+					pgVersion = node.PostgresVersion
+				}
+			}
 			if err := s.nodes.UpdatePostgresStatus(ctx, node.ID,
-				nodeStatus.GetPostgresInstalled(),
+				pgInstalled,
 				pgVersion,
-				nodeStatus.GetPostgresDataInitialized(),
+				pgDataInitialized,
 			); err != nil {
 				s.log.Warn("update node postgres status (report)", "error", err, "node_id", node.ID)
 			}
@@ -391,13 +400,61 @@ func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, comm
 			return fmt.Errorf("unknown preflight state %q", result.State)
 		}
 	case "pg_install_native", "pg_install_docker":
+		if err := s.markPostgresInstalled(ctx, node); err != nil {
+			return err
+		}
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalled, "")
+	case "pg_init", "pg_basebackup":
+		return s.markPostgresDataInitialized(ctx, node)
+	case "pg_start":
+		if err := s.markPostgresDataInitialized(ctx, node); err != nil {
+			return err
+		}
+		if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline); err != nil {
+			return err
+		}
+		return s.nodes.UpdateStatusDetail(ctx, node.ID, computeNodeStatusDetail(node, &skylexv1.NodeStatusReport{
+			PostgresInstalled:       true,
+			PostgresDataInitialized: true,
+			PostgresRunning:         true,
+		}))
 	case "pg_purge_native":
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, "")
 	case "pg_adopt_native":
+		if err := s.markPostgresInstalled(ctx, node); err != nil {
+			return err
+		}
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateAdopted, "")
 	}
 	return nil
+}
+
+func (s *AgentService) markPostgresInstalled(ctx context.Context, node *models.Node) error {
+	version := node.PostgresVersion
+	if version == "" && node.ClusterID != "" && s.clusters != nil {
+		cluster, err := s.clusters.GetByID(ctx, node.ClusterID)
+		if err != nil {
+			return fmt.Errorf("get cluster version: %w", err)
+		}
+		if cluster != nil {
+			version = cluster.Version
+		}
+	}
+	return s.nodes.UpdatePostgresStatus(ctx, node.ID, true, version, node.PostgresDataInitialized)
+}
+
+func (s *AgentService) markPostgresDataInitialized(ctx context.Context, node *models.Node) error {
+	version := node.PostgresVersion
+	if version == "" && node.ClusterID != "" && s.clusters != nil {
+		cluster, err := s.clusters.GetByID(ctx, node.ClusterID)
+		if err != nil {
+			return fmt.Errorf("get cluster version: %w", err)
+		}
+		if cluster != nil {
+			version = cluster.Version
+		}
+	}
+	return s.nodes.UpdatePostgresStatus(ctx, node.ID, true, version, true)
 }
 
 func (s *AgentService) queueNativeProvisioningContinuation(ctx context.Context, node *models.Node, version string, skipInstall bool) error {
