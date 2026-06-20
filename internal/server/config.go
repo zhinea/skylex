@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -99,7 +100,7 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	k.Load(env.Provider("SKYLEX_", ".", func(s string) string {
-		return s
+		return configEnvKey(s)
 	}), nil)
 
 	var cfg Config
@@ -117,6 +118,15 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+func configEnvKey(key string) string {
+	key = strings.ToLower(strings.TrimPrefix(key, "SKYLEX_"))
+	section, rest, ok := strings.Cut(key, "_")
+	if !ok {
+		return key
+	}
+	return section + "." + rest
 }
 
 func (c *Config) setDefaults() error {

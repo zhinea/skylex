@@ -32,4 +32,5 @@ for _ in $(seq 1 30); do
 done
 
 echo "[dev] starting skylex server..."
+export SKYLEX_SERVER_DEV_MODE=true
 air
