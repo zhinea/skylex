@@ -1371,13 +1371,12 @@ func (*GetAgentInstallCommandRequest) Descriptor() ([]byte, []int) {
 }
 
 type GetAgentInstallCommandResponse struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	ScriptUrl        string                 `protobuf:"bytes,1,opt,name=script_url,json=scriptUrl,proto3" json:"script_url,omitempty"`
-	ServerAddr       string                 `protobuf:"bytes,2,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
-	Token            string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
-	AgentDownloadUrl string                 `protobuf:"bytes,4,opt,name=agent_download_url,json=agentDownloadUrl,proto3" json:"agent_download_url,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ScriptUrl     string                 `protobuf:"bytes,1,opt,name=script_url,json=scriptUrl,proto3" json:"script_url,omitempty"`
+	ServerAddr    string                 `protobuf:"bytes,2,opt,name=server_addr,json=serverAddr,proto3" json:"server_addr,omitempty"`
+	Token         string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetAgentInstallCommandResponse) Reset() {
@@ -1427,13 +1426,6 @@ func (x *GetAgentInstallCommandResponse) GetServerAddr() string {
 func (x *GetAgentInstallCommandResponse) GetToken() string {
 	if x != nil {
 		return x.Token
-	}
-	return ""
-}
-
-func (x *GetAgentInstallCommandResponse) GetAgentDownloadUrl() string {
-	if x != nil {
-		return x.AgentDownloadUrl
 	}
 	return ""
 }
@@ -1524,14 +1516,13 @@ const file_skylex_v1_auth_proto_rawDesc = "" +
 	"\x17DeleteAgentTokenRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x1a\n" +
 	"\x18DeleteAgentTokenResponse\"\x1f\n" +
-	"\x1dGetAgentInstallCommandRequest\"\xa4\x01\n" +
+	"\x1dGetAgentInstallCommandRequest\"v\n" +
 	"\x1eGetAgentInstallCommandResponse\x12\x1d\n" +
 	"\n" +
 	"script_url\x18\x01 \x01(\tR\tscriptUrl\x12\x1f\n" +
 	"\vserver_addr\x18\x02 \x01(\tR\n" +
 	"serverAddr\x12\x14\n" +
-	"\x05token\x18\x03 \x01(\tR\x05token\x12,\n" +
-	"\x12agent_download_url\x18\x04 \x01(\tR\x10agentDownloadUrl*P\n" +
+	"\x05token\x18\x03 \x01(\tR\x05token*P\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +

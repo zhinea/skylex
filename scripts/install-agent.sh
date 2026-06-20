@@ -18,6 +18,7 @@ set -euo pipefail
 REPO="zhinea/skylex"
 GITHUB_BASE="https://github.com/${REPO}/releases/download"
 REGISTRY_BASE="ghcr.io/${REPO}"
+AGENT_BINARY_URL="@@AGENT_BINARY_URL@@"
 
 SERVER_ADDR=""
 TOKEN=""
@@ -28,7 +29,6 @@ VERSION="@@VERSION@@"
 USER="skylex"
 SKIP_USER=false
 DOCKER=false
-DOWNLOAD_URL=""
 
 log() { echo "[skylex] $*"; }
 fail() { echo "[skylex] error: $*" >&2; exit 1; }
@@ -49,7 +49,6 @@ Optional:
   --user USER         system user to create for the agent (default: skylex)
   --no-user           do not create a dedicated system user
   --docker            run the agent in a Docker container instead of systemd
-  --download-url URL  download the binary or image archive from a custom URL
   -h, --help          show this help
 EOF
 }
@@ -65,7 +64,6 @@ while [[ $# -gt 0 ]]; do
     --user) USER="$2"; shift 2 ;;
     --no-user) SKIP_USER=true; shift ;;
     --docker) DOCKER=true; shift ;;
-    --download-url) DOWNLOAD_URL="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) fail "unknown option: $1"; ;;
   esac
@@ -107,9 +105,6 @@ if $DOCKER; then
   fi
 
   IMAGE="${REGISTRY_BASE}/skylex-agent:${VERSION}"
-  if [[ -n "$DOWNLOAD_URL" ]]; then
-    IMAGE="$DOWNLOAD_URL"
-  fi
 
   docker rm -f skylex-agent >/dev/null 2>&1 || true
   docker run -d \
@@ -139,9 +134,9 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 BINARY="${TMP_DIR}/skylex-agent"
-if [[ -n "$DOWNLOAD_URL" ]]; then
-  log "downloading binary from ${DOWNLOAD_URL}"
-  curl -fsSL -o "$BINARY" "$DOWNLOAD_URL"
+if [[ "$AGENT_BINARY_URL" != @@*@@ && -n "$AGENT_BINARY_URL" ]]; then
+  log "downloading binary from ${AGENT_BINARY_URL}"
+  curl -fsSL -o "$BINARY" "$AGENT_BINARY_URL"
 else
   URL="${GITHUB_BASE}/v${VERSION}/skylex-agent-${OS}-${ARCH}"
   log "downloading binary from ${URL}"

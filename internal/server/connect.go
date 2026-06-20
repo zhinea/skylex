@@ -609,7 +609,7 @@ func (s *Server) serveAgentInstallScript(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "text/x-shellscript")
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(installScript()))
+	w.Write([]byte(installScriptWithAgentBinaryURL(devAgentBinaryURL(s.cfg.Server.HTTPPort))))
 }
 
 func (s *Server) serveAgentBinary(w http.ResponseWriter, r *http.Request) {

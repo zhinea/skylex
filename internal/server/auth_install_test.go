@@ -91,9 +91,6 @@ func TestGetAgentInstallCommandDevModeUsesLocalScript(t *testing.T) {
 	if resp.ScriptUrl != want {
 		t.Fatalf("expected script_url %q, got %q", want, resp.ScriptUrl)
 	}
-	if resp.AgentDownloadUrl != "http://localhost:18080/skylex-agent" {
-		t.Fatalf("expected local agent download URL, got %q", resp.AgentDownloadUrl)
-	}
 }
 
 func TestLoadConfigReadsNestedSkyLexEnvVars(t *testing.T) {
