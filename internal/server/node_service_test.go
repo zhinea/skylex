@@ -99,6 +99,40 @@ func TestNodeService_DeleteNodeQueuesAgentDeactivation(t *testing.T) {
 	}
 }
 
+func TestNodeService_ListNodeMetricsReturnsRecentSamplesAscending(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	nodes := db.NewNodeRepository(conn, log)
+
+	node, err := nodes.Create(context.Background(), "", "test-node", "10.0.0.1", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	base := time.Now().UTC().Add(-time.Minute)
+	for i := 0; i < 3; i++ {
+		if err := nodes.InsertMetric(context.Background(), &models.NodeMetric{
+			NodeID:          node.ID,
+			RecordedAt:      base.Add(time.Duration(i) * time.Second),
+			CPUUsagePercent: float64(i + 1),
+		}); err != nil {
+			t.Fatalf("insert metric: %v", err)
+		}
+	}
+
+	svc := NewNodeService(nodes, db.NewClusterRepository(conn, log), db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), 30*time.Second, log)
+	resp, err := svc.ListNodeMetrics(context.Background(), &skylexv1.ListNodeMetricsRequest{NodeId: node.ID, Limit: 2})
+	if err != nil {
+		t.Fatalf("list node metrics: %v", err)
+	}
+	metrics := resp.GetMetrics()
+	if len(metrics) != 2 {
+		t.Fatalf("expected two metrics, got %d", len(metrics))
+	}
+	if metrics[0].GetCpuUsagePercent() != 2 || metrics[1].GetCpuUsagePercent() != 3 {
+		t.Fatalf("expected newest two samples in ascending order, got %#v", metrics)
+	}
+}
+
 func TestAgentService_ReportAgentDeactivateDeletesNode(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

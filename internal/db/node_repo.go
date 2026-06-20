@@ -18,7 +18,9 @@ type NodeRepository struct {
 	log  *slog.Logger
 }
 
-const nodeSelectColumns = `id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details, agent_latency_ms, os, platform, platform_version, kernel_version, architecture, cpu_cores, cpu_usage_percent, load_average_1m, load_average_5m, load_average_15m, memory_total_bytes, memory_used_bytes, memory_available_bytes, memory_usage_percent, disk_total_bytes, disk_used_bytes, disk_available_bytes, disk_usage_percent, uptime_seconds`
+const nodeSelectColumns = `id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details, agent_latency_ms`
+
+const nodeMetricSelectColumns = `id, node_id, recorded_at, os, platform, platform_version, kernel_version, architecture, cpu_cores, cpu_usage_percent, load_average_1m, load_average_5m, load_average_15m, memory_total_bytes, memory_used_bytes, memory_available_bytes, memory_usage_percent, disk_total_bytes, disk_used_bytes, disk_available_bytes, disk_usage_percent, uptime_seconds`
 
 func NewNodeRepository(conn *sql.DB, log *slog.Logger) *NodeRepository {
 	return &NodeRepository{conn: conn, log: log}
@@ -67,7 +69,11 @@ func (r *NodeRepository) Create(ctx context.Context, clusterID, hostname, addres
 func (r *NodeRepository) GetByID(ctx context.Context, id string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE id = ?`), id)
-	return scanNodeRow(row)
+	node, err := scanNodeRow(row)
+	if err != nil || node == nil {
+		return node, err
+	}
+	return node, r.attachLatestMetrics(ctx, []*models.Node{node})
 }
 
 func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, offset, limit int) ([]*models.Node, int, error) {
@@ -107,6 +113,9 @@ func (r *NodeRepository) ListByCluster(ctx context.Context, clusterID string, of
 	}
 	if err := rows.Err(); err != nil {
 		return nil, 0, fmt.Errorf("iterate nodes: %w", err)
+	}
+	if err := r.attachLatestMetrics(ctx, nodes); err != nil {
+		return nil, 0, err
 	}
 
 	return nodes, total, nil
@@ -196,7 +205,7 @@ func (r *NodeRepository) GetByIDs(ctx context.Context, ids []string) ([]*models.
 		return nil, fmt.Errorf("node(s) not found: %s", strings.Join(missing, ", "))
 	}
 
-	return result, nil
+	return result, r.attachLatestMetrics(ctx, result)
 }
 
 // AssignToCluster puts an idle node into a cluster with the given role.
@@ -219,7 +228,11 @@ func (r *NodeRepository) GetPrimary(ctx context.Context, clusterID string) (*mod
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE cluster_id = ? AND role = ? LIMIT 1`),
 		clusterID, models.NodeRolePrimary)
-	return scanNodeRow(row)
+	node, err := scanNodeRow(row)
+	if err != nil || node == nil {
+		return node, err
+	}
+	return node, r.attachLatestMetrics(ctx, []*models.Node{node})
 }
 
 func (r *NodeRepository) GetReplicas(ctx context.Context, clusterID string) ([]*models.Node, error) {
@@ -239,7 +252,10 @@ func (r *NodeRepository) GetReplicas(ctx context.Context, clusterID string) ([]*
 		}
 		nodes = append(nodes, n)
 	}
-	return nodes, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return nodes, r.attachLatestMetrics(ctx, nodes)
 }
 
 func (r *NodeRepository) Delete(ctx context.Context, id string) error {
@@ -263,13 +279,33 @@ func (r *NodeRepository) UpdateAgentID(ctx context.Context, id, agentID string) 
 func (r *NodeRepository) GetByHostname(ctx context.Context, hostname string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE hostname = ? LIMIT 1`), hostname)
-	return scanNodeRow(row)
+	node, err := scanNodeRow(row)
+	if err != nil || node == nil {
+		return node, err
+	}
+	return node, r.attachLatestMetrics(ctx, []*models.Node{node})
 }
 
 func (r *NodeRepository) GetByAgentID(ctx context.Context, agentID string) (*models.Node, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT `+nodeSelectColumns+` FROM nodes WHERE agent_id = ? LIMIT 1`), agentID)
-	return scanNodeRow(row)
+	node, err := scanNodeRow(row)
+	if err != nil || node == nil {
+		return node, err
+	}
+	return node, r.attachLatestMetrics(ctx, []*models.Node{node})
+}
+
+func (r *NodeRepository) GetHostnameByID(ctx context.Context, id string) (string, error) {
+	var hostname string
+	err := r.conn.QueryRowContext(ctx, Rebind(`SELECT hostname FROM nodes WHERE id = ?`), id).Scan(&hostname)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("get node hostname: %w", err)
+	}
+	return hostname, nil
 }
 
 func scanNodeRow(row *sql.Row) (*models.Node, error) {
@@ -280,11 +316,7 @@ func scanNodeRow(row *sql.Row) (*models.Node, error) {
 	err := row.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
-		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS,
-		&n.OS, &n.Platform, &n.PlatformVersion, &n.KernelVersion, &n.Architecture, &n.CPUCores, &n.CPUUsagePercent,
-		&n.LoadAverage1M, &n.LoadAverage5M, &n.LoadAverage15M, &n.MemoryTotalBytes, &n.MemoryUsedBytes,
-		&n.MemoryAvailableBytes, &n.MemoryUsagePercent, &n.DiskTotalBytes, &n.DiskUsedBytes, &n.DiskAvailableBytes,
-		&n.DiskUsagePercent, &n.UptimeSeconds)
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -305,11 +337,7 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
-		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS,
-		&n.OS, &n.Platform, &n.PlatformVersion, &n.KernelVersion, &n.Architecture, &n.CPUCores, &n.CPUUsagePercent,
-		&n.LoadAverage1M, &n.LoadAverage5M, &n.LoadAverage15M, &n.MemoryTotalBytes, &n.MemoryUsedBytes,
-		&n.MemoryAvailableBytes, &n.MemoryUsagePercent, &n.DiskTotalBytes, &n.DiskUsedBytes, &n.DiskAvailableBytes,
-		&n.DiskUsagePercent, &n.UptimeSeconds); err != nil {
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS); err != nil {
 		return nil, fmt.Errorf("scan node row: %w", err)
 	}
 
@@ -318,18 +346,110 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	return &n, nil
 }
 
-func (r *NodeRepository) UpdateSystemMetrics(ctx context.Context, id string, metrics models.Node) error {
+func (r *NodeRepository) InsertMetric(ctx context.Context, metric *models.NodeMetric) error {
+	if metric.ID == "" {
+		metric.ID = id.New()
+	}
+	if metric.RecordedAt.IsZero() {
+		metric.RecordedAt = time.Now().UTC()
+	}
 	_, err := r.conn.ExecContext(ctx,
-		Rebind(`UPDATE nodes SET os = ?, platform = ?, platform_version = ?, kernel_version = ?, architecture = ?, cpu_cores = ?, cpu_usage_percent = ?, load_average_1m = ?, load_average_5m = ?, load_average_15m = ?, memory_total_bytes = ?, memory_used_bytes = ?, memory_available_bytes = ?, memory_usage_percent = ?, disk_total_bytes = ?, disk_used_bytes = ?, disk_available_bytes = ?, disk_usage_percent = ?, uptime_seconds = ?, updated_at = ? WHERE id = ?`),
-		metrics.OS, metrics.Platform, metrics.PlatformVersion, metrics.KernelVersion, metrics.Architecture,
-		metrics.CPUCores, metrics.CPUUsagePercent, metrics.LoadAverage1M, metrics.LoadAverage5M, metrics.LoadAverage15M,
-		metrics.MemoryTotalBytes, metrics.MemoryUsedBytes, metrics.MemoryAvailableBytes, metrics.MemoryUsagePercent,
-		metrics.DiskTotalBytes, metrics.DiskUsedBytes, metrics.DiskAvailableBytes, metrics.DiskUsagePercent,
-		metrics.UptimeSeconds, time.Now().UTC(), id)
+		Rebind(`INSERT INTO node_metrics (`+nodeMetricSelectColumns+`)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+		metric.ID, metric.NodeID, metric.RecordedAt, metric.OS, metric.Platform, metric.PlatformVersion, metric.KernelVersion, metric.Architecture,
+		metric.CPUCores, metric.CPUUsagePercent, metric.LoadAverage1M, metric.LoadAverage5M, metric.LoadAverage15M,
+		metric.MemoryTotalBytes, metric.MemoryUsedBytes, metric.MemoryAvailableBytes, metric.MemoryUsagePercent,
+		metric.DiskTotalBytes, metric.DiskUsedBytes, metric.DiskAvailableBytes, metric.DiskUsagePercent, metric.UptimeSeconds)
 	if err != nil {
-		return fmt.Errorf("update node system metrics: %w", err)
+		return fmt.Errorf("insert node metric: %w", err)
 	}
 	return nil
+}
+
+func (r *NodeRepository) ListMetrics(ctx context.Context, nodeID string, since time.Time, limit int) ([]*models.NodeMetric, error) {
+	if limit <= 0 || limit > 1000 {
+		limit = 300
+	}
+	query := `SELECT ` + nodeMetricSelectColumns + ` FROM (SELECT ` + nodeMetricSelectColumns + ` FROM node_metrics WHERE node_id = ?`
+	args := []interface{}{nodeID}
+	if !since.IsZero() {
+		query += ` AND recorded_at >= ?`
+		args = append(args, since)
+	}
+	query += ` ORDER BY recorded_at DESC LIMIT ?) ORDER BY recorded_at ASC`
+	args = append(args, limit)
+
+	rows, err := r.conn.QueryContext(ctx, Rebind(query), args...)
+	if err != nil {
+		return nil, fmt.Errorf("query node metrics: %w", err)
+	}
+	defer rows.Close()
+
+	metrics := make([]*models.NodeMetric, 0, limit)
+	for rows.Next() {
+		m, err := scanNodeMetricRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		metrics = append(metrics, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate node metrics: %w", err)
+	}
+	return metrics, nil
+}
+
+func (r *NodeRepository) attachLatestMetrics(ctx context.Context, nodes []*models.Node) error {
+	if len(nodes) == 0 {
+		return nil
+	}
+	ids := make([]string, 0, len(nodes))
+	byID := make(map[string]*models.Node, len(nodes))
+	for _, n := range nodes {
+		ids = append(ids, n.ID)
+		byID[n.ID] = n
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf(`SELECT %s FROM node_metrics nm
+		WHERE nm.node_id IN (%s)
+		AND nm.id = (SELECT id FROM node_metrics WHERE node_id = nm.node_id ORDER BY recorded_at DESC, id DESC LIMIT 1)`, nodeMetricSelectColumns, strings.Join(placeholders, ", "))
+	rows, err := r.conn.QueryContext(ctx, Rebind(query), args...)
+	if err != nil {
+		return fmt.Errorf("query latest node metrics: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		m, err := scanNodeMetricRow(rows)
+		if err != nil {
+			return err
+		}
+		if n := byID[m.NodeID]; n != nil {
+			n.LatestMetrics = m
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate latest node metrics: %w", err)
+	}
+	return nil
+}
+
+func scanNodeMetricRow(rows *sql.Rows) (*models.NodeMetric, error) {
+	var m models.NodeMetric
+	if err := rows.Scan(&m.ID, &m.NodeID, &m.RecordedAt, &m.OS, &m.Platform, &m.PlatformVersion, &m.KernelVersion, &m.Architecture,
+		&m.CPUCores, &m.CPUUsagePercent, &m.LoadAverage1M, &m.LoadAverage5M, &m.LoadAverage15M,
+		&m.MemoryTotalBytes, &m.MemoryUsedBytes, &m.MemoryAvailableBytes, &m.MemoryUsagePercent,
+		&m.DiskTotalBytes, &m.DiskUsedBytes, &m.DiskAvailableBytes, &m.DiskUsagePercent, &m.UptimeSeconds); err != nil {
+		return nil, fmt.Errorf("scan node metric row: %w", err)
+	}
+	return &m, nil
 }
 
 func (r *NodeRepository) UpdateInstallationState(ctx context.Context, id string, state models.InstallationState, conflictDetails string) error {

@@ -69,6 +69,9 @@ const (
 	NodeServiceListNodesProcedure = "/skylex.v1.NodeService/ListNodes"
 	// NodeServiceGetNodeProcedure is the fully-qualified name of the NodeService's GetNode RPC.
 	NodeServiceGetNodeProcedure = "/skylex.v1.NodeService/GetNode"
+	// NodeServiceListNodeMetricsProcedure is the fully-qualified name of the NodeService's
+	// ListNodeMetrics RPC.
+	NodeServiceListNodeMetricsProcedure = "/skylex.v1.NodeService/ListNodeMetrics"
 	// NodeServiceDrainNodeProcedure is the fully-qualified name of the NodeService's DrainNode RPC.
 	NodeServiceDrainNodeProcedure = "/skylex.v1.NodeService/DrainNode"
 	// NodeServiceRejoinNodeProcedure is the fully-qualified name of the NodeService's RejoinNode RPC.
@@ -391,6 +394,7 @@ func (UnimplementedClusterServiceHandler) UpdateClusterSettings(context.Context,
 type NodeServiceClient interface {
 	ListNodes(context.Context, *connect.Request[v1.ListNodesRequest]) (*connect.Response[v1.ListNodesResponse], error)
 	GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error)
+	ListNodeMetrics(context.Context, *connect.Request[v1.ListNodeMetricsRequest]) (*connect.Response[v1.ListNodeMetricsResponse], error)
 	DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error)
 	RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error)
 	DeleteNode(context.Context, *connect.Request[v1.DeleteNodeRequest]) (*connect.Response[v1.DeleteNodeResponse], error)
@@ -419,6 +423,12 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			httpClient,
 			baseURL+NodeServiceGetNodeProcedure,
 			connect.WithSchema(nodeServiceMethods.ByName("GetNode")),
+			connect.WithClientOptions(opts...),
+		),
+		listNodeMetrics: connect.NewClient[v1.ListNodeMetricsRequest, v1.ListNodeMetricsResponse](
+			httpClient,
+			baseURL+NodeServiceListNodeMetricsProcedure,
+			connect.WithSchema(nodeServiceMethods.ByName("ListNodeMetrics")),
 			connect.WithClientOptions(opts...),
 		),
 		drainNode: connect.NewClient[v1.DrainNodeRequest, v1.DrainNodeResponse](
@@ -458,6 +468,7 @@ func NewNodeServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 type nodeServiceClient struct {
 	listNodes                   *connect.Client[v1.ListNodesRequest, v1.ListNodesResponse]
 	getNode                     *connect.Client[v1.GetNodeRequest, v1.GetNodeResponse]
+	listNodeMetrics             *connect.Client[v1.ListNodeMetricsRequest, v1.ListNodeMetricsResponse]
 	drainNode                   *connect.Client[v1.DrainNodeRequest, v1.DrainNodeResponse]
 	rejoinNode                  *connect.Client[v1.RejoinNodeRequest, v1.RejoinNodeResponse]
 	deleteNode                  *connect.Client[v1.DeleteNodeRequest, v1.DeleteNodeResponse]
@@ -473,6 +484,11 @@ func (c *nodeServiceClient) ListNodes(ctx context.Context, req *connect.Request[
 // GetNode calls skylex.v1.NodeService.GetNode.
 func (c *nodeServiceClient) GetNode(ctx context.Context, req *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error) {
 	return c.getNode.CallUnary(ctx, req)
+}
+
+// ListNodeMetrics calls skylex.v1.NodeService.ListNodeMetrics.
+func (c *nodeServiceClient) ListNodeMetrics(ctx context.Context, req *connect.Request[v1.ListNodeMetricsRequest]) (*connect.Response[v1.ListNodeMetricsResponse], error) {
+	return c.listNodeMetrics.CallUnary(ctx, req)
 }
 
 // DrainNode calls skylex.v1.NodeService.DrainNode.
@@ -504,6 +520,7 @@ func (c *nodeServiceClient) ListNodeCommandLogs(ctx context.Context, req *connec
 type NodeServiceHandler interface {
 	ListNodes(context.Context, *connect.Request[v1.ListNodesRequest]) (*connect.Response[v1.ListNodesResponse], error)
 	GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error)
+	ListNodeMetrics(context.Context, *connect.Request[v1.ListNodeMetricsRequest]) (*connect.Response[v1.ListNodeMetricsResponse], error)
 	DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error)
 	RejoinNode(context.Context, *connect.Request[v1.RejoinNodeRequest]) (*connect.Response[v1.RejoinNodeResponse], error)
 	DeleteNode(context.Context, *connect.Request[v1.DeleteNodeRequest]) (*connect.Response[v1.DeleteNodeResponse], error)
@@ -528,6 +545,12 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 		NodeServiceGetNodeProcedure,
 		svc.GetNode,
 		connect.WithSchema(nodeServiceMethods.ByName("GetNode")),
+		connect.WithHandlerOptions(opts...),
+	)
+	nodeServiceListNodeMetricsHandler := connect.NewUnaryHandler(
+		NodeServiceListNodeMetricsProcedure,
+		svc.ListNodeMetrics,
+		connect.WithSchema(nodeServiceMethods.ByName("ListNodeMetrics")),
 		connect.WithHandlerOptions(opts...),
 	)
 	nodeServiceDrainNodeHandler := connect.NewUnaryHandler(
@@ -566,6 +589,8 @@ func NewNodeServiceHandler(svc NodeServiceHandler, opts ...connect.HandlerOption
 			nodeServiceListNodesHandler.ServeHTTP(w, r)
 		case NodeServiceGetNodeProcedure:
 			nodeServiceGetNodeHandler.ServeHTTP(w, r)
+		case NodeServiceListNodeMetricsProcedure:
+			nodeServiceListNodeMetricsHandler.ServeHTTP(w, r)
 		case NodeServiceDrainNodeProcedure:
 			nodeServiceDrainNodeHandler.ServeHTTP(w, r)
 		case NodeServiceRejoinNodeProcedure:
@@ -591,6 +616,10 @@ func (UnimplementedNodeServiceHandler) ListNodes(context.Context, *connect.Reque
 
 func (UnimplementedNodeServiceHandler) GetNode(context.Context, *connect.Request[v1.GetNodeRequest]) (*connect.Response[v1.GetNodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.NodeService.GetNode is not implemented"))
+}
+
+func (UnimplementedNodeServiceHandler) ListNodeMetrics(context.Context, *connect.Request[v1.ListNodeMetricsRequest]) (*connect.Response[v1.ListNodeMetricsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.NodeService.ListNodeMetrics is not implemented"))
 }
 
 func (UnimplementedNodeServiceHandler) DrainNode(context.Context, *connect.Request[v1.DrainNodeRequest]) (*connect.Response[v1.DrainNodeResponse], error) {

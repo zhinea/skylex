@@ -3,6 +3,7 @@ syntax = "proto3";
 package skylex.v1;
 
 import "skylex/v1/common.proto";
+import "google/protobuf/timestamp.proto";
 
 service ClusterService {
   rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse);
@@ -88,6 +89,7 @@ message ScaleClusterResponse {
 service NodeService {
   rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
   rpc GetNode(GetNodeRequest) returns (GetNodeResponse);
+  rpc ListNodeMetrics(ListNodeMetricsRequest) returns (ListNodeMetricsResponse);
   rpc DrainNode(DrainNodeRequest) returns (DrainNodeResponse);
   rpc RejoinNode(RejoinNodeRequest) returns (RejoinNodeResponse);
   rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse);
@@ -112,6 +114,16 @@ message GetNodeRequest {
 
 message GetNodeResponse {
   Node node = 1;
+}
+
+message ListNodeMetricsRequest {
+  string node_id = 1;
+  google.protobuf.Timestamp since = 2;
+  int32 limit = 3;
+}
+
+message ListNodeMetricsResponse {
+  repeated NodeMetric metrics = 1;
 }
 
 message DrainNodeRequest {

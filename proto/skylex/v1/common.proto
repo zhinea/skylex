@@ -115,6 +115,32 @@ message Node {
   int64 disk_available_bytes = 39;
   double disk_usage_percent = 40;
   int64 uptime_seconds = 41;
+  NodeMetric latest_metric = 42;
+}
+
+message NodeMetric {
+  string id = 1;
+  string node_id = 2;
+  google.protobuf.Timestamp recorded_at = 3;
+  string os = 4;
+  string platform = 5;
+  string platform_version = 6;
+  string kernel_version = 7;
+  string architecture = 8;
+  int32 cpu_cores = 9;
+  double cpu_usage_percent = 10;
+  int64 load_average_1m = 11;
+  int64 load_average_5m = 12;
+  int64 load_average_15m = 13;
+  int64 memory_total_bytes = 14;
+  int64 memory_used_bytes = 15;
+  int64 memory_available_bytes = 16;
+  double memory_usage_percent = 17;
+  int64 disk_total_bytes = 18;
+  int64 disk_used_bytes = 19;
+  int64 disk_available_bytes = 20;
+  double disk_usage_percent = 21;
+  int64 uptime_seconds = 22;
 }
 
 message Pagination {

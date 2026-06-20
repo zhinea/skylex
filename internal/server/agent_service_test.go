@@ -203,6 +203,65 @@ func TestAgentService_HeartbeatDoesNotOverwriteDrainedNode(t *testing.T) {
 	}
 }
 
+func TestAgentService_ReportStatusStoresMetricHistory(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	nodes := db.NewNodeRepository(conn, log)
+
+	node, err := nodes.Create(context.Background(), "", "test-node", "10.0.0.1", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(context.Background(), node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, db.NewClusterRepository(conn, log), nodes, db.NewAgentCommandRepository(conn, log), db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+
+	for _, cpu := range []float64{11.5, 42.25} {
+		_, err = svc.ReportStatus(context.Background(), &skylexv1.ReportStatusRequest{
+			AgentId: "agent-1",
+			NodeStatuses: []*skylexv1.NodeStatusReport{{
+				SystemMetrics: &skylexv1.NodeSystemMetrics{
+					Os:                 "linux",
+					CpuCores:           4,
+					CpuUsagePercent:    cpu,
+					MemoryTotalBytes:   1024,
+					MemoryUsedBytes:    512,
+					MemoryUsagePercent: 50,
+					DiskTotalBytes:     2048,
+					DiskUsedBytes:      1024,
+					DiskUsagePercent:   50,
+				},
+			}},
+		})
+		if err != nil {
+			t.Fatalf("report status: %v", err)
+		}
+	}
+
+	metrics, err := nodes.ListMetrics(context.Background(), node.ID, time.Time{}, 10)
+	if err != nil {
+		t.Fatalf("list metrics: %v", err)
+	}
+	if len(metrics) != 2 {
+		t.Fatalf("expected two metric samples, got %d", len(metrics))
+	}
+
+	updated, err := nodes.GetByID(context.Background(), node.ID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if updated.LatestMetrics == nil || updated.LatestMetrics.CPUUsagePercent != 42.25 {
+		t.Fatalf("expected latest metric to be attached, got %#v", updated.LatestMetrics)
+	}
+
+	var count int
+	if err := conn.QueryRowContext(context.Background(), `SELECT COUNT(*) FROM nodes WHERE cpu_usage_percent = 42.25`).Scan(&count); err == nil {
+		t.Fatalf("expected nodes metric column to be removed")
+	}
+}
+
 func TestAgentService_ReportCommandLogStoresEntries(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

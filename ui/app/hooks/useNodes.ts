@@ -1,6 +1,31 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "~/lib/api";
 
+interface NodeMetric {
+  id: string;
+  nodeId: string;
+  recordedAt: string;
+  os: string;
+  platform: string;
+  platformVersion: string;
+  kernelVersion: string;
+  architecture: string;
+  cpuCores: number;
+  cpuUsagePercent: number;
+  loadAverage1M: number;
+  loadAverage5M: number;
+  loadAverage15M: number;
+  memoryTotalBytes: number;
+  memoryUsedBytes: number;
+  memoryAvailableBytes: number;
+  memoryUsagePercent: number;
+  diskTotalBytes: number;
+  diskUsedBytes: number;
+  diskAvailableBytes: number;
+  diskUsagePercent: number;
+  uptimeSeconds: number;
+}
+
 interface Node {
   id: string;
   clusterId: string;
@@ -46,6 +71,7 @@ interface Node {
   diskAvailableBytes: number;
   diskUsagePercent: number;
   uptimeSeconds: number;
+  latestMetric?: NodeMetric;
 }
 
 interface Pagination {
@@ -62,6 +88,19 @@ export function useNodes(clusterId?: string, page = 1, pageSize = 50) {
         "/skylex.v1.NodeService/ListNodes",
         { clusterId: clusterId || "", page, pageSize },
       ),
+    refetchInterval: 5000,
+  });
+}
+
+export function useNodeMetrics(nodeId?: string, limit = 120) {
+  return useQuery({
+    queryKey: ["nodeMetrics", nodeId, limit],
+    queryFn: () =>
+      api.post<{ metrics: NodeMetric[] }>("/skylex.v1.NodeService/ListNodeMetrics", {
+        nodeId: nodeId || "",
+        limit,
+      }),
+    enabled: !!nodeId,
     refetchInterval: 5000,
   });
 }
@@ -115,4 +154,4 @@ export function useResolveInstallationConflict() {
   });
 }
 
-export type { Node };
+export type { Node, NodeMetric };

@@ -77,6 +77,33 @@ func (s *NodeService) GetNode(ctx context.Context, req *skylexv1.GetNodeRequest)
 	}, nil
 }
 
+func (s *NodeService) ListNodeMetrics(ctx context.Context, req *skylexv1.ListNodeMetricsRequest) (*skylexv1.ListNodeMetricsResponse, error) {
+	if req.GetNodeId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "node_id is required")
+	}
+	limit := int(req.GetLimit())
+	if limit <= 0 {
+		limit = 300
+	}
+	if limit > 1000 {
+		limit = 1000
+	}
+
+	var since time.Time
+	if req.GetSince() != nil {
+		since = req.GetSince().AsTime()
+	}
+	metrics, err := s.nodes.ListMetrics(ctx, req.GetNodeId(), since, limit)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list node metrics: %v", err)
+	}
+	protoMetrics := make([]*skylexv1.NodeMetric, 0, len(metrics))
+	for _, m := range metrics {
+		protoMetrics = append(protoMetrics, nodeMetricToProto(m))
+	}
+	return &skylexv1.ListNodeMetricsResponse{Metrics: protoMetrics}, nil
+}
+
 func (s *NodeService) DrainNode(ctx context.Context, req *skylexv1.DrainNodeRequest) (*skylexv1.DrainNodeResponse, error) {
 	node, err := s.nodes.GetByID(ctx, req.GetNodeId())
 	if err != nil {
@@ -355,9 +382,8 @@ func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.Lis
 			if h, ok := hostnameMap[nodeID]; ok {
 				hostname = h
 			} else {
-				node, _ := s.nodes.GetByID(ctx, nodeID)
-				if node != nil {
-					hostname = node.Hostname
+				if h, err := s.nodes.GetHostnameByID(ctx, nodeID); err == nil && h != "" {
+					hostname = h
 					hostnameMap[nodeID] = hostname
 				}
 			}
@@ -405,6 +431,10 @@ func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
 		serviceLocation = skylexv1.ServiceLocation_SERVICE_LOCATION_UNSPECIFIED
 	}
 
+	metric := n.LatestMetrics
+	if metric == nil {
+		metric = &models.NodeMetric{}
+	}
 	return &skylexv1.Node{
 		Id:                      n.ID,
 		ClusterId:               n.ClusterID,
@@ -428,25 +458,56 @@ func (s *NodeService) nodeToProto(n *models.Node) *skylexv1.Node {
 		ConflictDetails:         n.ConflictDetails,
 		AgentConnected:          n.AgentConnected,
 		AgentLatencyMs:          n.AgentLatencyMS,
-		Os:                      n.OS,
-		Platform:                n.Platform,
-		PlatformVersion:         n.PlatformVersion,
-		KernelVersion:           n.KernelVersion,
-		Architecture:            n.Architecture,
-		CpuCores:                int32(n.CPUCores),
-		CpuUsagePercent:         n.CPUUsagePercent,
-		LoadAverage_1M:          n.LoadAverage1M,
-		LoadAverage_5M:          n.LoadAverage5M,
-		LoadAverage_15M:         n.LoadAverage15M,
-		MemoryTotalBytes:        n.MemoryTotalBytes,
-		MemoryUsedBytes:         n.MemoryUsedBytes,
-		MemoryAvailableBytes:    n.MemoryAvailableBytes,
-		MemoryUsagePercent:      n.MemoryUsagePercent,
-		DiskTotalBytes:          n.DiskTotalBytes,
-		DiskUsedBytes:           n.DiskUsedBytes,
-		DiskAvailableBytes:      n.DiskAvailableBytes,
-		DiskUsagePercent:        n.DiskUsagePercent,
-		UptimeSeconds:           n.UptimeSeconds,
+		Os:                      metric.OS,
+		Platform:                metric.Platform,
+		PlatformVersion:         metric.PlatformVersion,
+		KernelVersion:           metric.KernelVersion,
+		Architecture:            metric.Architecture,
+		CpuCores:                int32(metric.CPUCores),
+		CpuUsagePercent:         metric.CPUUsagePercent,
+		LoadAverage_1M:          metric.LoadAverage1M,
+		LoadAverage_5M:          metric.LoadAverage5M,
+		LoadAverage_15M:         metric.LoadAverage15M,
+		MemoryTotalBytes:        metric.MemoryTotalBytes,
+		MemoryUsedBytes:         metric.MemoryUsedBytes,
+		MemoryAvailableBytes:    metric.MemoryAvailableBytes,
+		MemoryUsagePercent:      metric.MemoryUsagePercent,
+		DiskTotalBytes:          metric.DiskTotalBytes,
+		DiskUsedBytes:           metric.DiskUsedBytes,
+		DiskAvailableBytes:      metric.DiskAvailableBytes,
+		DiskUsagePercent:        metric.DiskUsagePercent,
+		UptimeSeconds:           metric.UptimeSeconds,
+		LatestMetric:            nodeMetricToProto(n.LatestMetrics),
+	}
+}
+
+func nodeMetricToProto(m *models.NodeMetric) *skylexv1.NodeMetric {
+	if m == nil {
+		return nil
+	}
+	return &skylexv1.NodeMetric{
+		Id:                   m.ID,
+		NodeId:               m.NodeID,
+		RecordedAt:           timestamppb.New(m.RecordedAt),
+		Os:                   m.OS,
+		Platform:             m.Platform,
+		PlatformVersion:      m.PlatformVersion,
+		KernelVersion:        m.KernelVersion,
+		Architecture:         m.Architecture,
+		CpuCores:             int32(m.CPUCores),
+		CpuUsagePercent:      m.CPUUsagePercent,
+		LoadAverage_1M:       m.LoadAverage1M,
+		LoadAverage_5M:       m.LoadAverage5M,
+		LoadAverage_15M:      m.LoadAverage15M,
+		MemoryTotalBytes:     m.MemoryTotalBytes,
+		MemoryUsedBytes:      m.MemoryUsedBytes,
+		MemoryAvailableBytes: m.MemoryAvailableBytes,
+		MemoryUsagePercent:   m.MemoryUsagePercent,
+		DiskTotalBytes:       m.DiskTotalBytes,
+		DiskUsedBytes:        m.DiskUsedBytes,
+		DiskAvailableBytes:   m.DiskAvailableBytes,
+		DiskUsagePercent:     m.DiskUsagePercent,
+		UptimeSeconds:        m.UptimeSeconds,
 	}
 }
 

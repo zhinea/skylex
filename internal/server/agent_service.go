@@ -225,8 +225,9 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 		}
 
 		if metrics := nodeStatus.GetSystemMetrics(); metrics != nil {
-			if err := s.nodes.UpdateSystemMetrics(ctx, node.ID, nodeMetricsToModel(metrics)); err != nil {
-				s.log.Warn("update node system metrics (report)", "error", err, "node_id", node.ID)
+			metric := nodeMetricsToModel(node.ID, metrics)
+			if err := s.nodes.InsertMetric(ctx, metric); err != nil {
+				s.log.Warn("insert node system metrics (report)", "error", err, "node_id", node.ID)
 			}
 		}
 	}
@@ -234,8 +235,10 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 	return &skylexv1.ReportStatusResponse{}, nil
 }
 
-func nodeMetricsToModel(metrics *skylexv1.NodeSystemMetrics) models.Node {
-	return models.Node{
+func nodeMetricsToModel(nodeID string, metrics *skylexv1.NodeSystemMetrics) *models.NodeMetric {
+	return &models.NodeMetric{
+		NodeID:               nodeID,
+		RecordedAt:           time.Now().UTC(),
 		OS:                   metrics.GetOs(),
 		Platform:             metrics.GetPlatform(),
 		PlatformVersion:      metrics.GetPlatformVersion(),

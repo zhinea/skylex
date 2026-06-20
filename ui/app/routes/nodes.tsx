@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNodes, useDrainNode, useRejoinNode, useDeleteNode, type Node } from "~/hooks/useNodes";
+import { useNodes, useNodeMetrics, useDrainNode, useRejoinNode, useDeleteNode, type Node, type NodeMetric } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
@@ -208,7 +208,11 @@ export default function NodesPage() {
 }
 
 function NodeDetailModal({ node, onClose }: { node: Node | null; onClose: () => void }) {
+  const { data: metricsData } = useNodeMetrics(node?.id, 120);
   if (!node) return null;
+
+  const latest = node.latestMetric || node;
+  const history = metricsData?.metrics || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
@@ -226,18 +230,24 @@ function NodeDetailModal({ node, onClose }: { node: Node | null; onClose: () => 
         </div>
         <div className="px-6 py-4 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <MetricCard label="CPU" value={formatPercent(node.cpuUsagePercent)} detail={`${node.cpuCores || "-"} cores`} />
-            <MetricCard label="Memory" value={formatPercent(node.memoryUsagePercent)} detail={`${formatBytes(node.memoryUsedBytes)} / ${formatBytes(node.memoryTotalBytes)}`} />
-            <MetricCard label="Disk" value={formatPercent(node.diskUsagePercent)} detail={`${formatBytes(node.diskUsedBytes)} / ${formatBytes(node.diskTotalBytes)}`} />
+            <MetricCard label="CPU" value={formatPercent(latest.cpuUsagePercent)} detail={`${latest.cpuCores || "-"} cores`} />
+            <MetricCard label="Memory" value={formatPercent(latest.memoryUsagePercent)} detail={`${formatBytes(latest.memoryUsedBytes)} / ${formatBytes(latest.memoryTotalBytes)}`} />
+            <MetricCard label="Disk" value={formatPercent(latest.diskUsagePercent)} detail={`${formatBytes(latest.diskUsedBytes)} / ${formatBytes(latest.diskTotalBytes)}`} />
           </div>
 
+          <DetailSection title="Metrics History">
+            <MetricSparkline label="CPU" metrics={history} valueKey="cpuUsagePercent" />
+            <MetricSparkline label="Memory" metrics={history} valueKey="memoryUsagePercent" />
+            <MetricSparkline label="Disk" metrics={history} valueKey="diskUsagePercent" />
+          </DetailSection>
+
           <DetailSection title="Server">
-            <DetailItem label="OS" value={node.os || "-"} />
-            <DetailItem label="Platform" value={formatPlatform(node)} />
-            <DetailItem label="Kernel" value={node.kernelVersion || "-"} />
-            <DetailItem label="Architecture" value={node.architecture || "-"} />
-            <DetailItem label="Uptime" value={formatDuration(node.uptimeSeconds)} />
-            <DetailItem label="Load average" value={formatLoad(node)} />
+            <DetailItem label="OS" value={latest.os || "-"} />
+            <DetailItem label="Platform" value={formatPlatform(latest)} />
+            <DetailItem label="Kernel" value={latest.kernelVersion || "-"} />
+            <DetailItem label="Architecture" value={latest.architecture || "-"} />
+            <DetailItem label="Uptime" value={formatDuration(latest.uptimeSeconds)} />
+            <DetailItem label="Load average" value={formatLoad(latest)} />
           </DetailSection>
 
           <DetailSection title="Agent & Database">
@@ -293,6 +303,37 @@ function MetricCard({ label, value, detail }: { label: string; value: string; de
   );
 }
 
+function MetricSparkline({ label, metrics, valueKey }: { label: string; metrics: NodeMetric[]; valueKey: keyof Pick<NodeMetric, "cpuUsagePercent" | "memoryUsagePercent" | "diskUsagePercent"> }) {
+  const points = metrics.map((m) => Number(m[valueKey])).filter((value) => Number.isFinite(value));
+  const path = sparklinePath(points);
+  const latest = points.length ? points[points.length - 1] : 0;
+
+  return (
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
+        <span className="text-xs font-medium text-gray-900 dark:text-white">{points.length ? formatPercent(latest) : "No history"}</span>
+      </div>
+      <svg viewBox="0 0 120 36" className="h-10 w-full text-blue-600 dark:text-blue-400" preserveAspectRatio="none">
+        {path ? <path d={path} fill="none" stroke="currentColor" strokeWidth="2" /> : <line x1="0" y1="18" x2="120" y2="18" stroke="currentColor" strokeWidth="1" opacity="0.25" />}
+      </svg>
+      <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Last {points.length} samples</div>
+    </div>
+  );
+}
+
+function sparklinePath(values: number[]) {
+  if (values.length < 2) return "";
+  const max = Math.max(100, ...values);
+  return values
+    .map((value, index) => {
+      const x = (index / (values.length - 1)) * 120;
+      const y = 36 - (Math.max(0, Math.min(value, max)) / max) * 34 - 1;
+      return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+
 function formatBytes(bytes: number) {
   if (!Number.isFinite(bytes) || bytes <= 0) return "-";
   const units = ["B", "KiB", "MiB", "GiB", "TiB"];
@@ -320,12 +361,12 @@ function formatDuration(seconds: number) {
   return `${minutes}m`;
 }
 
-function formatLoad(node: Node) {
+function formatLoad(node: Pick<Node, "loadAverage1M" | "loadAverage5M" | "loadAverage15M">) {
   const values = [node.loadAverage1M, node.loadAverage5M, node.loadAverage15M];
   if (values.every((value) => !value)) return "-";
   return values.map((value) => (value / 100).toFixed(2)).join(" / ");
 }
 
-function formatPlatform(node: Node) {
+function formatPlatform(node: Pick<Node, "platform" | "platformVersion">) {
   return [node.platform, node.platformVersion].filter(Boolean).join(" ") || "-";
 }

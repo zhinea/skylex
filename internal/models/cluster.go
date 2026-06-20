@@ -108,27 +108,34 @@ type Node struct {
 	ServiceLocation ServiceLocation `json:"service_location"`
 	DockerAvailable bool            `json:"docker_available"`
 	// Phase 4: native PostgreSQL conflict detection.
-	InstallationState    InstallationState `json:"installation_state"`
-	ConflictDetails      string            `json:"conflict_details"`
-	AgentConnected       bool              `json:"agent_connected"`
-	AgentLatencyMS       int64             `json:"agent_latency_ms"`
-	OS                   string            `json:"os"`
-	Platform             string            `json:"platform"`
-	PlatformVersion      string            `json:"platform_version"`
-	KernelVersion        string            `json:"kernel_version"`
-	Architecture         string            `json:"architecture"`
-	CPUCores             int               `json:"cpu_cores"`
-	CPUUsagePercent      float64           `json:"cpu_usage_percent"`
-	LoadAverage1M        int64             `json:"load_average_1m"`
-	LoadAverage5M        int64             `json:"load_average_5m"`
-	LoadAverage15M       int64             `json:"load_average_15m"`
-	MemoryTotalBytes     int64             `json:"memory_total_bytes"`
-	MemoryUsedBytes      int64             `json:"memory_used_bytes"`
-	MemoryAvailableBytes int64             `json:"memory_available_bytes"`
-	MemoryUsagePercent   float64           `json:"memory_usage_percent"`
-	DiskTotalBytes       int64             `json:"disk_total_bytes"`
-	DiskUsedBytes        int64             `json:"disk_used_bytes"`
-	DiskAvailableBytes   int64             `json:"disk_available_bytes"`
-	DiskUsagePercent     float64           `json:"disk_usage_percent"`
-	UptimeSeconds        int64             `json:"uptime_seconds"`
+	InstallationState InstallationState `json:"installation_state"`
+	ConflictDetails   string            `json:"conflict_details"`
+	AgentConnected    bool              `json:"agent_connected"`
+	AgentLatencyMS    int64             `json:"agent_latency_ms"`
+	LatestMetrics     *NodeMetric       `json:"latest_metrics,omitempty"`
+}
+
+type NodeMetric struct {
+	ID                   string    `json:"id"`
+	NodeID               string    `json:"node_id"`
+	RecordedAt           time.Time `json:"recorded_at"`
+	OS                   string    `json:"os"`
+	Platform             string    `json:"platform"`
+	PlatformVersion      string    `json:"platform_version"`
+	KernelVersion        string    `json:"kernel_version"`
+	Architecture         string    `json:"architecture"`
+	CPUCores             int       `json:"cpu_cores"`
+	CPUUsagePercent      float64   `json:"cpu_usage_percent"`
+	LoadAverage1M        int64     `json:"load_average_1m"`
+	LoadAverage5M        int64     `json:"load_average_5m"`
+	LoadAverage15M       int64     `json:"load_average_15m"`
+	MemoryTotalBytes     int64     `json:"memory_total_bytes"`
+	MemoryUsedBytes      int64     `json:"memory_used_bytes"`
+	MemoryAvailableBytes int64     `json:"memory_available_bytes"`
+	MemoryUsagePercent   float64   `json:"memory_usage_percent"`
+	DiskTotalBytes       int64     `json:"disk_total_bytes"`
+	DiskUsedBytes        int64     `json:"disk_used_bytes"`
+	DiskAvailableBytes   int64     `json:"disk_available_bytes"`
+	DiskUsagePercent     float64   `json:"disk_usage_percent"`
+	UptimeSeconds        int64     `json:"uptime_seconds"`
 }

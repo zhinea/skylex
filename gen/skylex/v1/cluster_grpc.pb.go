@@ -465,6 +465,7 @@ var ClusterService_ServiceDesc = grpc.ServiceDesc{
 const (
 	NodeService_ListNodes_FullMethodName                   = "/skylex.v1.NodeService/ListNodes"
 	NodeService_GetNode_FullMethodName                     = "/skylex.v1.NodeService/GetNode"
+	NodeService_ListNodeMetrics_FullMethodName             = "/skylex.v1.NodeService/ListNodeMetrics"
 	NodeService_DrainNode_FullMethodName                   = "/skylex.v1.NodeService/DrainNode"
 	NodeService_RejoinNode_FullMethodName                  = "/skylex.v1.NodeService/RejoinNode"
 	NodeService_DeleteNode_FullMethodName                  = "/skylex.v1.NodeService/DeleteNode"
@@ -478,6 +479,7 @@ const (
 type NodeServiceClient interface {
 	ListNodes(ctx context.Context, in *ListNodesRequest, opts ...grpc.CallOption) (*ListNodesResponse, error)
 	GetNode(ctx context.Context, in *GetNodeRequest, opts ...grpc.CallOption) (*GetNodeResponse, error)
+	ListNodeMetrics(ctx context.Context, in *ListNodeMetricsRequest, opts ...grpc.CallOption) (*ListNodeMetricsResponse, error)
 	DrainNode(ctx context.Context, in *DrainNodeRequest, opts ...grpc.CallOption) (*DrainNodeResponse, error)
 	RejoinNode(ctx context.Context, in *RejoinNodeRequest, opts ...grpc.CallOption) (*RejoinNodeResponse, error)
 	DeleteNode(ctx context.Context, in *DeleteNodeRequest, opts ...grpc.CallOption) (*DeleteNodeResponse, error)
@@ -507,6 +509,16 @@ func (c *nodeServiceClient) GetNode(ctx context.Context, in *GetNodeRequest, opt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetNodeResponse)
 	err := c.cc.Invoke(ctx, NodeService_GetNode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeServiceClient) ListNodeMetrics(ctx context.Context, in *ListNodeMetricsRequest, opts ...grpc.CallOption) (*ListNodeMetricsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNodeMetricsResponse)
+	err := c.cc.Invoke(ctx, NodeService_ListNodeMetrics_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -569,6 +581,7 @@ func (c *nodeServiceClient) ListNodeCommandLogs(ctx context.Context, in *ListNod
 type NodeServiceServer interface {
 	ListNodes(context.Context, *ListNodesRequest) (*ListNodesResponse, error)
 	GetNode(context.Context, *GetNodeRequest) (*GetNodeResponse, error)
+	ListNodeMetrics(context.Context, *ListNodeMetricsRequest) (*ListNodeMetricsResponse, error)
 	DrainNode(context.Context, *DrainNodeRequest) (*DrainNodeResponse, error)
 	RejoinNode(context.Context, *RejoinNodeRequest) (*RejoinNodeResponse, error)
 	DeleteNode(context.Context, *DeleteNodeRequest) (*DeleteNodeResponse, error)
@@ -589,6 +602,9 @@ func (UnimplementedNodeServiceServer) ListNodes(context.Context, *ListNodesReque
 }
 func (UnimplementedNodeServiceServer) GetNode(context.Context, *GetNodeRequest) (*GetNodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetNode not implemented")
+}
+func (UnimplementedNodeServiceServer) ListNodeMetrics(context.Context, *ListNodeMetricsRequest) (*ListNodeMetricsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListNodeMetrics not implemented")
 }
 func (UnimplementedNodeServiceServer) DrainNode(context.Context, *DrainNodeRequest) (*DrainNodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DrainNode not implemented")
@@ -658,6 +674,24 @@ func _NodeService_GetNode_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServiceServer).GetNode(ctx, req.(*GetNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NodeService_ListNodeMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNodeMetricsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServiceServer).ListNodeMetrics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NodeService_ListNodeMetrics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServiceServer).ListNodeMetrics(ctx, req.(*ListNodeMetricsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -766,6 +800,10 @@ var NodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetNode",
 			Handler:    _NodeService_GetNode_Handler,
+		},
+		{
+			MethodName: "ListNodeMetrics",
+			Handler:    _NodeService_ListNodeMetrics_Handler,
 		},
 		{
 			MethodName: "DrainNode",

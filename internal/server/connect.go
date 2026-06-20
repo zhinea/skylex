@@ -302,6 +302,14 @@ func (c *connectNodeService) GetNode(ctx context.Context, req *connect.Request[s
 	return connect.NewResponse(resp), nil
 }
 
+func (c *connectNodeService) ListNodeMetrics(ctx context.Context, req *connect.Request[skylexv1.ListNodeMetricsRequest]) (*connect.Response[skylexv1.ListNodeMetricsResponse], error) {
+	resp, err := c.svc.ListNodeMetrics(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
 func (c *connectNodeService) DrainNode(ctx context.Context, req *connect.Request[skylexv1.DrainNodeRequest]) (*connect.Response[skylexv1.DrainNodeResponse], error) {
 	resp, err := c.svc.DrainNode(ctx, req.Msg)
 	if err != nil {

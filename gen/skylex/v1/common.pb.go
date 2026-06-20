@@ -577,6 +577,7 @@ type Node struct {
 	DiskAvailableBytes   int64             `protobuf:"varint,39,opt,name=disk_available_bytes,json=diskAvailableBytes,proto3" json:"disk_available_bytes,omitempty"`
 	DiskUsagePercent     float64           `protobuf:"fixed64,40,opt,name=disk_usage_percent,json=diskUsagePercent,proto3" json:"disk_usage_percent,omitempty"`
 	UptimeSeconds        int64             `protobuf:"varint,41,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	LatestMetric         *NodeMetric       `protobuf:"bytes,42,opt,name=latest_metric,json=latestMetric,proto3" json:"latest_metric,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -898,6 +899,225 @@ func (x *Node) GetUptimeSeconds() int64 {
 	return 0
 }
 
+func (x *Node) GetLatestMetric() *NodeMetric {
+	if x != nil {
+		return x.LatestMetric
+	}
+	return nil
+}
+
+type NodeMetric struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	NodeId               string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	RecordedAt           *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=recorded_at,json=recordedAt,proto3" json:"recorded_at,omitempty"`
+	Os                   string                 `protobuf:"bytes,4,opt,name=os,proto3" json:"os,omitempty"`
+	Platform             string                 `protobuf:"bytes,5,opt,name=platform,proto3" json:"platform,omitempty"`
+	PlatformVersion      string                 `protobuf:"bytes,6,opt,name=platform_version,json=platformVersion,proto3" json:"platform_version,omitempty"`
+	KernelVersion        string                 `protobuf:"bytes,7,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"`
+	Architecture         string                 `protobuf:"bytes,8,opt,name=architecture,proto3" json:"architecture,omitempty"`
+	CpuCores             int32                  `protobuf:"varint,9,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	CpuUsagePercent      float64                `protobuf:"fixed64,10,opt,name=cpu_usage_percent,json=cpuUsagePercent,proto3" json:"cpu_usage_percent,omitempty"`
+	LoadAverage_1M       int64                  `protobuf:"varint,11,opt,name=load_average_1m,json=loadAverage1m,proto3" json:"load_average_1m,omitempty"`
+	LoadAverage_5M       int64                  `protobuf:"varint,12,opt,name=load_average_5m,json=loadAverage5m,proto3" json:"load_average_5m,omitempty"`
+	LoadAverage_15M      int64                  `protobuf:"varint,13,opt,name=load_average_15m,json=loadAverage15m,proto3" json:"load_average_15m,omitempty"`
+	MemoryTotalBytes     int64                  `protobuf:"varint,14,opt,name=memory_total_bytes,json=memoryTotalBytes,proto3" json:"memory_total_bytes,omitempty"`
+	MemoryUsedBytes      int64                  `protobuf:"varint,15,opt,name=memory_used_bytes,json=memoryUsedBytes,proto3" json:"memory_used_bytes,omitempty"`
+	MemoryAvailableBytes int64                  `protobuf:"varint,16,opt,name=memory_available_bytes,json=memoryAvailableBytes,proto3" json:"memory_available_bytes,omitempty"`
+	MemoryUsagePercent   float64                `protobuf:"fixed64,17,opt,name=memory_usage_percent,json=memoryUsagePercent,proto3" json:"memory_usage_percent,omitempty"`
+	DiskTotalBytes       int64                  `protobuf:"varint,18,opt,name=disk_total_bytes,json=diskTotalBytes,proto3" json:"disk_total_bytes,omitempty"`
+	DiskUsedBytes        int64                  `protobuf:"varint,19,opt,name=disk_used_bytes,json=diskUsedBytes,proto3" json:"disk_used_bytes,omitempty"`
+	DiskAvailableBytes   int64                  `protobuf:"varint,20,opt,name=disk_available_bytes,json=diskAvailableBytes,proto3" json:"disk_available_bytes,omitempty"`
+	DiskUsagePercent     float64                `protobuf:"fixed64,21,opt,name=disk_usage_percent,json=diskUsagePercent,proto3" json:"disk_usage_percent,omitempty"`
+	UptimeSeconds        int64                  `protobuf:"varint,22,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *NodeMetric) Reset() {
+	*x = NodeMetric{}
+	mi := &file_skylex_v1_common_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeMetric) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeMetric) ProtoMessage() {}
+
+func (x *NodeMetric) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_common_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeMetric.ProtoReflect.Descriptor instead.
+func (*NodeMetric) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_common_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *NodeMetric) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetRecordedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RecordedAt
+	}
+	return nil
+}
+
+func (x *NodeMetric) GetOs() string {
+	if x != nil {
+		return x.Os
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetPlatformVersion() string {
+	if x != nil {
+		return x.PlatformVersion
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetKernelVersion() string {
+	if x != nil {
+		return x.KernelVersion
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetArchitecture() string {
+	if x != nil {
+		return x.Architecture
+	}
+	return ""
+}
+
+func (x *NodeMetric) GetCpuCores() int32 {
+	if x != nil {
+		return x.CpuCores
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetCpuUsagePercent() float64 {
+	if x != nil {
+		return x.CpuUsagePercent
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetLoadAverage_1M() int64 {
+	if x != nil {
+		return x.LoadAverage_1M
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetLoadAverage_5M() int64 {
+	if x != nil {
+		return x.LoadAverage_5M
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetLoadAverage_15M() int64 {
+	if x != nil {
+		return x.LoadAverage_15M
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetMemoryTotalBytes() int64 {
+	if x != nil {
+		return x.MemoryTotalBytes
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetMemoryUsedBytes() int64 {
+	if x != nil {
+		return x.MemoryUsedBytes
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetMemoryAvailableBytes() int64 {
+	if x != nil {
+		return x.MemoryAvailableBytes
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetMemoryUsagePercent() float64 {
+	if x != nil {
+		return x.MemoryUsagePercent
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetDiskTotalBytes() int64 {
+	if x != nil {
+		return x.DiskTotalBytes
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetDiskUsedBytes() int64 {
+	if x != nil {
+		return x.DiskUsedBytes
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetDiskAvailableBytes() int64 {
+	if x != nil {
+		return x.DiskAvailableBytes
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetDiskUsagePercent() float64 {
+	if x != nil {
+		return x.DiskUsagePercent
+	}
+	return 0
+}
+
+func (x *NodeMetric) GetUptimeSeconds() int64 {
+	if x != nil {
+		return x.UptimeSeconds
+	}
+	return 0
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -909,7 +1129,7 @@ type Pagination struct {
 
 func (x *Pagination) Reset() {
 	*x = Pagination{}
-	mi := &file_skylex_v1_common_proto_msgTypes[3]
+	mi := &file_skylex_v1_common_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -921,7 +1141,7 @@ func (x *Pagination) String() string {
 func (*Pagination) ProtoMessage() {}
 
 func (x *Pagination) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_common_proto_msgTypes[3]
+	mi := &file_skylex_v1_common_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -934,7 +1154,7 @@ func (x *Pagination) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Pagination.ProtoReflect.Descriptor instead.
 func (*Pagination) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_common_proto_rawDescGZIP(), []int{3}
+	return file_skylex_v1_common_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Pagination) GetPage() int32 {
@@ -984,7 +1204,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12E\n" +
-	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xfc\r\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xb8\x0e\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -1030,10 +1250,37 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x0fdisk_used_bytes\x18& \x01(\x03R\rdiskUsedBytes\x120\n" +
 	"\x14disk_available_bytes\x18' \x01(\x03R\x12diskAvailableBytes\x12,\n" +
 	"\x12disk_usage_percent\x18( \x01(\x01R\x10diskUsagePercent\x12%\n" +
-	"\x0euptime_seconds\x18) \x01(\x03R\ruptimeSeconds\x1a9\n" +
+	"\x0euptime_seconds\x18) \x01(\x03R\ruptimeSeconds\x12:\n" +
+	"\rlatest_metric\x18* \x01(\v2\x15.skylex.v1.NodeMetricR\flatestMetric\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf2\x06\n" +
+	"\n" +
+	"NodeMetric\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x12;\n" +
+	"\vrecorded_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"recordedAt\x12\x0e\n" +
+	"\x02os\x18\x04 \x01(\tR\x02os\x12\x1a\n" +
+	"\bplatform\x18\x05 \x01(\tR\bplatform\x12)\n" +
+	"\x10platform_version\x18\x06 \x01(\tR\x0fplatformVersion\x12%\n" +
+	"\x0ekernel_version\x18\a \x01(\tR\rkernelVersion\x12\"\n" +
+	"\farchitecture\x18\b \x01(\tR\farchitecture\x12\x1b\n" +
+	"\tcpu_cores\x18\t \x01(\x05R\bcpuCores\x12*\n" +
+	"\x11cpu_usage_percent\x18\n" +
+	" \x01(\x01R\x0fcpuUsagePercent\x12&\n" +
+	"\x0fload_average_1m\x18\v \x01(\x03R\rloadAverage1m\x12&\n" +
+	"\x0fload_average_5m\x18\f \x01(\x03R\rloadAverage5m\x12(\n" +
+	"\x10load_average_15m\x18\r \x01(\x03R\x0eloadAverage15m\x12,\n" +
+	"\x12memory_total_bytes\x18\x0e \x01(\x03R\x10memoryTotalBytes\x12*\n" +
+	"\x11memory_used_bytes\x18\x0f \x01(\x03R\x0fmemoryUsedBytes\x124\n" +
+	"\x16memory_available_bytes\x18\x10 \x01(\x03R\x14memoryAvailableBytes\x120\n" +
+	"\x14memory_usage_percent\x18\x11 \x01(\x01R\x12memoryUsagePercent\x12(\n" +
+	"\x10disk_total_bytes\x18\x12 \x01(\x03R\x0ediskTotalBytes\x12&\n" +
+	"\x0fdisk_used_bytes\x18\x13 \x01(\x03R\rdiskUsedBytes\x120\n" +
+	"\x14disk_available_bytes\x18\x14 \x01(\x03R\x12diskAvailableBytes\x12,\n" +
+	"\x12disk_usage_percent\x18\x15 \x01(\x01R\x10diskUsagePercent\x12%\n" +
+	"\x0euptime_seconds\x18\x16 \x01(\x03R\ruptimeSeconds\"S\n" +
 	"\n" +
 	"Pagination\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
@@ -1086,7 +1333,7 @@ func file_skylex_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_skylex_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_skylex_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_skylex_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_skylex_v1_common_proto_goTypes = []any{
 	(ClusterStatus)(0),            // 0: skylex.v1.ClusterStatus
 	(NodeRole)(0),                 // 1: skylex.v1.NodeRole
@@ -1097,33 +1344,36 @@ var file_skylex_v1_common_proto_goTypes = []any{
 	(*ClusterConfig)(nil),         // 6: skylex.v1.ClusterConfig
 	(*Cluster)(nil),               // 7: skylex.v1.Cluster
 	(*Node)(nil),                  // 8: skylex.v1.Node
-	(*Pagination)(nil),            // 9: skylex.v1.Pagination
-	nil,                           // 10: skylex.v1.ClusterConfig.LabelsEntry
-	nil,                           // 11: skylex.v1.Node.LabelsEntry
-	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
+	(*NodeMetric)(nil),            // 9: skylex.v1.NodeMetric
+	(*Pagination)(nil),            // 10: skylex.v1.Pagination
+	nil,                           // 11: skylex.v1.ClusterConfig.LabelsEntry
+	nil,                           // 12: skylex.v1.Node.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
 }
 var file_skylex_v1_common_proto_depIdxs = []int32{
 	3,  // 0: skylex.v1.ClusterConfig.engine:type_name -> skylex.v1.Engine
 	2,  // 1: skylex.v1.ClusterConfig.replication_mode:type_name -> skylex.v1.ReplicationMode
-	10, // 2: skylex.v1.ClusterConfig.labels:type_name -> skylex.v1.ClusterConfig.LabelsEntry
+	11, // 2: skylex.v1.ClusterConfig.labels:type_name -> skylex.v1.ClusterConfig.LabelsEntry
 	4,  // 3: skylex.v1.ClusterConfig.service_location:type_name -> skylex.v1.ServiceLocation
 	6,  // 4: skylex.v1.Cluster.config:type_name -> skylex.v1.ClusterConfig
 	0,  // 5: skylex.v1.Cluster.status:type_name -> skylex.v1.ClusterStatus
-	12, // 6: skylex.v1.Cluster.created_at:type_name -> google.protobuf.Timestamp
-	12, // 7: skylex.v1.Cluster.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 6: skylex.v1.Cluster.created_at:type_name -> google.protobuf.Timestamp
+	13, // 7: skylex.v1.Cluster.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 8: skylex.v1.Cluster.service_location:type_name -> skylex.v1.ServiceLocation
 	1,  // 9: skylex.v1.Node.role:type_name -> skylex.v1.NodeRole
-	11, // 10: skylex.v1.Node.labels:type_name -> skylex.v1.Node.LabelsEntry
-	12, // 11: skylex.v1.Node.last_seen:type_name -> google.protobuf.Timestamp
-	12, // 12: skylex.v1.Node.created_at:type_name -> google.protobuf.Timestamp
-	12, // 13: skylex.v1.Node.updated_at:type_name -> google.protobuf.Timestamp
+	12, // 10: skylex.v1.Node.labels:type_name -> skylex.v1.Node.LabelsEntry
+	13, // 11: skylex.v1.Node.last_seen:type_name -> google.protobuf.Timestamp
+	13, // 12: skylex.v1.Node.created_at:type_name -> google.protobuf.Timestamp
+	13, // 13: skylex.v1.Node.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 14: skylex.v1.Node.service_location:type_name -> skylex.v1.ServiceLocation
 	5,  // 15: skylex.v1.Node.installation_state:type_name -> skylex.v1.InstallationState
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	9,  // 16: skylex.v1.Node.latest_metric:type_name -> skylex.v1.NodeMetric
+	13, // 17: skylex.v1.NodeMetric.recorded_at:type_name -> google.protobuf.Timestamp
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_common_proto_init() }
@@ -1137,7 +1387,7 @@ func file_skylex_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_common_proto_rawDesc), len(file_skylex_v1_common_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

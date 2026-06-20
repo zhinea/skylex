@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"io/fs"
 	"regexp"
 	"sort"
@@ -16,6 +17,19 @@ var migrationVersionRe = regexp.MustCompile(`^\d{6}_\S+\.sql$`)
 func TestMigrations_SQLite_ApplyClean(t *testing.T) {
 	_, _ = newTestDB(t) // newTestDB calls db.New which runs migrate() internally.
 	// If we reach here, all migrations applied without error.
+}
+
+func TestMigrations_SQLite_NodeMetricsNormalized(t *testing.T) {
+	database, _ := newTestDB(t)
+	conn := database.Conn()
+	ctx := context.Background()
+
+	if _, err := conn.ExecContext(ctx, `SELECT id, node_id, recorded_at, cpu_usage_percent FROM node_metrics LIMIT 1`); err != nil {
+		t.Fatalf("node_metrics table missing expected columns: %v", err)
+	}
+	if _, err := conn.ExecContext(ctx, `SELECT cpu_usage_percent FROM nodes LIMIT 1`); err == nil {
+		t.Fatal("expected cpu_usage_percent to be removed from nodes")
+	}
 }
 
 // TestMigrations_SQLite_Idempotent verifies that applying migrations twice
