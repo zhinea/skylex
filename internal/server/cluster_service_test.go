@@ -265,3 +265,50 @@ func TestClusterService_UpdateClusterSettings_PersistsAndQueuesApply(t *testing.
 		t.Fatalf("expected payload length %d, got %d", len(params), len(payload))
 	}
 }
+
+func TestClusterService_DeleteCluster_UnassignsNodes(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := context.Background()
+
+	nodeID := createIdleTestNode(t, ctx, svc)
+	clusterID := createTestCluster(t, ctx, svc, nodeID)
+
+	if _, err := svc.DeleteCluster(ctx, &skylexv1.DeleteClusterRequest{Id: clusterID}); err != nil {
+		t.Fatalf("delete cluster: %v", err)
+	}
+
+	node, err := svc.nodes.GetByID(ctx, nodeID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if node == nil {
+		t.Fatal("expected node to still exist after cluster deletion")
+	}
+	if node.ClusterID != "" {
+		t.Fatalf("expected node to be unassigned, got cluster_id %q", node.ClusterID)
+	}
+	if node.Role != "" {
+		t.Fatalf("expected node role to be reset, got %q", node.Role)
+	}
+	if node.InstallationState != "" {
+		t.Fatalf("expected installation_state to be reset, got %q", node.InstallationState)
+	}
+	if node.ServiceLocation != "" {
+		t.Fatalf("expected service_location to be reset, got %q", node.ServiceLocation)
+	}
+
+	// The unassigned node should be selectable for a new cluster.
+	_, err = svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
+		Name: "reused-node-cluster",
+		Config: &skylexv1.ClusterConfig{
+			Engine:          skylexv1.Engine_ENGINE_POSTGRESQL,
+			Version:         "16",
+			ReplicationMode: skylexv1.ReplicationMode_REPLICATION_MODE_ASYNC,
+			ReplicaCount:    0,
+		},
+		NodeIds: []string{nodeID},
+	})
+	if err != nil {
+		t.Fatalf("recreate cluster with reused node: %v", err)
+	}
+}

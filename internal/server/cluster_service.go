@@ -354,12 +354,56 @@ func (s *ClusterService) DeleteCluster(ctx context.Context, req *skylexv1.Delete
 		return nil, status.Errorf(codes.NotFound, "cluster %q not found", req.GetId())
 	}
 
-	if err := s.clusters.UpdateStatus(ctx, req.GetId(), models.ClusterStatusDeleting); err != nil {
-		return nil, status.Errorf(codes.Internal, "mark deleting: %v", err)
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "begin transaction: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	// Cancel any pending commands for nodes that belong to this cluster so they
+	// are not executed after the cluster no longer exists.
+	_, err = tx.ExecContext(ctx,
+		db.Rebind(`UPDATE agent_commands SET status = ?, error = ?, completed_at = ?
+			 WHERE status = ? AND node_id IN (SELECT id FROM nodes WHERE cluster_id = ?)`),
+		models.CommandStatusFailed, "cluster deleted", time.Now().UTC(),
+		models.CommandStatusPending, cluster.ID,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "cancel pending commands: %v", err)
 	}
 
-	if err := s.clusters.Delete(ctx, req.GetId()); err != nil {
+	// Return the cluster's nodes to the idle pool so they can be reused.
+	_, err = tx.ExecContext(ctx,
+		db.Rebind(`UPDATE nodes SET cluster_id = NULL, role = ?, service_location = ?, installation_state = ?, conflict_details = ?, status_detail = ?, updated_at = ?
+			 WHERE cluster_id = ?`),
+		"", "", "", "", "", time.Now().UTC(), cluster.ID,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "unassign cluster nodes: %v", err)
+	}
+
+	_, err = tx.ExecContext(ctx,
+		db.Rebind(`DELETE FROM cluster_settings WHERE cluster_id = ?`),
+		cluster.ID,
+	)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "delete cluster settings: %v", err)
+	}
+
+	_, err = tx.ExecContext(ctx,
+		db.Rebind(`DELETE FROM clusters WHERE id = ?`),
+		cluster.ID,
+	)
+	if err != nil {
 		return nil, status.Errorf(codes.Internal, "delete cluster: %v", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, status.Errorf(codes.Internal, "commit transaction: %v", err)
 	}
 
 	return &skylexv1.DeleteClusterResponse{}, nil
