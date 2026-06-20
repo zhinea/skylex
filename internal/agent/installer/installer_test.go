@@ -69,8 +69,12 @@ func TestPreflightResult_Details_PGExists_UnknownVersion(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestDockerContainerName(t *testing.T) {
-	if DockerContainerName() != "skylex-postgres" {
-		t.Fatalf("unexpected container name: %q", DockerContainerName())
+	name := DockerContainerName("cluster-abc123")
+	if name == "" {
+		t.Fatal("expected non-empty container name")
+	}
+	if name[:len(dockerContainerNamePrefix)] != dockerContainerNamePrefix {
+		t.Fatalf("expected container name to start with %q, got %q", dockerContainerNamePrefix, name)
 	}
 }
 

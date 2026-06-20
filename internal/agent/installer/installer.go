@@ -25,6 +25,7 @@ type InstallConfig struct {
 	Port      int
 	Superuser string
 	Password  string
+	ClusterID string
 }
 
 func run(ctx context.Context, log LogSink, name string, args ...string) error {

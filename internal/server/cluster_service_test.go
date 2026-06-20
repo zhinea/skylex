@@ -121,7 +121,7 @@ func TestClusterService_CreateCluster_QueuesDockerInstallWithoutNativePreflight(
 		t.Fatalf("update agent id: %v", err)
 	}
 
-	_, err = svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
+	resp, err := svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
 		Name: "docker-install-cluster",
 		Config: &skylexv1.ClusterConfig{
 			Engine:          skylexv1.Engine_ENGINE_POSTGRESQL,
@@ -144,6 +144,24 @@ func TestClusterService_CreateCluster_QueuesDockerInstallWithoutNativePreflight(
 	for i := range want {
 		if got[i] != want[i] {
 			t.Fatalf("expected actions %v, got %v", want, got)
+		}
+	}
+
+	// Verify JSON payload contains cluster_id and version.
+	pending, err := svc.commands.ListPending(ctx, "agent-docker", node.ID)
+	if err != nil {
+		t.Fatalf("list pending: %v", err)
+	}
+	if len(pending) > 0 && pending[0].Action == "pg_install_docker" {
+		var payload map[string]string
+		if err := json.Unmarshal([]byte(pending[0].Payload), &payload); err != nil {
+			t.Fatalf("expected JSON payload, got %q: %v", pending[0].Payload, err)
+		}
+		if payload["cluster_id"] != resp.GetCluster().GetId() {
+			t.Fatalf("expected cluster_id %q, got %q", resp.GetCluster().GetId(), payload["cluster_id"])
+		}
+		if payload["version"] != "16" {
+			t.Fatalf("expected version '16', got %q", payload["version"])
 		}
 	}
 }

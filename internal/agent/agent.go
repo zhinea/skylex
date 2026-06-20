@@ -453,13 +453,41 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 
 	case "pg_install_docker":
 		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING, "")
-		if err := a.docker.Install(ctx, a.installConfig(), logger); err != nil {
+		// Parse payload: JSON with cluster_id and version, or legacy plain version string.
+		clusterID := ""
+		version := a.cfg.PGVersion
+		if payload := cmd.GetPayload(); payload != "" {
+			if strings.HasPrefix(payload, "{") {
+				var installPayload struct {
+					ClusterID string `json:"cluster_id"`
+					Version   string `json:"version"`
+				}
+				if err := json.Unmarshal([]byte(payload), &installPayload); err == nil {
+					clusterID = installPayload.ClusterID
+					if installPayload.Version != "" {
+						version = installPayload.Version
+					}
+				} else {
+					a.log.Warn("failed to parse pg_install_docker JSON payload, using legacy format", "error", err)
+					version = payload
+				}
+			} else {
+				version = payload
+			}
+		}
+
+		installCfg := a.installConfig()
+		installCfg.ClusterID = clusterID
+		installCfg.Version = version
+		if err := a.docker.Install(ctx, installCfg, logger); err != nil {
 			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
 			return false, "", a.enrichError("pg_install_docker", err)
 		}
-		a.pg.UseDocker("postgres:"+a.cfg.PGVersion, installer.DockerContainerName())
+		containerName := installer.DockerContainerName(clusterID)
+		composeFile := installer.ComposeFilePath(clusterID)
+		a.pg.UseDocker("postgres:"+version, containerName, composeFile, "postgres")
 		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLED, "")
-		return true, fmt.Sprintf("PostgreSQL Docker container %q installed", installer.DockerContainerName()), ""
+		return true, fmt.Sprintf("PostgreSQL Docker container %q installed", containerName), ""
 
 	case "pg_purge_native":
 		a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_INSTALLING, "")
@@ -689,7 +717,7 @@ func (a *Agent) enrichError(action string, err error) string {
 
 	case "pg_install_docker":
 		if strings.Contains(lower, "docker binary not found") || strings.Contains(lower, "permission denied") {
-			return fmt.Sprintf("docker install failed: Docker is unavailable or the agent cannot access the Docker daemon: %s", msg)
+			return fmt.Sprintf("docker install failed: Docker is unavailable or the agent cannot access the Docker daemon — ensure the agent user is in the docker group or has sufficient privileges: %s", msg)
 		}
 		return fmt.Sprintf("docker install failed: %s", msg)
 

@@ -52,6 +52,8 @@ type Instance struct {
 type DockerRuntime struct {
 	Image         string
 	ContainerName string
+	ComposeFile   string
+	ServiceName   string
 }
 
 func New(dataDir, binDir, version string, port int, superuser, replUser, replPass string, log *slog.Logger) *Instance {
@@ -67,8 +69,8 @@ func New(dataDir, binDir, version string, port int, superuser, replUser, replPas
 	}
 }
 
-func (p *Instance) UseDocker(image, containerName string) {
-	p.Docker = &DockerRuntime{Image: image, ContainerName: containerName}
+func (p *Instance) UseDocker(image, containerName, composeFile, serviceName string) {
+	p.Docker = &DockerRuntime{Image: image, ContainerName: containerName, ComposeFile: composeFile, ServiceName: serviceName}
 }
 
 func (p *Instance) UseNative(binDir, version string) {
@@ -103,6 +105,12 @@ func (p *Instance) pgDataDir() string {
 
 func (p *Instance) dockerRun(ctx context.Context, args ...string) *exec.Cmd {
 	return exec.CommandContext(ctx, "docker", args...)
+}
+
+func (p *Instance) dockerCompose(ctx context.Context, args ...string) *exec.Cmd {
+	composeArgs := []string{"compose", "-f", p.Docker.ComposeFile}
+	composeArgs = append(composeArgs, args...)
+	return exec.CommandContext(ctx, "docker", composeArgs...)
 }
 
 // runStreamingCmd executes a command while streaming stdout/stderr to the
@@ -205,6 +213,14 @@ func (p *Instance) IsInitialized() bool {
 
 func (p *Instance) IsRunning() bool {
 	if p.dockerEnabled() {
+		// Try compose ps first if we have a compose file.
+		if p.Docker.ComposeFile != "" {
+			cmd := p.dockerCompose(context.Background(), "ps", "--status", "running", "--format", "json")
+			out, err := cmd.Output()
+			if err == nil && len(out) > 0 && string(out) != "[]" && string(out) != "null" {
+				return true
+			}
+		}
 		out, err := exec.Command("docker", "inspect", "-f", "{{.State.Running}}", p.Docker.ContainerName).Output()
 		return err == nil && strings.TrimSpace(string(out)) == "true"
 	}
@@ -268,6 +284,17 @@ func (p *Instance) Start(ctx context.Context) error {
 	}
 
 	if p.dockerEnabled() {
+		// Attempt docker compose start first.
+		if p.Docker.ComposeFile != "" {
+			cmd := p.dockerCompose(ctx, "start")
+			output, err := runStreamingCmd(ctx, cmd)
+			if err == nil {
+				p.log.Info("postgresql container started via compose", "compose", p.Docker.ComposeFile)
+				return nil
+			}
+			p.log.Warn("compose start failed, falling back to docker run", "error", err, "output", string(output))
+		}
+
 		cmd := p.dockerRun(ctx, "start", p.Docker.ContainerName)
 		output, err := runStreamingCmd(ctx, cmd)
 		if err == nil {
@@ -316,6 +343,15 @@ func (p *Instance) Stop(ctx context.Context) error {
 	}
 
 	if p.dockerEnabled() {
+		if p.Docker.ComposeFile != "" {
+			cmd := p.dockerCompose(ctx, "stop")
+			output, err := runStreamingCmd(ctx, cmd)
+			if err == nil {
+				p.log.Info("postgresql container stopped via compose", "compose", p.Docker.ComposeFile)
+				return nil
+			}
+			p.log.Warn("compose stop failed, falling back to docker stop", "error", err, "output", string(output))
+		}
 		cmd := p.dockerRun(ctx, "stop", p.Docker.ContainerName)
 		output, err := runStreamingCmd(ctx, cmd)
 		if err != nil {
@@ -366,19 +402,35 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 		fmt.Sprintf("PGPASSWORD=%s", replPass),
 	)
 	if p.dockerEnabled() {
-		cmd = p.dockerRun(ctx, "run", "--rm",
-			"-e", fmt.Sprintf("PGPASSWORD=%s", replPass),
-			"-v", filepath.Clean(p.DataDir)+":/var/lib/postgresql/data",
-			p.Docker.Image,
-			"pg_basebackup",
-			"-h", primaryHost,
-			"-p", fmt.Sprintf("%d", primaryPort),
-			"-U", replUser,
-			"-D", "/var/lib/postgresql/data",
-			"-P",
-			"-v",
-			"--wal-method", "stream",
-		)
+		if p.Docker.ComposeFile != "" {
+			cmd = p.dockerCompose(ctx, "run", "--rm",
+				"-e", fmt.Sprintf("PGPASSWORD=%s", replPass),
+				"-v", filepath.Clean(p.DataDir)+":/var/lib/postgresql/data",
+				p.Docker.ServiceName,
+				"pg_basebackup",
+				"-h", primaryHost,
+				"-p", fmt.Sprintf("%d", primaryPort),
+				"-U", replUser,
+				"-D", "/var/lib/postgresql/data",
+				"-P",
+				"-v",
+				"--wal-method", "stream",
+			)
+		} else {
+			cmd = p.dockerRun(ctx, "run", "--rm",
+				"-e", fmt.Sprintf("PGPASSWORD=%s", replPass),
+				"-v", filepath.Clean(p.DataDir)+":/var/lib/postgresql/data",
+				p.Docker.Image,
+				"pg_basebackup",
+				"-h", primaryHost,
+				"-p", fmt.Sprintf("%d", primaryPort),
+				"-U", replUser,
+				"-D", "/var/lib/postgresql/data",
+				"-P",
+				"-v",
+				"--wal-method", "stream",
+			)
+		}
 	}
 
 	output, err := runStreamingCmd(ctx, cmd)

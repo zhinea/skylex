@@ -626,7 +626,7 @@ func protoServiceLocation(loc models.ServiceLocation) skylexv1.ServiceLocation {
 type provisioningCommand struct{ action, payload string }
 
 func (s *ClusterService) queuePrimaryCommands(ctx context.Context, node *models.Node, version string, serviceLocation models.ServiceLocation) error {
-	commands := installCommands(node, version, serviceLocation, false)
+	commands := installCommands(node, version, serviceLocation, false, node.ClusterID)
 	if serviceLocation != models.ServiceLocationNative {
 		commands = append(commands, primaryCommands()...)
 	}
@@ -634,7 +634,7 @@ func (s *ClusterService) queuePrimaryCommands(ctx context.Context, node *models.
 }
 
 func (s *ClusterService) queueReplicaCommands(ctx context.Context, replica, primary *models.Node, version string, serviceLocation models.ServiceLocation) error {
-	commands := installCommands(replica, version, serviceLocation, false)
+	commands := installCommands(replica, version, serviceLocation, false, replica.ClusterID)
 	if serviceLocation != models.ServiceLocationNative {
 		commands = append(commands, replicaCommands(primary)...)
 	}
@@ -667,13 +667,17 @@ func replicaCommands(primary *models.Node) []provisioningCommand {
 	}
 }
 
-func installCommands(node *models.Node, version string, serviceLocation models.ServiceLocation, resolvedNativeConflict bool) []provisioningCommand {
+func installCommands(node *models.Node, version string, serviceLocation models.ServiceLocation, resolvedNativeConflict bool, clusterID string) []provisioningCommand {
 	if serviceLocation == models.ServiceLocationNative && !resolvedNativeConflict {
 		return []provisioningCommand{{"pg_preflight", ""}}
 	}
 	commands := []provisioningCommand{}
 	if serviceLocation == models.ServiceLocationDocker {
-		commands = append(commands, provisioningCommand{"pg_install_docker", version})
+		payload, _ := json.Marshal(map[string]string{
+			"cluster_id": clusterID,
+			"version":    version,
+		})
+		commands = append(commands, provisioningCommand{"pg_install_docker", string(payload)})
 		return commands
 	}
 	if !node.PostgresInstalled {

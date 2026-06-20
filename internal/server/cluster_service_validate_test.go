@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/zhinea/skylex/internal/models"
@@ -133,7 +134,7 @@ func makeNode(pgInstalled bool) *models.Node {
 }
 
 func TestInstallCommands_NativeUnresolved_QueuesPreflight(t *testing.T) {
-	cmds := installCommands(makeNode(false), "16", models.ServiceLocationNative, false)
+	cmds := installCommands(makeNode(false), "16", models.ServiceLocationNative, false, "cluster-1")
 	if len(cmds) != 1 || cmds[0].action != "pg_preflight" {
 		t.Fatalf("expected [pg_preflight], got %+v", cmds)
 	}
@@ -141,24 +142,32 @@ func TestInstallCommands_NativeUnresolved_QueuesPreflight(t *testing.T) {
 
 func TestInstallCommands_NativeUnresolved_AlreadyInstalled_StillPreflight(t *testing.T) {
 	// Even if postgres is installed, native without resolved conflict → preflight.
-	cmds := installCommands(makeNode(true), "16", models.ServiceLocationNative, false)
+	cmds := installCommands(makeNode(true), "16", models.ServiceLocationNative, false, "cluster-1")
 	if len(cmds) != 1 || cmds[0].action != "pg_preflight" {
 		t.Fatalf("expected [pg_preflight], got %+v", cmds)
 	}
 }
 
 func TestInstallCommands_Docker_QueuesDockerInstall(t *testing.T) {
-	cmds := installCommands(makeNode(false), "16", models.ServiceLocationDocker, false)
+	cmds := installCommands(makeNode(false), "16", models.ServiceLocationDocker, false, "cluster-1")
 	if len(cmds) != 1 || cmds[0].action != "pg_install_docker" {
 		t.Fatalf("expected [pg_install_docker], got %+v", cmds)
 	}
-	if cmds[0].payload != "16" {
-		t.Fatalf("expected version payload '16', got %q", cmds[0].payload)
+	// Payload should be JSON with cluster_id and version.
+	var payload map[string]string
+	if err := json.Unmarshal([]byte(cmds[0].payload), &payload); err != nil {
+		t.Fatalf("expected JSON payload, got %q: %v", cmds[0].payload, err)
+	}
+	if payload["cluster_id"] != "cluster-1" {
+		t.Fatalf("expected cluster_id 'cluster-1', got %q", payload["cluster_id"])
+	}
+	if payload["version"] != "16" {
+		t.Fatalf("expected version '16', got %q", payload["version"])
 	}
 }
 
 func TestInstallCommands_NativeResolved_NotInstalled_QueuesInstall(t *testing.T) {
-	cmds := installCommands(makeNode(false), "16", models.ServiceLocationNative, true)
+	cmds := installCommands(makeNode(false), "16", models.ServiceLocationNative, true, "cluster-1")
 	if len(cmds) != 1 || cmds[0].action != "pg_install_native" {
 		t.Fatalf("expected [pg_install_native], got %+v", cmds)
 	}
@@ -168,7 +177,7 @@ func TestInstallCommands_NativeResolved_NotInstalled_QueuesInstall(t *testing.T)
 }
 
 func TestInstallCommands_NativeResolved_AlreadyInstalled_ReturnsEmpty(t *testing.T) {
-	cmds := installCommands(makeNode(true), "16", models.ServiceLocationNative, true)
+	cmds := installCommands(makeNode(true), "16", models.ServiceLocationNative, true, "cluster-1")
 	if len(cmds) != 0 {
 		t.Fatalf("expected no install commands when pg already installed, got %+v", cmds)
 	}

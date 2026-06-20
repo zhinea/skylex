@@ -401,7 +401,7 @@ func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, comm
 }
 
 func (s *AgentService) queueNativeProvisioningContinuation(ctx context.Context, node *models.Node, version string, skipInstall bool) error {
-	commands := installCommands(node, version, models.ServiceLocationNative, true)
+	commands := installCommands(node, version, models.ServiceLocationNative, true, node.ClusterID)
 	if skipInstall {
 		commands = nil
 	}
@@ -453,6 +453,13 @@ func (s *AgentService) updateClusterProvisioningStatus(ctx context.Context, comm
 		case models.InstallationStateConflict, models.InstallationStatePendingPreflight, models.InstallationStateInstalling:
 			return nil
 		case models.InstallationStateFailed:
+			nodeIDs := make([]string, 0, len(nodes))
+			for _, n := range nodes {
+				nodeIDs = append(nodeIDs, n.ID)
+			}
+			if err := s.commands.MarkPendingFailedByNodeIDs(ctx, nodeIDs, provisioningActions(), "skipped after provisioning failure"); err != nil {
+				s.log.Warn("mark pending provisioning commands failed", "cluster_id", node.ClusterID, "error", err)
+			}
 			return s.updateClusterStatus(ctx, node.ClusterID, models.ClusterStatusStopped)
 		}
 	}

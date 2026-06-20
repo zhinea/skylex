@@ -328,7 +328,7 @@ function InstallationProgressCard({ nodes, logs }: { nodes: Node[]; logs: Comman
             <div className="max-h-48 overflow-y-auto font-mono text-xs rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
               {tailLogs.map((log) => (
                 <div key={log.id} className="grid grid-cols-[5rem_7rem_1fr] gap-2 px-3 py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-                  <span className="text-gray-500 dark:text-gray-400">{new Date(log.timestampMs).toLocaleTimeString()}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{new Date(Number(log.timestampMs)).toLocaleTimeString()}</span>
                   <span className="text-gray-700 dark:text-gray-300 truncate">{log.hostname || log.nodeId?.slice(0, 8) || "-"}</span>
                   <span className={`${levelColor(log.level)} break-all`}>{log.message}</span>
                 </div>
@@ -650,7 +650,7 @@ export default function ClusterDetailPage() {
                   {logs.map((log) => (
                     <tr key={log.id} className="border-b border-gray-100 dark:border-gray-800">
                       <td className="px-2 py-1.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {new Date(log.timestampMs).toLocaleTimeString()}
+                        {new Date(Number(log.timestampMs)).toLocaleTimeString()}
                       </td>
                       <td className="px-2 py-1.5 whitespace-nowrap text-gray-700 dark:text-gray-300">
                         {log.hostname || log.nodeId?.slice(0, 8) || "-"}

@@ -309,7 +309,7 @@ func (s *NodeService) queuePurgeCommands(ctx context.Context, node *models.Node,
 	commands := []provisioningCommand{{"pg_purge_native", ""}}
 	installNode := *node
 	installNode.PostgresInstalled = false
-	commands = append(commands, installCommands(&installNode, version, models.ServiceLocationNative, true)...)
+	commands = append(commands, installCommands(&installNode, version, models.ServiceLocationNative, true, node.ClusterID)...)
 	if node.Role == models.NodeRolePrimary {
 		commands = append(commands, primaryCommands()...)
 	} else {
