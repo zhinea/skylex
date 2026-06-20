@@ -1,9 +1,11 @@
 package installer
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
+
 
 // ---------------------------------------------------------------------------
 // formatCommand
@@ -75,6 +77,17 @@ func TestDockerContainerName(t *testing.T) {
 	}
 	if name[:len(dockerContainerNamePrefix)] != dockerContainerNamePrefix {
 		t.Fatalf("expected container name to start with %q, got %q", dockerContainerNamePrefix, name)
+	}
+}
+
+func TestDockerInstaller_Install_RequiresClusterID(t *testing.T) {
+	var inst DockerInstaller
+	err := inst.Install(context.Background(), InstallConfig{ClusterID: ""}, nil)
+	if err == nil {
+		t.Fatal("expected error for empty cluster id")
+	}
+	if !strings.Contains(err.Error(), "cluster_id is required") {
+		t.Fatalf("expected cluster_id error, got %q", err.Error())
 	}
 }
 

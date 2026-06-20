@@ -33,12 +33,21 @@ func DockerContainerName(clusterID string) string {
 }
 
 func (DockerInstaller) Install(ctx context.Context, cfg InstallConfig, log LogSink) error {
-	if !commandExists("docker") {
-		return fmt.Errorf("docker binary not found")
-	}
 	if cfg.ClusterID == "" {
 		return fmt.Errorf("cluster_id is required for docker install")
 	}
+
+	// Make sure Docker Engine is installed and reachable before trying to use it.
+	// This also handles the common case where the docker binary exists but the
+	// agent user is not in the docker group.
+	needsRestart, err := EnsureDockerEngine(ctx, log)
+	if err != nil {
+		if needsRestart {
+			return err
+		}
+		return fmt.Errorf("ensure docker engine: %w", err)
+	}
+
 	if err := os.MkdirAll(cfg.DataDir, 0700); err != nil {
 		return fmt.Errorf("create data dir: %w", err)
 	}

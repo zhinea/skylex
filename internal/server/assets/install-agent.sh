@@ -7,6 +7,12 @@
 #     --server skylex.example.com:9090 \
 #     --token sklx_at_xxxxxxxxxxxxxxxx
 #
+# Systemd install with Docker Engine pre-installed (recommended for Docker clusters):
+#   curl -fsSL https://skylex.example.com/install.sh | sudo bash -s -- \
+#     --server skylex.example.com:9090 \
+#     --token sklx_at_xxxxxxxxxxxxxxxx \
+#     --with-docker-engine
+#
 # Docker helper:
 #   curl -fsSL https://skylex.example.com/install.sh | sudo bash -s -- \
 #     --server skylex.example.com:9090 \
@@ -29,6 +35,7 @@ VERSION="@@VERSION@@"
 USER="skylex"
 SKIP_USER=false
 DOCKER=false
+WITH_DOCKER_ENGINE=false
 
 log() { echo "[skylex] $*"; }
 fail() { echo "[skylex] error: $*" >&2; exit 1; }
@@ -48,6 +55,7 @@ Optional:
   --version VERSION   release version to install (default: @@VERSION@@)
   --user USER         system user to create for the agent (default: skylex)
   --no-user           do not create a dedicated system user
+  --with-docker-engine install Docker Engine and add the agent user to the docker group
   --docker            run the agent in a Docker container instead of systemd
   -h, --help          show this help
 EOF
@@ -63,6 +71,7 @@ while [[ $# -gt 0 ]]; do
     --version) VERSION="$2"; shift 2 ;;
     --user) USER="$2"; shift 2 ;;
     --no-user) SKIP_USER=true; shift ;;
+    --with-docker-engine) WITH_DOCKER_ENGINE=true; shift ;;
     --docker) DOCKER=true; shift ;;
     -h|--help) usage; exit 0 ;;
     *) fail "unknown option: $1"; ;;
@@ -96,10 +105,56 @@ case "$OS" in
   *) fail "unsupported operating system: $OS" ;;
 esac
 
+ensure_docker_engine() {
+  if command -v docker >/dev/null 2>&1; then
+    log "docker engine is already installed"
+  elif $WITH_DOCKER_ENGINE; then
+    log "docker engine not found; installing using the system package manager"
+    if command -v apt-get >/dev/null 2>&1; then
+      apt-get update
+      apt-get install -y --no-install-recommends docker.io
+    elif command -v dnf >/dev/null 2>&1; then
+      dnf install -y docker || dnf install -y moby-engine
+    elif command -v apk >/dev/null 2>&1; then
+      apk add --no-cache docker
+    elif command -v zypper >/dev/null 2>&1; then
+      zypper --non-interactive install docker
+    else
+      fail "no supported package manager found for installing Docker Engine (supported: apt-get, dnf, apk, zypper)"
+    fi
+  else
+    return
+  fi
+
+  if command -v systemctl >/dev/null 2>&1; then
+    systemctl enable docker >/dev/null 2>&1 || true
+    systemctl start docker >/dev/null 2>&1 || true
+  fi
+
+  if $SKIP_USER; then
+    return
+  fi
+
+  if ! id -u "$USER" >/dev/null 2>&1; then
+    return
+  fi
+
+  if getent group docker >/dev/null 2>&1; then
+    if ! id -nG "$USER" | grep -qw docker; then
+      usermod -aG docker "$USER"
+      log "added user ${USER} to the docker group"
+    fi
+  fi
+}
+
 log "installing skylex-agent ${VERSION} for ${OS}/${ARCH}"
 log "reporting hostname: ${HOSTNAME}"
 
 if $DOCKER; then
+  # The agent itself will run inside a container, but the host still needs a
+  # working Docker Engine. Optionally install it and add the calling user to
+  # the docker group first.
+  ensure_docker_engine
   if ! command -v docker >/dev/null 2>&1; then
     fail "docker is required for --docker mode"
   fi
@@ -167,6 +222,10 @@ if ! $SKIP_USER; then
   fi
   chown -R "${USER}:${USER}" /etc/skylex
 fi
+
+# Install Docker Engine and/or add the agent user to the docker group so that
+# Docker-based clusters can be provisioned without manual host setup.
+ensure_docker_engine
 
 cat > /etc/systemd/system/skylex-agent.service <<EOF
 [Unit]

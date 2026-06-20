@@ -173,7 +173,10 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 			strings.Join(missingAgent, ", "))
 	}
 
-	// Preflight: warn when Docker location is requested but a node lacks Docker.
+	// Preflight for Docker locations: if a node reports Docker as unavailable,
+	// the agent will attempt to install/enable Docker Engine automatically when
+	// it executes pg_install_docker. Log the situation so operators know why a
+	// dependency is being pulled in.
 	serviceLocation := convertServiceLocation(cfg.GetServiceLocation())
 	if serviceLocation == models.ServiceLocationDocker {
 		var noDocker []string
@@ -183,7 +186,7 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 			}
 		}
 		if len(noDocker) > 0 {
-			s.log.Warn("docker not available on selected node(s); proceeding anyway",
+			s.log.Warn("docker not available on selected node(s); agent will attempt to install/enable it",
 				"nodes", strings.Join(noDocker, ", "))
 		}
 	}

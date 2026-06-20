@@ -14,6 +14,7 @@ export function InstallAgentModal({ open, onClose, mode = "install", hostname }:
   const { data, isLoading, error, generate } = useAgentInstallCommand();
   const { data: nodesData } = useNodes(undefined, 1, 100);
   const [docker, setDocker] = useState(false);
+  const [withDockerEngine, setWithDockerEngine] = useState(true);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export function InstallAgentModal({ open, onClose, mode = "install", hostname }:
   const currentCount = nodesData?.nodes?.length || 0;
   const newNodesSeen = currentCount > initialCount;
 
-  const command = buildCommand(data?.scriptUrl, data?.serverAddr, data?.token, docker);
+  const command = buildCommand(data?.scriptUrl, data?.serverAddr, data?.token, docker, withDockerEngine);
 
   const handleCopy = async () => {
     if (typeof window === "undefined" || !command) return;
@@ -80,6 +81,18 @@ export function InstallAgentModal({ open, onClose, mode = "install", hostname }:
             Docker
           </button>
         </div>
+
+        {!docker && (
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              checked={withDockerEngine}
+              onChange={(e) => setWithDockerEngine(e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            Pre-install Docker Engine and add the agent user to the docker group
+          </label>
+        )}
 
         {isLoading && <p className="text-sm text-gray-500">Generating install command...</p>}
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -134,6 +147,7 @@ function buildCommand(
   serverAddr: string | undefined,
   token: string | undefined,
   docker: boolean,
+  withDockerEngine: boolean,
 ): string {
   if (!scriptUrl || !serverAddr || !token) return "";
 
@@ -145,6 +159,8 @@ function buildCommand(
 
   if (docker) {
     parts.push("--docker");
+  } else if (withDockerEngine) {
+    parts.push("--with-docker-engine");
   }
 
   return parts.join(" ");

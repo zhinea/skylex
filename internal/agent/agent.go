@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"math"
@@ -480,6 +481,13 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		installCfg.ClusterID = clusterID
 		installCfg.Version = version
 		if err := a.docker.Install(ctx, installCfg, logger); err != nil {
+			if errors.Is(err, installer.ErrDockerNeedsRestart) {
+				// The engine was installed and the user was added to the docker group,
+				// but the running process still has the old group set. Surface a clear,
+				// actionable message instead of a raw error.
+				a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
+				return false, "", a.enrichError("pg_install_docker", err)
+			}
 			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
 			return false, "", a.enrichError("pg_install_docker", err)
 		}
@@ -716,6 +724,9 @@ func (a *Agent) enrichError(action string, err error) string {
 		return fmt.Sprintf("native install failed: %s", msg)
 
 	case "pg_install_docker":
+		if strings.Contains(lower, "restart") && strings.Contains(lower, "docker group") {
+			return fmt.Sprintf("docker engine was installed and the agent user was added to the docker group; restart the skylex-agent service to apply the new group membership and retry the cluster creation")
+		}
 		if strings.Contains(lower, "docker binary not found") || strings.Contains(lower, "permission denied") {
 			return fmt.Sprintf("docker install failed: Docker is unavailable or the agent cannot access the Docker daemon — ensure the agent user is in the docker group or has sufficient privileges: %s", msg)
 		}
