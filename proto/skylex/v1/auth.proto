@@ -148,4 +148,5 @@ message GetAgentInstallCommandResponse {
   string script_url = 1;
   string server_addr = 2;
   string token = 3;
+  string agent_download_url = 4;
 }

@@ -223,9 +223,39 @@ func (s *AgentService) ReportStatus(ctx context.Context, req *skylexv1.ReportSta
 				s.log.Warn("update node installation state (report)", "error", err, "node_id", node.ID)
 			}
 		}
+
+		if metrics := nodeStatus.GetSystemMetrics(); metrics != nil {
+			if err := s.nodes.UpdateSystemMetrics(ctx, node.ID, nodeMetricsToModel(metrics)); err != nil {
+				s.log.Warn("update node system metrics (report)", "error", err, "node_id", node.ID)
+			}
+		}
 	}
 
 	return &skylexv1.ReportStatusResponse{}, nil
+}
+
+func nodeMetricsToModel(metrics *skylexv1.NodeSystemMetrics) models.Node {
+	return models.Node{
+		OS:                   metrics.GetOs(),
+		Platform:             metrics.GetPlatform(),
+		PlatformVersion:      metrics.GetPlatformVersion(),
+		KernelVersion:        metrics.GetKernelVersion(),
+		Architecture:         metrics.GetArchitecture(),
+		CPUCores:             int(metrics.GetCpuCores()),
+		CPUUsagePercent:      metrics.GetCpuUsagePercent(),
+		LoadAverage1M:        metrics.GetLoadAverage_1M(),
+		LoadAverage5M:        metrics.GetLoadAverage_5M(),
+		LoadAverage15M:       metrics.GetLoadAverage_15M(),
+		MemoryTotalBytes:     metrics.GetMemoryTotalBytes(),
+		MemoryUsedBytes:      metrics.GetMemoryUsedBytes(),
+		MemoryAvailableBytes: metrics.GetMemoryAvailableBytes(),
+		MemoryUsagePercent:   metrics.GetMemoryUsagePercent(),
+		DiskTotalBytes:       metrics.GetDiskTotalBytes(),
+		DiskUsedBytes:        metrics.GetDiskUsedBytes(),
+		DiskAvailableBytes:   metrics.GetDiskAvailableBytes(),
+		DiskUsagePercent:     metrics.GetDiskUsagePercent(),
+		UptimeSeconds:        metrics.GetUptimeSeconds(),
+	}
 }
 
 func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchCommandRequest) (*skylexv1.FetchCommandResponse, error) {

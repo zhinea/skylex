@@ -62,6 +62,29 @@ message NodeStatusReport {
   string node_status_detail = 12;
   InstallationState installation_state = 13;
   string conflict_details = 14;
+  NodeSystemMetrics system_metrics = 15;
+}
+
+message NodeSystemMetrics {
+  string os = 1;
+  string platform = 2;
+  string platform_version = 3;
+  string kernel_version = 4;
+  string architecture = 5;
+  int32 cpu_cores = 6;
+  double cpu_usage_percent = 7;
+  int64 load_average_1m = 8;
+  int64 load_average_5m = 9;
+  int64 load_average_15m = 10;
+  int64 memory_total_bytes = 11;
+  int64 memory_used_bytes = 12;
+  int64 memory_available_bytes = 13;
+  double memory_usage_percent = 14;
+  int64 disk_total_bytes = 15;
+  int64 disk_used_bytes = 16;
+  int64 disk_available_bytes = 17;
+  double disk_usage_percent = 18;
+  int64 uptime_seconds = 19;
 }
 
 message ReportStatusRequest {

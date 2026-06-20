@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNodes, useDrainNode, useRejoinNode, useDeleteNode } from "~/hooks/useNodes";
+import { useNodes, useDrainNode, useRejoinNode, useDeleteNode, type Node } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
 import { PageSpinner } from "~/components/Spinner";
@@ -18,10 +18,12 @@ export default function NodesPage() {
   const [rejoinId, setRejoinId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [reconnectNode, setReconnectNode] = useState<{ id: string; hostname: string } | null>(null);
+  const [detailNodeId, setDetailNodeId] = useState<string | null>(null);
 
   if (isLoading) return <PageSpinner />;
 
   const nodes = data?.nodes || [];
+  const detailNode = detailNodeId ? nodes.find((n) => n.id === detailNodeId) || null : null;
   const total = data?.pagination?.total || 0;
   const pageSize = data?.pagination?.pageSize || 50;
 
@@ -92,6 +94,13 @@ export default function NodesPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setDetailNodeId(n.id)}
+                          className="text-xs text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                          title="Show node details"
+                        >
+                          Details
+                        </button>
                         {!n.agentConnected && n.status !== "deleting" && (
                           <button
                             onClick={() => setReconnectNode({ id: n.id, hostname: n.hostname })}
@@ -193,6 +202,130 @@ export default function NodesPage() {
         hostname={reconnectNode?.hostname}
         onClose={() => setReconnectNode(null)}
       />
+      <NodeDetailModal node={detailNode} onClose={() => setDetailNodeId(null)} />
     </div>
   );
+}
+
+function NodeDetailModal({ node, onClose }: { node: Node | null; onClose: () => void }) {
+  if (!node) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{node.hostname}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{node.id}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="px-6 py-4 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <MetricCard label="CPU" value={formatPercent(node.cpuUsagePercent)} detail={`${node.cpuCores || "-"} cores`} />
+            <MetricCard label="Memory" value={formatPercent(node.memoryUsagePercent)} detail={`${formatBytes(node.memoryUsedBytes)} / ${formatBytes(node.memoryTotalBytes)}`} />
+            <MetricCard label="Disk" value={formatPercent(node.diskUsagePercent)} detail={`${formatBytes(node.diskUsedBytes)} / ${formatBytes(node.diskTotalBytes)}`} />
+          </div>
+
+          <DetailSection title="Server">
+            <DetailItem label="OS" value={node.os || "-"} />
+            <DetailItem label="Platform" value={formatPlatform(node)} />
+            <DetailItem label="Kernel" value={node.kernelVersion || "-"} />
+            <DetailItem label="Architecture" value={node.architecture || "-"} />
+            <DetailItem label="Uptime" value={formatDuration(node.uptimeSeconds)} />
+            <DetailItem label="Load average" value={formatLoad(node)} />
+          </DetailSection>
+
+          <DetailSection title="Agent & Database">
+            <DetailItem label="Agent" value={node.agentConnected ? "Connected" : "Disconnected"} />
+            <DetailItem label="Agent latency" value={node.agentConnected ? `${node.agentLatencyMs} ms` : "-"} />
+            <DetailItem label="Agent version" value={node.agentVersion || "-"} />
+            <DetailItem label="Last seen" value={node.lastSeen ? new Date(node.lastSeen).toLocaleString() : "-"} />
+            <DetailItem label="PostgreSQL" value={node.postgresInstalled ? node.postgresVersion || "Installed" : "Not installed"} />
+            <DetailItem label="Data initialized" value={node.postgresDataInitialized ? "Yes" : "No"} />
+            <DetailItem label="Service location" value={node.serviceLocation || "-"} />
+            <DetailItem label="Docker available" value={node.dockerAvailable ? "Yes" : "No"} />
+          </DetailSection>
+
+          <DetailSection title="Node">
+            <DetailItem label="Status" value={node.status} />
+            <DetailItem label="Status detail" value={node.statusDetail || "-"} />
+            <DetailItem label="Role" value={node.role || "-"} />
+            <DetailItem label="Address" value={`${node.address}:${node.port}`} />
+            <DetailItem label="Cluster" value={node.clusterId || "-"} />
+            <DetailItem label="Installation state" value={node.installationState || "-"} />
+          </DetailSection>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{title}</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{children}</div>
+    </section>
+  );
+}
+
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="mt-1 text-sm font-medium text-gray-900 dark:text-white break-all">{value}</div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 p-4">
+      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{value}</div>
+      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{detail}</div>
+    </div>
+  );
+}
+
+function formatBytes(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "-";
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024;
+    unit += 1;
+  }
+  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
+}
+
+function formatPercent(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  return `${value.toFixed(1)}%`;
+}
+
+function formatDuration(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "-";
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function formatLoad(node: Node) {
+  const values = [node.loadAverage1M, node.loadAverage5M, node.loadAverage15M];
+  if (values.every((value) => !value)) return "-";
+  return values.map((value) => (value / 100).toFixed(2)).join(" / ");
+}
+
+function formatPlatform(node: Node) {
+  return [node.platform, node.platformVersion].filter(Boolean).join(" ") || "-";
 }

@@ -96,6 +96,25 @@ message Node {
   string conflict_details = 19;
   bool agent_connected = 20;
   int64 agent_latency_ms = 21;
+  string os = 23;
+  string platform = 24;
+  string platform_version = 25;
+  string kernel_version = 26;
+  string architecture = 27;
+  int32 cpu_cores = 28;
+  double cpu_usage_percent = 29;
+  int64 load_average_1m = 30;
+  int64 load_average_5m = 31;
+  int64 load_average_15m = 32;
+  int64 memory_total_bytes = 33;
+  int64 memory_used_bytes = 34;
+  int64 memory_available_bytes = 35;
+  double memory_usage_percent = 36;
+  int64 disk_total_bytes = 37;
+  int64 disk_used_bytes = 38;
+  int64 disk_available_bytes = 39;
+  double disk_usage_percent = 40;
+  int64 uptime_seconds = 41;
 }
 
 message Pagination {

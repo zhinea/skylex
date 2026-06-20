@@ -27,7 +27,7 @@ export function InstallAgentModal({ open, onClose, mode = "install", hostname }:
   const currentCount = nodesData?.nodes?.length || 0;
   const newNodesSeen = currentCount > initialCount;
 
-  const command = buildCommand(data?.scriptUrl, data?.serverAddr, data?.token, docker);
+  const command = buildCommand(data?.scriptUrl, data?.serverAddr, data?.token, docker, data?.agentDownloadUrl);
 
   const handleCopy = async () => {
     if (typeof window === "undefined" || !command) return;
@@ -134,6 +134,7 @@ function buildCommand(
   serverAddr: string | undefined,
   token: string | undefined,
   docker: boolean,
+  agentDownloadUrl?: string,
 ): string {
   if (!scriptUrl || !serverAddr || !token) return "";
 
@@ -145,6 +146,9 @@ function buildCommand(
 
   if (docker) {
     parts.push("--docker");
+  }
+  if (agentDownloadUrl) {
+    parts.push(`--download-url "${agentDownloadUrl}"`);
   }
 
   return parts.join(" ");

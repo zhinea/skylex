@@ -5,6 +5,7 @@ export interface InstallCommandData {
   scriptUrl: string;
   serverAddr: string;
   token: string;
+  agentDownloadUrl?: string;
 }
 
 export function useAgentInstallCommand() {
@@ -20,9 +21,10 @@ export function useAgentInstallCommand() {
         scriptUrl: string;
         serverAddr: string;
         token: string;
+        agentDownloadUrl?: string;
       };
 
-      setData({ scriptUrl: resp.scriptUrl, serverAddr: resp.serverAddr, token: resp.token });
+      setData({ scriptUrl: resp.scriptUrl, serverAddr: resp.serverAddr, token: resp.token, agentDownloadUrl: resp.agentDownloadUrl });
     } catch (err) {
       const message =
         err instanceof ApiError

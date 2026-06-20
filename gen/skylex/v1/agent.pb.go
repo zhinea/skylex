@@ -353,9 +353,10 @@ type NodeStatusReport struct {
 	PostgresBinVersion      string `protobuf:"bytes,10,opt,name=postgres_bin_version,json=postgresBinVersion,proto3" json:"postgres_bin_version,omitempty"`
 	PostgresDataInitialized bool   `protobuf:"varint,11,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
 	// Phase 4: human-readable status detail
-	NodeStatusDetail  string            `protobuf:"bytes,12,opt,name=node_status_detail,json=nodeStatusDetail,proto3" json:"node_status_detail,omitempty"`
-	InstallationState InstallationState `protobuf:"varint,13,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
-	ConflictDetails   string            `protobuf:"bytes,14,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	NodeStatusDetail  string             `protobuf:"bytes,12,opt,name=node_status_detail,json=nodeStatusDetail,proto3" json:"node_status_detail,omitempty"`
+	InstallationState InstallationState  `protobuf:"varint,13,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
+	ConflictDetails   string             `protobuf:"bytes,14,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	SystemMetrics     *NodeSystemMetrics `protobuf:"bytes,15,opt,name=system_metrics,json=systemMetrics,proto3" json:"system_metrics,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -488,6 +489,201 @@ func (x *NodeStatusReport) GetConflictDetails() string {
 	return ""
 }
 
+func (x *NodeStatusReport) GetSystemMetrics() *NodeSystemMetrics {
+	if x != nil {
+		return x.SystemMetrics
+	}
+	return nil
+}
+
+type NodeSystemMetrics struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Os                   string                 `protobuf:"bytes,1,opt,name=os,proto3" json:"os,omitempty"`
+	Platform             string                 `protobuf:"bytes,2,opt,name=platform,proto3" json:"platform,omitempty"`
+	PlatformVersion      string                 `protobuf:"bytes,3,opt,name=platform_version,json=platformVersion,proto3" json:"platform_version,omitempty"`
+	KernelVersion        string                 `protobuf:"bytes,4,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"`
+	Architecture         string                 `protobuf:"bytes,5,opt,name=architecture,proto3" json:"architecture,omitempty"`
+	CpuCores             int32                  `protobuf:"varint,6,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	CpuUsagePercent      float64                `protobuf:"fixed64,7,opt,name=cpu_usage_percent,json=cpuUsagePercent,proto3" json:"cpu_usage_percent,omitempty"`
+	LoadAverage_1M       int64                  `protobuf:"varint,8,opt,name=load_average_1m,json=loadAverage1m,proto3" json:"load_average_1m,omitempty"`
+	LoadAverage_5M       int64                  `protobuf:"varint,9,opt,name=load_average_5m,json=loadAverage5m,proto3" json:"load_average_5m,omitempty"`
+	LoadAverage_15M      int64                  `protobuf:"varint,10,opt,name=load_average_15m,json=loadAverage15m,proto3" json:"load_average_15m,omitempty"`
+	MemoryTotalBytes     int64                  `protobuf:"varint,11,opt,name=memory_total_bytes,json=memoryTotalBytes,proto3" json:"memory_total_bytes,omitempty"`
+	MemoryUsedBytes      int64                  `protobuf:"varint,12,opt,name=memory_used_bytes,json=memoryUsedBytes,proto3" json:"memory_used_bytes,omitempty"`
+	MemoryAvailableBytes int64                  `protobuf:"varint,13,opt,name=memory_available_bytes,json=memoryAvailableBytes,proto3" json:"memory_available_bytes,omitempty"`
+	MemoryUsagePercent   float64                `protobuf:"fixed64,14,opt,name=memory_usage_percent,json=memoryUsagePercent,proto3" json:"memory_usage_percent,omitempty"`
+	DiskTotalBytes       int64                  `protobuf:"varint,15,opt,name=disk_total_bytes,json=diskTotalBytes,proto3" json:"disk_total_bytes,omitempty"`
+	DiskUsedBytes        int64                  `protobuf:"varint,16,opt,name=disk_used_bytes,json=diskUsedBytes,proto3" json:"disk_used_bytes,omitempty"`
+	DiskAvailableBytes   int64                  `protobuf:"varint,17,opt,name=disk_available_bytes,json=diskAvailableBytes,proto3" json:"disk_available_bytes,omitempty"`
+	DiskUsagePercent     float64                `protobuf:"fixed64,18,opt,name=disk_usage_percent,json=diskUsagePercent,proto3" json:"disk_usage_percent,omitempty"`
+	UptimeSeconds        int64                  `protobuf:"varint,19,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *NodeSystemMetrics) Reset() {
+	*x = NodeSystemMetrics{}
+	mi := &file_skylex_v1_agent_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeSystemMetrics) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeSystemMetrics) ProtoMessage() {}
+
+func (x *NodeSystemMetrics) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_agent_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeSystemMetrics.ProtoReflect.Descriptor instead.
+func (*NodeSystemMetrics) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *NodeSystemMetrics) GetOs() string {
+	if x != nil {
+		return x.Os
+	}
+	return ""
+}
+
+func (x *NodeSystemMetrics) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *NodeSystemMetrics) GetPlatformVersion() string {
+	if x != nil {
+		return x.PlatformVersion
+	}
+	return ""
+}
+
+func (x *NodeSystemMetrics) GetKernelVersion() string {
+	if x != nil {
+		return x.KernelVersion
+	}
+	return ""
+}
+
+func (x *NodeSystemMetrics) GetArchitecture() string {
+	if x != nil {
+		return x.Architecture
+	}
+	return ""
+}
+
+func (x *NodeSystemMetrics) GetCpuCores() int32 {
+	if x != nil {
+		return x.CpuCores
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetCpuUsagePercent() float64 {
+	if x != nil {
+		return x.CpuUsagePercent
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetLoadAverage_1M() int64 {
+	if x != nil {
+		return x.LoadAverage_1M
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetLoadAverage_5M() int64 {
+	if x != nil {
+		return x.LoadAverage_5M
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetLoadAverage_15M() int64 {
+	if x != nil {
+		return x.LoadAverage_15M
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetMemoryTotalBytes() int64 {
+	if x != nil {
+		return x.MemoryTotalBytes
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetMemoryUsedBytes() int64 {
+	if x != nil {
+		return x.MemoryUsedBytes
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetMemoryAvailableBytes() int64 {
+	if x != nil {
+		return x.MemoryAvailableBytes
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetMemoryUsagePercent() float64 {
+	if x != nil {
+		return x.MemoryUsagePercent
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetDiskTotalBytes() int64 {
+	if x != nil {
+		return x.DiskTotalBytes
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetDiskUsedBytes() int64 {
+	if x != nil {
+		return x.DiskUsedBytes
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetDiskAvailableBytes() int64 {
+	if x != nil {
+		return x.DiskAvailableBytes
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetDiskUsagePercent() float64 {
+	if x != nil {
+		return x.DiskUsagePercent
+	}
+	return 0
+}
+
+func (x *NodeSystemMetrics) GetUptimeSeconds() int64 {
+	if x != nil {
+		return x.UptimeSeconds
+	}
+	return 0
+}
+
 type ReportStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AgentId       string                 `protobuf:"bytes,1,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
@@ -498,7 +694,7 @@ type ReportStatusRequest struct {
 
 func (x *ReportStatusRequest) Reset() {
 	*x = ReportStatusRequest{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[6]
+	mi := &file_skylex_v1_agent_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -510,7 +706,7 @@ func (x *ReportStatusRequest) String() string {
 func (*ReportStatusRequest) ProtoMessage() {}
 
 func (x *ReportStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[6]
+	mi := &file_skylex_v1_agent_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +719,7 @@ func (x *ReportStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportStatusRequest.ProtoReflect.Descriptor instead.
 func (*ReportStatusRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{6}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ReportStatusRequest) GetAgentId() string {
@@ -548,7 +744,7 @@ type ReportStatusResponse struct {
 
 func (x *ReportStatusResponse) Reset() {
 	*x = ReportStatusResponse{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[7]
+	mi := &file_skylex_v1_agent_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -560,7 +756,7 @@ func (x *ReportStatusResponse) String() string {
 func (*ReportStatusResponse) ProtoMessage() {}
 
 func (x *ReportStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[7]
+	mi := &file_skylex_v1_agent_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -573,7 +769,7 @@ func (x *ReportStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportStatusResponse.ProtoReflect.Descriptor instead.
 func (*ReportStatusResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{7}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{8}
 }
 
 type AgentCommand struct {
@@ -588,7 +784,7 @@ type AgentCommand struct {
 
 func (x *AgentCommand) Reset() {
 	*x = AgentCommand{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[8]
+	mi := &file_skylex_v1_agent_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -600,7 +796,7 @@ func (x *AgentCommand) String() string {
 func (*AgentCommand) ProtoMessage() {}
 
 func (x *AgentCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[8]
+	mi := &file_skylex_v1_agent_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -613,7 +809,7 @@ func (x *AgentCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentCommand.ProtoReflect.Descriptor instead.
 func (*AgentCommand) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{8}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AgentCommand) GetId() string {
@@ -653,7 +849,7 @@ type FetchCommandRequest struct {
 
 func (x *FetchCommandRequest) Reset() {
 	*x = FetchCommandRequest{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[9]
+	mi := &file_skylex_v1_agent_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -665,7 +861,7 @@ func (x *FetchCommandRequest) String() string {
 func (*FetchCommandRequest) ProtoMessage() {}
 
 func (x *FetchCommandRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[9]
+	mi := &file_skylex_v1_agent_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +874,7 @@ func (x *FetchCommandRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetchCommandRequest.ProtoReflect.Descriptor instead.
 func (*FetchCommandRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{9}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *FetchCommandRequest) GetAgentId() string {
@@ -697,7 +893,7 @@ type FetchCommandResponse struct {
 
 func (x *FetchCommandResponse) Reset() {
 	*x = FetchCommandResponse{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[10]
+	mi := &file_skylex_v1_agent_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -709,7 +905,7 @@ func (x *FetchCommandResponse) String() string {
 func (*FetchCommandResponse) ProtoMessage() {}
 
 func (x *FetchCommandResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[10]
+	mi := &file_skylex_v1_agent_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -722,7 +918,7 @@ func (x *FetchCommandResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetchCommandResponse.ProtoReflect.Descriptor instead.
 func (*FetchCommandResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{10}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *FetchCommandResponse) GetCommands() []*AgentCommand {
@@ -745,7 +941,7 @@ type ReportCommandResultRequest struct {
 
 func (x *ReportCommandResultRequest) Reset() {
 	*x = ReportCommandResultRequest{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[11]
+	mi := &file_skylex_v1_agent_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -757,7 +953,7 @@ func (x *ReportCommandResultRequest) String() string {
 func (*ReportCommandResultRequest) ProtoMessage() {}
 
 func (x *ReportCommandResultRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[11]
+	mi := &file_skylex_v1_agent_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -770,7 +966,7 @@ func (x *ReportCommandResultRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportCommandResultRequest.ProtoReflect.Descriptor instead.
 func (*ReportCommandResultRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{11}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ReportCommandResultRequest) GetAgentId() string {
@@ -816,7 +1012,7 @@ type ReportCommandResultResponse struct {
 
 func (x *ReportCommandResultResponse) Reset() {
 	*x = ReportCommandResultResponse{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[12]
+	mi := &file_skylex_v1_agent_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -828,7 +1024,7 @@ func (x *ReportCommandResultResponse) String() string {
 func (*ReportCommandResultResponse) ProtoMessage() {}
 
 func (x *ReportCommandResultResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[12]
+	mi := &file_skylex_v1_agent_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -841,7 +1037,7 @@ func (x *ReportCommandResultResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportCommandResultResponse.ProtoReflect.Descriptor instead.
 func (*ReportCommandResultResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{12}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{13}
 }
 
 type CommandLogEntry struct {
@@ -856,7 +1052,7 @@ type CommandLogEntry struct {
 
 func (x *CommandLogEntry) Reset() {
 	*x = CommandLogEntry{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[13]
+	mi := &file_skylex_v1_agent_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -868,7 +1064,7 @@ func (x *CommandLogEntry) String() string {
 func (*CommandLogEntry) ProtoMessage() {}
 
 func (x *CommandLogEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[13]
+	mi := &file_skylex_v1_agent_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,7 +1077,7 @@ func (x *CommandLogEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandLogEntry.ProtoReflect.Descriptor instead.
 func (*CommandLogEntry) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{13}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CommandLogEntry) GetCommandId() string {
@@ -922,7 +1118,7 @@ type ReportCommandLogRequest struct {
 
 func (x *ReportCommandLogRequest) Reset() {
 	*x = ReportCommandLogRequest{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[14]
+	mi := &file_skylex_v1_agent_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -934,7 +1130,7 @@ func (x *ReportCommandLogRequest) String() string {
 func (*ReportCommandLogRequest) ProtoMessage() {}
 
 func (x *ReportCommandLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[14]
+	mi := &file_skylex_v1_agent_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -947,7 +1143,7 @@ func (x *ReportCommandLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportCommandLogRequest.ProtoReflect.Descriptor instead.
 func (*ReportCommandLogRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{14}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ReportCommandLogRequest) GetAgentId() string {
@@ -972,7 +1168,7 @@ type ReportCommandLogResponse struct {
 
 func (x *ReportCommandLogResponse) Reset() {
 	*x = ReportCommandLogResponse{}
-	mi := &file_skylex_v1_agent_proto_msgTypes[15]
+	mi := &file_skylex_v1_agent_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -984,7 +1180,7 @@ func (x *ReportCommandLogResponse) String() string {
 func (*ReportCommandLogResponse) ProtoMessage() {}
 
 func (x *ReportCommandLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_agent_proto_msgTypes[15]
+	mi := &file_skylex_v1_agent_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -997,7 +1193,7 @@ func (x *ReportCommandLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReportCommandLogResponse.ProtoReflect.Descriptor instead.
 func (*ReportCommandLogResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{15}
+	return file_skylex_v1_agent_proto_rawDescGZIP(), []int{16}
 }
 
 var File_skylex_v1_agent_proto protoreflect.FileDescriptor
@@ -1030,7 +1226,7 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x126\n" +
 	"\fcurrent_role\x18\x03 \x01(\x0e2\x13.skylex.v1.NodeRoleR\vcurrentRole\x12.\n" +
 	"\x13observed_latency_ms\x18\x04 \x01(\x03R\x11observedLatencyMs\"\x13\n" +
-	"\x11HeartbeatResponse\"\xa5\x05\n" +
+	"\x11HeartbeatResponse\"\xea\x05\n" +
 	"\x10NodeStatusReport\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12)\n" +
 	"\x10postgres_running\x18\x02 \x01(\bR\x0fpostgresRunning\x12)\n" +
@@ -1046,7 +1242,29 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\x19postgres_data_initialized\x18\v \x01(\bR\x17postgresDataInitialized\x12,\n" +
 	"\x12node_status_detail\x18\f \x01(\tR\x10nodeStatusDetail\x12K\n" +
 	"\x12installation_state\x18\r \x01(\x0e2\x1c.skylex.v1.InstallationStateR\x11installationState\x12)\n" +
-	"\x10conflict_details\x18\x0e \x01(\tR\x0fconflictDetails\"r\n" +
+	"\x10conflict_details\x18\x0e \x01(\tR\x0fconflictDetails\x12C\n" +
+	"\x0esystem_metrics\x18\x0f \x01(\v2\x1c.skylex.v1.NodeSystemMetricsR\rsystemMetrics\"\x93\x06\n" +
+	"\x11NodeSystemMetrics\x12\x0e\n" +
+	"\x02os\x18\x01 \x01(\tR\x02os\x12\x1a\n" +
+	"\bplatform\x18\x02 \x01(\tR\bplatform\x12)\n" +
+	"\x10platform_version\x18\x03 \x01(\tR\x0fplatformVersion\x12%\n" +
+	"\x0ekernel_version\x18\x04 \x01(\tR\rkernelVersion\x12\"\n" +
+	"\farchitecture\x18\x05 \x01(\tR\farchitecture\x12\x1b\n" +
+	"\tcpu_cores\x18\x06 \x01(\x05R\bcpuCores\x12*\n" +
+	"\x11cpu_usage_percent\x18\a \x01(\x01R\x0fcpuUsagePercent\x12&\n" +
+	"\x0fload_average_1m\x18\b \x01(\x03R\rloadAverage1m\x12&\n" +
+	"\x0fload_average_5m\x18\t \x01(\x03R\rloadAverage5m\x12(\n" +
+	"\x10load_average_15m\x18\n" +
+	" \x01(\x03R\x0eloadAverage15m\x12,\n" +
+	"\x12memory_total_bytes\x18\v \x01(\x03R\x10memoryTotalBytes\x12*\n" +
+	"\x11memory_used_bytes\x18\f \x01(\x03R\x0fmemoryUsedBytes\x124\n" +
+	"\x16memory_available_bytes\x18\r \x01(\x03R\x14memoryAvailableBytes\x120\n" +
+	"\x14memory_usage_percent\x18\x0e \x01(\x01R\x12memoryUsagePercent\x12(\n" +
+	"\x10disk_total_bytes\x18\x0f \x01(\x03R\x0ediskTotalBytes\x12&\n" +
+	"\x0fdisk_used_bytes\x18\x10 \x01(\x03R\rdiskUsedBytes\x120\n" +
+	"\x14disk_available_bytes\x18\x11 \x01(\x03R\x12diskAvailableBytes\x12,\n" +
+	"\x12disk_usage_percent\x18\x12 \x01(\x01R\x10diskUsagePercent\x12%\n" +
+	"\x0euptime_seconds\x18\x13 \x01(\x03R\ruptimeSeconds\"r\n" +
 	"\x13ReportStatusRequest\x12\x19\n" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12@\n" +
 	"\rnode_statuses\x18\x02 \x03(\v2\x1b.skylex.v1.NodeStatusReportR\fnodeStatuses\"\x16\n" +
@@ -1101,7 +1319,7 @@ func file_skylex_v1_agent_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_agent_proto_rawDescData
 }
 
-var file_skylex_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_skylex_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_skylex_v1_agent_proto_goTypes = []any{
 	(*NodeCapabilities)(nil),            // 0: skylex.v1.NodeCapabilities
 	(*RegisterAgentRequest)(nil),        // 1: skylex.v1.RegisterAgentRequest
@@ -1109,45 +1327,47 @@ var file_skylex_v1_agent_proto_goTypes = []any{
 	(*HeartbeatRequest)(nil),            // 3: skylex.v1.HeartbeatRequest
 	(*HeartbeatResponse)(nil),           // 4: skylex.v1.HeartbeatResponse
 	(*NodeStatusReport)(nil),            // 5: skylex.v1.NodeStatusReport
-	(*ReportStatusRequest)(nil),         // 6: skylex.v1.ReportStatusRequest
-	(*ReportStatusResponse)(nil),        // 7: skylex.v1.ReportStatusResponse
-	(*AgentCommand)(nil),                // 8: skylex.v1.AgentCommand
-	(*FetchCommandRequest)(nil),         // 9: skylex.v1.FetchCommandRequest
-	(*FetchCommandResponse)(nil),        // 10: skylex.v1.FetchCommandResponse
-	(*ReportCommandResultRequest)(nil),  // 11: skylex.v1.ReportCommandResultRequest
-	(*ReportCommandResultResponse)(nil), // 12: skylex.v1.ReportCommandResultResponse
-	(*CommandLogEntry)(nil),             // 13: skylex.v1.CommandLogEntry
-	(*ReportCommandLogRequest)(nil),     // 14: skylex.v1.ReportCommandLogRequest
-	(*ReportCommandLogResponse)(nil),    // 15: skylex.v1.ReportCommandLogResponse
-	nil,                                 // 16: skylex.v1.RegisterAgentRequest.LabelsEntry
-	(NodeRole)(0),                       // 17: skylex.v1.NodeRole
-	(InstallationState)(0),              // 18: skylex.v1.InstallationState
+	(*NodeSystemMetrics)(nil),           // 6: skylex.v1.NodeSystemMetrics
+	(*ReportStatusRequest)(nil),         // 7: skylex.v1.ReportStatusRequest
+	(*ReportStatusResponse)(nil),        // 8: skylex.v1.ReportStatusResponse
+	(*AgentCommand)(nil),                // 9: skylex.v1.AgentCommand
+	(*FetchCommandRequest)(nil),         // 10: skylex.v1.FetchCommandRequest
+	(*FetchCommandResponse)(nil),        // 11: skylex.v1.FetchCommandResponse
+	(*ReportCommandResultRequest)(nil),  // 12: skylex.v1.ReportCommandResultRequest
+	(*ReportCommandResultResponse)(nil), // 13: skylex.v1.ReportCommandResultResponse
+	(*CommandLogEntry)(nil),             // 14: skylex.v1.CommandLogEntry
+	(*ReportCommandLogRequest)(nil),     // 15: skylex.v1.ReportCommandLogRequest
+	(*ReportCommandLogResponse)(nil),    // 16: skylex.v1.ReportCommandLogResponse
+	nil,                                 // 17: skylex.v1.RegisterAgentRequest.LabelsEntry
+	(NodeRole)(0),                       // 18: skylex.v1.NodeRole
+	(InstallationState)(0),              // 19: skylex.v1.InstallationState
 }
 var file_skylex_v1_agent_proto_depIdxs = []int32{
-	16, // 0: skylex.v1.RegisterAgentRequest.labels:type_name -> skylex.v1.RegisterAgentRequest.LabelsEntry
+	17, // 0: skylex.v1.RegisterAgentRequest.labels:type_name -> skylex.v1.RegisterAgentRequest.LabelsEntry
 	0,  // 1: skylex.v1.RegisterAgentRequest.capabilities:type_name -> skylex.v1.NodeCapabilities
-	17, // 2: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
-	18, // 3: skylex.v1.NodeStatusReport.installation_state:type_name -> skylex.v1.InstallationState
-	5,  // 4: skylex.v1.ReportStatusRequest.node_statuses:type_name -> skylex.v1.NodeStatusReport
-	8,  // 5: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
-	13, // 6: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
-	1,  // 7: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
-	3,  // 8: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
-	6,  // 9: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
-	9,  // 10: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
-	11, // 11: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
-	14, // 12: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
-	2,  // 13: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
-	4,  // 14: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
-	7,  // 15: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
-	10, // 16: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
-	12, // 17: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
-	15, // 18: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
-	13, // [13:19] is the sub-list for method output_type
-	7,  // [7:13] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	18, // 2: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
+	19, // 3: skylex.v1.NodeStatusReport.installation_state:type_name -> skylex.v1.InstallationState
+	6,  // 4: skylex.v1.NodeStatusReport.system_metrics:type_name -> skylex.v1.NodeSystemMetrics
+	5,  // 5: skylex.v1.ReportStatusRequest.node_statuses:type_name -> skylex.v1.NodeStatusReport
+	9,  // 6: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
+	14, // 7: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
+	1,  // 8: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
+	3,  // 9: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
+	7,  // 10: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
+	10, // 11: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
+	12, // 12: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
+	15, // 13: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
+	2,  // 14: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
+	4,  // 15: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
+	8,  // 16: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
+	11, // 17: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
+	13, // 18: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
+	16, // 19: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
+	14, // [14:20] is the sub-list for method output_type
+	8,  // [8:14] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_agent_proto_init() }
@@ -1162,7 +1382,7 @@ func file_skylex_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_agent_proto_rawDesc), len(file_skylex_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

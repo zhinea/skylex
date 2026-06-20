@@ -1,13 +1,17 @@
 package agent
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"os/exec"
 	"os/signal"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -198,6 +202,7 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 		NodeStatusDetail:        computeAgentStatusDetail(pgInstalled, pgDataInitialized, postgresRunning),
 		InstallationState:       installationState,
 		ConflictDetails:         conflictDetails,
+		SystemMetrics:           collectSystemMetrics(a.cfg.PGDataDir),
 	}
 
 	if postgresRunning {
@@ -220,6 +225,154 @@ func (a *Agent) sendHeartbeat(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func collectSystemMetrics(diskPath string) *skylexv1.NodeSystemMetrics {
+	if diskPath == "" {
+		diskPath = "/"
+	}
+	if _, err := os.Stat(diskPath); err != nil {
+		diskPath = "/"
+	}
+
+	metrics := &skylexv1.NodeSystemMetrics{
+		Os:           runtime.GOOS,
+		Architecture: runtime.GOARCH,
+		CpuCores:     int32(runtime.NumCPU()),
+	}
+
+	applyOSRelease(metrics)
+	applyKernelVersion(metrics)
+	applyLoadAverage(metrics)
+	applyMemoryStats(metrics)
+	applyDiskStats(metrics, diskPath)
+	applyUptime(metrics)
+	metrics.CpuUsagePercent = cpuUsageFromLoad(metrics.LoadAverage_1M, metrics.CpuCores)
+	return metrics
+}
+
+func applyOSRelease(metrics *skylexv1.NodeSystemMetrics) {
+	file, err := os.Open("/etc/os-release")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	values := make(map[string]string)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		key, value, ok := strings.Cut(scanner.Text(), "=")
+		if !ok {
+			continue
+		}
+		values[key] = strings.Trim(value, "\"")
+	}
+	metrics.Platform = values["ID"]
+	metrics.PlatformVersion = values["VERSION_ID"]
+}
+
+func applyKernelVersion(metrics *skylexv1.NodeSystemMetrics) {
+	contents, err := os.ReadFile("/proc/sys/kernel/osrelease")
+	if err != nil {
+		return
+	}
+	metrics.KernelVersion = strings.TrimSpace(string(contents))
+}
+
+func applyLoadAverage(metrics *skylexv1.NodeSystemMetrics) {
+	contents, err := os.ReadFile("/proc/loadavg")
+	if err != nil {
+		return
+	}
+	fields := strings.Fields(string(contents))
+	if len(fields) < 3 {
+		return
+	}
+	metrics.LoadAverage_1M = parseScaledFloat(fields[0])
+	metrics.LoadAverage_5M = parseScaledFloat(fields[1])
+	metrics.LoadAverage_15M = parseScaledFloat(fields[2])
+}
+
+func applyMemoryStats(metrics *skylexv1.NodeSystemMetrics) {
+	file, err := os.Open("/proc/meminfo")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	values := make(map[string]int64)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 2 {
+			continue
+		}
+		value, err := strconv.ParseInt(fields[1], 10, 64)
+		if err != nil {
+			continue
+		}
+		values[strings.TrimSuffix(fields[0], ":")] = value * 1024
+	}
+
+	metrics.MemoryTotalBytes = values["MemTotal"]
+	metrics.MemoryAvailableBytes = values["MemAvailable"]
+	if metrics.MemoryTotalBytes > 0 {
+		metrics.MemoryUsedBytes = metrics.MemoryTotalBytes - metrics.MemoryAvailableBytes
+		metrics.MemoryUsagePercent = percent(metrics.MemoryUsedBytes, metrics.MemoryTotalBytes)
+	}
+}
+
+func applyDiskStats(metrics *skylexv1.NodeSystemMetrics, path string) {
+	var stat syscall.Statfs_t
+	if err := syscall.Statfs(path, &stat); err != nil {
+		return
+	}
+
+	total := int64(stat.Blocks) * int64(stat.Bsize)
+	available := int64(stat.Bavail) * int64(stat.Bsize)
+	used := total - available
+	metrics.DiskTotalBytes = total
+	metrics.DiskAvailableBytes = available
+	metrics.DiskUsedBytes = used
+	metrics.DiskUsagePercent = percent(used, total)
+}
+
+func applyUptime(metrics *skylexv1.NodeSystemMetrics) {
+	contents, err := os.ReadFile("/proc/uptime")
+	if err != nil {
+		return
+	}
+	fields := strings.Fields(string(contents))
+	if len(fields) == 0 {
+		return
+	}
+	uptime, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return
+	}
+	metrics.UptimeSeconds = int64(uptime)
+}
+
+func cpuUsageFromLoad(loadAverage1M int64, cores int32) float64 {
+	if loadAverage1M <= 0 || cores <= 0 {
+		return 0
+	}
+	return math.Min(100, (float64(loadAverage1M)/100/float64(cores))*100)
+}
+
+func parseScaledFloat(value string) int64 {
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0
+	}
+	return int64(parsed * 100)
+}
+
+func percent(used, total int64) float64 {
+	if total <= 0 || used <= 0 {
+		return 0
+	}
+	return (float64(used) / float64(total)) * 100
 }
 
 func (a *Agent) commandLoop(ctx context.Context) error {

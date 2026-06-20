@@ -18,7 +18,7 @@ type NodeRepository struct {
 	log  *slog.Logger
 }
 
-const nodeSelectColumns = `id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details, agent_latency_ms`
+const nodeSelectColumns = `id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details, agent_latency_ms, os, platform, platform_version, kernel_version, architecture, cpu_cores, cpu_usage_percent, load_average_1m, load_average_5m, load_average_15m, memory_total_bytes, memory_used_bytes, memory_available_bytes, memory_usage_percent, disk_total_bytes, disk_used_bytes, disk_available_bytes, disk_usage_percent, uptime_seconds`
 
 func NewNodeRepository(conn *sql.DB, log *slog.Logger) *NodeRepository {
 	return &NodeRepository{conn: conn, log: log}
@@ -280,7 +280,11 @@ func scanNodeRow(row *sql.Row) (*models.Node, error) {
 	err := row.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
-		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS)
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS,
+		&n.OS, &n.Platform, &n.PlatformVersion, &n.KernelVersion, &n.Architecture, &n.CPUCores, &n.CPUUsagePercent,
+		&n.LoadAverage1M, &n.LoadAverage5M, &n.LoadAverage15M, &n.MemoryTotalBytes, &n.MemoryUsedBytes,
+		&n.MemoryAvailableBytes, &n.MemoryUsagePercent, &n.DiskTotalBytes, &n.DiskUsedBytes, &n.DiskAvailableBytes,
+		&n.DiskUsagePercent, &n.UptimeSeconds)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -301,13 +305,31 @@ func scanNodesRow(rows *sql.Rows) (*models.Node, error) {
 	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
 		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
 		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
-		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS); err != nil {
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS,
+		&n.OS, &n.Platform, &n.PlatformVersion, &n.KernelVersion, &n.Architecture, &n.CPUCores, &n.CPUUsagePercent,
+		&n.LoadAverage1M, &n.LoadAverage5M, &n.LoadAverage15M, &n.MemoryTotalBytes, &n.MemoryUsedBytes,
+		&n.MemoryAvailableBytes, &n.MemoryUsagePercent, &n.DiskTotalBytes, &n.DiskUsedBytes, &n.DiskAvailableBytes,
+		&n.DiskUsagePercent, &n.UptimeSeconds); err != nil {
 		return nil, fmt.Errorf("scan node row: %w", err)
 	}
 
 	n.ClusterID = clusterID.String
 	n.Labels = unmarshalLabels(labelsJSON)
 	return &n, nil
+}
+
+func (r *NodeRepository) UpdateSystemMetrics(ctx context.Context, id string, metrics models.Node) error {
+	_, err := r.conn.ExecContext(ctx,
+		Rebind(`UPDATE nodes SET os = ?, platform = ?, platform_version = ?, kernel_version = ?, architecture = ?, cpu_cores = ?, cpu_usage_percent = ?, load_average_1m = ?, load_average_5m = ?, load_average_15m = ?, memory_total_bytes = ?, memory_used_bytes = ?, memory_available_bytes = ?, memory_usage_percent = ?, disk_total_bytes = ?, disk_used_bytes = ?, disk_available_bytes = ?, disk_usage_percent = ?, uptime_seconds = ?, updated_at = ? WHERE id = ?`),
+		metrics.OS, metrics.Platform, metrics.PlatformVersion, metrics.KernelVersion, metrics.Architecture,
+		metrics.CPUCores, metrics.CPUUsagePercent, metrics.LoadAverage1M, metrics.LoadAverage5M, metrics.LoadAverage15M,
+		metrics.MemoryTotalBytes, metrics.MemoryUsedBytes, metrics.MemoryAvailableBytes, metrics.MemoryUsagePercent,
+		metrics.DiskTotalBytes, metrics.DiskUsedBytes, metrics.DiskAvailableBytes, metrics.DiskUsagePercent,
+		metrics.UptimeSeconds, time.Now().UTC(), id)
+	if err != nil {
+		return fmt.Errorf("update node system metrics: %w", err)
+	}
+	return nil
 }
 
 func (r *NodeRepository) UpdateInstallationState(ctx context.Context, id string, state models.InstallationState, conflictDetails string) error {

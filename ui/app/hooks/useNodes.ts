@@ -27,6 +27,25 @@ interface Node {
   conflictDetails: string;
   agentConnected: boolean;
   agentLatencyMs: number;
+  os: string;
+  platform: string;
+  platformVersion: string;
+  kernelVersion: string;
+  architecture: string;
+  cpuCores: number;
+  cpuUsagePercent: number;
+  loadAverage1M: number;
+  loadAverage5M: number;
+  loadAverage15M: number;
+  memoryTotalBytes: number;
+  memoryUsedBytes: number;
+  memoryAvailableBytes: number;
+  memoryUsagePercent: number;
+  diskTotalBytes: number;
+  diskUsedBytes: number;
+  diskAvailableBytes: number;
+  diskUsagePercent: number;
+  uptimeSeconds: number;
 }
 
 interface Pagination {

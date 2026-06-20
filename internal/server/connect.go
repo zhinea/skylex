@@ -88,7 +88,7 @@ var writeMethods = map[string]bool{
 }
 
 func isUnauthenticated(srv *Server, path string) bool {
-	if path == "/install-agent.sh" {
+	if path == "/install-agent.sh" || path == "/skylex-agent" {
 		return srv.cfg.Server.DevMode
 	}
 	return unauthenticatedPaths[path]
@@ -498,6 +498,7 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 	mux.HandleFunc("/version", s.serveVersion)
 	if s.cfg.Server.DevMode {
 		mux.HandleFunc("/install-agent.sh", s.serveAgentInstallScript)
+		mux.HandleFunc("/skylex-agent", s.serveAgentBinary)
 	}
 
 	mux.HandleFunc("/skylex.v1.AuthService/ListAuditLogs", s.handleListAuditLogs)
@@ -609,6 +610,14 @@ func (s *Server) serveAgentInstallScript(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(installScript()))
+}
+
+func (s *Server) serveAgentBinary(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, "bin/skylex-agent")
 }
 
 func (s *Server) serveVersion(w http.ResponseWriter, r *http.Request) {

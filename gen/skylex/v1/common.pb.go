@@ -552,14 +552,33 @@ type Node struct {
 	// Phase 4: human-readable status detail
 	StatusDetail string `protobuf:"bytes,15,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
 	// Phase 2: service location model
-	ServiceLocation   ServiceLocation   `protobuf:"varint,16,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
-	DockerAvailable   bool              `protobuf:"varint,17,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
-	InstallationState InstallationState `protobuf:"varint,18,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
-	ConflictDetails   string            `protobuf:"bytes,19,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
-	AgentConnected    bool              `protobuf:"varint,20,opt,name=agent_connected,json=agentConnected,proto3" json:"agent_connected,omitempty"`
-	AgentLatencyMs    int64             `protobuf:"varint,21,opt,name=agent_latency_ms,json=agentLatencyMs,proto3" json:"agent_latency_ms,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	ServiceLocation      ServiceLocation   `protobuf:"varint,16,opt,name=service_location,json=serviceLocation,proto3,enum=skylex.v1.ServiceLocation" json:"service_location,omitempty"`
+	DockerAvailable      bool              `protobuf:"varint,17,opt,name=docker_available,json=dockerAvailable,proto3" json:"docker_available,omitempty"`
+	InstallationState    InstallationState `protobuf:"varint,18,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
+	ConflictDetails      string            `protobuf:"bytes,19,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	AgentConnected       bool              `protobuf:"varint,20,opt,name=agent_connected,json=agentConnected,proto3" json:"agent_connected,omitempty"`
+	AgentLatencyMs       int64             `protobuf:"varint,21,opt,name=agent_latency_ms,json=agentLatencyMs,proto3" json:"agent_latency_ms,omitempty"`
+	Os                   string            `protobuf:"bytes,23,opt,name=os,proto3" json:"os,omitempty"`
+	Platform             string            `protobuf:"bytes,24,opt,name=platform,proto3" json:"platform,omitempty"`
+	PlatformVersion      string            `protobuf:"bytes,25,opt,name=platform_version,json=platformVersion,proto3" json:"platform_version,omitempty"`
+	KernelVersion        string            `protobuf:"bytes,26,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"`
+	Architecture         string            `protobuf:"bytes,27,opt,name=architecture,proto3" json:"architecture,omitempty"`
+	CpuCores             int32             `protobuf:"varint,28,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	CpuUsagePercent      float64           `protobuf:"fixed64,29,opt,name=cpu_usage_percent,json=cpuUsagePercent,proto3" json:"cpu_usage_percent,omitempty"`
+	LoadAverage_1M       int64             `protobuf:"varint,30,opt,name=load_average_1m,json=loadAverage1m,proto3" json:"load_average_1m,omitempty"`
+	LoadAverage_5M       int64             `protobuf:"varint,31,opt,name=load_average_5m,json=loadAverage5m,proto3" json:"load_average_5m,omitempty"`
+	LoadAverage_15M      int64             `protobuf:"varint,32,opt,name=load_average_15m,json=loadAverage15m,proto3" json:"load_average_15m,omitempty"`
+	MemoryTotalBytes     int64             `protobuf:"varint,33,opt,name=memory_total_bytes,json=memoryTotalBytes,proto3" json:"memory_total_bytes,omitempty"`
+	MemoryUsedBytes      int64             `protobuf:"varint,34,opt,name=memory_used_bytes,json=memoryUsedBytes,proto3" json:"memory_used_bytes,omitempty"`
+	MemoryAvailableBytes int64             `protobuf:"varint,35,opt,name=memory_available_bytes,json=memoryAvailableBytes,proto3" json:"memory_available_bytes,omitempty"`
+	MemoryUsagePercent   float64           `protobuf:"fixed64,36,opt,name=memory_usage_percent,json=memoryUsagePercent,proto3" json:"memory_usage_percent,omitempty"`
+	DiskTotalBytes       int64             `protobuf:"varint,37,opt,name=disk_total_bytes,json=diskTotalBytes,proto3" json:"disk_total_bytes,omitempty"`
+	DiskUsedBytes        int64             `protobuf:"varint,38,opt,name=disk_used_bytes,json=diskUsedBytes,proto3" json:"disk_used_bytes,omitempty"`
+	DiskAvailableBytes   int64             `protobuf:"varint,39,opt,name=disk_available_bytes,json=diskAvailableBytes,proto3" json:"disk_available_bytes,omitempty"`
+	DiskUsagePercent     float64           `protobuf:"fixed64,40,opt,name=disk_usage_percent,json=diskUsagePercent,proto3" json:"disk_usage_percent,omitempty"`
+	UptimeSeconds        int64             `protobuf:"varint,41,opt,name=uptime_seconds,json=uptimeSeconds,proto3" json:"uptime_seconds,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Node) Reset() {
@@ -746,6 +765,139 @@ func (x *Node) GetAgentLatencyMs() int64 {
 	return 0
 }
 
+func (x *Node) GetOs() string {
+	if x != nil {
+		return x.Os
+	}
+	return ""
+}
+
+func (x *Node) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *Node) GetPlatformVersion() string {
+	if x != nil {
+		return x.PlatformVersion
+	}
+	return ""
+}
+
+func (x *Node) GetKernelVersion() string {
+	if x != nil {
+		return x.KernelVersion
+	}
+	return ""
+}
+
+func (x *Node) GetArchitecture() string {
+	if x != nil {
+		return x.Architecture
+	}
+	return ""
+}
+
+func (x *Node) GetCpuCores() int32 {
+	if x != nil {
+		return x.CpuCores
+	}
+	return 0
+}
+
+func (x *Node) GetCpuUsagePercent() float64 {
+	if x != nil {
+		return x.CpuUsagePercent
+	}
+	return 0
+}
+
+func (x *Node) GetLoadAverage_1M() int64 {
+	if x != nil {
+		return x.LoadAverage_1M
+	}
+	return 0
+}
+
+func (x *Node) GetLoadAverage_5M() int64 {
+	if x != nil {
+		return x.LoadAverage_5M
+	}
+	return 0
+}
+
+func (x *Node) GetLoadAverage_15M() int64 {
+	if x != nil {
+		return x.LoadAverage_15M
+	}
+	return 0
+}
+
+func (x *Node) GetMemoryTotalBytes() int64 {
+	if x != nil {
+		return x.MemoryTotalBytes
+	}
+	return 0
+}
+
+func (x *Node) GetMemoryUsedBytes() int64 {
+	if x != nil {
+		return x.MemoryUsedBytes
+	}
+	return 0
+}
+
+func (x *Node) GetMemoryAvailableBytes() int64 {
+	if x != nil {
+		return x.MemoryAvailableBytes
+	}
+	return 0
+}
+
+func (x *Node) GetMemoryUsagePercent() float64 {
+	if x != nil {
+		return x.MemoryUsagePercent
+	}
+	return 0
+}
+
+func (x *Node) GetDiskTotalBytes() int64 {
+	if x != nil {
+		return x.DiskTotalBytes
+	}
+	return 0
+}
+
+func (x *Node) GetDiskUsedBytes() int64 {
+	if x != nil {
+		return x.DiskUsedBytes
+	}
+	return 0
+}
+
+func (x *Node) GetDiskAvailableBytes() int64 {
+	if x != nil {
+		return x.DiskAvailableBytes
+	}
+	return 0
+}
+
+func (x *Node) GetDiskUsagePercent() float64 {
+	if x != nil {
+		return x.DiskUsagePercent
+	}
+	return 0
+}
+
+func (x *Node) GetUptimeSeconds() int64 {
+	if x != nil {
+		return x.UptimeSeconds
+	}
+	return 0
+}
+
 type Pagination struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -832,7 +984,7 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12E\n" +
-	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xfc\a\n" +
+	"\x10service_location\x18\x10 \x01(\x0e2\x1a.skylex.v1.ServiceLocationR\x0fserviceLocation\"\xfc\r\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -859,7 +1011,26 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"\x12installation_state\x18\x12 \x01(\x0e2\x1c.skylex.v1.InstallationStateR\x11installationState\x12)\n" +
 	"\x10conflict_details\x18\x13 \x01(\tR\x0fconflictDetails\x12'\n" +
 	"\x0fagent_connected\x18\x14 \x01(\bR\x0eagentConnected\x12(\n" +
-	"\x10agent_latency_ms\x18\x15 \x01(\x03R\x0eagentLatencyMs\x1a9\n" +
+	"\x10agent_latency_ms\x18\x15 \x01(\x03R\x0eagentLatencyMs\x12\x0e\n" +
+	"\x02os\x18\x17 \x01(\tR\x02os\x12\x1a\n" +
+	"\bplatform\x18\x18 \x01(\tR\bplatform\x12)\n" +
+	"\x10platform_version\x18\x19 \x01(\tR\x0fplatformVersion\x12%\n" +
+	"\x0ekernel_version\x18\x1a \x01(\tR\rkernelVersion\x12\"\n" +
+	"\farchitecture\x18\x1b \x01(\tR\farchitecture\x12\x1b\n" +
+	"\tcpu_cores\x18\x1c \x01(\x05R\bcpuCores\x12*\n" +
+	"\x11cpu_usage_percent\x18\x1d \x01(\x01R\x0fcpuUsagePercent\x12&\n" +
+	"\x0fload_average_1m\x18\x1e \x01(\x03R\rloadAverage1m\x12&\n" +
+	"\x0fload_average_5m\x18\x1f \x01(\x03R\rloadAverage5m\x12(\n" +
+	"\x10load_average_15m\x18  \x01(\x03R\x0eloadAverage15m\x12,\n" +
+	"\x12memory_total_bytes\x18! \x01(\x03R\x10memoryTotalBytes\x12*\n" +
+	"\x11memory_used_bytes\x18\" \x01(\x03R\x0fmemoryUsedBytes\x124\n" +
+	"\x16memory_available_bytes\x18# \x01(\x03R\x14memoryAvailableBytes\x120\n" +
+	"\x14memory_usage_percent\x18$ \x01(\x01R\x12memoryUsagePercent\x12(\n" +
+	"\x10disk_total_bytes\x18% \x01(\x03R\x0ediskTotalBytes\x12&\n" +
+	"\x0fdisk_used_bytes\x18& \x01(\x03R\rdiskUsedBytes\x120\n" +
+	"\x14disk_available_bytes\x18' \x01(\x03R\x12diskAvailableBytes\x12,\n" +
+	"\x12disk_usage_percent\x18( \x01(\x01R\x10diskUsagePercent\x12%\n" +
+	"\x0euptime_seconds\x18) \x01(\x03R\ruptimeSeconds\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"S\n" +

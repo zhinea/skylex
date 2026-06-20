@@ -318,11 +318,15 @@ func (s *AuthService) GetAgentInstallCommand(ctx context.Context, req *skylexv1.
 		scriptURL = fmt.Sprintf("https://github.com/%s/releases/download/v%s/install-agent.sh", defaultReleaseRepo, versionString())
 	}
 
-	return &skylexv1.GetAgentInstallCommandResponse{
+	resp := &skylexv1.GetAgentInstallCommandResponse{
 		ScriptUrl:  scriptURL,
 		ServerAddr: s.cfg.Server.AdvertiseAddr,
 		Token:      createResp.Token,
-	}, nil
+	}
+	if s.cfg.Server.DevMode {
+		resp.AgentDownloadUrl = fmt.Sprintf("http://localhost:%d/skylex-agent", s.cfg.Server.HTTPPort)
+	}
+	return resp, nil
 }
 
 func userToProto(u *models.User) *skylexv1.User {

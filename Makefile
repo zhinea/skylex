@@ -53,6 +53,7 @@ setup:
 	mv ./config.example.yaml ./config.yaml
 
 dev:
+	$(GO) build $(GOFLAGS) -o bin/$(BINARY_AGENT) ./cmd/agent
 	./scripts/dev.sh
 
 dev-server:
