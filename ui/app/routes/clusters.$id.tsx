@@ -7,7 +7,7 @@ import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useCluster
 import { useApplyHBA, useApplyTLS, useConnectionProfile, useGenerateTLSCA, useNetworkAccess, useTLSCACert, useTLSConfig, useUpdateConnectionProfile, useUpdateNetworkAccess, useUpdateTLSConfig } from "~/hooks/useConnectionProfile";
 import { useCreatePostgresDatabase, useDeletePostgresDatabase, usePostgresDatabases, type PostgresDatabase } from "~/hooks/usePostgresDatabases";
 import { useCreatePostgresRole, useDeletePostgresRole, usePostgresRoles, useRotatePostgresRolePassword, type PostgresRole } from "~/hooks/usePostgresRoles";
-import { useRestartNode } from "~/hooks/useClusters";
+import { useDeleteCluster, usePauseCluster, useRestartCluster, useRestartNode, useStartCluster } from "~/hooks/useClusters";
 import { useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
 import { Card } from "~/components/Card";
@@ -50,6 +50,84 @@ function PgStatusBadges({
         {dataInitialized ? "data ready" : "not initialized"}
       </span>
     </span>
+  );
+}
+
+function hasPendingLifecycleCommand(logs: CommandLog[]) {
+  let pending = false;
+  for (const log of logs) {
+    const message = log.message.toLowerCase();
+    if (message.includes("executing command: pg_start") || message.includes("executing command: pg_stop")) {
+      pending = true;
+    }
+    if (message.includes("command finished") && pending) {
+      pending = false;
+    }
+  }
+  return pending;
+}
+
+function LifecycleCard({
+  cluster,
+  nodes,
+  logs,
+  pending,
+  error,
+  onAction,
+}: {
+  cluster: Cluster;
+  nodes: Node[];
+  logs: CommandLog[];
+  pending: boolean;
+  error: string | null;
+  onAction: (action: "start" | "pause" | "restart") => void;
+}) {
+  const readyNodes = nodes.filter((node) => node.agentConnected && node.postgresInstalled && node.postgresDataInitialized);
+  const runningNodes = nodes.filter((node) => node.statusDetail === "healthy" || node.statusDetail === "running" || node.statusDetail === "syncing_replica" || node.status === "online");
+  const stoppedNodes = nodes.filter((node) => node.statusDetail === "stopped" || node.status === "offline");
+  const logPending = hasPendingLifecycleCommand(logs);
+  const busy = pending || logPending || cluster.status === "CLUSTER_STATUS_CREATING" || cluster.status === "CLUSTER_STATUS_DELETING";
+  const hasReadyNodes = readyNodes.length > 0;
+  const disabledReason = !hasReadyNodes
+    ? "Lifecycle controls require at least one connected node with PostgreSQL installed and initialized."
+    : busy
+      ? "A lifecycle/provisioning command is already pending. Watch command logs for progress."
+      : "";
+
+  return (
+    <Card title="Service Lifecycle">
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-border px-3 py-2">
+            <div className="text-xs text-muted-foreground">Ready Nodes</div>
+            <div className="text-lg font-semibold text-foreground">{readyNodes.length}/{nodes.length}</div>
+          </div>
+          <div className="rounded-lg border border-border px-3 py-2">
+            <div className="text-xs text-muted-foreground">Running</div>
+            <div className="text-lg font-semibold text-foreground">{runningNodes.length}</div>
+          </div>
+          <div className="rounded-lg border border-border px-3 py-2">
+            <div className="text-xs text-muted-foreground">Stopped</div>
+            <div className="text-lg font-semibold text-foreground">{stoppedNodes.length}</div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => onAction("start")} disabled={busy || !hasReadyNodes} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50">
+            Start
+          </button>
+          <button onClick={() => onAction("pause")} disabled={busy || !hasReadyNodes} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+            Pause
+          </button>
+          <button onClick={() => onAction("restart")} disabled={busy || !hasReadyNodes} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            Restart
+          </button>
+          {busy && <span className="text-sm text-muted-foreground">Lifecycle command pending...</span>}
+        </div>
+        {disabledReason && <p className="text-sm text-muted-foreground">{disabledReason}</p>}
+        {error && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">{error}</p>}
+      </div>
+    </Card>
   );
 }
 
@@ -1411,6 +1489,10 @@ export default function ClusterDetailPage() {
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
   const { data: nodesData } = useNodes(id || "");
   const { data: logsData } = useCommandLogs(id || "");
+  const startCluster = useStartCluster();
+  const pauseCluster = usePauseCluster();
+  const restartCluster = useRestartCluster();
+  const deleteCluster = useDeleteCluster();
   const restartNode = useRestartNode();
   const rejoinNode = useRejoinNode();
   const resolveConflict = useResolveInstallationConflict();
@@ -1418,6 +1500,10 @@ export default function ClusterDetailPage() {
 
   const [actionNodeId, setActionNodeId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"restart" | "rejoin" | null>(null);
+  const [clusterAction, setClusterAction] = useState<"start" | "pause" | "restart" | null>(null);
+  const [deleteClusterOpen, setDeleteClusterOpen] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [conflictAction, setConflictAction] = useState<{ nodeId: string; action: "PURGE" | "ABORT" } | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "connect" | "settings" | "diagnostics">("overview");
 
@@ -1464,6 +1550,34 @@ export default function ClusterDetailPage() {
     return null;
   })();
 
+  const lifecyclePending = startCluster.isPending || pauseCluster.isPending || restartCluster.isPending;
+
+  function runClusterAction(action: "start" | "pause" | "restart") {
+    if (!id) return;
+    setLifecycleError(null);
+    const options = {
+      onSuccess: () => setClusterAction(null),
+      onError: (err: unknown) => setLifecycleError(err instanceof Error ? err.message : `Failed to ${action} cluster`),
+    };
+    if (action === "start") startCluster.mutate(id, options);
+    if (action === "pause") pauseCluster.mutate(id, options);
+    if (action === "restart") restartCluster.mutate(id, options);
+  }
+
+  function deleteClusterAfterStop() {
+    if (!id) return;
+    setDeleteError(null);
+    deleteCluster.mutate(id, {
+      onSuccess: () => setDeleteClusterOpen(false),
+      onError: (err) => {
+        const message = err instanceof Error ? err.message : "Failed to delete cluster";
+        setDeleteError(message.includes("running") || message.includes("pause") || message.includes("stop")
+          ? `${message} Pause/stop the service first, wait for nodes to show stopped, then delete again.`
+          : message);
+      },
+    });
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -1473,7 +1587,15 @@ export default function ClusterDetailPage() {
           </Link>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">{cluster.name}</h2>
         </div>
-        <Badge label={cluster.status} />
+        <div className="flex items-center gap-3">
+          <Badge label={cluster.status} />
+          <button
+            onClick={() => setDeleteClusterOpen(true)}
+            className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20"
+          >
+            Delete
+          </button>
+        </div>
       </div>
 
       {/* Sub-menu Tabs */}
@@ -1545,6 +1667,15 @@ export default function ClusterDetailPage() {
               }}
             />
           )}
+
+          <LifecycleCard
+            cluster={cluster}
+            nodes={nodes}
+            logs={logs}
+            pending={lifecyclePending}
+            error={lifecycleError}
+            onAction={(action) => setClusterAction(action)}
+          />
 
           <Card title={`Nodes (${nodes.length})`}>
             {nodes.length === 0 ? (
@@ -1803,6 +1934,42 @@ export default function ClusterDetailPage() {
       )}
 
       {/* Action confirmation dialogs */}
+      <ConfirmDialog
+        open={clusterAction === "start"}
+        title="Start Cluster"
+        message="This will queue PostgreSQL start commands on ready assigned nodes. Already-running instances are treated as success."
+        confirmLabel="Start"
+        onConfirm={() => runClusterAction("start")}
+        onCancel={() => setClusterAction(null)}
+      />
+
+      <ConfirmDialog
+        open={clusterAction === "pause"}
+        title="Pause Cluster"
+        message="This will gracefully stop PostgreSQL on ready assigned nodes. Pause the service before deleting a cluster."
+        confirmLabel="Pause"
+        onConfirm={() => runClusterAction("pause")}
+        onCancel={() => setClusterAction(null)}
+      />
+
+      <ConfirmDialog
+        open={clusterAction === "restart"}
+        title="Restart Cluster"
+        message="This will queue stop then start commands on ready assigned nodes. PostgreSQL will be temporarily unavailable."
+        confirmLabel="Restart"
+        onConfirm={() => runClusterAction("restart")}
+        onCancel={() => setClusterAction(null)}
+      />
+
+      <ConfirmDialog
+        open={deleteClusterOpen}
+        title="Delete Cluster"
+        message={deleteError || "PostgreSQL must be stopped before deletion. Pause the cluster first if any node is still running, then delete. This action cannot be undone."}
+        confirmLabel={deleteCluster.isPending ? "Deleting..." : "Delete"}
+        onConfirm={deleteClusterAfterStop}
+        onCancel={() => { setDeleteClusterOpen(false); setDeleteError(null); }}
+      />
+
       <ConfirmDialog
         open={!!actionNodeId && actionType === "restart"}
         title="Restart Node"

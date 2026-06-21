@@ -50,6 +50,15 @@ const (
 	// ClusterServiceDeleteClusterProcedure is the fully-qualified name of the ClusterService's
 	// DeleteCluster RPC.
 	ClusterServiceDeleteClusterProcedure = "/skylex.v1.ClusterService/DeleteCluster"
+	// ClusterServiceStartClusterProcedure is the fully-qualified name of the ClusterService's
+	// StartCluster RPC.
+	ClusterServiceStartClusterProcedure = "/skylex.v1.ClusterService/StartCluster"
+	// ClusterServicePauseClusterProcedure is the fully-qualified name of the ClusterService's
+	// PauseCluster RPC.
+	ClusterServicePauseClusterProcedure = "/skylex.v1.ClusterService/PauseCluster"
+	// ClusterServiceRestartClusterProcedure is the fully-qualified name of the ClusterService's
+	// RestartCluster RPC.
+	ClusterServiceRestartClusterProcedure = "/skylex.v1.ClusterService/RestartCluster"
 	// ClusterServiceFailoverClusterProcedure is the fully-qualified name of the ClusterService's
 	// FailoverCluster RPC.
 	ClusterServiceFailoverClusterProcedure = "/skylex.v1.ClusterService/FailoverCluster"
@@ -93,6 +102,9 @@ type ClusterServiceClient interface {
 	ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error)
 	UpdateCluster(context.Context, *connect.Request[v1.UpdateClusterRequest]) (*connect.Response[v1.UpdateClusterResponse], error)
 	DeleteCluster(context.Context, *connect.Request[v1.DeleteClusterRequest]) (*connect.Response[v1.DeleteClusterResponse], error)
+	StartCluster(context.Context, *connect.Request[v1.StartClusterRequest]) (*connect.Response[v1.StartClusterResponse], error)
+	PauseCluster(context.Context, *connect.Request[v1.PauseClusterRequest]) (*connect.Response[v1.PauseClusterResponse], error)
+	RestartCluster(context.Context, *connect.Request[v1.RestartClusterRequest]) (*connect.Response[v1.RestartClusterResponse], error)
 	FailoverCluster(context.Context, *connect.Request[v1.FailoverClusterRequest]) (*connect.Response[v1.FailoverClusterResponse], error)
 	RestartNode(context.Context, *connect.Request[v1.RestartNodeRequest]) (*connect.Response[v1.RestartNodeResponse], error)
 	ScaleCluster(context.Context, *connect.Request[v1.ScaleClusterRequest]) (*connect.Response[v1.ScaleClusterResponse], error)
@@ -141,6 +153,24 @@ func NewClusterServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(clusterServiceMethods.ByName("DeleteCluster")),
 			connect.WithClientOptions(opts...),
 		),
+		startCluster: connect.NewClient[v1.StartClusterRequest, v1.StartClusterResponse](
+			httpClient,
+			baseURL+ClusterServiceStartClusterProcedure,
+			connect.WithSchema(clusterServiceMethods.ByName("StartCluster")),
+			connect.WithClientOptions(opts...),
+		),
+		pauseCluster: connect.NewClient[v1.PauseClusterRequest, v1.PauseClusterResponse](
+			httpClient,
+			baseURL+ClusterServicePauseClusterProcedure,
+			connect.WithSchema(clusterServiceMethods.ByName("PauseCluster")),
+			connect.WithClientOptions(opts...),
+		),
+		restartCluster: connect.NewClient[v1.RestartClusterRequest, v1.RestartClusterResponse](
+			httpClient,
+			baseURL+ClusterServiceRestartClusterProcedure,
+			connect.WithSchema(clusterServiceMethods.ByName("RestartCluster")),
+			connect.WithClientOptions(opts...),
+		),
 		failoverCluster: connect.NewClient[v1.FailoverClusterRequest, v1.FailoverClusterResponse](
 			httpClient,
 			baseURL+ClusterServiceFailoverClusterProcedure,
@@ -181,6 +211,9 @@ type clusterServiceClient struct {
 	listClusters          *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
 	updateCluster         *connect.Client[v1.UpdateClusterRequest, v1.UpdateClusterResponse]
 	deleteCluster         *connect.Client[v1.DeleteClusterRequest, v1.DeleteClusterResponse]
+	startCluster          *connect.Client[v1.StartClusterRequest, v1.StartClusterResponse]
+	pauseCluster          *connect.Client[v1.PauseClusterRequest, v1.PauseClusterResponse]
+	restartCluster        *connect.Client[v1.RestartClusterRequest, v1.RestartClusterResponse]
 	failoverCluster       *connect.Client[v1.FailoverClusterRequest, v1.FailoverClusterResponse]
 	restartNode           *connect.Client[v1.RestartNodeRequest, v1.RestartNodeResponse]
 	scaleCluster          *connect.Client[v1.ScaleClusterRequest, v1.ScaleClusterResponse]
@@ -211,6 +244,21 @@ func (c *clusterServiceClient) UpdateCluster(ctx context.Context, req *connect.R
 // DeleteCluster calls skylex.v1.ClusterService.DeleteCluster.
 func (c *clusterServiceClient) DeleteCluster(ctx context.Context, req *connect.Request[v1.DeleteClusterRequest]) (*connect.Response[v1.DeleteClusterResponse], error) {
 	return c.deleteCluster.CallUnary(ctx, req)
+}
+
+// StartCluster calls skylex.v1.ClusterService.StartCluster.
+func (c *clusterServiceClient) StartCluster(ctx context.Context, req *connect.Request[v1.StartClusterRequest]) (*connect.Response[v1.StartClusterResponse], error) {
+	return c.startCluster.CallUnary(ctx, req)
+}
+
+// PauseCluster calls skylex.v1.ClusterService.PauseCluster.
+func (c *clusterServiceClient) PauseCluster(ctx context.Context, req *connect.Request[v1.PauseClusterRequest]) (*connect.Response[v1.PauseClusterResponse], error) {
+	return c.pauseCluster.CallUnary(ctx, req)
+}
+
+// RestartCluster calls skylex.v1.ClusterService.RestartCluster.
+func (c *clusterServiceClient) RestartCluster(ctx context.Context, req *connect.Request[v1.RestartClusterRequest]) (*connect.Response[v1.RestartClusterResponse], error) {
+	return c.restartCluster.CallUnary(ctx, req)
 }
 
 // FailoverCluster calls skylex.v1.ClusterService.FailoverCluster.
@@ -245,6 +293,9 @@ type ClusterServiceHandler interface {
 	ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error)
 	UpdateCluster(context.Context, *connect.Request[v1.UpdateClusterRequest]) (*connect.Response[v1.UpdateClusterResponse], error)
 	DeleteCluster(context.Context, *connect.Request[v1.DeleteClusterRequest]) (*connect.Response[v1.DeleteClusterResponse], error)
+	StartCluster(context.Context, *connect.Request[v1.StartClusterRequest]) (*connect.Response[v1.StartClusterResponse], error)
+	PauseCluster(context.Context, *connect.Request[v1.PauseClusterRequest]) (*connect.Response[v1.PauseClusterResponse], error)
+	RestartCluster(context.Context, *connect.Request[v1.RestartClusterRequest]) (*connect.Response[v1.RestartClusterResponse], error)
 	FailoverCluster(context.Context, *connect.Request[v1.FailoverClusterRequest]) (*connect.Response[v1.FailoverClusterResponse], error)
 	RestartNode(context.Context, *connect.Request[v1.RestartNodeRequest]) (*connect.Response[v1.RestartNodeResponse], error)
 	ScaleCluster(context.Context, *connect.Request[v1.ScaleClusterRequest]) (*connect.Response[v1.ScaleClusterResponse], error)
@@ -289,6 +340,24 @@ func NewClusterServiceHandler(svc ClusterServiceHandler, opts ...connect.Handler
 		connect.WithSchema(clusterServiceMethods.ByName("DeleteCluster")),
 		connect.WithHandlerOptions(opts...),
 	)
+	clusterServiceStartClusterHandler := connect.NewUnaryHandler(
+		ClusterServiceStartClusterProcedure,
+		svc.StartCluster,
+		connect.WithSchema(clusterServiceMethods.ByName("StartCluster")),
+		connect.WithHandlerOptions(opts...),
+	)
+	clusterServicePauseClusterHandler := connect.NewUnaryHandler(
+		ClusterServicePauseClusterProcedure,
+		svc.PauseCluster,
+		connect.WithSchema(clusterServiceMethods.ByName("PauseCluster")),
+		connect.WithHandlerOptions(opts...),
+	)
+	clusterServiceRestartClusterHandler := connect.NewUnaryHandler(
+		ClusterServiceRestartClusterProcedure,
+		svc.RestartCluster,
+		connect.WithSchema(clusterServiceMethods.ByName("RestartCluster")),
+		connect.WithHandlerOptions(opts...),
+	)
 	clusterServiceFailoverClusterHandler := connect.NewUnaryHandler(
 		ClusterServiceFailoverClusterProcedure,
 		svc.FailoverCluster,
@@ -331,6 +400,12 @@ func NewClusterServiceHandler(svc ClusterServiceHandler, opts ...connect.Handler
 			clusterServiceUpdateClusterHandler.ServeHTTP(w, r)
 		case ClusterServiceDeleteClusterProcedure:
 			clusterServiceDeleteClusterHandler.ServeHTTP(w, r)
+		case ClusterServiceStartClusterProcedure:
+			clusterServiceStartClusterHandler.ServeHTTP(w, r)
+		case ClusterServicePauseClusterProcedure:
+			clusterServicePauseClusterHandler.ServeHTTP(w, r)
+		case ClusterServiceRestartClusterProcedure:
+			clusterServiceRestartClusterHandler.ServeHTTP(w, r)
 		case ClusterServiceFailoverClusterProcedure:
 			clusterServiceFailoverClusterHandler.ServeHTTP(w, r)
 		case ClusterServiceRestartNodeProcedure:
@@ -368,6 +443,18 @@ func (UnimplementedClusterServiceHandler) UpdateCluster(context.Context, *connec
 
 func (UnimplementedClusterServiceHandler) DeleteCluster(context.Context, *connect.Request[v1.DeleteClusterRequest]) (*connect.Response[v1.DeleteClusterResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.DeleteCluster is not implemented"))
+}
+
+func (UnimplementedClusterServiceHandler) StartCluster(context.Context, *connect.Request[v1.StartClusterRequest]) (*connect.Response[v1.StartClusterResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.StartCluster is not implemented"))
+}
+
+func (UnimplementedClusterServiceHandler) PauseCluster(context.Context, *connect.Request[v1.PauseClusterRequest]) (*connect.Response[v1.PauseClusterResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.PauseCluster is not implemented"))
+}
+
+func (UnimplementedClusterServiceHandler) RestartCluster(context.Context, *connect.Request[v1.RestartClusterRequest]) (*connect.Response[v1.RestartClusterResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.RestartCluster is not implemented"))
 }
 
 func (UnimplementedClusterServiceHandler) FailoverCluster(context.Context, *connect.Request[v1.FailoverClusterRequest]) (*connect.Response[v1.FailoverClusterResponse], error) {

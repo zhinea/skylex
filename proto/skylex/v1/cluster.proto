@@ -11,6 +11,9 @@ service ClusterService {
   rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
   rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse);
   rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
+  rpc StartCluster(StartClusterRequest) returns (StartClusterResponse);
+  rpc PauseCluster(PauseClusterRequest) returns (PauseClusterResponse);
+  rpc RestartCluster(RestartClusterRequest) returns (RestartClusterResponse);
   rpc FailoverCluster(FailoverClusterRequest) returns (FailoverClusterResponse);
   rpc RestartNode(RestartNodeRequest) returns (RestartNodeResponse);
   rpc ScaleCluster(ScaleClusterRequest) returns (ScaleClusterResponse);
@@ -60,6 +63,30 @@ message DeleteClusterRequest {
 }
 
 message DeleteClusterResponse {}
+
+message StartClusterRequest {
+  string cluster_id = 1;
+}
+
+message StartClusterResponse {
+  Cluster cluster = 1;
+}
+
+message PauseClusterRequest {
+  string cluster_id = 1;
+}
+
+message PauseClusterResponse {
+  Cluster cluster = 1;
+}
+
+message RestartClusterRequest {
+  string cluster_id = 1;
+}
+
+message RestartClusterResponse {
+  Cluster cluster = 1;
+}
 
 message FailoverClusterRequest {
   string cluster_id = 1;

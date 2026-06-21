@@ -24,6 +24,9 @@ const (
 	ClusterService_ListClusters_FullMethodName          = "/skylex.v1.ClusterService/ListClusters"
 	ClusterService_UpdateCluster_FullMethodName         = "/skylex.v1.ClusterService/UpdateCluster"
 	ClusterService_DeleteCluster_FullMethodName         = "/skylex.v1.ClusterService/DeleteCluster"
+	ClusterService_StartCluster_FullMethodName          = "/skylex.v1.ClusterService/StartCluster"
+	ClusterService_PauseCluster_FullMethodName          = "/skylex.v1.ClusterService/PauseCluster"
+	ClusterService_RestartCluster_FullMethodName        = "/skylex.v1.ClusterService/RestartCluster"
 	ClusterService_FailoverCluster_FullMethodName       = "/skylex.v1.ClusterService/FailoverCluster"
 	ClusterService_RestartNode_FullMethodName           = "/skylex.v1.ClusterService/RestartNode"
 	ClusterService_ScaleCluster_FullMethodName          = "/skylex.v1.ClusterService/ScaleCluster"
@@ -40,6 +43,9 @@ type ClusterServiceClient interface {
 	ListClusters(ctx context.Context, in *ListClustersRequest, opts ...grpc.CallOption) (*ListClustersResponse, error)
 	UpdateCluster(ctx context.Context, in *UpdateClusterRequest, opts ...grpc.CallOption) (*UpdateClusterResponse, error)
 	DeleteCluster(ctx context.Context, in *DeleteClusterRequest, opts ...grpc.CallOption) (*DeleteClusterResponse, error)
+	StartCluster(ctx context.Context, in *StartClusterRequest, opts ...grpc.CallOption) (*StartClusterResponse, error)
+	PauseCluster(ctx context.Context, in *PauseClusterRequest, opts ...grpc.CallOption) (*PauseClusterResponse, error)
+	RestartCluster(ctx context.Context, in *RestartClusterRequest, opts ...grpc.CallOption) (*RestartClusterResponse, error)
 	FailoverCluster(ctx context.Context, in *FailoverClusterRequest, opts ...grpc.CallOption) (*FailoverClusterResponse, error)
 	RestartNode(ctx context.Context, in *RestartNodeRequest, opts ...grpc.CallOption) (*RestartNodeResponse, error)
 	ScaleCluster(ctx context.Context, in *ScaleClusterRequest, opts ...grpc.CallOption) (*ScaleClusterResponse, error)
@@ -105,6 +111,36 @@ func (c *clusterServiceClient) DeleteCluster(ctx context.Context, in *DeleteClus
 	return out, nil
 }
 
+func (c *clusterServiceClient) StartCluster(ctx context.Context, in *StartClusterRequest, opts ...grpc.CallOption) (*StartClusterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartClusterResponse)
+	err := c.cc.Invoke(ctx, ClusterService_StartCluster_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clusterServiceClient) PauseCluster(ctx context.Context, in *PauseClusterRequest, opts ...grpc.CallOption) (*PauseClusterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PauseClusterResponse)
+	err := c.cc.Invoke(ctx, ClusterService_PauseCluster_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clusterServiceClient) RestartCluster(ctx context.Context, in *RestartClusterRequest, opts ...grpc.CallOption) (*RestartClusterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RestartClusterResponse)
+	err := c.cc.Invoke(ctx, ClusterService_RestartCluster_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clusterServiceClient) FailoverCluster(ctx context.Context, in *FailoverClusterRequest, opts ...grpc.CallOption) (*FailoverClusterResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FailoverClusterResponse)
@@ -164,6 +200,9 @@ type ClusterServiceServer interface {
 	ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error)
 	UpdateCluster(context.Context, *UpdateClusterRequest) (*UpdateClusterResponse, error)
 	DeleteCluster(context.Context, *DeleteClusterRequest) (*DeleteClusterResponse, error)
+	StartCluster(context.Context, *StartClusterRequest) (*StartClusterResponse, error)
+	PauseCluster(context.Context, *PauseClusterRequest) (*PauseClusterResponse, error)
+	RestartCluster(context.Context, *RestartClusterRequest) (*RestartClusterResponse, error)
 	FailoverCluster(context.Context, *FailoverClusterRequest) (*FailoverClusterResponse, error)
 	RestartNode(context.Context, *RestartNodeRequest) (*RestartNodeResponse, error)
 	ScaleCluster(context.Context, *ScaleClusterRequest) (*ScaleClusterResponse, error)
@@ -193,6 +232,15 @@ func (UnimplementedClusterServiceServer) UpdateCluster(context.Context, *UpdateC
 }
 func (UnimplementedClusterServiceServer) DeleteCluster(context.Context, *DeleteClusterRequest) (*DeleteClusterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteCluster not implemented")
+}
+func (UnimplementedClusterServiceServer) StartCluster(context.Context, *StartClusterRequest) (*StartClusterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartCluster not implemented")
+}
+func (UnimplementedClusterServiceServer) PauseCluster(context.Context, *PauseClusterRequest) (*PauseClusterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PauseCluster not implemented")
+}
+func (UnimplementedClusterServiceServer) RestartCluster(context.Context, *RestartClusterRequest) (*RestartClusterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RestartCluster not implemented")
 }
 func (UnimplementedClusterServiceServer) FailoverCluster(context.Context, *FailoverClusterRequest) (*FailoverClusterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FailoverCluster not implemented")
@@ -320,6 +368,60 @@ func _ClusterService_DeleteCluster_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClusterService_StartCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartClusterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServiceServer).StartCluster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClusterService_StartCluster_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServiceServer).StartCluster(ctx, req.(*StartClusterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClusterService_PauseCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PauseClusterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServiceServer).PauseCluster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClusterService_PauseCluster_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServiceServer).PauseCluster(ctx, req.(*PauseClusterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClusterService_RestartCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RestartClusterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClusterServiceServer).RestartCluster(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ClusterService_RestartCluster_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClusterServiceServer).RestartCluster(ctx, req.(*RestartClusterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ClusterService_FailoverCluster_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FailoverClusterRequest)
 	if err := dec(in); err != nil {
@@ -436,6 +538,18 @@ var ClusterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteCluster",
 			Handler:    _ClusterService_DeleteCluster_Handler,
+		},
+		{
+			MethodName: "StartCluster",
+			Handler:    _ClusterService_StartCluster_Handler,
+		},
+		{
+			MethodName: "PauseCluster",
+			Handler:    _ClusterService_PauseCluster_Handler,
+		},
+		{
+			MethodName: "RestartCluster",
+			Handler:    _ClusterService_RestartCluster_Handler,
 		},
 		{
 			MethodName: "FailoverCluster",

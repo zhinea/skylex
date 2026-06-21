@@ -142,6 +142,9 @@ var writeMethods = map[string]bool{
 	skylexv1connect.ClusterServiceCreateClusterProcedure:                      true,
 	skylexv1connect.ClusterServiceUpdateClusterProcedure:                      true,
 	skylexv1connect.ClusterServiceDeleteClusterProcedure:                      true,
+	skylexv1connect.ClusterServiceStartClusterProcedure:                       true,
+	skylexv1connect.ClusterServicePauseClusterProcedure:                       true,
+	skylexv1connect.ClusterServiceRestartClusterProcedure:                     true,
 	skylexv1connect.ClusterServiceFailoverClusterProcedure:                    true,
 	skylexv1connect.ClusterServiceRestartNodeProcedure:                        true,
 	skylexv1connect.ClusterServiceScaleClusterProcedure:                       true,
@@ -316,6 +319,30 @@ func (c *connectClusterService) UpdateCluster(ctx context.Context, req *connect.
 
 func (c *connectClusterService) DeleteCluster(ctx context.Context, req *connect.Request[skylexv1.DeleteClusterRequest]) (*connect.Response[skylexv1.DeleteClusterResponse], error) {
 	resp, err := c.svc.DeleteCluster(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectClusterService) StartCluster(ctx context.Context, req *connect.Request[skylexv1.StartClusterRequest]) (*connect.Response[skylexv1.StartClusterResponse], error) {
+	resp, err := c.svc.StartCluster(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectClusterService) PauseCluster(ctx context.Context, req *connect.Request[skylexv1.PauseClusterRequest]) (*connect.Response[skylexv1.PauseClusterResponse], error) {
+	resp, err := c.svc.PauseCluster(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
+func (c *connectClusterService) RestartCluster(ctx context.Context, req *connect.Request[skylexv1.RestartClusterRequest]) (*connect.Response[skylexv1.RestartClusterResponse], error) {
+	resp, err := c.svc.RestartCluster(ctx, req.Msg)
 	if err != nil {
 		return nil, err
 	}

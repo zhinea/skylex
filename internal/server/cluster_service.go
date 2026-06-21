@@ -28,9 +28,12 @@ type ClusterService struct {
 	nodes          *db.NodeRepository
 	commands       *db.AgentCommandRepository
 	settings       *db.ClusterSettingsRepository
+	audit          *db.AuditRepository
 	failoverEngine *FailoverEngine
 	log            *slog.Logger
 }
+
+const maxClusterLifecycleNodes = 1000
 
 func NewClusterService(conn *sql.DB, clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, settings *db.ClusterSettingsRepository, log *slog.Logger) *ClusterService {
 	return &ClusterService{
@@ -45,6 +48,10 @@ func NewClusterService(conn *sql.DB, clusters *db.ClusterRepository, nodes *db.N
 
 func (s *ClusterService) SetFailoverEngine(e *FailoverEngine) {
 	s.failoverEngine = e
+}
+
+func (s *ClusterService) SetAuditRepository(repo *db.AuditRepository) {
+	s.audit = repo
 }
 
 // allowedClusterSettings is the curated set of PostgreSQL parameters that can
@@ -226,11 +233,7 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "begin transaction: %v", err)
 	}
-	defer func() {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}()
+	defer tx.Rollback()
 
 	_, err = tx.ExecContext(ctx,
 		db.Rebind(`INSERT INTO clusters (id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, service_location, created_at, updated_at)
@@ -375,6 +378,9 @@ func (s *ClusterService) DeleteCluster(ctx context.Context, req *skylexv1.Delete
 	if cluster == nil {
 		return nil, status.Errorf(codes.NotFound, "cluster %q not found", req.GetId())
 	}
+	if err := s.requireClusterStoppedForDelete(ctx, cluster); err != nil {
+		return nil, err
+	}
 
 	tx, err := s.conn.BeginTx(ctx, nil)
 	if err != nil {
@@ -431,6 +437,242 @@ func (s *ClusterService) DeleteCluster(ctx context.Context, req *skylexv1.Delete
 	return &skylexv1.DeleteClusterResponse{}, nil
 }
 
+func (s *ClusterService) StartCluster(ctx context.Context, req *skylexv1.StartClusterRequest) (*skylexv1.StartClusterResponse, error) {
+	cluster, err := s.queueClusterLifecycle(ctx, req.GetClusterId(), "start", []provisioningCommand{{"pg_start", ""}}, models.ClusterStatusRunning, models.NodeStatusOnline, "starting")
+	if err != nil {
+		return nil, err
+	}
+	return &skylexv1.StartClusterResponse{Cluster: clusterToProto(cluster)}, nil
+}
+
+func (s *ClusterService) PauseCluster(ctx context.Context, req *skylexv1.PauseClusterRequest) (*skylexv1.PauseClusterResponse, error) {
+	cluster, err := s.queueClusterLifecycle(ctx, req.GetClusterId(), "pause", []provisioningCommand{{"pg_stop", ""}}, models.ClusterStatusStopped, models.NodeStatusOffline, "stopping")
+	if err != nil {
+		return nil, err
+	}
+	return &skylexv1.PauseClusterResponse{Cluster: clusterToProto(cluster)}, nil
+}
+
+func (s *ClusterService) RestartCluster(ctx context.Context, req *skylexv1.RestartClusterRequest) (*skylexv1.RestartClusterResponse, error) {
+	cluster, err := s.queueClusterLifecycle(ctx, req.GetClusterId(), "restart", []provisioningCommand{{"pg_stop", ""}, {"pg_start", ""}}, models.ClusterStatusRunning, models.NodeStatusOnline, "restarting")
+	if err != nil {
+		return nil, err
+	}
+	return &skylexv1.RestartClusterResponse{Cluster: clusterToProto(cluster)}, nil
+}
+
+func (s *ClusterService) queueClusterLifecycle(ctx context.Context, clusterID, operation string, commands []provisioningCommand, clusterStatus models.ClusterStatus, nodeStatus models.NodeStatus, nodeDetail string) (*models.Cluster, error) {
+	if clusterID == "" {
+		return nil, status.Error(codes.InvalidArgument, "cluster_id is required")
+	}
+	if UserRoleFromContext(ctx) == models.RoleViewer {
+		return nil, status.Errorf(codes.PermissionDenied, "viewer role cannot %s clusters", operation)
+	}
+
+	tx, err := s.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "begin transaction: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	var cluster models.Cluster
+	var labelsJSON string
+	var pitrInt int
+	if err = tx.QueryRowContext(ctx,
+		db.Rebind(`SELECT id, name, engine, version, replication_mode, replica_count, storage_config_id, data_dir, pitr_enabled, status, labels, created_at, updated_at, service_location
+			 FROM clusters WHERE id = ?`), clusterID).
+		Scan(&cluster.ID, &cluster.Name, &cluster.Engine, &cluster.Version, &cluster.ReplicationMode, &cluster.Replicas,
+			&cluster.StorageConfigID, &cluster.DataDir, &pitrInt, &cluster.Status, &labelsJSON, &cluster.CreatedAt, &cluster.UpdatedAt,
+			&cluster.ServiceLocation); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, "cluster %q not found", clusterID)
+		}
+		return nil, status.Errorf(codes.Internal, "get cluster: %v", err)
+	}
+	cluster.PITREnabled = pitrInt == 1
+	cluster.Tags = unmarshalClusterLabels(labelsJSON)
+
+	if cluster.Status == models.ClusterStatusCreating || cluster.Status == models.ClusterStatusDeleting {
+		return nil, status.Errorf(codes.FailedPrecondition, "cluster %q is %s; wait for provisioning/deletion before lifecycle operations", cluster.ID, cluster.Status)
+	}
+
+	nodes, err := clusterNodesForLifecycle(ctx, tx, cluster.ID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "list cluster nodes: %v", err)
+	}
+	if len(nodes) == 0 {
+		return nil, status.Errorf(codes.FailedPrecondition, "cluster %q has no assigned nodes", cluster.ID)
+	}
+
+	eligible := make([]*models.Node, 0, len(nodes))
+	for _, node := range nodes {
+		if !nodeEligibleForLifecycle(node) {
+			continue
+		}
+		eligible = append(eligible, node)
+	}
+	if len(eligible) == 0 {
+		return nil, status.Errorf(codes.FailedPrecondition, "cluster %q has no ready nodes with connected agents for lifecycle operation", cluster.ID)
+	}
+
+	nodeIDs := make([]string, 0, len(eligible))
+	for _, node := range eligible {
+		nodeIDs = append(nodeIDs, node.ID)
+	}
+	if hasPending, err := hasPendingClusterCommands(ctx, tx, nodeIDs); err != nil {
+		return nil, status.Errorf(codes.Internal, "check pending commands: %v", err)
+	} else if hasPending {
+		return nil, status.Error(codes.FailedPrecondition, "an agent command is already pending for this cluster; wait for it to finish before lifecycle operations")
+	}
+
+	now := time.Now().UTC()
+	for _, node := range eligible {
+		for _, c := range commands {
+			cmdID := id.New()
+			if _, err = tx.ExecContext(ctx,
+				db.Rebind(`INSERT INTO agent_commands (id, agent_id, node_id, action, payload, status, created_at)
+					 VALUES (?, ?, ?, ?, ?, ?, ?)`),
+				cmdID, node.AgentID, node.ID, c.action, c.payload, models.CommandStatusPending, now); err != nil {
+				return nil, status.Errorf(codes.Internal, "queue %s for node %s: %v", c.action, node.ID, err)
+			}
+		}
+		if _, err = tx.ExecContext(ctx,
+			db.Rebind(`UPDATE nodes SET status = ?, status_detail = ?, updated_at = ? WHERE id = ?`),
+			nodeStatus, nodeDetail, now, node.ID); err != nil {
+			return nil, status.Errorf(codes.Internal, "mark node lifecycle pending: %v", err)
+		}
+	}
+
+	if _, err = tx.ExecContext(ctx,
+		db.Rebind(`UPDATE clusters SET status = ?, updated_at = ? WHERE id = ?`),
+		clusterStatus, now, cluster.ID); err != nil {
+		return nil, status.Errorf(codes.Internal, "update cluster status: %v", err)
+	}
+	cluster.Status = clusterStatus
+	cluster.UpdatedAt = now
+
+	if err = tx.Commit(); err != nil {
+		return nil, status.Errorf(codes.Internal, "commit lifecycle operation: %v", err)
+	}
+	err = nil
+
+	s.log.Info("cluster lifecycle commands queued", "cluster_id", cluster.ID, "operation", operation, "nodes", len(eligible))
+	s.auditClusterLifecycle(ctx, cluster.ID, operation, len(eligible))
+	return &cluster, nil
+}
+
+func clusterNodesForLifecycle(ctx context.Context, tx *sql.Tx, clusterID string) ([]*models.Node, error) {
+	rows, err := tx.QueryContext(ctx, db.Rebind(`SELECT id, cluster_id, hostname, address, port, role, status, agent_version, agent_id, labels, last_seen, created_at, updated_at, postgres_installed, postgres_version, postgres_data_initialized, status_detail, service_location, docker_available, installation_state, conflict_details, agent_latency_ms
+		 FROM nodes WHERE cluster_id = ? ORDER BY role ASC, created_at ASC LIMIT ?`), clusterID, maxClusterLifecycleNodes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	nodes := make([]*models.Node, 0)
+	for rows.Next() {
+		node, err := scanLifecycleNode(rows)
+		if err != nil {
+			return nil, err
+		}
+		nodes = append(nodes, node)
+	}
+	return nodes, rows.Err()
+}
+
+func scanLifecycleNode(rows *sql.Rows) (*models.Node, error) {
+	var n models.Node
+	var clusterID sql.NullString
+	var labelsJSON string
+	if err := rows.Scan(&n.ID, &clusterID, &n.Hostname, &n.Address, &n.Port,
+		&n.Role, &n.Status, &n.AgentVersion, &n.AgentID, &labelsJSON, &n.LastSeen, &n.CreatedAt, &n.UpdatedAt,
+		&n.PostgresInstalled, &n.PostgresVersion, &n.PostgresDataInitialized, &n.StatusDetail,
+		&n.ServiceLocation, &n.DockerAvailable, &n.InstallationState, &n.ConflictDetails, &n.AgentLatencyMS); err != nil {
+		return nil, fmt.Errorf("scan lifecycle node: %w", err)
+	}
+	n.ClusterID = clusterID.String
+	n.Labels = unmarshalClusterLabels(labelsJSON)
+	return &n, nil
+}
+
+func nodeEligibleForLifecycle(node *models.Node) bool {
+	return node.AgentID != "" && node.PostgresInstalled && node.PostgresDataInitialized &&
+		(node.InstallationState == models.InstallationStateInstalled || node.InstallationState == models.InstallationStateAdopted)
+}
+
+func hasPendingClusterCommands(ctx context.Context, tx *sql.Tx, nodeIDs []string) (bool, error) {
+	if len(nodeIDs) == 0 {
+		return false, nil
+	}
+	placeholders := make([]string, len(nodeIDs))
+	args := make([]interface{}, 0, len(nodeIDs)+1)
+	for i, id := range nodeIDs {
+		placeholders[i] = "?"
+		args = append(args, id)
+	}
+	args = append(args, models.CommandStatusPending)
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM agent_commands WHERE node_id IN (%s) AND status = ?`, strings.Join(placeholders, ", "))
+	var count int
+	if err := tx.QueryRowContext(ctx, db.Rebind(query), args...).Scan(&count); err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (s *ClusterService) auditClusterLifecycle(ctx context.Context, clusterID, operation string, nodeCount int) {
+	if s.audit == nil {
+		return
+	}
+	if err := s.audit.Log(&models.AuditLog{
+		UserID:   UserIDFromContext(ctx),
+		Action:   models.AuditActionLifecycleCluster,
+		Resource: clusterID,
+		Detail:   fmt.Sprintf("operation=%s cluster_id=%s nodes=%d", operation, clusterID, nodeCount),
+	}); err != nil {
+		s.log.Warn("audit cluster lifecycle failed", "cluster_id", clusterID, "operation", operation, "error", err)
+	}
+}
+
+func unmarshalClusterLabels(raw string) map[string]string {
+	labels := make(map[string]string)
+	if raw != "" && raw != "{}" {
+		if err := json.Unmarshal([]byte(raw), &labels); err != nil {
+			return make(map[string]string)
+		}
+	}
+	return labels
+}
+
+func (s *ClusterService) requireClusterStoppedForDelete(ctx context.Context, cluster *models.Cluster) error {
+	nodes, _, err := s.nodes.ListByCluster(ctx, cluster.ID, 0, maxClusterLifecycleNodes)
+	if err != nil {
+		return status.Errorf(codes.Internal, "list cluster nodes: %v", err)
+	}
+	nodeIDs := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		nodeIDs = append(nodeIDs, node.ID)
+	}
+	cmds, err := s.commands.ListByNodeIDs(ctx, nodeIDs, maxClusterLifecycleNodes)
+	if err != nil {
+		return status.Errorf(codes.Internal, "list cluster commands: %v", err)
+	}
+	for _, cmd := range cmds {
+		if cmd.Status == models.CommandStatusPending && isLifecycleOnlyAction(cmd.Action) {
+			return status.Error(codes.FailedPrecondition, "PostgreSQL lifecycle command is still pending; wait for the service to stop before deleting it")
+		}
+	}
+	for _, node := range nodes {
+		if node.Status == models.NodeStatusOnline || node.StatusDetail == "healthy" || node.StatusDetail == "running" || node.StatusDetail == "syncing_replica" {
+			return status.Error(codes.FailedPrecondition, "PostgreSQL service is still running; pause/stop the cluster before deleting it")
+		}
+	}
+	return nil
+}
+
 func (s *ClusterService) FailoverCluster(ctx context.Context, req *skylexv1.FailoverClusterRequest) (*skylexv1.FailoverClusterResponse, error) {
 	if req.GetClusterId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "cluster_id is required")
@@ -471,6 +713,9 @@ func (s *ClusterService) RestartNode(ctx context.Context, req *skylexv1.RestartN
 	if req.GetNodeId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "node_id is required")
 	}
+	if UserRoleFromContext(ctx) == models.RoleViewer {
+		return nil, status.Error(codes.PermissionDenied, "viewer role cannot restart nodes")
+	}
 
 	node, err := s.nodes.GetByID(ctx, req.GetNodeId())
 	if err != nil {
@@ -483,6 +728,9 @@ func (s *ClusterService) RestartNode(ctx context.Context, req *skylexv1.RestartN
 	agentID := node.AgentID
 	if agentID == "" {
 		return nil, status.Errorf(codes.FailedPrecondition, "node %q has no agent_id assigned", node.ID)
+	}
+	if !nodeEligibleForLifecycle(node) {
+		return nil, status.Errorf(codes.FailedPrecondition, "node %q is not ready for PostgreSQL lifecycle operations", node.ID)
 	}
 
 	if _, err := s.commands.Create(ctx, agentID, node.ID, "pg_stop", ""); err != nil {
@@ -631,7 +879,7 @@ func clusterToProto(c *models.Cluster) *skylexv1.Cluster {
 	case models.ClusterStatusDeleting:
 		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_DELETING
 	case models.ClusterStatusStopped:
-		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_FAILED
+		clusterStatus = skylexv1.ClusterStatus_CLUSTER_STATUS_STOPPED
 	}
 
 	serviceLocation := protoServiceLocation(c.ServiceLocation)

@@ -39,8 +39,11 @@ var (
 	viewerAllowedMethods = map[string]bool{
 		"/skylex.v1.ClusterService/GetCluster":                      true,
 		"/skylex.v1.ClusterService/ListClusters":                    true,
+		"/skylex.v1.ClusterService/GetClusterSettings":              true,
 		"/skylex.v1.NodeService/ListNodes":                          true,
 		"/skylex.v1.NodeService/GetNode":                            true,
+		"/skylex.v1.NodeService/ListNodeMetrics":                    true,
+		"/skylex.v1.NodeService/ListNodeCommandLogs":                true,
 		"/skylex.v1.PostgresManagementService/GetConnectionProfile": true,
 		"/skylex.v1.PostgresManagementService/GetNetworkAccess":     true,
 		"/skylex.v1.PostgresManagementService/ListRoles":            true,

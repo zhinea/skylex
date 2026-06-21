@@ -535,6 +535,15 @@ func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, comm
 
 	if !success {
 		if isProvisioningAction(cmd.Action) {
+			if node.ClusterID != "" && s.clusters != nil {
+				cluster, err := s.clusters.GetByID(ctx, node.ClusterID)
+				if err != nil {
+					return err
+				}
+				if cluster != nil && cluster.Status != models.ClusterStatusCreating {
+					return s.handleLifecycleCommandFailure(ctx, node, cmd.Action)
+				}
+			}
 			return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateFailed, errMsg)
 		}
 		return nil
@@ -575,11 +584,22 @@ func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, comm
 		if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOnline); err != nil {
 			return err
 		}
-		return s.nodes.UpdateStatusDetail(ctx, node.ID, computeNodeStatusDetail(node, &skylexv1.NodeStatusReport{
+		if err := s.nodes.UpdateStatusDetail(ctx, node.ID, computeNodeStatusDetail(node, &skylexv1.NodeStatusReport{
 			PostgresInstalled:       true,
 			PostgresDataInitialized: true,
 			PostgresRunning:         true,
-		}))
+		})); err != nil {
+			return err
+		}
+		return s.updateClusterLifecycleStatus(ctx, node.ClusterID)
+	case "pg_stop":
+		if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusOffline); err != nil {
+			return err
+		}
+		if err := s.nodes.UpdateStatusDetail(ctx, node.ID, "stopped"); err != nil {
+			return err
+		}
+		return s.updateClusterLifecycleStatus(ctx, node.ClusterID)
 	case "pg_purge_native":
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, "")
 	case "pg_adopt_native":
@@ -587,6 +607,23 @@ func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, comm
 			return err
 		}
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateAdopted, "")
+	}
+	return nil
+}
+
+func (s *AgentService) handleLifecycleCommandFailure(ctx context.Context, node *models.Node, action string) error {
+	detail := "lifecycle_failed"
+	switch action {
+	case "pg_start":
+		detail = "start_failed"
+	case "pg_stop":
+		detail = "stop_failed"
+	}
+	if err := s.nodes.UpdateStatusDetail(ctx, node.ID, detail); err != nil {
+		return err
+	}
+	if node.ClusterID != "" {
+		return s.updateClusterStatus(ctx, node.ClusterID, models.ClusterStatusDegraded)
 	}
 	return nil
 }
@@ -713,9 +750,66 @@ func (s *AgentService) updateClusterProvisioningStatus(ctx context.Context, comm
 	return nil
 }
 
+func (s *AgentService) updateClusterLifecycleStatus(ctx context.Context, clusterID string) error {
+	if clusterID == "" || s.clusters == nil {
+		return nil
+	}
+	cluster, err := s.clusters.GetByID(ctx, clusterID)
+	if err != nil || cluster == nil || cluster.Status == models.ClusterStatusCreating || cluster.Status == models.ClusterStatusDeleting {
+		return err
+	}
+	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
+	if err != nil || len(nodes) == 0 {
+		return err
+	}
+	nodeIDs := make([]string, 0, len(nodes))
+	for _, node := range nodes {
+		nodeIDs = append(nodeIDs, node.ID)
+	}
+	cmds, err := s.commands.ListByNodeIDs(ctx, nodeIDs, 1000)
+	if err != nil {
+		return err
+	}
+	for _, cmd := range cmds {
+		if !isLifecycleOnlyAction(cmd.Action) || cmd.Status != models.CommandStatusPending {
+			continue
+		}
+		return nil
+	}
+
+	allStopped := true
+	anyOnline := false
+	for _, node := range nodes {
+		switch node.Status {
+		case models.NodeStatusOnline, models.NodeStatusPromoting, models.NodeStatusSyncing:
+			anyOnline = true
+			allStopped = false
+		case models.NodeStatusOffline, models.NodeStatusDrained:
+		default:
+			allStopped = false
+		}
+	}
+	if allStopped {
+		return s.updateClusterStatus(ctx, clusterID, models.ClusterStatusStopped)
+	}
+	if anyOnline {
+		return s.updateClusterStatus(ctx, clusterID, models.ClusterStatusRunning)
+	}
+	return nil
+}
+
+func isLifecycleOnlyAction(action string) bool {
+	switch action {
+	case "pg_start", "pg_stop":
+		return true
+	default:
+		return false
+	}
+}
+
 func isProvisioningAction(action string) bool {
 	switch action {
-	case "pg_preflight", "pg_install_native", "pg_install_docker", "pg_purge_native", "pg_adopt_native", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica":
+	case "pg_preflight", "pg_install_native", "pg_install_docker", "pg_purge_native", "pg_adopt_native", "pg_init", "pg_start", "pg_stop", "pg_create_repl_user", "pg_basebackup", "repoint_replica":
 		return true
 	default:
 		return false
@@ -723,7 +817,7 @@ func isProvisioningAction(action string) bool {
 }
 
 func provisioningActions() []string {
-	return []string{"pg_preflight", "pg_install_native", "pg_install_docker", "pg_purge_native", "pg_adopt_native", "pg_init", "pg_start", "pg_create_repl_user", "pg_basebackup", "repoint_replica"}
+	return []string{"pg_preflight", "pg_install_native", "pg_install_docker", "pg_purge_native", "pg_adopt_native", "pg_init", "pg_start", "pg_stop", "pg_create_repl_user", "pg_basebackup", "repoint_replica"}
 }
 
 func (s *AgentService) updateClusterStatus(ctx context.Context, clusterID string, clusterStatus models.ClusterStatus) error {

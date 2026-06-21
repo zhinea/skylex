@@ -68,6 +68,46 @@ export function useDeleteCluster() {
       api.post<{}>("/skylex.v1.ClusterService/DeleteCluster", { id }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clusters"] });
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+    },
+  });
+}
+
+export function useStartCluster() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clusterId: string) =>
+      api.post<{ cluster: Cluster }>("/skylex.v1.ClusterService/StartCluster", { clusterId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clusters"] });
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+      qc.invalidateQueries({ queryKey: ["commandLogs"] });
+    },
+  });
+}
+
+export function usePauseCluster() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clusterId: string) =>
+      api.post<{ cluster: Cluster }>("/skylex.v1.ClusterService/PauseCluster", { clusterId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clusters"] });
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+      qc.invalidateQueries({ queryKey: ["commandLogs"] });
+    },
+  });
+}
+
+export function useRestartCluster() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clusterId: string) =>
+      api.post<{ cluster: Cluster }>("/skylex.v1.ClusterService/RestartCluster", { clusterId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clusters"] });
+      qc.invalidateQueries({ queryKey: ["nodes"] });
+      qc.invalidateQueries({ queryKey: ["commandLogs"] });
     },
   });
 }

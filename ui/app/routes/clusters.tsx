@@ -13,6 +13,7 @@ export default function ClustersPage() {
   const failoverCluster = useFailoverCluster();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [failoverId, setFailoverId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (isLoading) return <PageSpinner />;
 
@@ -111,10 +112,23 @@ export default function ClustersPage() {
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Cluster"
-        message="Are you sure you want to delete this cluster? This action cannot be undone."
+        message={deleteError || "PostgreSQL must be stopped before deletion. Pause the cluster first if any node is still running, then delete. This action cannot be undone."}
         confirmLabel="Delete"
-        onConfirm={() => { if (deleteId) { deleteCluster.mutate(deleteId); setDeleteId(null); }}}
-        onCancel={() => setDeleteId(null)}
+        onConfirm={() => {
+          if (deleteId) {
+            setDeleteError(null);
+            deleteCluster.mutate(deleteId, {
+              onSuccess: () => setDeleteId(null),
+              onError: (err) => {
+                const message = err instanceof Error ? err.message : "Failed to delete cluster";
+                setDeleteError(message.includes("running") || message.includes("pause") || message.includes("stop")
+                  ? `${message} Pause/stop the service first, wait for nodes to show stopped, then delete again.`
+                  : message);
+              },
+            });
+          }
+        }}
+        onCancel={() => { setDeleteId(null); setDeleteError(null); }}
       />
 
       <ConfirmDialog

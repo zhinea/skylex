@@ -123,6 +123,7 @@ func (s *Server) Start(ctx context.Context) error {
 	backupRepo := db.NewBackupRepository(conn, s.log)
 
 	s.clusterService = NewClusterService(conn, clusterRepo, nodeRepo, commandRepo, clusterSettingsRepo, s.log)
+	s.clusterService.SetAuditRepository(auditRepo)
 	s.nodeService = NewNodeService(nodeRepo, clusterRepo, commandRepo, commandLogRepo, s.cfg.Agent.HeartbeatTimeout, s.log)
 	s.agentService = NewAgentService(s.cfg, clusterRepo, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
 	s.agentService.SetCommandSecretRepository(commandSecretRepo)

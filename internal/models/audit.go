@@ -8,6 +8,7 @@ const (
 	AuditActionCreateCluster        AuditAction = "cluster.create"
 	AuditActionUpdateCluster        AuditAction = "cluster.update"
 	AuditActionDeleteCluster        AuditAction = "cluster.delete"
+	AuditActionLifecycleCluster     AuditAction = "cluster.lifecycle"
 	AuditActionFailover             AuditAction = "cluster.failover"
 	AuditActionCreateBackup         AuditAction = "backup.create"
 	AuditActionDeleteBackup         AuditAction = "backup.delete"

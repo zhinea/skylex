@@ -115,6 +115,7 @@ func (r *AgentCommandRepository) MarkPendingFailedByNodeIDs(ctx context.Context,
 	nodePlaceholders := make([]string, len(nodeIDs))
 	actionPlaceholders := make([]string, len(actions))
 	args := make([]interface{}, 0, len(nodeIDs)+len(actions)+4)
+	args = append(args, models.CommandStatusFailed, errMsg, time.Now().UTC(), models.CommandStatusPending)
 	for i, id := range nodeIDs {
 		nodePlaceholders[i] = "?"
 		args = append(args, id)
@@ -123,7 +124,6 @@ func (r *AgentCommandRepository) MarkPendingFailedByNodeIDs(ctx context.Context,
 		actionPlaceholders[i] = "?"
 		args = append(args, action)
 	}
-	args = append(args, models.CommandStatusFailed, errMsg, time.Now().UTC(), models.CommandStatusPending)
 
 	query := fmt.Sprintf(`UPDATE agent_commands SET status = ?, error = ?, completed_at = ?
 		 WHERE status = ? AND node_id IN (%s) AND action IN (%s)`, strings.Join(nodePlaceholders, ", "), strings.Join(actionPlaceholders, ", "))

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
@@ -328,5 +329,113 @@ func TestClusterService_DeleteCluster_UnassignsNodes(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatalf("recreate cluster with reused node: %v", err)
+	}
+}
+
+func createReadyLifecycleCluster(t *testing.T, ctx context.Context, svc *ClusterService) (string, string) {
+	t.Helper()
+	nodeID := createIdleTestNode(t, ctx, svc)
+	clusterID := createTestCluster(t, ctx, svc, nodeID)
+	if err := svc.nodes.UpdateInstallationState(ctx, nodeID, models.InstallationStateInstalled, ""); err != nil {
+		t.Fatalf("update installation state: %v", err)
+	}
+	if err := svc.nodes.UpdatePostgresStatus(ctx, nodeID, true, "16", true); err != nil {
+		t.Fatalf("update postgres status: %v", err)
+	}
+	if err := svc.nodes.UpdateStatus(ctx, nodeID, models.NodeStatusOffline); err != nil {
+		t.Fatalf("update node status: %v", err)
+	}
+	if err := svc.nodes.UpdateStatusDetail(ctx, nodeID, "stopped"); err != nil {
+		t.Fatalf("update status detail: %v", err)
+	}
+	if err := svc.clusters.UpdateStatus(ctx, clusterID, models.ClusterStatusStopped); err != nil {
+		t.Fatalf("update cluster status: %v", err)
+	}
+	if err := svc.commands.MarkPendingFailedByNodeIDs(ctx, []string{nodeID}, []string{"pg_preflight"}, "test setup"); err != nil {
+		t.Fatalf("clear preflight command: %v", err)
+	}
+	return clusterID, nodeID
+}
+
+func TestClusterService_LifecycleRejectsViewer(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleViewer)
+	clusterID, _ := createReadyLifecycleCluster(t, ctx, svc)
+
+	if _, err := svc.StartCluster(ctx, &skylexv1.StartClusterRequest{ClusterId: clusterID}); err == nil {
+		t.Fatal("expected viewer start cluster request to fail")
+	}
+	if _, err := svc.PauseCluster(ctx, &skylexv1.PauseClusterRequest{ClusterId: clusterID}); err == nil {
+		t.Fatal("expected viewer pause cluster request to fail")
+	}
+	if _, err := svc.RestartCluster(ctx, &skylexv1.RestartClusterRequest{ClusterId: clusterID}); err == nil {
+		t.Fatal("expected viewer restart cluster request to fail")
+	}
+}
+
+func TestClusterService_LifecycleQueuesCommands(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleOperator)
+	clusterID, nodeID := createReadyLifecycleCluster(t, ctx, svc)
+
+	if _, err := svc.StartCluster(ctx, &skylexv1.StartClusterRequest{ClusterId: clusterID}); err != nil {
+		t.Fatalf("start cluster: %v", err)
+	}
+	if got, want := queuedActions(t, ctx, svc, "agent-1", nodeID), []string{"pg_start"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("start actions = %v, want %v", got, want)
+	}
+
+	for _, cmd := range []string{"pg_start"} {
+		if err := svc.commands.MarkPendingFailedByNodeIDs(ctx, []string{nodeID}, []string{cmd}, "test cleanup"); err != nil {
+			t.Fatalf("clear pending %s: %v", cmd, err)
+		}
+	}
+	if _, err := svc.PauseCluster(ctx, &skylexv1.PauseClusterRequest{ClusterId: clusterID}); err != nil {
+		t.Fatalf("pause cluster: %v", err)
+	}
+	if got, want := queuedActions(t, ctx, svc, "agent-1", nodeID), []string{"pg_stop"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("pause actions = %v, want %v", got, want)
+	}
+
+	if err := svc.commands.MarkPendingFailedByNodeIDs(ctx, []string{nodeID}, []string{"pg_stop"}, "test cleanup"); err != nil {
+		t.Fatalf("clear pending stop: %v", err)
+	}
+	if _, err := svc.RestartCluster(ctx, &skylexv1.RestartClusterRequest{ClusterId: clusterID}); err != nil {
+		t.Fatalf("restart cluster: %v", err)
+	}
+	if got, want := queuedActions(t, ctx, svc, "agent-1", nodeID), []string{"pg_stop", "pg_start"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("restart actions = %v, want %v", got, want)
+	}
+}
+
+func TestClusterService_DeleteClusterRequiresStoppedService(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := context.Background()
+	clusterID, nodeID := createReadyLifecycleCluster(t, ctx, svc)
+	if err := svc.nodes.UpdateStatus(ctx, nodeID, models.NodeStatusOnline); err != nil {
+		t.Fatalf("mark node online: %v", err)
+	}
+	if err := svc.nodes.UpdateStatusDetail(ctx, nodeID, "healthy"); err != nil {
+		t.Fatalf("mark node healthy: %v", err)
+	}
+	if err := svc.clusters.UpdateStatus(ctx, clusterID, models.ClusterStatusRunning); err != nil {
+		t.Fatalf("mark cluster running: %v", err)
+	}
+
+	if _, err := svc.DeleteCluster(ctx, &skylexv1.DeleteClusterRequest{Id: clusterID}); err == nil {
+		t.Fatal("expected running cluster deletion to fail")
+	}
+
+	if err := svc.nodes.UpdateStatus(ctx, nodeID, models.NodeStatusOffline); err != nil {
+		t.Fatalf("mark node offline: %v", err)
+	}
+	if err := svc.nodes.UpdateStatusDetail(ctx, nodeID, "stopped"); err != nil {
+		t.Fatalf("mark node stopped: %v", err)
+	}
+	if err := svc.clusters.UpdateStatus(ctx, clusterID, models.ClusterStatusStopped); err != nil {
+		t.Fatalf("mark cluster stopped: %v", err)
+	}
+	if _, err := svc.DeleteCluster(ctx, &skylexv1.DeleteClusterRequest{Id: clusterID}); err != nil {
+		t.Fatalf("delete stopped cluster: %v", err)
 	}
 }

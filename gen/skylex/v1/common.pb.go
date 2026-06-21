@@ -31,6 +31,7 @@ const (
 	ClusterStatus_CLUSTER_STATUS_DEGRADED    ClusterStatus = 3
 	ClusterStatus_CLUSTER_STATUS_FAILED      ClusterStatus = 4
 	ClusterStatus_CLUSTER_STATUS_DELETING    ClusterStatus = 5
+	ClusterStatus_CLUSTER_STATUS_STOPPED     ClusterStatus = 6
 )
 
 // Enum value maps for ClusterStatus.
@@ -42,6 +43,7 @@ var (
 		3: "CLUSTER_STATUS_DEGRADED",
 		4: "CLUSTER_STATUS_FAILED",
 		5: "CLUSTER_STATUS_DELETING",
+		6: "CLUSTER_STATUS_STOPPED",
 	}
 	ClusterStatus_value = map[string]int32{
 		"CLUSTER_STATUS_UNSPECIFIED": 0,
@@ -50,6 +52,7 @@ var (
 		"CLUSTER_STATUS_DEGRADED":    3,
 		"CLUSTER_STATUS_FAILED":      4,
 		"CLUSTER_STATUS_DELETING":    5,
+		"CLUSTER_STATUS_STOPPED":     6,
 	}
 )
 
@@ -1285,14 +1288,15 @@ const file_skylex_v1_common_proto_rawDesc = "" +
 	"Pagination\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x14\n" +
-	"\x05total\x18\x03 \x01(\x05R\x05total*\xbd\x01\n" +
+	"\x05total\x18\x03 \x01(\x05R\x05total*\xd9\x01\n" +
 	"\rClusterStatus\x12\x1e\n" +
 	"\x1aCLUSTER_STATUS_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17CLUSTER_STATUS_CREATING\x10\x01\x12\x1a\n" +
 	"\x16CLUSTER_STATUS_HEALTHY\x10\x02\x12\x1b\n" +
 	"\x17CLUSTER_STATUS_DEGRADED\x10\x03\x12\x19\n" +
 	"\x15CLUSTER_STATUS_FAILED\x10\x04\x12\x1b\n" +
-	"\x17CLUSTER_STATUS_DELETING\x10\x05*S\n" +
+	"\x17CLUSTER_STATUS_DELETING\x10\x05\x12\x1a\n" +
+	"\x16CLUSTER_STATUS_STOPPED\x10\x06*S\n" +
 	"\bNodeRole\x12\x19\n" +
 	"\x15NODE_ROLE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11NODE_ROLE_PRIMARY\x10\x01\x12\x15\n" +
