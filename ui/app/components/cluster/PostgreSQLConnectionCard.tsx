@@ -1,19 +1,12 @@
 import { useState } from "react";
 import type { Node } from "~/hooks/useNodes";
 import type { Cluster } from "~/hooks/useClusters";
-import type { PostgresRole } from "~/hooks/usePostgresRoles";
 import { useConnectionProfile, useUpdateConnectionProfile } from "~/hooks/useConnectionProfile";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Database } from "lucide-react";
 import { FeatureNote, ConnectionRow, libpqSSLMode } from "./ClusterHelpers";
 import { PageSpinner } from "~/components/Spinner";
-
-// Import sibling cards
-import { ManagedRolesCard } from "./ManagedRolesCard";
-import { ManagedDatabasesCard } from "./ManagedDatabasesCard";
-import { TLSConfigCard } from "./TLSConfigCard";
-import { NetworkAccessCard } from "./NetworkAccessCard";
 
 interface PostgreSQLConnectionCardProps {
   clusterId: string;
@@ -37,7 +30,6 @@ export function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: PostgreS
   const [editCIDRs, setEditCIDRs] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
-  const [revealedRole, setRevealedRole] = useState<{ role: PostgresRole; password: string } | null>(null);
 
   const profile = profileData?.profile;
   const primaryEndpoint = profileData?.primaryEndpoint;
@@ -340,19 +332,6 @@ export function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: PostgreS
             Stored passwords are never displayed; generated passwords appear only once after create or rotate.
           </p>
         )}
-
-        <ManagedRolesCard
-          clusterId={clusterId}
-          host={displayHost}
-          port={displayPort}
-          sslMode={sslMode}
-          revealed={revealedRole}
-          onReveal={setRevealedRole}
-          onDismissReveal={() => setRevealedRole(null)}
-        />
-        <ManagedDatabasesCard clusterId={clusterId} host={displayHost} port={displayPort} sslMode={sslMode} revealedRole={revealedRole} />
-        <TLSConfigCard clusterId={clusterId} nodes={nodes} />
-        <NetworkAccessCard clusterId={clusterId} nodes={nodes} />
 
         {/* Replica endpoints */}
         {(replicaEndpoints.length > 0 || fallbackReplicas.length > 0) && (
