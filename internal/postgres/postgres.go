@@ -89,9 +89,17 @@ func (p *Instance) dockerEnabled() bool {
 
 func (p *Instance) pgCmd(ctx context.Context, binary string, args ...string) *exec.Cmd {
 	if !p.dockerEnabled() {
-		return exec.CommandContext(ctx, filepath.Join(p.BinDir, binary), args...)
+		cmd := exec.CommandContext(ctx, filepath.Join(p.BinDir, binary), args...)
+		if p.ReplPass != "" {
+			cmd.Env = append(os.Environ(), fmt.Sprintf("PGPASSWORD=%s", p.ReplPass))
+		}
+		return cmd
 	}
-	dockerArgs := []string{"exec", "-u", "postgres", "-e", "PGDATA=/var/lib/postgresql/data", p.Docker.ContainerName, binary}
+	dockerArgs := []string{"exec", "-u", "postgres", "-e", "PGDATA=/var/lib/postgresql/data"}
+	if p.ReplPass != "" {
+		dockerArgs = append(dockerArgs, "-e", fmt.Sprintf("PGPASSWORD=%s", p.ReplPass))
+	}
+	dockerArgs = append(dockerArgs, p.Docker.ContainerName, binary)
 	dockerArgs = append(dockerArgs, args...)
 	return exec.CommandContext(ctx, "docker", dockerArgs...)
 }
@@ -290,7 +298,13 @@ func (p *Instance) InitDB(ctx context.Context) error {
 func (p *Instance) Start(ctx context.Context) error {
 	if p.IsRunning() {
 		p.log.Info("postgresql already running", "data_dir", p.DataDir)
+		if err := p.refreshManagedHBAPrefix(ctx, true); err != nil {
+			return fmt.Errorf("refresh managed hba prefix: %w", err)
+		}
 		return nil
+	}
+	if err := p.refreshManagedHBAPrefix(ctx, false); err != nil {
+		return fmt.Errorf("refresh managed hba prefix: %w", err)
 	}
 
 	if p.dockerEnabled() {
@@ -300,6 +314,9 @@ func (p *Instance) Start(ctx context.Context) error {
 			output, err := runStreamingCmd(ctx, cmd)
 			if err == nil {
 				p.log.Info("postgresql container started via compose", "compose", p.Docker.ComposeFile)
+				if err := p.refreshManagedHBAPrefix(ctx, true); err != nil {
+					return fmt.Errorf("refresh managed hba prefix after compose start: %w", err)
+				}
 				return nil
 			}
 			p.log.Warn("compose start failed, falling back to docker run", "error", err, "output", string(output))
@@ -309,6 +326,9 @@ func (p *Instance) Start(ctx context.Context) error {
 		output, err := runStreamingCmd(ctx, cmd)
 		if err == nil {
 			p.log.Info("postgresql container started", "container", p.Docker.ContainerName)
+			if err := p.refreshManagedHBAPrefix(ctx, true); err != nil {
+				return fmt.Errorf("refresh managed hba prefix after docker start: %w", err)
+			}
 			return nil
 		}
 
@@ -326,6 +346,9 @@ func (p *Instance) Start(ctx context.Context) error {
 			return fmt.Errorf("docker run failed: %w\n%s", err, string(output))
 		}
 		p.log.Info("postgresql container created and started", "container", p.Docker.ContainerName)
+		if err := p.refreshManagedHBAPrefix(ctx, true); err != nil {
+			return fmt.Errorf("refresh managed hba prefix after docker run: %w", err)
+		}
 		return nil
 	}
 
@@ -344,6 +367,9 @@ func (p *Instance) Start(ctx context.Context) error {
 	}
 
 	p.log.Info("postgresql started", "data_dir", p.DataDir, "port", p.Port)
+	if err := p.refreshManagedHBAPrefix(ctx, true); err != nil {
+		return fmt.Errorf("refresh managed hba prefix after start: %w", err)
+	}
 	return nil
 }
 

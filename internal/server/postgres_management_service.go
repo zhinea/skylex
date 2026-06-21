@@ -162,25 +162,6 @@ func (s *PostgresManagementService) GetConnectionProfile(
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
 	}
-	if normalizeTLSMode(profile.SSLMode) == "disabled" {
-		profile, err = s.profiles.Upsert(ctx, &db.ConnectionProfile{
-			ClusterID:               clusterID,
-			EndpointMode:            profile.EndpointMode,
-			PublicHost:              profile.PublicHost,
-			PublicPort:              profile.PublicPort,
-			SSLMode:                 "prefer",
-			AllowedCIDRs:            profile.AllowedCIDRs,
-			AllowedAdminCIDRs:       profile.AllowedAdminCIDRs,
-			AllowedReplicationCIDRs: profile.AllowedReplicationCIDRs,
-			TLSCertFile:             profile.TLSCertFile,
-			TLSKeyFile:              profile.TLSKeyFile,
-			TLSCAFile:               profile.TLSCAFile,
-		})
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("enable TLS profile after CA generation: %w", err))
-		}
-	}
-
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 100)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list nodes: %w", err))

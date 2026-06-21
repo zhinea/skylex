@@ -239,6 +239,23 @@ func TestPostgresManagementService_UpdateTLSConfigAllowsManagedCerts(t *testing.
 	}
 }
 
+func TestPostgresManagementService_GetConnectionProfileDefaultsTLSDisabled(t *testing.T) {
+	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleOperator)
+	clusterID := createPostgresManagementTestCluster(t, ctx, svc, "tls-default-disabled")
+
+	resp, err := svc.GetConnectionProfile(ctx, connect.NewRequest(&skylexv1.GetConnectionProfileRequest{ClusterId: clusterID}))
+	if err != nil {
+		t.Fatalf("get connection profile: %v", err)
+	}
+	if got := resp.Msg.GetProfile().GetSslMode(); got != db.DefaultSSLMode {
+		t.Fatalf("expected profile SSL mode %q, got %q", db.DefaultSSLMode, got)
+	}
+	if got := resp.Msg.GetTlsConfig().GetTlsMode(); got != db.DefaultSSLMode {
+		t.Fatalf("expected TLS config mode %q, got %q", db.DefaultSSLMode, got)
+	}
+}
+
 func TestPostgresManagementService_GenerateTLSCAStoresPublicCertOnlyInResponse(t *testing.T) {
 	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
 	ctx := contextWithUserRole(models.RoleOperator)

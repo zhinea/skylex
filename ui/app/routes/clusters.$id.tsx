@@ -214,26 +214,33 @@ function RoleStatusBadge({ status }: { status: string }) {
   );
 }
 
-function connectionURI(host: string, port: number, roleName: string, password?: string) {
-  const user = roleName || "<user>";
-  const pass = password || "<password>";
-  return `postgresql://${user}:${pass}@${host}:${port}/postgres?sslmode=prefer`;
+function libpqSSLMode(mode: string) {
+  if (mode === "disabled") return "disable";
+  if (mode === "required") return "require";
+  return mode || "disable";
 }
 
-function databaseConnectionURI(host: string, port: number, databaseName: string, roleName?: string, password?: string) {
+function connectionURI(host: string, port: number, roleName: string, sslMode: string, password?: string) {
   const user = roleName || "<user>";
   const pass = password || "<password>";
-  return `postgresql://${user}:${pass}@${host}:${port}/${databaseName}?sslmode=prefer`;
+  return `postgresql://${user}:${pass}@${host}:${port}/postgres?sslmode=${libpqSSLMode(sslMode)}`;
 }
 
-function databasePsqlCommand(host: string, port: number, databaseName: string, roleName?: string) {
-  return `psql "host=${host} port=${port} dbname=${databaseName} user=${roleName || "<user>"} sslmode=prefer"`;
+function databaseConnectionURI(host: string, port: number, databaseName: string, sslMode: string, roleName?: string, password?: string) {
+  const user = roleName || "<user>";
+  const pass = password || "<password>";
+  return `postgresql://${user}:${pass}@${host}:${port}/${databaseName}?sslmode=${libpqSSLMode(sslMode)}`;
+}
+
+function databasePsqlCommand(host: string, port: number, databaseName: string, sslMode: string, roleName?: string) {
+  return `psql "host=${host} port=${port} dbname=${databaseName} user=${roleName || "<user>"} sslmode=${libpqSSLMode(sslMode)}"`;
 }
 
 function ManagedRolesCard({
   clusterId,
   host,
   port,
+  sslMode,
   revealed,
   onReveal,
   onDismissReveal,
@@ -241,6 +248,7 @@ function ManagedRolesCard({
   clusterId: string;
   host: string;
   port: number;
+  sslMode: string;
   revealed: { role: PostgresRole; password: string } | null;
   onReveal: (value: { role: PostgresRole; password: string }) => void;
   onDismissReveal: () => void;
@@ -302,7 +310,7 @@ function ManagedRolesCard({
                   One-time password for {revealed.role.roleName}
                 </p>
                 <ConnectionRow label="Password" value={revealed.password} />
-                {host && <ConnectionRow label="Connection URI" value={connectionURI(host, port, revealed.role.roleName, revealed.password)} />}
+                {host && <ConnectionRow label="Connection URI" value={connectionURI(host, port, revealed.role.roleName, sslMode, revealed.password)} />}
                 <p className="text-xs text-green-700 dark:text-green-300">
                   Save this password now. Skylex will not show it again.
                 </p>
@@ -381,9 +389,9 @@ function ManagedRolesCard({
                       {host ? (
                         <div className="flex items-center gap-1">
                           <code className="max-w-[28rem] truncate text-xs text-gray-700 dark:text-gray-300">
-                            {connectionURI(host, port, role.roleName)}
+                            {connectionURI(host, port, role.roleName, sslMode)}
                           </code>
-                          <CopyButton text={connectionURI(host, port, role.roleName)} />
+                          <CopyButton text={connectionURI(host, port, role.roleName, sslMode)} />
                         </div>
                       ) : (
                         <span className="text-xs text-gray-500 dark:text-gray-400">Endpoint unavailable</span>
@@ -422,11 +430,13 @@ function ManagedDatabasesCard({
   clusterId,
   host,
   port,
+  sslMode,
   revealedRole,
 }: {
   clusterId: string;
   host: string;
   port: number;
+  sslMode: string;
   revealedRole: { role: PostgresRole; password: string } | null;
 }) {
   const { data: roleData } = usePostgresRoles(clusterId);
@@ -542,6 +552,7 @@ function ManagedDatabasesCard({
                                 host,
                                 port,
                                 database.databaseName,
+                                sslMode,
                                 database.ownerRoleName,
                                 revealedDatabasePassword(database),
                               )}
@@ -550,15 +561,16 @@ function ManagedDatabasesCard({
                               host,
                               port,
                               database.databaseName,
+                              sslMode,
                               database.ownerRoleName,
                               revealedDatabasePassword(database),
                             )} />
                           </div>
                           <div className="flex items-center gap-1">
                             <code className="max-w-[28rem] truncate text-xs text-gray-500 dark:text-gray-400">
-                              {databasePsqlCommand(host, port, database.databaseName, database.ownerRoleName)}
+                              {databasePsqlCommand(host, port, database.databaseName, sslMode, database.ownerRoleName)}
                             </code>
-                            <CopyButton text={databasePsqlCommand(host, port, database.databaseName, database.ownerRoleName)} />
+                            <CopyButton text={databasePsqlCommand(host, port, database.databaseName, sslMode, database.ownerRoleName)} />
                           </div>
                         </div>
                       ) : (
@@ -738,7 +750,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
   const generateCA = useGenerateTLSCA();
   const applyTLS = useApplyTLS();
   const [editing, setEditing] = useState(false);
-  const [tlsMode, setTLSMode] = useState("prefer");
+  const [tlsMode, setTLSMode] = useState("disabled");
   const [certFile, setCertFile] = useState("");
   const [keyFile, setKeyFile] = useState("");
   const [caFile, setCAFile] = useState("");
@@ -751,7 +763,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
   const nodeNames = new Map(nodes.map((node) => [node.id, node.hostname]));
 
   function openEditor() {
-    setTLSMode(config?.tlsMode ?? "prefer");
+    setTLSMode(config?.tlsMode ?? "disabled");
     setCertFile(config?.certFile ?? "");
     setKeyFile(config?.keyFile ?? "");
     setCAFile(config?.caFile ?? "");
@@ -861,11 +873,11 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
           </div>
         ) : (
           <dl className="rounded-lg border border-gray-200 px-3 dark:border-gray-700">
-            <ConnectionRow label="TLS Mode" value={config?.tlsMode ?? "prefer"} />
+            <ConnectionRow label="TLS Mode" value={config?.tlsMode ?? "disabled"} />
             <ConnectionRow label="Cluster CA" value={config?.caGenerated ? "Generated" : "Not generated"} />
-            <ConnectionRow label="Server Certificate" value={config?.certFile || "Skylex-managed CA-signed per node"} />
-            <ConnectionRow label="Server Key" value={config?.keyFile || "Skylex-managed CA-signed per node"} />
-            <ConnectionRow label="CA File" value={config?.caFile || (config?.caGenerated ? "Skylex-managed per node" : "Not configured")} />
+            <ConnectionRow label="Server Certificate" value={config?.certFile || ((config?.tlsMode ?? "disabled") === "disabled" ? "Not configured" : "Skylex-managed CA-signed per node")} />
+            <ConnectionRow label="Server Key" value={config?.keyFile || ((config?.tlsMode ?? "disabled") === "disabled" ? "Not configured" : "Skylex-managed CA-signed per node")} />
+            <ConnectionRow label="CA File" value={config?.caFile || ((config?.tlsMode ?? "disabled") !== "disabled" && config?.caGenerated ? "Skylex-managed per node" : "Not configured")} />
           </dl>
         )}
 
@@ -875,7 +887,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
             {generateCA.isPending ? "Generating..." : config?.caGenerated ? "Regenerate CA Cert" : "Generate CA Cert"}
           </button>
           {config?.caGenerated && <button onClick={downloadCA} disabled={!caData?.caCertPem} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">Download CA Cert</button>}
-          <button onClick={apply} disabled={applyTLS.isPending || (config?.tlsMode !== "disabled" && !config?.caGenerated && !config?.certFile)} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={apply} disabled={applyTLS.isPending || ((config?.tlsMode ?? "disabled") !== "disabled" && !config?.caGenerated && !config?.certFile)} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {applyTLS.isPending ? "Queueing..." : "Apply TLS"}
           </button>
           {message && <span className="text-sm text-gray-600 dark:text-gray-300">{message}</span>}
@@ -911,7 +923,7 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
   const [editMode, setEditMode] = useState("direct_primary");
   const [editPublicHost, setEditPublicHost] = useState("");
   const [editPublicPort, setEditPublicPort] = useState(5432);
-  const [editSSLMode, setEditSSLMode] = useState("prefer");
+  const [editSSLMode, setEditSSLMode] = useState("disabled");
   const [editCIDRs, setEditCIDRs] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
@@ -940,7 +952,8 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
   // Determine the endpoint to display
   const displayHost = effectiveHost || (fallbackPrimary ? (fallbackPrimary.address || fallbackPrimary.hostname) : "");
   const displayPort = effectivePort || (fallbackPrimary?.port ?? 5432);
-  const sslMode = profile?.sslMode ?? profileData?.tlsConfig?.tlsMode ?? "prefer";
+  const sslMode = profile?.sslMode ?? profileData?.tlsConfig?.tlsMode ?? "disabled";
+  const connectionSSLMode = libpqSSLMode(sslMode);
   const profileWarnings = profileData?.warnings ?? profileData?.tlsConfig?.warnings ?? [];
 
   const isPrimaryReady = !!primaryEndpoint || !!fallbackPrimary;
@@ -949,7 +962,7 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
     setEditMode(profile?.endpointMode ?? "direct_primary");
     setEditPublicHost(profile?.publicHost ?? "");
     setEditPublicPort(profile?.publicPort ?? 5432);
-    setEditSSLMode(profile?.sslMode ?? "prefer");
+    setEditSSLMode(profile?.sslMode ?? "disabled");
     setEditCIDRs((profile?.allowedCidrs ?? []).join(", "));
     setSaveError(null);
     setSavedOk(false);
@@ -1011,10 +1024,10 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
 
   const endpoint = displayHost ? `${displayHost}:${displayPort}` : "";
   const psqlCommand = displayHost
-    ? `psql "host=${displayHost} port=${displayPort} dbname=postgres user=<user> sslmode=${sslMode}"`
+    ? `psql "host=${displayHost} port=${displayPort} dbname=postgres user=<user> sslmode=${connectionSSLMode}"`
     : "";
   const uriTemplate = displayHost
-    ? `postgresql://<user>:<password>@${displayHost}:${displayPort}/postgres?sslmode=${sslMode}`
+    ? `postgresql://<user>:<password>@${displayHost}:${displayPort}/postgres?sslmode=${connectionSSLMode}`
     : "";
 
   const isManualMode = profile?.endpointMode === "manual_stable_endpoint";
@@ -1189,11 +1202,12 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
           clusterId={clusterId}
           host={displayHost}
           port={displayPort}
+          sslMode={sslMode}
           revealed={revealedRole}
           onReveal={setRevealedRole}
           onDismissReveal={() => setRevealedRole(null)}
         />
-        <ManagedDatabasesCard clusterId={clusterId} host={displayHost} port={displayPort} revealedRole={revealedRole} />
+        <ManagedDatabasesCard clusterId={clusterId} host={displayHost} port={displayPort} sslMode={sslMode} revealedRole={revealedRole} />
         <TLSConfigCard clusterId={clusterId} nodes={nodes} />
         <NetworkAccessCard clusterId={clusterId} nodes={nodes} />
 

@@ -52,7 +52,7 @@ func (p *Instance) ApplyHBA(ctx context.Context, policy HBAPolicy) error {
 	}
 
 	next := []byte(RenderHBAPolicy(policy, p.Superuser, p.ReplUser))
-	nextMain := []byte(withManagedHBAPrefix(string(previousMain)))
+	nextMain := []byte(withManagedHBAPrefix(string(previousMain), p.Superuser))
 	if previousIncludeExists && bytes.Equal(previousInclude, next) && bytes.Equal(previousMain, nextMain) {
 		p.log.Info("skylex hba include already up to date", "path", includePath)
 		return nil
@@ -109,10 +109,13 @@ func RenderHBAPolicy(policy HBAPolicy, superuser, replUser string) string {
 	return b.String()
 }
 
-func withManagedHBAPrefix(content string) string {
+func withManagedHBAPrefix(content, superuser string) string {
 	directive := fmt.Sprintf("include_if_exists %s", skylexHBAFileName)
 	managed := strings.Join([]string{
 		skylexHBABegin,
+		fmt.Sprintf("local   all             %-39s scram-sha-256", hbaField(superuser)),
+		fmt.Sprintf("host    all             %-16s 127.0.0.1/32            scram-sha-256", hbaField(superuser)),
+		fmt.Sprintf("host    all             %-16s ::1/128                 scram-sha-256", hbaField(superuser)),
 		directive,
 		"host    all             all             0.0.0.0/0               reject",
 		"host    all             all             ::/0                    reject",
@@ -123,6 +126,43 @@ func withManagedHBAPrefix(content string) string {
 	}, "\n")
 	content = removeManagedHBAPrefix(content)
 	return managed + strings.TrimLeft(content, "\n")
+}
+
+func (p *Instance) refreshManagedHBAPrefix(ctx context.Context, reload bool) error {
+	changed, err := p.ensureManagedHBAPrefixCurrent()
+	if err != nil {
+		return err
+	}
+	if !changed || !reload {
+		return nil
+	}
+	if err := p.Reload(ctx); err != nil {
+		return fmt.Errorf("reload after managed hba prefix refresh: %w", err)
+	}
+	return nil
+}
+
+func (p *Instance) ensureManagedHBAPrefixCurrent() (bool, error) {
+	mainPath := filepath.Join(p.DataDir, "pg_hba.conf")
+	previousMain, err := os.ReadFile(mainPath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("read pg_hba.conf: %w", err)
+	}
+	if !strings.Contains(string(previousMain), skylexHBABegin) {
+		return false, nil
+	}
+
+	nextMain := []byte(withManagedHBAPrefix(string(previousMain), p.Superuser))
+	if bytes.Equal(previousMain, nextMain) {
+		return false, nil
+	}
+	if err := os.WriteFile(mainPath, nextMain, 0600); err != nil {
+		return false, fmt.Errorf("write pg_hba.conf managed prefix: %w", err)
+	}
+	return true, nil
 }
 
 func removeManagedHBAPrefix(content string) string {
