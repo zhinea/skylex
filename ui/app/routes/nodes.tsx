@@ -17,6 +17,7 @@ export default function NodesPage() {
   const [drainId, setDrainId] = useState<string | null>(null);
   const [rejoinId, setRejoinId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [blockedDeleteNode, setBlockedDeleteNode] = useState<Node | null>(null);
   const [reconnectNode, setReconnectNode] = useState<{ id: string; hostname: string } | null>(null);
   const [detailNodeId, setDetailNodeId] = useState<string | null>(null);
 
@@ -127,9 +128,15 @@ export default function NodesPage() {
                             Drain
                           </button>
                         )}
-                        {!n.clusterId && n.status !== "deleting" && (
+                        {n.status !== "deleting" && (
                           <button
-                            onClick={() => setDeleteId(n.id)}
+                            onClick={() => {
+                              if (n.clusterId) {
+                                setBlockedDeleteNode(n);
+                                return;
+                              }
+                              setDeleteId(n.id);
+                            }}
                             className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
                           >
                             Delete
@@ -195,6 +202,8 @@ export default function NodesPage() {
         onCancel={() => setDeleteId(null)}
       />
 
+      <BlockedDeleteDialog node={blockedDeleteNode} onClose={() => setBlockedDeleteNode(null)} />
+
       <InstallAgentModal open={installOpen} onClose={() => setInstallOpen(false)} />
       <InstallAgentModal
         open={!!reconnectNode}
@@ -203,6 +212,37 @@ export default function NodesPage() {
         onClose={() => setReconnectNode(null)}
       />
       <NodeDetailModal node={detailNode} onClose={() => setDetailNodeId(null)} />
+    </div>
+  );
+}
+
+function BlockedDeleteDialog({ node, onClose }: { node: Node | null; onClose: () => void }) {
+  if (!node) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cannot Delete Node</h3>
+        <div className="mt-3 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+          <p>
+            <span className="font-medium text-gray-900 dark:text-white">{node.hostname}</span> is still assigned to a cluster, so Skylex cannot delete it directly.
+          </p>
+          <p>
+            Direct deletion could leave the cluster without its expected primary/replica member, break replication or failover decisions, and leave cluster metadata pointing at a missing node.
+          </p>
+          <p>
+            Drain the node first if you need to stop PostgreSQL, or delete/reconfigure the cluster before removing this node from Skylex.
+          </p>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

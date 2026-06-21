@@ -1,31 +1,46 @@
-const statusColors: Record<string, string> = {
-  HEALTHY: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  CREATING: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  DEGRADED: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  FAILED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  DELETING: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  RUNNING: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  PRIMARY: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  REPLICA: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  online: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  offline: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  drained: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
-  deleting: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
-  admin: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-  operator: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-  viewer: "bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400",
-  Connected: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-  Disconnected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+import { Badge as ShadcnBadge } from "~/components/ui/badge";
+import { cn } from "~/lib/utils";
+
+const statusMapping: Record<
+  string,
+  { variant?: "default" | "secondary" | "destructive" | "outline"; className?: string }
+> = {
+  HEALTHY: { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30" },
+  COMPLETED: { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30" },
+  online: { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30" },
+  Connected: { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30" },
+  
+  FAILED: { variant: "destructive" },
+  Disconnected: { variant: "destructive" },
+  offline: { variant: "destructive" },
+  
+  DEGRADED: { className: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30" },
+  drained: { className: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30" },
+  
+  CREATING: { variant: "secondary" },
+  RUNNING: { variant: "secondary" },
+  operator: { variant: "secondary" },
+  
+  PRIMARY: { className: "bg-violet-500/10 text-violet-600 border-violet-500/20 dark:bg-violet-500/20 dark:text-violet-400 dark:border-violet-500/30" },
+  admin: { className: "bg-violet-500/10 text-violet-600 border-violet-500/20 dark:bg-violet-500/20 dark:text-violet-400 dark:border-violet-500/30" },
+  
+  REPLICA: { variant: "outline" },
+  DELETING: { variant: "outline" },
+  deleting: { variant: "outline" },
+  viewer: { variant: "outline" },
 };
 
 export function Badge({ label, className = "" }: { label?: string | null; className?: string }) {
   const normalized = label ?? "-";
-  const color =
-    statusColors[normalized] || statusColors[normalized.toLowerCase()] || "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+  const matched = statusMapping[normalized] || statusMapping[normalized.toLowerCase()] || { variant: "outline" };
+  
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color} ${className}`}>
+    <ShadcnBadge
+      variant={matched.variant || "default"}
+      className={cn("border px-2 py-0.5 rounded-full text-xs font-medium", matched.className, className)}
+    >
       {normalized}
-    </span>
+    </ShadcnBadge>
   );
 }
+
