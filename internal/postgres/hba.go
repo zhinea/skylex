@@ -110,7 +110,7 @@ func RenderHBAPolicy(policy HBAPolicy, superuser, replUser string) string {
 }
 
 func withManagedHBAPrefix(content string) string {
-	directive := fmt.Sprintf("include_if_exists '%s'", skylexHBAFileName)
+	directive := fmt.Sprintf("include_if_exists %s", skylexHBAFileName)
 	managed := strings.Join([]string{
 		skylexHBABegin,
 		directive,

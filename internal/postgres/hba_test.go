@@ -37,3 +37,13 @@ func TestWithManagedHBAPrefixReplacesPreviousBlock(t *testing.T) {
 		t.Fatalf("expected broad reject before legacy content:\n%s", second)
 	}
 }
+
+func TestWithManagedHBAPrefixUsesHBAIncludeSyntax(t *testing.T) {
+	conf := withManagedHBAPrefix("host all all 127.0.0.1/32 scram-sha-256\n")
+	if !strings.Contains(conf, "include_if_exists "+skylexHBAFileName+"\n") {
+		t.Fatalf("expected pg_hba.conf include syntax without single quotes:\n%s", conf)
+	}
+	if strings.Contains(conf, "'"+skylexHBAFileName+"'") {
+		t.Fatalf("pg_hba.conf treats single quotes as filename characters:\n%s", conf)
+	}
+}
