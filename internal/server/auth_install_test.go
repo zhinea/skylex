@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/zhinea/skylex/internal/agent"
 	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
 	"github.com/zhinea/skylex/internal/id"
@@ -90,6 +91,30 @@ func TestGetAgentInstallCommandDevModeUsesLocalScript(t *testing.T) {
 	want := "http://localhost:18080/install-agent.sh"
 	if resp.ScriptUrl != want {
 		t.Fatalf("expected script_url %q, got %q", want, resp.ScriptUrl)
+	}
+}
+
+func TestInstallAgentScriptReactivatesDeactivatedAgent(t *testing.T) {
+	script := installScript()
+	wants := []string{
+		`DEACTIVATION_MARKER="` + agent.DeactivationMarkerName + `"`,
+		`clear_deactivation_markers`,
+		`"/etc/skylex/${DEACTIVATION_MARKER}"`,
+		`"/var/lib/skylex/${DEACTIVATION_MARKER}"`,
+		`"${DATA_DIR}/${DEACTIVATION_MARKER}"`,
+		`"/tmp/skylex-agent-deactivated"`,
+		`stop_existing_agent_service`,
+		`systemctl stop skylex-agent`,
+		`systemctl restart skylex-agent`,
+	}
+	for _, want := range wants {
+		if !strings.Contains(script, want) {
+			t.Fatalf("expected install script to contain %q", want)
+		}
+	}
+
+	if strings.Contains(script, "systemctl enable --now skylex-agent") {
+		t.Fatal("expected reinstall to restart an already-running deactivated service")
 	}
 }
 

@@ -36,6 +36,7 @@ USER="skylex"
 SKIP_USER=false
 DOCKER=false
 WITH_DOCKER_ENGINE=false
+DEACTIVATION_MARKER=".skylex-agent-deactivated"
 
 log() { echo "[skylex] $*"; }
 fail() { echo "[skylex] error: $*" >&2; exit 1; }
@@ -147,8 +148,37 @@ ensure_docker_engine() {
   fi
 }
 
+clear_deactivation_markers() {
+  local removed=false
+  local marker
+  local markers=(
+    "/etc/skylex/${DEACTIVATION_MARKER}"
+    "/var/lib/skylex/${DEACTIVATION_MARKER}"
+    "${DATA_DIR}/${DEACTIVATION_MARKER}"
+    "/tmp/skylex-agent-deactivated"
+  )
+
+  for marker in "${markers[@]}"; do
+    if [[ -e "$marker" || -L "$marker" ]]; then
+      rm -f -- "$marker"
+      removed=true
+    fi
+  done
+
+  if $removed; then
+    log "cleared previous agent deactivation marker"
+  fi
+}
+
+stop_existing_agent_service() {
+  if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files skylex-agent.service >/dev/null 2>&1; then
+    systemctl stop skylex-agent >/dev/null 2>&1 || true
+  fi
+}
+
 log "installing skylex-agent ${VERSION} for ${OS}/${ARCH}"
 log "reporting hostname: ${HOSTNAME}"
+clear_deactivation_markers
 
 if $DOCKER; then
   # The agent itself will run inside a container, but the host still needs a
@@ -199,6 +229,7 @@ else
 fi
 chmod +x "$BINARY"
 
+stop_existing_agent_service
 cp "$BINARY" /usr/local/bin/skylex-agent
 chmod 0755 /usr/local/bin/skylex-agent
 log "installed binary to /usr/local/bin/skylex-agent"
@@ -246,7 +277,8 @@ EOF
 
 if command -v systemctl >/dev/null 2>&1; then
   systemctl daemon-reload
-  systemctl enable --now skylex-agent
+  systemctl enable skylex-agent
+  systemctl restart skylex-agent
   log "started skylex-agent.service"
 else
   log "systemd not available; service file written to /etc/systemd/system/skylex-agent.service"
