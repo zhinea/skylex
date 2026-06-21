@@ -19,7 +19,7 @@ export function ClusterStatsGrid({ cluster, nodes }: ClusterStatsGridProps) {
     return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2);
   };
 
-  const cpuPercent = primaryNode?.cpuUsagePercent ?? 0;
+  const cpuPercent = (primaryNode?.cpuUsagePercent ?? 0).toFixed(2);
   const cores = primaryNode?.cpuCores ?? 1;
 
   const memUsedGB = primaryNode ? toGB(primaryNode.memoryUsedBytes ?? 0) : "0.00";

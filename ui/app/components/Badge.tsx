@@ -42,7 +42,7 @@ export function Badge({ label, className = "" }: { label?: string | null; classN
     <ShadcnBadge
       variant="outline"
       className={cn(
-        "gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide border transition-all duration-200",
+        "gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border-none transition-all duration-200",
         matched.className,
         className
       )}
