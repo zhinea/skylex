@@ -17,6 +17,7 @@ type roleCommandPayload struct {
 	RoleName          string `json:"role_name"`
 	RoleKind          string `json:"role_kind"` // only for pg_ensure_role
 	PasswordSecretKey string `json:"password_secret_key"`
+	AllowPromote      bool   `json:"allow_promote"`
 }
 
 func (a *Agent) executeEnsureRole(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
@@ -43,7 +44,7 @@ func (a *Agent) executeEnsureRole(ctx context.Context, cmd *skylexv1.AgentComman
 
 	logger.Info(fmt.Sprintf("ensuring role %q (kind=%s)", p.RoleName, p.RoleKind))
 
-	if err := a.pg.EnsureRole(ctx, p.RoleName, postgres.RoleKind(p.RoleKind), password); err != nil {
+	if err := a.pg.EnsureRole(ctx, p.RoleName, postgres.RoleKind(p.RoleKind), password, p.AllowPromote); err != nil {
 		return false, "", fmt.Sprintf("pg_ensure_role failed: %v", err)
 	}
 
@@ -70,7 +71,7 @@ func (a *Agent) executeRotateRolePassword(ctx context.Context, cmd *skylexv1.Age
 
 	logger.Info(fmt.Sprintf("rotating password for role %q", p.RoleName))
 
-	if err := a.pg.RotateRolePassword(ctx, p.RoleName, newPassword); err != nil {
+	if err := a.pg.RotateRolePassword(ctx, p.RoleName, newPassword, p.AllowPromote); err != nil {
 		return false, "", fmt.Sprintf("pg_rotate_role_password failed: %v", err)
 	}
 
@@ -88,7 +89,7 @@ func (a *Agent) executeDropRole(ctx context.Context, cmd *skylexv1.AgentCommand,
 
 	logger.Info(fmt.Sprintf("dropping role %q", p.RoleName))
 
-	if err := a.pg.DropRole(ctx, p.RoleName); err != nil {
+	if err := a.pg.DropRole(ctx, p.RoleName, p.AllowPromote); err != nil {
 		return false, "", fmt.Sprintf("pg_drop_role failed: %v", err)
 	}
 

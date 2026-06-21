@@ -44,6 +44,36 @@ func (p *Instance) localConnect(ctx context.Context) (*pgx.Conn, error) {
 	return conn, nil
 }
 
+func (p *Instance) connectWritable(ctx context.Context, allowPromote bool) (*pgx.Conn, error) {
+	conn, err := p.localConnect(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	writable, err := postgresWritable(ctx, conn)
+	if err != nil {
+		conn.Close(ctx)
+		return nil, err
+	}
+	if writable {
+		return conn, nil
+	}
+
+	conn.Close(ctx)
+	if !allowPromote {
+		return nil, fmt.Errorf("postgresql is in recovery/read-only; role management must run on the writable primary")
+	}
+	return nil, fmt.Errorf("postgresql is in recovery/read-only after promotion command; retry after promotion completes")
+}
+
+func postgresWritable(ctx context.Context, conn *pgx.Conn) (bool, error) {
+	var inRecovery bool
+	if err := conn.QueryRow(ctx, "SELECT pg_is_in_recovery()").Scan(&inRecovery); err != nil {
+		return false, fmt.Errorf("check recovery state: %w", redactPGError(err))
+	}
+	return !inRecovery, nil
+}
+
 func quoteIdent(name string) string {
 	return pgx.Identifier{name}.Sanitize()
 }
@@ -60,11 +90,11 @@ func roleAttributes(kind RoleKind) string {
 }
 
 // EnsureRole creates or updates a PostgreSQL role idempotently.
-func (p *Instance) EnsureRole(ctx context.Context, roleName string, kind RoleKind, password string) error {
+func (p *Instance) EnsureRole(ctx context.Context, roleName string, kind RoleKind, password string, allowPromote bool) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	conn, err := p.localConnect(ctx)
+	conn, err := p.connectWritable(ctx, allowPromote)
 	if err != nil {
 		return err
 	}
@@ -96,11 +126,11 @@ func (p *Instance) EnsureRole(ctx context.Context, roleName string, kind RoleKin
 }
 
 // RotateRolePassword updates the password for an existing role.
-func (p *Instance) RotateRolePassword(ctx context.Context, roleName, newPassword string) error {
+func (p *Instance) RotateRolePassword(ctx context.Context, roleName, newPassword string, allowPromote bool) error {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	conn, err := p.localConnect(ctx)
+	conn, err := p.connectWritable(ctx, allowPromote)
 	if err != nil {
 		return err
 	}
@@ -123,11 +153,11 @@ func setRolePassword(ctx context.Context, conn *pgx.Conn, roleName, password str
 }
 
 // DropRole drops a PostgreSQL role if it exists.
-func (p *Instance) DropRole(ctx context.Context, roleName string) error {
+func (p *Instance) DropRole(ctx context.Context, roleName string, allowPromote bool) error {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	conn, err := p.localConnect(ctx)
+	conn, err := p.connectWritable(ctx, allowPromote)
 	if err != nil {
 		return err
 	}

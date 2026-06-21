@@ -385,12 +385,16 @@ func (s *PostgresManagementService) CreateRole(
 	if err != nil {
 		return nil, err
 	}
+	allowPromote, err := s.allowPromotionForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
 
 	existing, err := s.roles.GetByClusterAndName(ctx, clusterID, roleName)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("check existing role: %w", err))
 	}
-	if existing != nil {
+	if existing != nil && existing.Status != "failed" {
 		return nil, connect.NewError(connect.CodeAlreadyExists,
 			fmt.Errorf("role %q already exists in cluster %q", roleName, clusterID))
 	}
@@ -421,20 +425,25 @@ func (s *PostgresManagementService) CreateRole(
 	roleID := id.New()
 	opID := id.New()
 	cmdID := id.New()
-	payload, err := json.Marshal(map[string]string{
-		"role_id":             roleID,
+	retryRoleID := roleID
+	if existing != nil {
+		retryRoleID = existing.ID
+	}
+	payload, err := json.Marshal(map[string]interface{}{
+		"role_id":             retryRoleID,
 		"operation_id":        opID,
 		"role_name":           roleName,
 		"role_kind":           roleKind,
 		"password_secret_key": "password",
+		"allow_promote":       allowPromote,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal role payload: %w", err))
 	}
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 
-	txResult, err := s.roles.CreateWithCommand(ctx, db.CreateRoleTxInput{
-		RoleID:                 roleID,
+	createInput := db.CreateRoleTxInput{
+		RoleID:                 retryRoleID,
 		OperationID:            opID,
 		CommandID:              cmdID,
 		ClusterID:              clusterID,
@@ -444,10 +453,17 @@ func (s *PostgresManagementService) CreateRole(
 		RoleKind:               roleKind,
 		EncryptedPassword:      storedPassword,
 		Payload:                string(payload),
+		BeforeAction:           managementBeforeAction(allowPromote),
 		EncryptedCommandSecret: commandSecret,
 		SecretExpiresAt:        &secretExpiresAt,
 		ExpiresAt:              expiresAt,
-	})
+	}
+	var txResult *db.PostgresRoleTx
+	if existing != nil {
+		txResult, err = s.roles.RetryCreateWithCommand(ctx, createInput)
+	} else {
+		txResult, err = s.roles.CreateWithCommand(ctx, createInput)
+	}
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("create role and queue command: %w", err))
 	}
@@ -494,6 +510,10 @@ func (s *PostgresManagementService) RotateRolePassword(
 	if err != nil {
 		return nil, err
 	}
+	allowPromote, err := s.allowPromotionForCluster(ctx, role.ClusterID)
+	if err != nil {
+		return nil, err
+	}
 
 	plainPassword, err := crypto.GenerateToken(24)
 	if err != nil {
@@ -512,11 +532,12 @@ func (s *PostgresManagementService) RotateRolePassword(
 
 	opID := id.New()
 	cmdID := id.New()
-	payload, err := json.Marshal(map[string]string{
+	payload, err := json.Marshal(map[string]interface{}{
 		"role_id":             role.ID,
 		"operation_id":        opID,
 		"role_name":           role.RoleName,
 		"password_secret_key": "password",
+		"allow_promote":       allowPromote,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal role payload: %w", err))
@@ -530,6 +551,7 @@ func (s *PostgresManagementService) RotateRolePassword(
 		AgentID:                primary.AgentID,
 		EncryptedPassword:      storedPassword,
 		Payload:                string(payload),
+		BeforeAction:           managementBeforeAction(allowPromote),
 		EncryptedCommandSecret: commandSecret,
 		SecretExpiresAt:        &secretExpiresAt,
 	})
@@ -579,25 +601,31 @@ func (s *PostgresManagementService) DeleteRole(
 	if err != nil {
 		return nil, err
 	}
+	allowPromote, err := s.allowPromotionForCluster(ctx, role.ClusterID)
+	if err != nil {
+		return nil, err
+	}
 
 	opID := id.New()
 	cmdID := id.New()
-	payload, err := json.Marshal(map[string]string{
-		"role_id":      role.ID,
-		"operation_id": opID,
-		"role_name":    role.RoleName,
+	payload, err := json.Marshal(map[string]interface{}{
+		"role_id":       role.ID,
+		"operation_id":  opID,
+		"role_name":     role.RoleName,
+		"allow_promote": allowPromote,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal role payload: %w", err))
 	}
 
 	txResult, err := s.roles.DeleteWithCommand(ctx, db.DeleteRoleTxInput{
-		RoleID:      role.ID,
-		OperationID: opID,
-		CommandID:   cmdID,
-		NodeID:      primary.ID,
-		AgentID:     primary.AgentID,
-		Payload:     string(payload),
+		RoleID:       role.ID,
+		OperationID:  opID,
+		CommandID:    cmdID,
+		NodeID:       primary.ID,
+		AgentID:      primary.AgentID,
+		Payload:      string(payload),
+		BeforeAction: managementBeforeAction(allowPromote),
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("mark role deleting and queue command: %w", err))
@@ -622,6 +650,23 @@ func (s *PostgresManagementService) resolveManagementPrimary(ctx context.Context
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("primary node is not ready for PostgreSQL management"))
 	}
 	return primary, nil
+}
+
+func (s *PostgresManagementService) allowPromotionForCluster(ctx context.Context, clusterID string) (bool, error) {
+	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
+	if err != nil {
+		return false, connect.NewError(connect.CodeInternal, fmt.Errorf("list cluster nodes: %w", err))
+	}
+	// Auto-promote only for a single-node cluster. Multi-node clusters must not
+	// risk split brain if metadata and PostgreSQL recovery state disagree.
+	return len(nodes) == 1, nil
+}
+
+func managementBeforeAction(allowPromote bool) string {
+	if allowPromote {
+		return "pg_promote"
+	}
+	return ""
 }
 
 // requireCluster checks that a cluster exists, returning a connect error if not.

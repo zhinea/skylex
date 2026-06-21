@@ -91,7 +91,7 @@ func (p *Instance) pgCmd(ctx context.Context, binary string, args ...string) *ex
 	if !p.dockerEnabled() {
 		return exec.CommandContext(ctx, filepath.Join(p.BinDir, binary), args...)
 	}
-	dockerArgs := []string{"exec", "-e", "PGDATA=/var/lib/postgresql/data", p.Docker.ContainerName, binary}
+	dockerArgs := []string{"exec", "-u", "postgres", "-e", "PGDATA=/var/lib/postgresql/data", p.Docker.ContainerName, binary}
 	dockerArgs = append(dockerArgs, args...)
 	return exec.CommandContext(ctx, "docker", dockerArgs...)
 }

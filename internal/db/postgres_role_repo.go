@@ -200,6 +200,11 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 	if err != nil {
 		return nil, err
 	}
+	if input.BeforeAction != "" {
+		if _, err := insertAgentCommand(ctx, tx, "", input.AgentID, input.NodeID, input.BeforeAction, input.BeforePayload, now.Add(-time.Millisecond)); err != nil {
+			return nil, err
+		}
+	}
 	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_ensure_role", input.Payload, now)
 	if err != nil {
 		return nil, err
@@ -230,6 +235,82 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 		UpdatedAt:         now,
 	}
 	return &PostgresRoleTx{Role: role, Operation: op, Command: cmd}, nil
+}
+
+// RetryCreateWithCommand reuses a failed role row and queues pg_ensure_role again.
+func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, input CreateRoleTxInput) (*PostgresRoleTx, error) {
+	tx, err := r.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin retry create role tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	var role PostgresRole
+	var expiresAt sql.NullTime
+	err = tx.QueryRowContext(ctx,
+		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
+		 FROM postgres_roles WHERE id = ?`), input.RoleID,
+	).Scan(&role.ID, &role.ClusterID, &role.RoleName, &role.RoleKind, &role.EncryptedPassword, &role.PasswordVersion, &expiresAt, &role.Status, &role.CreatedAt, &role.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("role %q not found", input.RoleID)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("scan failed role for retry: %w", err)
+	}
+	if role.Status != "failed" {
+		return nil, fmt.Errorf("role %q is not failed", input.RoleID)
+	}
+	if role.ClusterID != input.ClusterID || role.RoleName != input.RoleName {
+		return nil, fmt.Errorf("role retry input does not match existing role")
+	}
+	if expiresAt.Valid {
+		role.ExpiresAt = &expiresAt.Time
+	}
+
+	now := time.Now().UTC()
+	role.PasswordVersion++
+	role.RoleKind = input.RoleKind
+	role.EncryptedPassword = input.EncryptedPassword
+	role.ExpiresAt = input.ExpiresAt
+	role.Status = "pending"
+	role.UpdatedAt = now
+
+	_, err = tx.ExecContext(ctx,
+		Rebind(`UPDATE postgres_roles
+		 SET role_kind = ?, encrypted_password = ?, password_version = ?, expires_at = ?, status = 'pending', updated_at = ?
+		 WHERE id = ?`),
+		role.RoleKind, role.EncryptedPassword, role.PasswordVersion, role.ExpiresAt, now, role.ID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("update failed role for retry: %w", err)
+	}
+
+	op, err := insertPostgresOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_role", now)
+	if err != nil {
+		return nil, err
+	}
+	if input.BeforeAction != "" {
+		if _, err := insertAgentCommand(ctx, tx, "", input.AgentID, input.NodeID, input.BeforeAction, input.BeforePayload, now.Add(-time.Millisecond)); err != nil {
+			return nil, err
+		}
+	}
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_ensure_role", input.Payload, now)
+	if err != nil {
+		return nil, err
+	}
+	if err := insertCommandSecret(ctx, tx, cmd.ID, "password", input.EncryptedCommandSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		return nil, fmt.Errorf("mark retry operation running: %w", err)
+	}
+	op.Status = "running"
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit retry create role tx: %w", err)
+	}
+	return &PostgresRoleTx{Role: &role, Operation: op, Command: cmd}, nil
 }
 
 // RotateWithCommand atomically updates a role password/version and queues the rotate command.
@@ -276,6 +357,11 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 	op, err := insertPostgresOperation(ctx, tx, input.OperationID, role.ClusterID, input.NodeID, "rotate_role_password", now)
 	if err != nil {
 		return nil, err
+	}
+	if input.BeforeAction != "" {
+		if _, err := insertAgentCommand(ctx, tx, "", input.AgentID, input.NodeID, input.BeforeAction, input.BeforePayload, now.Add(-time.Millisecond)); err != nil {
+			return nil, err
+		}
 	}
 	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_rotate_role_password", input.Payload, now)
 	if err != nil {
@@ -331,6 +417,11 @@ func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input De
 	op, err := insertPostgresOperation(ctx, tx, input.OperationID, role.ClusterID, input.NodeID, "delete_role", now)
 	if err != nil {
 		return nil, err
+	}
+	if input.BeforeAction != "" {
+		if _, err := insertAgentCommand(ctx, tx, "", input.AgentID, input.NodeID, input.BeforeAction, input.BeforePayload, now.Add(-time.Millisecond)); err != nil {
+			return nil, err
+		}
 	}
 	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_drop_role", input.Payload, now)
 	if err != nil {
@@ -436,6 +527,8 @@ type CreateRoleTxInput struct {
 	RoleKind               string
 	EncryptedPassword      string
 	Payload                string
+	BeforeAction           string
+	BeforePayload          string
 	EncryptedCommandSecret []byte
 	SecretExpiresAt        *time.Time
 	ExpiresAt              *time.Time
@@ -449,17 +542,21 @@ type RotateRoleTxInput struct {
 	AgentID                string
 	EncryptedPassword      string
 	Payload                string
+	BeforeAction           string
+	BeforePayload          string
 	EncryptedCommandSecret []byte
 	SecretExpiresAt        *time.Time
 }
 
 type DeleteRoleTxInput struct {
-	RoleID      string
-	OperationID string
-	CommandID   string
-	NodeID      string
-	AgentID     string
-	Payload     string
+	RoleID        string
+	OperationID   string
+	CommandID     string
+	NodeID        string
+	AgentID       string
+	Payload       string
+	BeforeAction  string
+	BeforePayload string
 }
 
 func insertPostgresOperation(ctx context.Context, tx *sql.Tx, opID, clusterID, nodeID, operationType string, now time.Time) (*PostgresOperation, error) {
