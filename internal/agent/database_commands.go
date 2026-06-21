@@ -29,11 +29,14 @@ type hbaCommandPayload struct {
 }
 
 type tlsCommandPayload struct {
-	TLSMode   string   `json:"tls_mode"`
-	CertFile  string   `json:"cert_file"`
-	KeyFile   string   `json:"key_file"`
-	CAFile    string   `json:"ca_file"`
-	CertHosts []string `json:"cert_hosts"`
+	TLSMode         string   `json:"tls_mode"`
+	CertFile        string   `json:"cert_file"`
+	KeyFile         string   `json:"key_file"`
+	CAFile          string   `json:"ca_file"`
+	CertSecretKey   string   `json:"cert_secret_key"`
+	KeySecretKey    string   `json:"key_secret_key"`
+	CACertSecretKey string   `json:"ca_cert_secret_key"`
+	CertHosts       []string `json:"cert_hosts"`
 }
 
 func (a *Agent) executeEnsureDatabase(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
@@ -126,11 +129,36 @@ func (a *Agent) executeApplyTLS(ctx context.Context, cmd *skylexv1.AgentCommand,
 	}
 
 	logger.Info(fmt.Sprintf("applying PostgreSQL TLS mode %q", p.TLSMode))
+	certPEM := ""
+	if p.CertSecretKey != "" {
+		certPEM = cmd.GetSecrets()[p.CertSecretKey]
+		if certPEM == "" {
+			return false, "", "pg_apply_tls: certificate secret not resolved"
+		}
+	}
+	keyPEM := ""
+	if p.KeySecretKey != "" {
+		keyPEM = cmd.GetSecrets()[p.KeySecretKey]
+		if keyPEM == "" {
+			return false, "", "pg_apply_tls: key secret not resolved"
+		}
+	}
+	caPEM := ""
+	if p.CACertSecretKey != "" {
+		caPEM = cmd.GetSecrets()[p.CACertSecretKey]
+		if caPEM == "" {
+			return false, "", "pg_apply_tls: CA certificate secret not resolved"
+		}
+	}
+
 	if err := a.pg.ApplyTLS(ctx, postgres.TLSConfig{
 		Mode:     p.TLSMode,
 		CertFile: p.CertFile,
 		KeyFile:  p.KeyFile,
 		CAFile:   p.CAFile,
+		CertPEM:  certPEM,
+		KeyPEM:   keyPEM,
+		CAPEM:    caPEM,
 		Hosts:    p.CertHosts,
 	}); err != nil {
 		return false, "", fmt.Sprintf("pg_apply_tls failed: %v", err)

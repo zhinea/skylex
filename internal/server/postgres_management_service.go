@@ -59,6 +59,7 @@ type PostgresManagementService struct {
 	databases      *db.PostgresDatabaseRepository
 	access         *db.PostgresAccessRepository
 	tls            *db.PostgresTLSRepository
+	tlsCA          *db.PostgresTLSCARepository
 	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
@@ -79,6 +80,7 @@ func NewPostgresManagementService(
 	databases *db.PostgresDatabaseRepository,
 	access *db.PostgresAccessRepository,
 	tls *db.PostgresTLSRepository,
+	tlsCA *db.PostgresTLSCARepository,
 	roleEncryptKey []byte,
 	log *slog.Logger,
 ) *PostgresManagementService {
@@ -98,6 +100,7 @@ func NewPostgresManagementService(
 		databases:      databases,
 		access:         access,
 		tls:            tls,
+		tlsCA:          tlsCA,
 		roleEncryptKey: roleEncryptKey,
 		validate:       validate,
 		clusterLocks:   make(map[string]*sync.Mutex),
@@ -159,6 +162,24 @@ func (s *PostgresManagementService) GetConnectionProfile(
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
 	}
+	if normalizeTLSMode(profile.SSLMode) == "disabled" {
+		profile, err = s.profiles.Upsert(ctx, &db.ConnectionProfile{
+			ClusterID:               clusterID,
+			EndpointMode:            profile.EndpointMode,
+			PublicHost:              profile.PublicHost,
+			PublicPort:              profile.PublicPort,
+			SSLMode:                 "prefer",
+			AllowedCIDRs:            profile.AllowedCIDRs,
+			AllowedAdminCIDRs:       profile.AllowedAdminCIDRs,
+			AllowedReplicationCIDRs: profile.AllowedReplicationCIDRs,
+			TLSCertFile:             profile.TLSCertFile,
+			TLSKeyFile:              profile.TLSKeyFile,
+			TLSCAFile:               profile.TLSCAFile,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("enable TLS profile after CA generation: %w", err))
+		}
+	}
 
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 100)
 	if err != nil {
@@ -172,7 +193,11 @@ func (s *PostgresManagementService) GetConnectionProfile(
 	if err != nil {
 		return nil, err
 	}
-	warnings := tlsWarnings(profile, tlsStatuses)
+	ca, err := s.tlsCAForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(profile, tlsStatuses, ca)
 
 	return connect.NewResponse(&skylexv1.GetConnectionProfileResponse{
 		Profile:          protoProfile,
@@ -181,7 +206,7 @@ func (s *PostgresManagementService) GetConnectionProfile(
 		EffectiveHost:    effectiveHost,
 		EffectivePort:    int32(effectivePort),
 		Warnings:         warnings,
-		TlsConfig:        tlsConfigToProto(profile, tlsStatuses, warnings),
+		TlsConfig:        tlsConfigToProto(profile, tlsStatuses, warnings, ca),
 		TlsStatuses:      tlsStatuses,
 	}), nil
 }
@@ -609,8 +634,80 @@ func (s *PostgresManagementService) GetTLSConfig(
 	if err != nil {
 		return nil, err
 	}
-	warnings := tlsWarnings(profile, statuses)
-	return connect.NewResponse(&skylexv1.GetTLSConfigResponse{Config: tlsConfigToProto(profile, statuses, warnings)}), nil
+	ca, err := s.tlsCAForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(profile, statuses, ca)
+	return connect.NewResponse(&skylexv1.GetTLSConfigResponse{Config: tlsConfigToProto(profile, statuses, warnings, ca)}), nil
+}
+
+func (s *PostgresManagementService) GenerateTLSCA(
+	ctx context.Context,
+	req *connect.Request[skylexv1.GenerateTLSCARequest],
+) (*connect.Response[skylexv1.GenerateTLSCAResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot generate TLS CA"))
+	}
+	if s.tlsCA == nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("postgres TLS CA repository is not configured"))
+	}
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	mu := s.clusterLock(clusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	caCertPEM, caKeyPEM, err := generateClusterCA(clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	ca, err := s.tlsCA.Upsert(ctx, clusterID, caCertPEM, caKeyPEM)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("store TLS CA: %w", err))
+	}
+	profile, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	statuses, err := s.tlsStatuses(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(profile, statuses, ca)
+	s.auditTLSChange(ctx, clusterID, "generate_ca", profile)
+	return connect.NewResponse(&skylexv1.GenerateTLSCAResponse{
+		Config:    tlsConfigToProto(profile, statuses, warnings, ca),
+		CaCertPem: ca.CACertPEM,
+	}), nil
+}
+
+func (s *PostgresManagementService) GetTLSCACert(
+	ctx context.Context,
+	req *connect.Request[skylexv1.GetTLSCACertRequest],
+) (*connect.Response[skylexv1.GetTLSCACertResponse], error) {
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+	ca, err := s.tlsCAForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	if ca == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("TLS CA has not been generated for cluster %q", clusterID))
+	}
+	return connect.NewResponse(&skylexv1.GetTLSCACertResponse{CaCertPem: ca.CACertPEM}), nil
 }
 
 func (s *PostgresManagementService) UpdateTLSConfig(
@@ -674,9 +771,13 @@ func (s *PostgresManagementService) UpdateTLSConfig(
 	if err != nil {
 		return nil, err
 	}
-	warnings := tlsWarnings(updated, statuses)
+	ca, err := s.tlsCAForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(updated, statuses, ca)
 	s.auditTLSChange(ctx, clusterID, "update", updated)
-	return connect.NewResponse(&skylexv1.UpdateTLSConfigResponse{Config: tlsConfigToProto(updated, statuses, warnings)}), nil
+	return connect.NewResponse(&skylexv1.UpdateTLSConfigResponse{Config: tlsConfigToProto(updated, statuses, warnings, ca)}), nil
 }
 
 func (s *PostgresManagementService) ApplyTLS(
@@ -711,6 +812,20 @@ func (s *PostgresManagementService) ApplyTLS(
 	if !validSSLModes[tlsMode] {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid TLS mode %q", profile.SSLMode))
 	}
+	ca, err := s.tlsCAForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	if tlsMode != "disabled" && profile.TLSCertFile == "" && profile.TLSKeyFile == "" && ca == nil {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("generate a TLS CA before applying Skylex-managed TLS"))
+	}
+	var caKeyPEM string
+	if tlsMode != "disabled" && profile.TLSCertFile == "" && profile.TLSKeyFile == "" {
+		caKeyPEM, err = s.tlsCA.DecryptCAKey(ca)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("decrypt TLS CA key: %w", err))
+		}
+	}
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list cluster nodes: %w", err))
@@ -729,19 +844,38 @@ func (s *PostgresManagementService) ApplyTLS(
 	commands := make([]db.ApplyTLSNodeCommand, 0, len(readyNodes))
 	for _, node := range readyNodes {
 		certHosts := tlsCertificateHosts(profile, node)
+		secrets := map[string]string{}
+		certSecretKey := ""
+		keySecretKey := ""
+		caSecretKey := ""
+		if tlsMode != "disabled" && profile.TLSCertFile == "" && profile.TLSKeyFile == "" {
+			certPEM, keyPEM, err := generateServerCertificate(ca.CACertPEM, caKeyPEM, certHosts)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("generate server certificate for node %q: %w", node.ID, err))
+			}
+			certSecretKey = "server_cert_pem"
+			keySecretKey = "server_key_pem"
+			caSecretKey = "ca_cert_pem"
+			secrets[certSecretKey] = certPEM
+			secrets[keySecretKey] = keyPEM
+			secrets[caSecretKey] = ca.CACertPEM
+		}
 		payload, err := json.Marshal(map[string]interface{}{
-			"cluster_id": clusterID,
-			"node_id":    node.ID,
-			"tls_mode":   tlsMode,
-			"cert_file":  profile.TLSCertFile,
-			"key_file":   profile.TLSKeyFile,
-			"ca_file":    profile.TLSCAFile,
-			"cert_hosts": certHosts,
+			"cluster_id":         clusterID,
+			"node_id":            node.ID,
+			"tls_mode":           tlsMode,
+			"cert_file":          profile.TLSCertFile,
+			"key_file":           profile.TLSKeyFile,
+			"ca_file":            profile.TLSCAFile,
+			"cert_hosts":         certHosts,
+			"cert_secret_key":    certSecretKey,
+			"key_secret_key":     keySecretKey,
+			"ca_cert_secret_key": caSecretKey,
 		})
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal tls payload: %w", err))
 		}
-		commands = append(commands, db.ApplyTLSNodeCommand{NodeID: node.ID, AgentID: node.AgentID, Payload: string(payload)})
+		commands = append(commands, db.ApplyTLSNodeCommand{NodeID: node.ID, AgentID: node.AgentID, Payload: string(payload), Secrets: secrets})
 	}
 
 	statuses, err := s.tls.QueueApplyTLSCommands(ctx, clusterID, tlsMode, commands)
@@ -790,8 +924,8 @@ func tlsStatusToProto(s *db.PostgresTLSApplyStatus) *skylexv1.TLSApplyStatus {
 	return proto
 }
 
-func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, warnings []string) *skylexv1.TLSConfig {
-	return &skylexv1.TLSConfig{
+func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, warnings []string, ca *db.PostgresTLSCA) *skylexv1.TLSConfig {
+	proto := &skylexv1.TLSConfig{
 		ClusterId: p.ClusterID,
 		TlsMode:   normalizeTLSMode(p.SSLMode),
 		CertFile:  p.TLSCertFile,
@@ -800,13 +934,24 @@ func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStat
 		Statuses:  statuses,
 		Warnings:  warnings,
 	}
+	if ca != nil {
+		proto.CaGenerated = true
+		if !ca.CreatedAt.IsZero() {
+			proto.CaCreatedAt = timestamppb.New(ca.CreatedAt)
+		}
+	}
+	return proto
 }
 
-func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus) []string {
+func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, ca *db.PostgresTLSCA) []string {
 	tlsMode := normalizeTLSMode(p.SSLMode)
 	warnings := []string{}
 	if tlsMode != "disabled" && p.TLSCertFile == "" && p.TLSKeyFile == "" {
-		warnings = append(warnings, "TLS will use Skylex-managed self-signed certificates unless certificate and key paths are configured.")
+		if ca == nil {
+			warnings = append(warnings, "Generate a TLS CA before applying Skylex-managed certificates.")
+		} else {
+			warnings = append(warnings, "TLS will use Skylex-managed CA-signed certificates unless certificate and key paths are configured.")
+		}
 	}
 	if tlsMode != "disabled" && ((p.TLSCertFile == "") != (p.TLSKeyFile == "")) {
 		warnings = append(warnings, "TLS manual certificate paths are incomplete; set both certificate and key paths, or clear both for Skylex-managed certificates.")
@@ -825,6 +970,17 @@ func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus) [
 		}
 	}
 	return warnings
+}
+
+func (s *PostgresManagementService) tlsCAForCluster(ctx context.Context, clusterID string) (*db.PostgresTLSCA, error) {
+	if s.tlsCA == nil {
+		return nil, nil
+	}
+	ca, err := s.tlsCA.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get TLS CA: %w", err))
+	}
+	return ca, nil
 }
 
 func tlsCertificateHosts(profile *db.ConnectionProfile, node *models.Node) []string {

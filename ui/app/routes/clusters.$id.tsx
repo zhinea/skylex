@@ -4,7 +4,7 @@ import { useCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
-import { useApplyHBA, useApplyTLS, useConnectionProfile, useNetworkAccess, useTLSConfig, useUpdateConnectionProfile, useUpdateNetworkAccess, useUpdateTLSConfig } from "~/hooks/useConnectionProfile";
+import { useApplyHBA, useApplyTLS, useConnectionProfile, useGenerateTLSCA, useNetworkAccess, useTLSCACert, useTLSConfig, useUpdateConnectionProfile, useUpdateNetworkAccess, useUpdateTLSConfig } from "~/hooks/useConnectionProfile";
 import { useCreatePostgresDatabase, useDeletePostgresDatabase, usePostgresDatabases, type PostgresDatabase } from "~/hooks/usePostgresDatabases";
 import { useCreatePostgresRole, useDeletePostgresRole, usePostgresRoles, useRotatePostgresRolePassword, type PostgresRole } from "~/hooks/usePostgresRoles";
 import { useRestartNode } from "~/hooks/useClusters";
@@ -657,6 +657,7 @@ function NetworkAccessCard({ clusterId, nodes }: { clusterId: string; nodes: Nod
 function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] }) {
   const { data, isLoading } = useTLSConfig(clusterId);
   const updateTLS = useUpdateTLSConfig();
+  const generateCA = useGenerateTLSCA();
   const applyTLS = useApplyTLS();
   const [editing, setEditing] = useState(false);
   const [tlsMode, setTLSMode] = useState("prefer");
@@ -666,6 +667,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
   const [message, setMessage] = useState<string | null>(null);
 
   const config = data?.config;
+  const { data: caData } = useTLSCACert(clusterId, !!config?.caGenerated);
   const statuses = config?.statuses ?? [];
   const warnings = config?.warnings ?? [];
   const nodeNames = new Map(nodes.map((node) => [node.id, node.hostname]));
@@ -701,6 +703,25 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
     });
   }
 
+  function generate() {
+    setMessage(null);
+    generateCA.mutate(clusterId, {
+      onSuccess: () => setMessage("Cluster TLS CA generated. Apply TLS to distribute CA-signed server certificates."),
+      onError: (err) => setMessage(err instanceof Error ? err.message : "Failed to generate TLS CA"),
+    });
+  }
+
+  function downloadCA() {
+    const pem = caData?.caCertPem;
+    if (!pem || typeof window === "undefined") return;
+    const url = window.URL.createObjectURL(new Blob([pem], { type: "application/x-pem-file" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `skylex-${clusterId}-ca.crt`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
   if (isLoading) {
     return (
       <Card title="TLS">
@@ -713,7 +734,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
     <Card title="TLS">
       <div className="space-y-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Manage PostgreSQL server-side TLS settings. Leave certificate and key paths empty to let Skylex generate a self-signed certificate on each node, or set both paths to use manually managed files.
+          Manage PostgreSQL server-side TLS settings. TLS is disabled by default. Generate a cluster CA, then Apply TLS to distribute CA-signed server certificates to ready nodes. Set both certificate and key paths only when using manually managed files.
         </p>
 
         {warnings.length > 0 && (
@@ -750,7 +771,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
                 <input value={caFile} onChange={(e) => setCAFile(e.target.value)} placeholder="/etc/skylex/postgres/ca.crt" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
               </label>
             </div>
-            <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">Skylex stores only file paths. Empty certificate/key paths use per-node generated self-signed certificates; manual mode requires both certificate and key paths.</p>
+            <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">Skylex stores only file paths in manual mode. Empty certificate/key paths use Skylex-generated CA-signed certificates after you generate a cluster CA.</p>
             <div className="mt-3 flex gap-2">
               <button onClick={saveTLS} disabled={updateTLS.isPending} className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
                 {updateTLS.isPending ? "Saving..." : "Save TLS"}
@@ -763,15 +784,20 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
         ) : (
           <dl className="rounded-lg border border-gray-200 px-3 dark:border-gray-700">
             <ConnectionRow label="TLS Mode" value={config?.tlsMode ?? "prefer"} />
-            <ConnectionRow label="Server Certificate" value={config?.certFile || "Skylex-managed per node"} />
-            <ConnectionRow label="Server Key" value={config?.keyFile || "Skylex-managed per node"} />
-            <ConnectionRow label="CA File" value={config?.caFile || "Not configured"} />
+            <ConnectionRow label="Cluster CA" value={config?.caGenerated ? "Generated" : "Not generated"} />
+            <ConnectionRow label="Server Certificate" value={config?.certFile || "Skylex-managed CA-signed per node"} />
+            <ConnectionRow label="Server Key" value={config?.keyFile || "Skylex-managed CA-signed per node"} />
+            <ConnectionRow label="CA File" value={config?.caFile || (config?.caGenerated ? "Skylex-managed per node" : "Not configured")} />
           </dl>
         )}
 
         <div className="flex flex-wrap items-center gap-2">
           {!editing && <button onClick={openEditor} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">Edit TLS</button>}
-          <button onClick={apply} disabled={applyTLS.isPending} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+          <button onClick={generate} disabled={generateCA.isPending} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+            {generateCA.isPending ? "Generating..." : config?.caGenerated ? "Regenerate CA Cert" : "Generate CA Cert"}
+          </button>
+          {config?.caGenerated && <button onClick={downloadCA} disabled={!caData?.caCertPem} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">Download CA Cert</button>}
+          <button onClick={apply} disabled={applyTLS.isPending || (config?.tlsMode !== "disabled" && !config?.caGenerated && !config?.certFile)} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {applyTLS.isPending ? "Queueing..." : "Apply TLS"}
           </button>
           {message && <span className="text-sm text-gray-600 dark:text-gray-300">{message}</span>}

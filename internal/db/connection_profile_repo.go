@@ -29,7 +29,7 @@ type ConnectionProfile struct {
 const (
 	DefaultEndpointMode = "direct_primary"
 	DefaultPublicPort   = 5432
-	DefaultSSLMode      = "prefer"
+	DefaultSSLMode      = "disabled"
 )
 
 // ConnectionProfileRepository manages per-cluster connection profiles.

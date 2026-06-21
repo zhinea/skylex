@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/id"
 )
 
@@ -29,16 +30,18 @@ type ApplyTLSNodeCommand struct {
 	AgentID   string
 	CommandID string
 	Payload   string
+	Secrets   map[string]string
 }
 
 // PostgresTLSRepository manages per-node TLS apply status.
 type PostgresTLSRepository struct {
-	conn *sql.DB
-	log  *slog.Logger
+	conn       *sql.DB
+	log        *slog.Logger
+	encryptKey []byte
 }
 
-func NewPostgresTLSRepository(conn *sql.DB, log *slog.Logger) *PostgresTLSRepository {
-	return &PostgresTLSRepository{conn: conn, log: log}
+func NewPostgresTLSRepository(conn *sql.DB, log *slog.Logger, encryptKey []byte) *PostgresTLSRepository {
+	return &PostgresTLSRepository{conn: conn, log: log, encryptKey: encryptKey}
 }
 
 func (r *PostgresTLSRepository) ListStatusByCluster(ctx context.Context, clusterID string) ([]*PostgresTLSApplyStatus, error) {
@@ -81,6 +84,16 @@ func (r *PostgresTLSRepository) QueueApplyTLSCommands(ctx context.Context, clust
 		}
 		if _, err := insertAgentCommand(ctx, tx, commandID, cmd.AgentID, cmd.NodeID, "pg_apply_tls", cmd.Payload, now); err != nil {
 			return nil, err
+		}
+		secretExpiresAt := now.Add(24 * time.Hour)
+		for key, plaintext := range cmd.Secrets {
+			ciphertext, err := crypto.EncryptAES256GCM([]byte(plaintext), r.encryptKey)
+			if err != nil {
+				return nil, fmt.Errorf("encrypt tls command secret: %w", err)
+			}
+			if err := insertCommandSecret(ctx, tx, commandID, key, ciphertext, &secretExpiresAt, now); err != nil {
+				return nil, err
+			}
 		}
 		if _, err := tx.ExecContext(ctx,
 			Rebind(`DELETE FROM postgres_tls_apply_status WHERE cluster_id = ? AND node_id = ?`),

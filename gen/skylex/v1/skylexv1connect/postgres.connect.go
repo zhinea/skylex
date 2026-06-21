@@ -52,6 +52,12 @@ const (
 	// PostgresManagementServiceGetTLSConfigProcedure is the fully-qualified name of the
 	// PostgresManagementService's GetTLSConfig RPC.
 	PostgresManagementServiceGetTLSConfigProcedure = "/skylex.v1.PostgresManagementService/GetTLSConfig"
+	// PostgresManagementServiceGenerateTLSCAProcedure is the fully-qualified name of the
+	// PostgresManagementService's GenerateTLSCA RPC.
+	PostgresManagementServiceGenerateTLSCAProcedure = "/skylex.v1.PostgresManagementService/GenerateTLSCA"
+	// PostgresManagementServiceGetTLSCACertProcedure is the fully-qualified name of the
+	// PostgresManagementService's GetTLSCACert RPC.
+	PostgresManagementServiceGetTLSCACertProcedure = "/skylex.v1.PostgresManagementService/GetTLSCACert"
 	// PostgresManagementServiceUpdateTLSConfigProcedure is the fully-qualified name of the
 	// PostgresManagementService's UpdateTLSConfig RPC.
 	PostgresManagementServiceUpdateTLSConfigProcedure = "/skylex.v1.PostgresManagementService/UpdateTLSConfig"
@@ -89,6 +95,8 @@ type PostgresManagementServiceClient interface {
 	UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error)
 	ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error)
 	GetTLSConfig(context.Context, *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error)
+	GenerateTLSCA(context.Context, *connect.Request[v1.GenerateTLSCARequest]) (*connect.Response[v1.GenerateTLSCAResponse], error)
+	GetTLSCACert(context.Context, *connect.Request[v1.GetTLSCACertRequest]) (*connect.Response[v1.GetTLSCACertResponse], error)
 	UpdateTLSConfig(context.Context, *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error)
 	ApplyTLS(context.Context, *connect.Request[v1.ApplyTLSRequest]) (*connect.Response[v1.ApplyTLSResponse], error)
 	// Role management RPCs (Phase 3)
@@ -147,6 +155,18 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 			httpClient,
 			baseURL+PostgresManagementServiceGetTLSConfigProcedure,
 			connect.WithSchema(postgresManagementServiceMethods.ByName("GetTLSConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		generateTLSCA: connect.NewClient[v1.GenerateTLSCARequest, v1.GenerateTLSCAResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceGenerateTLSCAProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("GenerateTLSCA")),
+			connect.WithClientOptions(opts...),
+		),
+		getTLSCACert: connect.NewClient[v1.GetTLSCACertRequest, v1.GetTLSCACertResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceGetTLSCACertProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("GetTLSCACert")),
 			connect.WithClientOptions(opts...),
 		),
 		updateTLSConfig: connect.NewClient[v1.UpdateTLSConfigRequest, v1.UpdateTLSConfigResponse](
@@ -214,6 +234,8 @@ type postgresManagementServiceClient struct {
 	updateNetworkAccess     *connect.Client[v1.UpdateNetworkAccessRequest, v1.UpdateNetworkAccessResponse]
 	applyHBA                *connect.Client[v1.ApplyHBARequest, v1.ApplyHBAResponse]
 	getTLSConfig            *connect.Client[v1.GetTLSConfigRequest, v1.GetTLSConfigResponse]
+	generateTLSCA           *connect.Client[v1.GenerateTLSCARequest, v1.GenerateTLSCAResponse]
+	getTLSCACert            *connect.Client[v1.GetTLSCACertRequest, v1.GetTLSCACertResponse]
 	updateTLSConfig         *connect.Client[v1.UpdateTLSConfigRequest, v1.UpdateTLSConfigResponse]
 	applyTLS                *connect.Client[v1.ApplyTLSRequest, v1.ApplyTLSResponse]
 	listRoles               *connect.Client[v1.ListRolesRequest, v1.ListRolesResponse]
@@ -253,6 +275,16 @@ func (c *postgresManagementServiceClient) ApplyHBA(ctx context.Context, req *con
 // GetTLSConfig calls skylex.v1.PostgresManagementService.GetTLSConfig.
 func (c *postgresManagementServiceClient) GetTLSConfig(ctx context.Context, req *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error) {
 	return c.getTLSConfig.CallUnary(ctx, req)
+}
+
+// GenerateTLSCA calls skylex.v1.PostgresManagementService.GenerateTLSCA.
+func (c *postgresManagementServiceClient) GenerateTLSCA(ctx context.Context, req *connect.Request[v1.GenerateTLSCARequest]) (*connect.Response[v1.GenerateTLSCAResponse], error) {
+	return c.generateTLSCA.CallUnary(ctx, req)
+}
+
+// GetTLSCACert calls skylex.v1.PostgresManagementService.GetTLSCACert.
+func (c *postgresManagementServiceClient) GetTLSCACert(ctx context.Context, req *connect.Request[v1.GetTLSCACertRequest]) (*connect.Response[v1.GetTLSCACertResponse], error) {
+	return c.getTLSCACert.CallUnary(ctx, req)
 }
 
 // UpdateTLSConfig calls skylex.v1.PostgresManagementService.UpdateTLSConfig.
@@ -309,6 +341,8 @@ type PostgresManagementServiceHandler interface {
 	UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error)
 	ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error)
 	GetTLSConfig(context.Context, *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error)
+	GenerateTLSCA(context.Context, *connect.Request[v1.GenerateTLSCARequest]) (*connect.Response[v1.GenerateTLSCAResponse], error)
+	GetTLSCACert(context.Context, *connect.Request[v1.GetTLSCACertRequest]) (*connect.Response[v1.GetTLSCACertResponse], error)
 	UpdateTLSConfig(context.Context, *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error)
 	ApplyTLS(context.Context, *connect.Request[v1.ApplyTLSRequest]) (*connect.Response[v1.ApplyTLSResponse], error)
 	// Role management RPCs (Phase 3)
@@ -363,6 +397,18 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 		PostgresManagementServiceGetTLSConfigProcedure,
 		svc.GetTLSConfig,
 		connect.WithSchema(postgresManagementServiceMethods.ByName("GetTLSConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceGenerateTLSCAHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceGenerateTLSCAProcedure,
+		svc.GenerateTLSCA,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("GenerateTLSCA")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceGetTLSCACertHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceGetTLSCACertProcedure,
+		svc.GetTLSCACert,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("GetTLSCACert")),
 		connect.WithHandlerOptions(opts...),
 	)
 	postgresManagementServiceUpdateTLSConfigHandler := connect.NewUnaryHandler(
@@ -433,6 +479,10 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 			postgresManagementServiceApplyHBAHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceGetTLSConfigProcedure:
 			postgresManagementServiceGetTLSConfigHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceGenerateTLSCAProcedure:
+			postgresManagementServiceGenerateTLSCAHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceGetTLSCACertProcedure:
+			postgresManagementServiceGetTLSCACertHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceUpdateTLSConfigProcedure:
 			postgresManagementServiceUpdateTLSConfigHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceApplyTLSProcedure:
@@ -482,6 +532,14 @@ func (UnimplementedPostgresManagementServiceHandler) ApplyHBA(context.Context, *
 
 func (UnimplementedPostgresManagementServiceHandler) GetTLSConfig(context.Context, *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.GetTLSConfig is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) GenerateTLSCA(context.Context, *connect.Request[v1.GenerateTLSCARequest]) (*connect.Response[v1.GenerateTLSCAResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.GenerateTLSCA is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) GetTLSCACert(context.Context, *connect.Request[v1.GetTLSCACertRequest]) (*connect.Response[v1.GetTLSCACertResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.GetTLSCACert is not implemented"))
 }
 
 func (UnimplementedPostgresManagementServiceHandler) UpdateTLSConfig(context.Context, *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error) {

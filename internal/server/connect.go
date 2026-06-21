@@ -41,6 +41,14 @@ func (c *connectPostgresService) GetTLSConfig(ctx context.Context, req *connect.
 	return c.svc.GetTLSConfig(ctx, req)
 }
 
+func (c *connectPostgresService) GenerateTLSCA(ctx context.Context, req *connect.Request[skylexv1.GenerateTLSCARequest]) (*connect.Response[skylexv1.GenerateTLSCAResponse], error) {
+	return c.svc.GenerateTLSCA(ctx, req)
+}
+
+func (c *connectPostgresService) GetTLSCACert(ctx context.Context, req *connect.Request[skylexv1.GetTLSCACertRequest]) (*connect.Response[skylexv1.GetTLSCACertResponse], error) {
+	return c.svc.GetTLSCACert(ctx, req)
+}
+
 func (c *connectPostgresService) UpdateTLSConfig(ctx context.Context, req *connect.Request[skylexv1.UpdateTLSConfigRequest]) (*connect.Response[skylexv1.UpdateTLSConfigResponse], error) {
 	return c.svc.UpdateTLSConfig(ctx, req)
 }

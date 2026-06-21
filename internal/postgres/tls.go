@@ -34,6 +34,9 @@ type TLSConfig struct {
 	CertFile string
 	KeyFile  string
 	CAFile   string
+	CertPEM  string
+	KeyPEM   string
+	CAPEM    string
 	Hosts    []string
 }
 
@@ -44,6 +47,12 @@ func (c TLSConfig) Validate() error {
 		return fmt.Errorf("invalid TLS mode %q", c.Mode)
 	}
 	if c.Mode == TLSModeDisabled {
+		return nil
+	}
+	if c.CertPEM != "" || c.KeyPEM != "" {
+		if c.CertPEM == "" || c.KeyPEM == "" {
+			return fmt.Errorf("certificate and key secrets must both be present")
+		}
 		return nil
 	}
 	if (c.CertFile == "") != (c.KeyFile == "") {
@@ -71,12 +80,36 @@ func (c TLSConfig) resolved(dataDir string) (TLSConfig, bool, error) {
 	resolved := c
 	resolved.CertFile = filepath.Join(managedDir, managedTLSCertName)
 	resolved.KeyFile = filepath.Join(managedDir, managedTLSKeyName)
+	if c.CAPEM != "" {
+		resolved.CAFile = filepath.Join(managedDir, "ca.crt")
+	}
 	return resolved, true, nil
 }
 
 func (c TLSConfig) ensureManagedCertificate() error {
 	if c.CertFile == "" || c.KeyFile == "" {
 		return fmt.Errorf("managed certificate paths are empty")
+	}
+	if c.CertPEM != "" || c.KeyPEM != "" {
+		if c.CertPEM == "" || c.KeyPEM == "" {
+			return fmt.Errorf("certificate and key secrets must both be present")
+		}
+		if err := os.MkdirAll(filepath.Dir(c.CertFile), 0700); err != nil {
+			return fmt.Errorf("create managed tls directory: %w", err)
+		}
+		if err := os.WriteFile(c.CertFile, []byte(c.CertPEM), 0644); err != nil {
+			return fmt.Errorf("write managed certificate: %w", err)
+		}
+		if err := os.WriteFile(c.KeyFile, []byte(c.KeyPEM), 0600); err != nil {
+			return fmt.Errorf("write managed private key: %w", err)
+		}
+		if c.CAPEM != "" {
+			caPath := filepath.Join(filepath.Dir(c.CertFile), "ca.crt")
+			if err := os.WriteFile(caPath, []byte(c.CAPEM), 0644); err != nil {
+				return fmt.Errorf("write managed ca certificate: %w", err)
+			}
+		}
+		return nil
 	}
 	if _, certErr := os.Stat(c.CertFile); certErr == nil {
 		if _, keyErr := os.Stat(c.KeyFile); keyErr == nil {

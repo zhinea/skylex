@@ -21,8 +21,9 @@ func newPostgresManagementServiceTestDeps(t *testing.T) (*db.DB, *PostgresManage
 	roles := db.NewPostgresRoleRepository(conn, log)
 	databases := db.NewPostgresDatabaseRepository(conn, log)
 	access := db.NewPostgresAccessRepository(conn, log)
-	tls := db.NewPostgresTLSRepository(conn, log)
-	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, tls, []byte("12345678901234567890123456789012"), log)
+	tls := db.NewPostgresTLSRepository(conn, log, []byte("12345678901234567890123456789012"))
+	tlsCA := db.NewPostgresTLSCARepository(conn, log, []byte("12345678901234567890123456789012"))
+	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, tls, tlsCA, []byte("12345678901234567890123456789012"), log)
 	return database, svc, roles, nodes
 }
 
@@ -238,6 +239,26 @@ func TestPostgresManagementService_UpdateTLSConfigAllowsManagedCerts(t *testing.
 	}
 }
 
+func TestPostgresManagementService_GenerateTLSCAStoresPublicCertOnlyInResponse(t *testing.T) {
+	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleOperator)
+	clusterID := createPostgresManagementTestCluster(t, ctx, svc, "tls-ca")
+
+	resp, err := svc.GenerateTLSCA(ctx, connect.NewRequest(&skylexv1.GenerateTLSCARequest{ClusterId: clusterID}))
+	if err != nil {
+		t.Fatalf("generate tls ca: %v", err)
+	}
+	if !resp.Msg.GetConfig().GetCaGenerated() {
+		t.Fatal("expected ca_generated true")
+	}
+	if !strings.Contains(resp.Msg.GetCaCertPem(), "BEGIN CERTIFICATE") {
+		t.Fatalf("expected public CA certificate PEM, got %q", resp.Msg.GetCaCertPem())
+	}
+	if strings.Contains(resp.Msg.GetCaCertPem(), "PRIVATE KEY") {
+		t.Fatal("CA response must not include private key material")
+	}
+}
+
 func TestPostgresManagementService_ApplyTLSQueuesReadyNodes(t *testing.T) {
 	database, svc, _, nodes := newPostgresManagementServiceTestDeps(t)
 	ctx := contextWithUserRole(models.RoleOperator)
@@ -258,6 +279,9 @@ func TestPostgresManagementService_ApplyTLSQueuesReadyNodes(t *testing.T) {
 	})); err != nil {
 		t.Fatalf("update tls config: %v", err)
 	}
+	if _, err := svc.GenerateTLSCA(ctx, connect.NewRequest(&skylexv1.GenerateTLSCARequest{ClusterId: clusterID})); err != nil {
+		t.Fatalf("generate tls ca: %v", err)
+	}
 
 	resp, err := svc.ApplyTLS(ctx, connect.NewRequest(&skylexv1.ApplyTLSRequest{ClusterId: clusterID}))
 	if err != nil {
@@ -274,7 +298,7 @@ func TestPostgresManagementService_ApplyTLSQueuesReadyNodes(t *testing.T) {
 	}
 	found := false
 	for _, command := range pending {
-		if command.Action == "pg_apply_tls" && strings.Contains(command.Payload, "cert_hosts") && !strings.Contains(command.Payload, "PASSWORD") {
+		if command.Action == "pg_apply_tls" && strings.Contains(command.Payload, "server_cert_pem") && !strings.Contains(command.Payload, "BEGIN PRIVATE KEY") && !strings.Contains(command.Payload, "BEGIN RSA PRIVATE KEY") {
 			found = true
 		}
 	}

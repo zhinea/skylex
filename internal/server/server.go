@@ -117,7 +117,8 @@ func (s *Server) Start(ctx context.Context) error {
 	postgresRoleRepo := db.NewPostgresRoleRepository(conn, s.log)
 	postgresDatabaseRepo := db.NewPostgresDatabaseRepository(conn, s.log)
 	postgresAccessRepo := db.NewPostgresAccessRepository(conn, s.log)
-	postgresTLSRepo := db.NewPostgresTLSRepository(conn, s.log)
+	postgresTLSRepo := db.NewPostgresTLSRepository(conn, s.log, roleEncryptKey)
+	postgresTLSCARepo := db.NewPostgresTLSCARepository(conn, s.log, roleEncryptKey)
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
 	backupRepo := db.NewBackupRepository(conn, s.log)
 
@@ -129,7 +130,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.agentService.SetPostgresDatabaseRepository(postgresDatabaseRepo)
 	s.agentService.SetPostgresAccessRepository(postgresAccessRepo)
 	s.agentService.SetPostgresTLSRepository(postgresTLSRepo)
-	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, postgresAccessRepo, postgresTLSRepo, roleEncryptKey, s.log)
+	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, postgresAccessRepo, postgresTLSRepo, postgresTLSCARepo, roleEncryptKey, s.log)
 	s.postgresService.SetAuditRepository(auditRepo)
 
 	tlsConfig, err := LoadTLSCredentials(s.cfg.TLS)

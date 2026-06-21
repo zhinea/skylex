@@ -12,6 +12,8 @@ service PostgresManagementService {
   rpc UpdateNetworkAccess(UpdateNetworkAccessRequest) returns (UpdateNetworkAccessResponse);
   rpc ApplyHBA(ApplyHBARequest) returns (ApplyHBAResponse);
   rpc GetTLSConfig(GetTLSConfigRequest) returns (GetTLSConfigResponse);
+  rpc GenerateTLSCA(GenerateTLSCARequest) returns (GenerateTLSCAResponse);
+  rpc GetTLSCACert(GetTLSCACertRequest) returns (GetTLSCACertResponse);
   rpc UpdateTLSConfig(UpdateTLSConfigRequest) returns (UpdateTLSConfigResponse);
   rpc ApplyTLS(ApplyTLSRequest) returns (ApplyTLSResponse);
 
@@ -136,6 +138,8 @@ message TLSConfig {
   string ca_file = 5;
   repeated TLSApplyStatus statuses = 6;
   repeated string warnings = 7;
+  bool ca_generated = 8;
+  google.protobuf.Timestamp ca_created_at = 9;
 }
 
 message TLSApplyStatus {
@@ -158,6 +162,23 @@ message GetTLSConfigRequest {
 
 message GetTLSConfigResponse {
   TLSConfig config = 1;
+}
+
+message GenerateTLSCARequest {
+  string cluster_id = 1;
+}
+
+message GenerateTLSCAResponse {
+  TLSConfig config = 1;
+  string ca_cert_pem = 2;
+}
+
+message GetTLSCACertRequest {
+  string cluster_id = 1;
+}
+
+message GetTLSCACertResponse {
+  string ca_cert_pem = 1;
 }
 
 message UpdateTLSConfigRequest {

@@ -315,8 +315,8 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 			Payload: c.Payload,
 		}
 
-		// Resolve command secrets for role management commands.
-		if s.commandSecrets != nil && isRoleManagementAction(c.Action) {
+		// Resolve command secrets only for actions that carry protected material.
+		if s.commandSecrets != nil && isSecretBearingAction(c.Action) {
 			secrets, err := s.commandSecrets.ResolveAllForCommand(ctx, c.ID)
 			if err != nil {
 				s.log.Warn("resolve command secrets failed", "command_id", c.ID, "error", err)
@@ -334,9 +334,9 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 }
 
 // isRoleManagementAction reports whether an action carries command secrets.
-func isRoleManagementAction(action string) bool {
+func isSecretBearingAction(action string) bool {
 	switch action {
-	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role":
+	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role", "pg_apply_tls":
 		return true
 	default:
 		return false
@@ -444,6 +444,13 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	if err := s.commands.UpdateResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetOutput(), req.GetError()); err != nil {
 		return nil, status.Errorf(codes.Internal, "update command result: %v", err)
 	}
+	if s.commandSecrets != nil {
+		defer func() {
+			if err := s.commandSecrets.DeleteForCommand(ctx, req.GetCommandId()); err != nil {
+				s.log.Warn("delete command secrets failed", "command_id", req.GetCommandId(), "error", err)
+			}
+		}()
+	}
 	if handled, err := s.handleRoleManagementCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
 		s.log.Warn("handle role management command result failed", "command_id", req.GetCommandId(), "error", err)
 	} else if handled {
@@ -464,12 +471,6 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	} else if handled {
 		return &skylexv1.ReportCommandResultResponse{}, nil
 	}
-	if s.commandSecrets != nil {
-		if err := s.commandSecrets.DeleteForCommand(ctx, req.GetCommandId()); err != nil {
-			s.log.Warn("delete command secrets failed", "command_id", req.GetCommandId(), "error", err)
-		}
-	}
-
 	if handled, err := s.handleAgentLifecycleCommandResult(ctx, req.GetCommandId(), req.GetSuccess()); err != nil {
 		s.log.Warn("handle agent lifecycle command result failed", "command_id", req.GetCommandId(), "error", err)
 	} else if handled {

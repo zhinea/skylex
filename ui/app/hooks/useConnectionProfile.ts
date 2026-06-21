@@ -154,6 +154,8 @@ export interface TLSConfig {
   caFile: string;
   statuses: TLSApplyStatus[];
   warnings: string[];
+  caGenerated: boolean;
+  caCreatedAt?: string;
 }
 
 export function useTLSConfig(clusterId: string) {
@@ -187,6 +189,33 @@ export function useUpdateTLSConfig() {
       qc.invalidateQueries({ queryKey: ["tlsConfig", input.clusterId] });
       qc.invalidateQueries({ queryKey: ["connectionProfile", input.clusterId] });
     },
+  });
+}
+
+export function useGenerateTLSCA() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clusterId: string) =>
+      api.post<{ config: TLSConfig; caCertPem: string }>(
+        "/skylex.v1.PostgresManagementService/GenerateTLSCA",
+        { clusterId },
+      ),
+    onSuccess: (_, clusterId) => {
+      qc.invalidateQueries({ queryKey: ["tlsConfig", clusterId] });
+      qc.invalidateQueries({ queryKey: ["connectionProfile", clusterId] });
+    },
+  });
+}
+
+export function useTLSCACert(clusterId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["tlsCACert", clusterId],
+    queryFn: () =>
+      api.post<{ caCertPem: string }>(
+        "/skylex.v1.PostgresManagementService/GetTLSCACert",
+        { clusterId },
+      ),
+    enabled: !!clusterId && enabled,
   });
 }
 

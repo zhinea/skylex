@@ -940,12 +940,14 @@ type TLSConfig struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	ClusterId string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
 	// tls_mode: "disabled" | "prefer" | "required"
-	TlsMode       string            `protobuf:"bytes,2,opt,name=tls_mode,json=tlsMode,proto3" json:"tls_mode,omitempty"`
-	CertFile      string            `protobuf:"bytes,3,opt,name=cert_file,json=certFile,proto3" json:"cert_file,omitempty"`
-	KeyFile       string            `protobuf:"bytes,4,opt,name=key_file,json=keyFile,proto3" json:"key_file,omitempty"`
-	CaFile        string            `protobuf:"bytes,5,opt,name=ca_file,json=caFile,proto3" json:"ca_file,omitempty"`
-	Statuses      []*TLSApplyStatus `protobuf:"bytes,6,rep,name=statuses,proto3" json:"statuses,omitempty"`
-	Warnings      []string          `protobuf:"bytes,7,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	TlsMode       string                 `protobuf:"bytes,2,opt,name=tls_mode,json=tlsMode,proto3" json:"tls_mode,omitempty"`
+	CertFile      string                 `protobuf:"bytes,3,opt,name=cert_file,json=certFile,proto3" json:"cert_file,omitempty"`
+	KeyFile       string                 `protobuf:"bytes,4,opt,name=key_file,json=keyFile,proto3" json:"key_file,omitempty"`
+	CaFile        string                 `protobuf:"bytes,5,opt,name=ca_file,json=caFile,proto3" json:"ca_file,omitempty"`
+	Statuses      []*TLSApplyStatus      `protobuf:"bytes,6,rep,name=statuses,proto3" json:"statuses,omitempty"`
+	Warnings      []string               `protobuf:"bytes,7,rep,name=warnings,proto3" json:"warnings,omitempty"`
+	CaGenerated   bool                   `protobuf:"varint,8,opt,name=ca_generated,json=caGenerated,proto3" json:"ca_generated,omitempty"`
+	CaCreatedAt   *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=ca_created_at,json=caCreatedAt,proto3" json:"ca_created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1025,6 +1027,20 @@ func (x *TLSConfig) GetStatuses() []*TLSApplyStatus {
 func (x *TLSConfig) GetWarnings() []string {
 	if x != nil {
 		return x.Warnings
+	}
+	return nil
+}
+
+func (x *TLSConfig) GetCaGenerated() bool {
+	if x != nil {
+		return x.CaGenerated
+	}
+	return false
+}
+
+func (x *TLSConfig) GetCaCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CaCreatedAt
 	}
 	return nil
 }
@@ -1227,6 +1243,190 @@ func (x *GetTLSConfigResponse) GetConfig() *TLSConfig {
 	return nil
 }
 
+type GenerateTLSCARequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateTLSCARequest) Reset() {
+	*x = GenerateTLSCARequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateTLSCARequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateTLSCARequest) ProtoMessage() {}
+
+func (x *GenerateTLSCARequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateTLSCARequest.ProtoReflect.Descriptor instead.
+func (*GenerateTLSCARequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GenerateTLSCARequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+type GenerateTLSCAResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Config        *TLSConfig             `protobuf:"bytes,1,opt,name=config,proto3" json:"config,omitempty"`
+	CaCertPem     string                 `protobuf:"bytes,2,opt,name=ca_cert_pem,json=caCertPem,proto3" json:"ca_cert_pem,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GenerateTLSCAResponse) Reset() {
+	*x = GenerateTLSCAResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GenerateTLSCAResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GenerateTLSCAResponse) ProtoMessage() {}
+
+func (x *GenerateTLSCAResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GenerateTLSCAResponse.ProtoReflect.Descriptor instead.
+func (*GenerateTLSCAResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GenerateTLSCAResponse) GetConfig() *TLSConfig {
+	if x != nil {
+		return x.Config
+	}
+	return nil
+}
+
+func (x *GenerateTLSCAResponse) GetCaCertPem() string {
+	if x != nil {
+		return x.CaCertPem
+	}
+	return ""
+}
+
+type GetTLSCACertRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTLSCACertRequest) Reset() {
+	*x = GetTLSCACertRequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTLSCACertRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTLSCACertRequest) ProtoMessage() {}
+
+func (x *GetTLSCACertRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTLSCACertRequest.ProtoReflect.Descriptor instead.
+func (*GetTLSCACertRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetTLSCACertRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+type GetTLSCACertResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CaCertPem     string                 `protobuf:"bytes,1,opt,name=ca_cert_pem,json=caCertPem,proto3" json:"ca_cert_pem,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTLSCACertResponse) Reset() {
+	*x = GetTLSCACertResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTLSCACertResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTLSCACertResponse) ProtoMessage() {}
+
+func (x *GetTLSCACertResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTLSCACertResponse.ProtoReflect.Descriptor instead.
+func (*GetTLSCACertResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetTLSCACertResponse) GetCaCertPem() string {
+	if x != nil {
+		return x.CaCertPem
+	}
+	return ""
+}
+
 type UpdateTLSConfigRequest struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	ClusterId string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
@@ -1241,7 +1441,7 @@ type UpdateTLSConfigRequest struct {
 
 func (x *UpdateTLSConfigRequest) Reset() {
 	*x = UpdateTLSConfigRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1253,7 +1453,7 @@ func (x *UpdateTLSConfigRequest) String() string {
 func (*UpdateTLSConfigRequest) ProtoMessage() {}
 
 func (x *UpdateTLSConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1266,7 +1466,7 @@ func (x *UpdateTLSConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTLSConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateTLSConfigRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{17}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateTLSConfigRequest) GetClusterId() string {
@@ -1313,7 +1513,7 @@ type UpdateTLSConfigResponse struct {
 
 func (x *UpdateTLSConfigResponse) Reset() {
 	*x = UpdateTLSConfigResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1325,7 +1525,7 @@ func (x *UpdateTLSConfigResponse) String() string {
 func (*UpdateTLSConfigResponse) ProtoMessage() {}
 
 func (x *UpdateTLSConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1338,7 +1538,7 @@ func (x *UpdateTLSConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateTLSConfigResponse.ProtoReflect.Descriptor instead.
 func (*UpdateTLSConfigResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{18}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateTLSConfigResponse) GetConfig() *TLSConfig {
@@ -1357,7 +1557,7 @@ type ApplyTLSRequest struct {
 
 func (x *ApplyTLSRequest) Reset() {
 	*x = ApplyTLSRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1369,7 +1569,7 @@ func (x *ApplyTLSRequest) String() string {
 func (*ApplyTLSRequest) ProtoMessage() {}
 
 func (x *ApplyTLSRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1382,7 +1582,7 @@ func (x *ApplyTLSRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyTLSRequest.ProtoReflect.Descriptor instead.
 func (*ApplyTLSRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{19}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ApplyTLSRequest) GetClusterId() string {
@@ -1401,7 +1601,7 @@ type ApplyTLSResponse struct {
 
 func (x *ApplyTLSResponse) Reset() {
 	*x = ApplyTLSResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1413,7 +1613,7 @@ func (x *ApplyTLSResponse) String() string {
 func (*ApplyTLSResponse) ProtoMessage() {}
 
 func (x *ApplyTLSResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1426,7 +1626,7 @@ func (x *ApplyTLSResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyTLSResponse.ProtoReflect.Descriptor instead.
 func (*ApplyTLSResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{20}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ApplyTLSResponse) GetStatuses() []*TLSApplyStatus {
@@ -1455,7 +1655,7 @@ type PostgresRole struct {
 
 func (x *PostgresRole) Reset() {
 	*x = PostgresRole{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1467,7 +1667,7 @@ func (x *PostgresRole) String() string {
 func (*PostgresRole) ProtoMessage() {}
 
 func (x *PostgresRole) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1480,7 +1680,7 @@ func (x *PostgresRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostgresRole.ProtoReflect.Descriptor instead.
 func (*PostgresRole) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{21}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *PostgresRole) GetId() string {
@@ -1555,7 +1755,7 @@ type ListRolesRequest struct {
 
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[22]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1567,7 +1767,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[22]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1580,7 +1780,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{22}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListRolesRequest) GetClusterId() string {
@@ -1599,7 +1799,7 @@ type ListRolesResponse struct {
 
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[23]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1611,7 +1811,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[23]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +1824,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{23}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListRolesResponse) GetRoles() []*PostgresRole {
@@ -1648,7 +1848,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[24]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1660,7 +1860,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[24]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1673,7 +1873,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{24}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *CreateRoleRequest) GetClusterId() string {
@@ -1715,7 +1915,7 @@ type CreateRoleResponse struct {
 
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[25]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1727,7 +1927,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[25]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1740,7 +1940,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{25}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *CreateRoleResponse) GetRole() *PostgresRole {
@@ -1766,7 +1966,7 @@ type RotateRolePasswordRequest struct {
 
 func (x *RotateRolePasswordRequest) Reset() {
 	*x = RotateRolePasswordRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[26]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1778,7 +1978,7 @@ func (x *RotateRolePasswordRequest) String() string {
 func (*RotateRolePasswordRequest) ProtoMessage() {}
 
 func (x *RotateRolePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[26]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1791,7 +1991,7 @@ func (x *RotateRolePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateRolePasswordRequest.ProtoReflect.Descriptor instead.
 func (*RotateRolePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{26}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *RotateRolePasswordRequest) GetRoleId() string {
@@ -1812,7 +2012,7 @@ type RotateRolePasswordResponse struct {
 
 func (x *RotateRolePasswordResponse) Reset() {
 	*x = RotateRolePasswordResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[27]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1824,7 +2024,7 @@ func (x *RotateRolePasswordResponse) String() string {
 func (*RotateRolePasswordResponse) ProtoMessage() {}
 
 func (x *RotateRolePasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[27]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1837,7 +2037,7 @@ func (x *RotateRolePasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateRolePasswordResponse.ProtoReflect.Descriptor instead.
 func (*RotateRolePasswordResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{27}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *RotateRolePasswordResponse) GetRole() *PostgresRole {
@@ -1863,7 +2063,7 @@ type DeleteRoleRequest struct {
 
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[28]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1875,7 +2075,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[28]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1888,7 +2088,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{28}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DeleteRoleRequest) GetRoleId() string {
@@ -1906,7 +2106,7 @@ type DeleteRoleResponse struct {
 
 func (x *DeleteRoleResponse) Reset() {
 	*x = DeleteRoleResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[29]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1918,7 +2118,7 @@ func (x *DeleteRoleResponse) String() string {
 func (*DeleteRoleResponse) ProtoMessage() {}
 
 func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[29]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1931,7 +2131,7 @@ func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{29}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{33}
 }
 
 type PostgresDatabase struct {
@@ -1952,7 +2152,7 @@ type PostgresDatabase struct {
 
 func (x *PostgresDatabase) Reset() {
 	*x = PostgresDatabase{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[30]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1964,7 +2164,7 @@ func (x *PostgresDatabase) String() string {
 func (*PostgresDatabase) ProtoMessage() {}
 
 func (x *PostgresDatabase) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[30]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1977,7 +2177,7 @@ func (x *PostgresDatabase) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostgresDatabase.ProtoReflect.Descriptor instead.
 func (*PostgresDatabase) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{30}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *PostgresDatabase) GetId() string {
@@ -2045,7 +2245,7 @@ type ListDatabasesRequest struct {
 
 func (x *ListDatabasesRequest) Reset() {
 	*x = ListDatabasesRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[31]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2057,7 +2257,7 @@ func (x *ListDatabasesRequest) String() string {
 func (*ListDatabasesRequest) ProtoMessage() {}
 
 func (x *ListDatabasesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[31]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2070,7 +2270,7 @@ func (x *ListDatabasesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatabasesRequest.ProtoReflect.Descriptor instead.
 func (*ListDatabasesRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{31}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListDatabasesRequest) GetClusterId() string {
@@ -2089,7 +2289,7 @@ type ListDatabasesResponse struct {
 
 func (x *ListDatabasesResponse) Reset() {
 	*x = ListDatabasesResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[32]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2101,7 +2301,7 @@ func (x *ListDatabasesResponse) String() string {
 func (*ListDatabasesResponse) ProtoMessage() {}
 
 func (x *ListDatabasesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[32]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2114,7 +2314,7 @@ func (x *ListDatabasesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatabasesResponse.ProtoReflect.Descriptor instead.
 func (*ListDatabasesResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{32}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListDatabasesResponse) GetDatabases() []*PostgresDatabase {
@@ -2136,7 +2336,7 @@ type CreateDatabaseRequest struct {
 
 func (x *CreateDatabaseRequest) Reset() {
 	*x = CreateDatabaseRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[33]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2148,7 +2348,7 @@ func (x *CreateDatabaseRequest) String() string {
 func (*CreateDatabaseRequest) ProtoMessage() {}
 
 func (x *CreateDatabaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[33]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2161,7 +2361,7 @@ func (x *CreateDatabaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDatabaseRequest.ProtoReflect.Descriptor instead.
 func (*CreateDatabaseRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{33}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *CreateDatabaseRequest) GetClusterId() string {
@@ -2194,7 +2394,7 @@ type CreateDatabaseResponse struct {
 
 func (x *CreateDatabaseResponse) Reset() {
 	*x = CreateDatabaseResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[34]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2206,7 +2406,7 @@ func (x *CreateDatabaseResponse) String() string {
 func (*CreateDatabaseResponse) ProtoMessage() {}
 
 func (x *CreateDatabaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[34]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2219,7 +2419,7 @@ func (x *CreateDatabaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDatabaseResponse.ProtoReflect.Descriptor instead.
 func (*CreateDatabaseResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{34}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CreateDatabaseResponse) GetDatabase() *PostgresDatabase {
@@ -2238,7 +2438,7 @@ type DeleteDatabaseRequest struct {
 
 func (x *DeleteDatabaseRequest) Reset() {
 	*x = DeleteDatabaseRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[35]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2250,7 +2450,7 @@ func (x *DeleteDatabaseRequest) String() string {
 func (*DeleteDatabaseRequest) ProtoMessage() {}
 
 func (x *DeleteDatabaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[35]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2263,7 +2463,7 @@ func (x *DeleteDatabaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDatabaseRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDatabaseRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{35}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DeleteDatabaseRequest) GetDatabaseId() string {
@@ -2281,7 +2481,7 @@ type DeleteDatabaseResponse struct {
 
 func (x *DeleteDatabaseResponse) Reset() {
 	*x = DeleteDatabaseResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[36]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2293,7 +2493,7 @@ func (x *DeleteDatabaseResponse) String() string {
 func (*DeleteDatabaseResponse) ProtoMessage() {}
 
 func (x *DeleteDatabaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[36]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2306,7 +2506,7 @@ func (x *DeleteDatabaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDatabaseResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDatabaseResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{36}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{40}
 }
 
 var File_skylex_v1_postgres_proto protoreflect.FileDescriptor
@@ -2400,7 +2600,7 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\"P\n" +
 	"\x10ApplyHBAResponse\x12<\n" +
-	"\fhba_statuses\x18\x01 \x03(\v2\x19.skylex.v1.HBAApplyStatusR\vhbaStatuses\"\xe9\x01\n" +
+	"\fhba_statuses\x18\x01 \x03(\v2\x19.skylex.v1.HBAApplyStatusR\vhbaStatuses\"\xcc\x02\n" +
 	"\tTLSConfig\x12\x1d\n" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x19\n" +
@@ -2409,7 +2609,9 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\bkey_file\x18\x04 \x01(\tR\akeyFile\x12\x17\n" +
 	"\aca_file\x18\x05 \x01(\tR\x06caFile\x125\n" +
 	"\bstatuses\x18\x06 \x03(\v2\x19.skylex.v1.TLSApplyStatusR\bstatuses\x12\x1a\n" +
-	"\bwarnings\x18\a \x03(\tR\bwarnings\"\xd8\x02\n" +
+	"\bwarnings\x18\a \x03(\tR\bwarnings\x12!\n" +
+	"\fca_generated\x18\b \x01(\bR\vcaGenerated\x12>\n" +
+	"\rca_created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\vcaCreatedAt\"\xd8\x02\n" +
 	"\x0eTLSApplyStatus\x12\x1d\n" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x17\n" +
@@ -2429,7 +2631,18 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\"D\n" +
 	"\x14GetTLSConfigResponse\x12,\n" +
-	"\x06config\x18\x01 \x01(\v2\x14.skylex.v1.TLSConfigR\x06config\"\xa3\x01\n" +
+	"\x06config\x18\x01 \x01(\v2\x14.skylex.v1.TLSConfigR\x06config\"5\n" +
+	"\x14GenerateTLSCARequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\"e\n" +
+	"\x15GenerateTLSCAResponse\x12,\n" +
+	"\x06config\x18\x01 \x01(\v2\x14.skylex.v1.TLSConfigR\x06config\x12\x1e\n" +
+	"\vca_cert_pem\x18\x02 \x01(\tR\tcaCertPem\"4\n" +
+	"\x13GetTLSCACertRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\"6\n" +
+	"\x14GetTLSCACertResponse\x12\x1e\n" +
+	"\vca_cert_pem\x18\x01 \x01(\tR\tcaCertPem\"\xa3\x01\n" +
 	"\x16UpdateTLSConfigRequest\x12\x1d\n" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x19\n" +
@@ -2508,15 +2721,16 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\x15DeleteDatabaseRequest\x12\x1f\n" +
 	"\vdatabase_id\x18\x01 \x01(\tR\n" +
 	"databaseId\"\x18\n" +
-	"\x16DeleteDatabaseResponse2\xb1\n" +
-	"\n" +
+	"\x16DeleteDatabaseResponse2\xd6\v\n" +
 	"\x19PostgresManagementService\x12g\n" +
 	"\x14GetConnectionProfile\x12&.skylex.v1.GetConnectionProfileRequest\x1a'.skylex.v1.GetConnectionProfileResponse\x12p\n" +
 	"\x17UpdateConnectionProfile\x12).skylex.v1.UpdateConnectionProfileRequest\x1a*.skylex.v1.UpdateConnectionProfileResponse\x12[\n" +
 	"\x10GetNetworkAccess\x12\".skylex.v1.GetNetworkAccessRequest\x1a#.skylex.v1.GetNetworkAccessResponse\x12d\n" +
 	"\x13UpdateNetworkAccess\x12%.skylex.v1.UpdateNetworkAccessRequest\x1a&.skylex.v1.UpdateNetworkAccessResponse\x12C\n" +
 	"\bApplyHBA\x12\x1a.skylex.v1.ApplyHBARequest\x1a\x1b.skylex.v1.ApplyHBAResponse\x12O\n" +
-	"\fGetTLSConfig\x12\x1e.skylex.v1.GetTLSConfigRequest\x1a\x1f.skylex.v1.GetTLSConfigResponse\x12X\n" +
+	"\fGetTLSConfig\x12\x1e.skylex.v1.GetTLSConfigRequest\x1a\x1f.skylex.v1.GetTLSConfigResponse\x12R\n" +
+	"\rGenerateTLSCA\x12\x1f.skylex.v1.GenerateTLSCARequest\x1a .skylex.v1.GenerateTLSCAResponse\x12O\n" +
+	"\fGetTLSCACert\x12\x1e.skylex.v1.GetTLSCACertRequest\x1a\x1f.skylex.v1.GetTLSCACertResponse\x12X\n" +
 	"\x0fUpdateTLSConfig\x12!.skylex.v1.UpdateTLSConfigRequest\x1a\".skylex.v1.UpdateTLSConfigResponse\x12C\n" +
 	"\bApplyTLS\x12\x1a.skylex.v1.ApplyTLSRequest\x1a\x1b.skylex.v1.ApplyTLSResponse\x12F\n" +
 	"\tListRoles\x12\x1b.skylex.v1.ListRolesRequest\x1a\x1c.skylex.v1.ListRolesResponse\x12I\n" +
@@ -2543,7 +2757,7 @@ func file_skylex_v1_postgres_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_postgres_proto_rawDescData
 }
 
-var file_skylex_v1_postgres_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_skylex_v1_postgres_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_skylex_v1_postgres_proto_goTypes = []any{
 	(*ConnectionProfile)(nil),               // 0: skylex.v1.ConnectionProfile
 	(*NodeEndpoint)(nil),                    // 1: skylex.v1.NodeEndpoint
@@ -2562,93 +2776,103 @@ var file_skylex_v1_postgres_proto_goTypes = []any{
 	(*TLSApplyStatus)(nil),                  // 14: skylex.v1.TLSApplyStatus
 	(*GetTLSConfigRequest)(nil),             // 15: skylex.v1.GetTLSConfigRequest
 	(*GetTLSConfigResponse)(nil),            // 16: skylex.v1.GetTLSConfigResponse
-	(*UpdateTLSConfigRequest)(nil),          // 17: skylex.v1.UpdateTLSConfigRequest
-	(*UpdateTLSConfigResponse)(nil),         // 18: skylex.v1.UpdateTLSConfigResponse
-	(*ApplyTLSRequest)(nil),                 // 19: skylex.v1.ApplyTLSRequest
-	(*ApplyTLSResponse)(nil),                // 20: skylex.v1.ApplyTLSResponse
-	(*PostgresRole)(nil),                    // 21: skylex.v1.PostgresRole
-	(*ListRolesRequest)(nil),                // 22: skylex.v1.ListRolesRequest
-	(*ListRolesResponse)(nil),               // 23: skylex.v1.ListRolesResponse
-	(*CreateRoleRequest)(nil),               // 24: skylex.v1.CreateRoleRequest
-	(*CreateRoleResponse)(nil),              // 25: skylex.v1.CreateRoleResponse
-	(*RotateRolePasswordRequest)(nil),       // 26: skylex.v1.RotateRolePasswordRequest
-	(*RotateRolePasswordResponse)(nil),      // 27: skylex.v1.RotateRolePasswordResponse
-	(*DeleteRoleRequest)(nil),               // 28: skylex.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),              // 29: skylex.v1.DeleteRoleResponse
-	(*PostgresDatabase)(nil),                // 30: skylex.v1.PostgresDatabase
-	(*ListDatabasesRequest)(nil),            // 31: skylex.v1.ListDatabasesRequest
-	(*ListDatabasesResponse)(nil),           // 32: skylex.v1.ListDatabasesResponse
-	(*CreateDatabaseRequest)(nil),           // 33: skylex.v1.CreateDatabaseRequest
-	(*CreateDatabaseResponse)(nil),          // 34: skylex.v1.CreateDatabaseResponse
-	(*DeleteDatabaseRequest)(nil),           // 35: skylex.v1.DeleteDatabaseRequest
-	(*DeleteDatabaseResponse)(nil),          // 36: skylex.v1.DeleteDatabaseResponse
-	(*timestamppb.Timestamp)(nil),           // 37: google.protobuf.Timestamp
+	(*GenerateTLSCARequest)(nil),            // 17: skylex.v1.GenerateTLSCARequest
+	(*GenerateTLSCAResponse)(nil),           // 18: skylex.v1.GenerateTLSCAResponse
+	(*GetTLSCACertRequest)(nil),             // 19: skylex.v1.GetTLSCACertRequest
+	(*GetTLSCACertResponse)(nil),            // 20: skylex.v1.GetTLSCACertResponse
+	(*UpdateTLSConfigRequest)(nil),          // 21: skylex.v1.UpdateTLSConfigRequest
+	(*UpdateTLSConfigResponse)(nil),         // 22: skylex.v1.UpdateTLSConfigResponse
+	(*ApplyTLSRequest)(nil),                 // 23: skylex.v1.ApplyTLSRequest
+	(*ApplyTLSResponse)(nil),                // 24: skylex.v1.ApplyTLSResponse
+	(*PostgresRole)(nil),                    // 25: skylex.v1.PostgresRole
+	(*ListRolesRequest)(nil),                // 26: skylex.v1.ListRolesRequest
+	(*ListRolesResponse)(nil),               // 27: skylex.v1.ListRolesResponse
+	(*CreateRoleRequest)(nil),               // 28: skylex.v1.CreateRoleRequest
+	(*CreateRoleResponse)(nil),              // 29: skylex.v1.CreateRoleResponse
+	(*RotateRolePasswordRequest)(nil),       // 30: skylex.v1.RotateRolePasswordRequest
+	(*RotateRolePasswordResponse)(nil),      // 31: skylex.v1.RotateRolePasswordResponse
+	(*DeleteRoleRequest)(nil),               // 32: skylex.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),              // 33: skylex.v1.DeleteRoleResponse
+	(*PostgresDatabase)(nil),                // 34: skylex.v1.PostgresDatabase
+	(*ListDatabasesRequest)(nil),            // 35: skylex.v1.ListDatabasesRequest
+	(*ListDatabasesResponse)(nil),           // 36: skylex.v1.ListDatabasesResponse
+	(*CreateDatabaseRequest)(nil),           // 37: skylex.v1.CreateDatabaseRequest
+	(*CreateDatabaseResponse)(nil),          // 38: skylex.v1.CreateDatabaseResponse
+	(*DeleteDatabaseRequest)(nil),           // 39: skylex.v1.DeleteDatabaseRequest
+	(*DeleteDatabaseResponse)(nil),          // 40: skylex.v1.DeleteDatabaseResponse
+	(*timestamppb.Timestamp)(nil),           // 41: google.protobuf.Timestamp
 }
 var file_skylex_v1_postgres_proto_depIdxs = []int32{
-	37, // 0: skylex.v1.ConnectionProfile.created_at:type_name -> google.protobuf.Timestamp
-	37, // 1: skylex.v1.ConnectionProfile.updated_at:type_name -> google.protobuf.Timestamp
+	41, // 0: skylex.v1.ConnectionProfile.created_at:type_name -> google.protobuf.Timestamp
+	41, // 1: skylex.v1.ConnectionProfile.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: skylex.v1.GetConnectionProfileResponse.profile:type_name -> skylex.v1.ConnectionProfile
 	1,  // 3: skylex.v1.GetConnectionProfileResponse.primary_endpoint:type_name -> skylex.v1.NodeEndpoint
 	1,  // 4: skylex.v1.GetConnectionProfileResponse.replica_endpoints:type_name -> skylex.v1.NodeEndpoint
 	13, // 5: skylex.v1.GetConnectionProfileResponse.tls_config:type_name -> skylex.v1.TLSConfig
 	14, // 6: skylex.v1.GetConnectionProfileResponse.tls_statuses:type_name -> skylex.v1.TLSApplyStatus
 	0,  // 7: skylex.v1.UpdateConnectionProfileResponse.profile:type_name -> skylex.v1.ConnectionProfile
-	37, // 8: skylex.v1.HBAApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
-	37, // 9: skylex.v1.HBAApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
+	41, // 8: skylex.v1.HBAApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
+	41, // 9: skylex.v1.HBAApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
 	6,  // 10: skylex.v1.GetNetworkAccessResponse.hba_statuses:type_name -> skylex.v1.HBAApplyStatus
 	6,  // 11: skylex.v1.ApplyHBAResponse.hba_statuses:type_name -> skylex.v1.HBAApplyStatus
 	14, // 12: skylex.v1.TLSConfig.statuses:type_name -> skylex.v1.TLSApplyStatus
-	37, // 13: skylex.v1.TLSApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
-	37, // 14: skylex.v1.TLSApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
-	13, // 15: skylex.v1.GetTLSConfigResponse.config:type_name -> skylex.v1.TLSConfig
-	13, // 16: skylex.v1.UpdateTLSConfigResponse.config:type_name -> skylex.v1.TLSConfig
-	14, // 17: skylex.v1.ApplyTLSResponse.statuses:type_name -> skylex.v1.TLSApplyStatus
-	37, // 18: skylex.v1.PostgresRole.expires_at:type_name -> google.protobuf.Timestamp
-	37, // 19: skylex.v1.PostgresRole.created_at:type_name -> google.protobuf.Timestamp
-	37, // 20: skylex.v1.PostgresRole.updated_at:type_name -> google.protobuf.Timestamp
-	21, // 21: skylex.v1.ListRolesResponse.roles:type_name -> skylex.v1.PostgresRole
-	37, // 22: skylex.v1.CreateRoleRequest.expires_at:type_name -> google.protobuf.Timestamp
-	21, // 23: skylex.v1.CreateRoleResponse.role:type_name -> skylex.v1.PostgresRole
-	21, // 24: skylex.v1.RotateRolePasswordResponse.role:type_name -> skylex.v1.PostgresRole
-	37, // 25: skylex.v1.PostgresDatabase.created_at:type_name -> google.protobuf.Timestamp
-	37, // 26: skylex.v1.PostgresDatabase.updated_at:type_name -> google.protobuf.Timestamp
-	30, // 27: skylex.v1.ListDatabasesResponse.databases:type_name -> skylex.v1.PostgresDatabase
-	30, // 28: skylex.v1.CreateDatabaseResponse.database:type_name -> skylex.v1.PostgresDatabase
-	2,  // 29: skylex.v1.PostgresManagementService.GetConnectionProfile:input_type -> skylex.v1.GetConnectionProfileRequest
-	4,  // 30: skylex.v1.PostgresManagementService.UpdateConnectionProfile:input_type -> skylex.v1.UpdateConnectionProfileRequest
-	7,  // 31: skylex.v1.PostgresManagementService.GetNetworkAccess:input_type -> skylex.v1.GetNetworkAccessRequest
-	9,  // 32: skylex.v1.PostgresManagementService.UpdateNetworkAccess:input_type -> skylex.v1.UpdateNetworkAccessRequest
-	11, // 33: skylex.v1.PostgresManagementService.ApplyHBA:input_type -> skylex.v1.ApplyHBARequest
-	15, // 34: skylex.v1.PostgresManagementService.GetTLSConfig:input_type -> skylex.v1.GetTLSConfigRequest
-	17, // 35: skylex.v1.PostgresManagementService.UpdateTLSConfig:input_type -> skylex.v1.UpdateTLSConfigRequest
-	19, // 36: skylex.v1.PostgresManagementService.ApplyTLS:input_type -> skylex.v1.ApplyTLSRequest
-	22, // 37: skylex.v1.PostgresManagementService.ListRoles:input_type -> skylex.v1.ListRolesRequest
-	24, // 38: skylex.v1.PostgresManagementService.CreateRole:input_type -> skylex.v1.CreateRoleRequest
-	26, // 39: skylex.v1.PostgresManagementService.RotateRolePassword:input_type -> skylex.v1.RotateRolePasswordRequest
-	28, // 40: skylex.v1.PostgresManagementService.DeleteRole:input_type -> skylex.v1.DeleteRoleRequest
-	31, // 41: skylex.v1.PostgresManagementService.ListDatabases:input_type -> skylex.v1.ListDatabasesRequest
-	33, // 42: skylex.v1.PostgresManagementService.CreateDatabase:input_type -> skylex.v1.CreateDatabaseRequest
-	35, // 43: skylex.v1.PostgresManagementService.DeleteDatabase:input_type -> skylex.v1.DeleteDatabaseRequest
-	3,  // 44: skylex.v1.PostgresManagementService.GetConnectionProfile:output_type -> skylex.v1.GetConnectionProfileResponse
-	5,  // 45: skylex.v1.PostgresManagementService.UpdateConnectionProfile:output_type -> skylex.v1.UpdateConnectionProfileResponse
-	8,  // 46: skylex.v1.PostgresManagementService.GetNetworkAccess:output_type -> skylex.v1.GetNetworkAccessResponse
-	10, // 47: skylex.v1.PostgresManagementService.UpdateNetworkAccess:output_type -> skylex.v1.UpdateNetworkAccessResponse
-	12, // 48: skylex.v1.PostgresManagementService.ApplyHBA:output_type -> skylex.v1.ApplyHBAResponse
-	16, // 49: skylex.v1.PostgresManagementService.GetTLSConfig:output_type -> skylex.v1.GetTLSConfigResponse
-	18, // 50: skylex.v1.PostgresManagementService.UpdateTLSConfig:output_type -> skylex.v1.UpdateTLSConfigResponse
-	20, // 51: skylex.v1.PostgresManagementService.ApplyTLS:output_type -> skylex.v1.ApplyTLSResponse
-	23, // 52: skylex.v1.PostgresManagementService.ListRoles:output_type -> skylex.v1.ListRolesResponse
-	25, // 53: skylex.v1.PostgresManagementService.CreateRole:output_type -> skylex.v1.CreateRoleResponse
-	27, // 54: skylex.v1.PostgresManagementService.RotateRolePassword:output_type -> skylex.v1.RotateRolePasswordResponse
-	29, // 55: skylex.v1.PostgresManagementService.DeleteRole:output_type -> skylex.v1.DeleteRoleResponse
-	32, // 56: skylex.v1.PostgresManagementService.ListDatabases:output_type -> skylex.v1.ListDatabasesResponse
-	34, // 57: skylex.v1.PostgresManagementService.CreateDatabase:output_type -> skylex.v1.CreateDatabaseResponse
-	36, // 58: skylex.v1.PostgresManagementService.DeleteDatabase:output_type -> skylex.v1.DeleteDatabaseResponse
-	44, // [44:59] is the sub-list for method output_type
-	29, // [29:44] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	41, // 13: skylex.v1.TLSConfig.ca_created_at:type_name -> google.protobuf.Timestamp
+	41, // 14: skylex.v1.TLSApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
+	41, // 15: skylex.v1.TLSApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 16: skylex.v1.GetTLSConfigResponse.config:type_name -> skylex.v1.TLSConfig
+	13, // 17: skylex.v1.GenerateTLSCAResponse.config:type_name -> skylex.v1.TLSConfig
+	13, // 18: skylex.v1.UpdateTLSConfigResponse.config:type_name -> skylex.v1.TLSConfig
+	14, // 19: skylex.v1.ApplyTLSResponse.statuses:type_name -> skylex.v1.TLSApplyStatus
+	41, // 20: skylex.v1.PostgresRole.expires_at:type_name -> google.protobuf.Timestamp
+	41, // 21: skylex.v1.PostgresRole.created_at:type_name -> google.protobuf.Timestamp
+	41, // 22: skylex.v1.PostgresRole.updated_at:type_name -> google.protobuf.Timestamp
+	25, // 23: skylex.v1.ListRolesResponse.roles:type_name -> skylex.v1.PostgresRole
+	41, // 24: skylex.v1.CreateRoleRequest.expires_at:type_name -> google.protobuf.Timestamp
+	25, // 25: skylex.v1.CreateRoleResponse.role:type_name -> skylex.v1.PostgresRole
+	25, // 26: skylex.v1.RotateRolePasswordResponse.role:type_name -> skylex.v1.PostgresRole
+	41, // 27: skylex.v1.PostgresDatabase.created_at:type_name -> google.protobuf.Timestamp
+	41, // 28: skylex.v1.PostgresDatabase.updated_at:type_name -> google.protobuf.Timestamp
+	34, // 29: skylex.v1.ListDatabasesResponse.databases:type_name -> skylex.v1.PostgresDatabase
+	34, // 30: skylex.v1.CreateDatabaseResponse.database:type_name -> skylex.v1.PostgresDatabase
+	2,  // 31: skylex.v1.PostgresManagementService.GetConnectionProfile:input_type -> skylex.v1.GetConnectionProfileRequest
+	4,  // 32: skylex.v1.PostgresManagementService.UpdateConnectionProfile:input_type -> skylex.v1.UpdateConnectionProfileRequest
+	7,  // 33: skylex.v1.PostgresManagementService.GetNetworkAccess:input_type -> skylex.v1.GetNetworkAccessRequest
+	9,  // 34: skylex.v1.PostgresManagementService.UpdateNetworkAccess:input_type -> skylex.v1.UpdateNetworkAccessRequest
+	11, // 35: skylex.v1.PostgresManagementService.ApplyHBA:input_type -> skylex.v1.ApplyHBARequest
+	15, // 36: skylex.v1.PostgresManagementService.GetTLSConfig:input_type -> skylex.v1.GetTLSConfigRequest
+	17, // 37: skylex.v1.PostgresManagementService.GenerateTLSCA:input_type -> skylex.v1.GenerateTLSCARequest
+	19, // 38: skylex.v1.PostgresManagementService.GetTLSCACert:input_type -> skylex.v1.GetTLSCACertRequest
+	21, // 39: skylex.v1.PostgresManagementService.UpdateTLSConfig:input_type -> skylex.v1.UpdateTLSConfigRequest
+	23, // 40: skylex.v1.PostgresManagementService.ApplyTLS:input_type -> skylex.v1.ApplyTLSRequest
+	26, // 41: skylex.v1.PostgresManagementService.ListRoles:input_type -> skylex.v1.ListRolesRequest
+	28, // 42: skylex.v1.PostgresManagementService.CreateRole:input_type -> skylex.v1.CreateRoleRequest
+	30, // 43: skylex.v1.PostgresManagementService.RotateRolePassword:input_type -> skylex.v1.RotateRolePasswordRequest
+	32, // 44: skylex.v1.PostgresManagementService.DeleteRole:input_type -> skylex.v1.DeleteRoleRequest
+	35, // 45: skylex.v1.PostgresManagementService.ListDatabases:input_type -> skylex.v1.ListDatabasesRequest
+	37, // 46: skylex.v1.PostgresManagementService.CreateDatabase:input_type -> skylex.v1.CreateDatabaseRequest
+	39, // 47: skylex.v1.PostgresManagementService.DeleteDatabase:input_type -> skylex.v1.DeleteDatabaseRequest
+	3,  // 48: skylex.v1.PostgresManagementService.GetConnectionProfile:output_type -> skylex.v1.GetConnectionProfileResponse
+	5,  // 49: skylex.v1.PostgresManagementService.UpdateConnectionProfile:output_type -> skylex.v1.UpdateConnectionProfileResponse
+	8,  // 50: skylex.v1.PostgresManagementService.GetNetworkAccess:output_type -> skylex.v1.GetNetworkAccessResponse
+	10, // 51: skylex.v1.PostgresManagementService.UpdateNetworkAccess:output_type -> skylex.v1.UpdateNetworkAccessResponse
+	12, // 52: skylex.v1.PostgresManagementService.ApplyHBA:output_type -> skylex.v1.ApplyHBAResponse
+	16, // 53: skylex.v1.PostgresManagementService.GetTLSConfig:output_type -> skylex.v1.GetTLSConfigResponse
+	18, // 54: skylex.v1.PostgresManagementService.GenerateTLSCA:output_type -> skylex.v1.GenerateTLSCAResponse
+	20, // 55: skylex.v1.PostgresManagementService.GetTLSCACert:output_type -> skylex.v1.GetTLSCACertResponse
+	22, // 56: skylex.v1.PostgresManagementService.UpdateTLSConfig:output_type -> skylex.v1.UpdateTLSConfigResponse
+	24, // 57: skylex.v1.PostgresManagementService.ApplyTLS:output_type -> skylex.v1.ApplyTLSResponse
+	27, // 58: skylex.v1.PostgresManagementService.ListRoles:output_type -> skylex.v1.ListRolesResponse
+	29, // 59: skylex.v1.PostgresManagementService.CreateRole:output_type -> skylex.v1.CreateRoleResponse
+	31, // 60: skylex.v1.PostgresManagementService.RotateRolePassword:output_type -> skylex.v1.RotateRolePasswordResponse
+	33, // 61: skylex.v1.PostgresManagementService.DeleteRole:output_type -> skylex.v1.DeleteRoleResponse
+	36, // 62: skylex.v1.PostgresManagementService.ListDatabases:output_type -> skylex.v1.ListDatabasesResponse
+	38, // 63: skylex.v1.PostgresManagementService.CreateDatabase:output_type -> skylex.v1.CreateDatabaseResponse
+	40, // 64: skylex.v1.PostgresManagementService.DeleteDatabase:output_type -> skylex.v1.DeleteDatabaseResponse
+	48, // [48:65] is the sub-list for method output_type
+	31, // [31:48] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_postgres_proto_init() }
@@ -2662,7 +2886,7 @@ func file_skylex_v1_postgres_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_postgres_proto_rawDesc), len(file_skylex_v1_postgres_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   37,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

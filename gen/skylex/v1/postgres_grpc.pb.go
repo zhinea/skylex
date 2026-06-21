@@ -25,6 +25,8 @@ const (
 	PostgresManagementService_UpdateNetworkAccess_FullMethodName     = "/skylex.v1.PostgresManagementService/UpdateNetworkAccess"
 	PostgresManagementService_ApplyHBA_FullMethodName                = "/skylex.v1.PostgresManagementService/ApplyHBA"
 	PostgresManagementService_GetTLSConfig_FullMethodName            = "/skylex.v1.PostgresManagementService/GetTLSConfig"
+	PostgresManagementService_GenerateTLSCA_FullMethodName           = "/skylex.v1.PostgresManagementService/GenerateTLSCA"
+	PostgresManagementService_GetTLSCACert_FullMethodName            = "/skylex.v1.PostgresManagementService/GetTLSCACert"
 	PostgresManagementService_UpdateTLSConfig_FullMethodName         = "/skylex.v1.PostgresManagementService/UpdateTLSConfig"
 	PostgresManagementService_ApplyTLS_FullMethodName                = "/skylex.v1.PostgresManagementService/ApplyTLS"
 	PostgresManagementService_ListRoles_FullMethodName               = "/skylex.v1.PostgresManagementService/ListRoles"
@@ -48,6 +50,8 @@ type PostgresManagementServiceClient interface {
 	UpdateNetworkAccess(ctx context.Context, in *UpdateNetworkAccessRequest, opts ...grpc.CallOption) (*UpdateNetworkAccessResponse, error)
 	ApplyHBA(ctx context.Context, in *ApplyHBARequest, opts ...grpc.CallOption) (*ApplyHBAResponse, error)
 	GetTLSConfig(ctx context.Context, in *GetTLSConfigRequest, opts ...grpc.CallOption) (*GetTLSConfigResponse, error)
+	GenerateTLSCA(ctx context.Context, in *GenerateTLSCARequest, opts ...grpc.CallOption) (*GenerateTLSCAResponse, error)
+	GetTLSCACert(ctx context.Context, in *GetTLSCACertRequest, opts ...grpc.CallOption) (*GetTLSCACertResponse, error)
 	UpdateTLSConfig(ctx context.Context, in *UpdateTLSConfigRequest, opts ...grpc.CallOption) (*UpdateTLSConfigResponse, error)
 	ApplyTLS(ctx context.Context, in *ApplyTLSRequest, opts ...grpc.CallOption) (*ApplyTLSResponse, error)
 	// Role management RPCs (Phase 3)
@@ -123,6 +127,26 @@ func (c *postgresManagementServiceClient) GetTLSConfig(ctx context.Context, in *
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetTLSConfigResponse)
 	err := c.cc.Invoke(ctx, PostgresManagementService_GetTLSConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) GenerateTLSCA(ctx context.Context, in *GenerateTLSCARequest, opts ...grpc.CallOption) (*GenerateTLSCAResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenerateTLSCAResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_GenerateTLSCA_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) GetTLSCACert(ctx context.Context, in *GetTLSCACertRequest, opts ...grpc.CallOption) (*GetTLSCACertResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTLSCACertResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_GetTLSCACert_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -231,6 +255,8 @@ type PostgresManagementServiceServer interface {
 	UpdateNetworkAccess(context.Context, *UpdateNetworkAccessRequest) (*UpdateNetworkAccessResponse, error)
 	ApplyHBA(context.Context, *ApplyHBARequest) (*ApplyHBAResponse, error)
 	GetTLSConfig(context.Context, *GetTLSConfigRequest) (*GetTLSConfigResponse, error)
+	GenerateTLSCA(context.Context, *GenerateTLSCARequest) (*GenerateTLSCAResponse, error)
+	GetTLSCACert(context.Context, *GetTLSCACertRequest) (*GetTLSCACertResponse, error)
 	UpdateTLSConfig(context.Context, *UpdateTLSConfigRequest) (*UpdateTLSConfigResponse, error)
 	ApplyTLS(context.Context, *ApplyTLSRequest) (*ApplyTLSResponse, error)
 	// Role management RPCs (Phase 3)
@@ -269,6 +295,12 @@ func (UnimplementedPostgresManagementServiceServer) ApplyHBA(context.Context, *A
 }
 func (UnimplementedPostgresManagementServiceServer) GetTLSConfig(context.Context, *GetTLSConfigRequest) (*GetTLSConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTLSConfig not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) GenerateTLSCA(context.Context, *GenerateTLSCARequest) (*GenerateTLSCAResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GenerateTLSCA not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) GetTLSCACert(context.Context, *GetTLSCACertRequest) (*GetTLSCACertResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTLSCACert not implemented")
 }
 func (UnimplementedPostgresManagementServiceServer) UpdateTLSConfig(context.Context, *UpdateTLSConfigRequest) (*UpdateTLSConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateTLSConfig not implemented")
@@ -423,6 +455,42 @@ func _PostgresManagementService_GetTLSConfig_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostgresManagementServiceServer).GetTLSConfig(ctx, req.(*GetTLSConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_GenerateTLSCA_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateTLSCARequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).GenerateTLSCA(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_GenerateTLSCA_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).GenerateTLSCA(ctx, req.(*GenerateTLSCARequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_GetTLSCACert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTLSCACertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).GetTLSCACert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_GetTLSCACert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).GetTLSCACert(ctx, req.(*GetTLSCACertRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -619,6 +687,14 @@ var PostgresManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTLSConfig",
 			Handler:    _PostgresManagementService_GetTLSConfig_Handler,
+		},
+		{
+			MethodName: "GenerateTLSCA",
+			Handler:    _PostgresManagementService_GenerateTLSCA_Handler,
+		},
+		{
+			MethodName: "GetTLSCACert",
+			Handler:    _PostgresManagementService_GetTLSCACert_Handler,
 		},
 		{
 			MethodName: "UpdateTLSConfig",
