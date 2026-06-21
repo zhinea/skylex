@@ -21,16 +21,25 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	PostgresManagementService_GetConnectionProfile_FullMethodName    = "/skylex.v1.PostgresManagementService/GetConnectionProfile"
 	PostgresManagementService_UpdateConnectionProfile_FullMethodName = "/skylex.v1.PostgresManagementService/UpdateConnectionProfile"
+	PostgresManagementService_ListRoles_FullMethodName               = "/skylex.v1.PostgresManagementService/ListRoles"
+	PostgresManagementService_CreateRole_FullMethodName              = "/skylex.v1.PostgresManagementService/CreateRole"
+	PostgresManagementService_RotateRolePassword_FullMethodName      = "/skylex.v1.PostgresManagementService/RotateRolePassword"
+	PostgresManagementService_DeleteRole_FullMethodName              = "/skylex.v1.PostgresManagementService/DeleteRole"
 )
 
 // PostgresManagementServiceClient is the client API for PostgresManagementService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// PostgresManagementService manages connection profile metadata for a cluster.
+// PostgresManagementService manages connection profile metadata and managed roles for a cluster.
 type PostgresManagementServiceClient interface {
 	GetConnectionProfile(ctx context.Context, in *GetConnectionProfileRequest, opts ...grpc.CallOption) (*GetConnectionProfileResponse, error)
 	UpdateConnectionProfile(ctx context.Context, in *UpdateConnectionProfileRequest, opts ...grpc.CallOption) (*UpdateConnectionProfileResponse, error)
+	// Role management RPCs (Phase 3)
+	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
+	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
+	RotateRolePassword(ctx context.Context, in *RotateRolePasswordRequest, opts ...grpc.CallOption) (*RotateRolePasswordResponse, error)
+	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
 }
 
 type postgresManagementServiceClient struct {
@@ -61,14 +70,59 @@ func (c *postgresManagementServiceClient) UpdateConnectionProfile(ctx context.Co
 	return out, nil
 }
 
+func (c *postgresManagementServiceClient) ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRolesResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_ListRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateRoleResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_CreateRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) RotateRolePassword(ctx context.Context, in *RotateRolePasswordRequest, opts ...grpc.CallOption) (*RotateRolePasswordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RotateRolePasswordResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_RotateRolePassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteRoleResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_DeleteRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostgresManagementServiceServer is the server API for PostgresManagementService service.
 // All implementations must embed UnimplementedPostgresManagementServiceServer
 // for forward compatibility.
 //
-// PostgresManagementService manages connection profile metadata for a cluster.
+// PostgresManagementService manages connection profile metadata and managed roles for a cluster.
 type PostgresManagementServiceServer interface {
 	GetConnectionProfile(context.Context, *GetConnectionProfileRequest) (*GetConnectionProfileResponse, error)
 	UpdateConnectionProfile(context.Context, *UpdateConnectionProfileRequest) (*UpdateConnectionProfileResponse, error)
+	// Role management RPCs (Phase 3)
+	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
+	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
+	RotateRolePassword(context.Context, *RotateRolePasswordRequest) (*RotateRolePasswordResponse, error)
+	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
 	mustEmbedUnimplementedPostgresManagementServiceServer()
 }
 
@@ -84,6 +138,18 @@ func (UnimplementedPostgresManagementServiceServer) GetConnectionProfile(context
 }
 func (UnimplementedPostgresManagementServiceServer) UpdateConnectionProfile(context.Context, *UpdateConnectionProfileRequest) (*UpdateConnectionProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateConnectionProfile not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRoles not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateRole not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) RotateRolePassword(context.Context, *RotateRolePasswordRequest) (*RotateRolePasswordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RotateRolePassword not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRole not implemented")
 }
 func (UnimplementedPostgresManagementServiceServer) mustEmbedUnimplementedPostgresManagementServiceServer() {
 }
@@ -143,6 +209,78 @@ func _PostgresManagementService_UpdateConnectionProfile_Handler(srv interface{},
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostgresManagementService_ListRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).ListRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_ListRoles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).ListRoles(ctx, req.(*ListRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_CreateRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).CreateRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_CreateRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).CreateRole(ctx, req.(*CreateRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_RotateRolePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RotateRolePasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).RotateRolePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_RotateRolePassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).RotateRolePassword(ctx, req.(*RotateRolePasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_DeleteRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).DeleteRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_DeleteRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).DeleteRole(ctx, req.(*DeleteRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostgresManagementService_ServiceDesc is the grpc.ServiceDesc for PostgresManagementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -157,6 +295,22 @@ var PostgresManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateConnectionProfile",
 			Handler:    _PostgresManagementService_UpdateConnectionProfile_Handler,
+		},
+		{
+			MethodName: "ListRoles",
+			Handler:    _PostgresManagementService_ListRoles_Handler,
+		},
+		{
+			MethodName: "CreateRole",
+			Handler:    _PostgresManagementService_CreateRole_Handler,
+		},
+		{
+			MethodName: "RotateRolePassword",
+			Handler:    _PostgresManagementService_RotateRolePassword_Handler,
+		},
+		{
+			MethodName: "DeleteRole",
+			Handler:    _PostgresManagementService_DeleteRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

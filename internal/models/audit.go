@@ -21,6 +21,9 @@ const (
 	AuditActionRejoinNode      AuditAction = "node.rejoin"
 	AuditActionDeleteNode      AuditAction = "node.delete"
 	AuditActionResolveConflict AuditAction = "node.resolve_conflict"
+	AuditActionCreateRole      AuditAction = "postgres_role.create"
+	AuditActionRotateRole      AuditAction = "postgres_role.rotate"
+	AuditActionDeleteRole      AuditAction = "postgres_role.delete"
 )
 
 type AuditLog struct {

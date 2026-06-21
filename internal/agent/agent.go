@@ -634,6 +634,15 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		}
 		return true, "pgBackRest stanza check passed", ""
 
+	case "pg_ensure_role":
+		return a.executeEnsureRole(ctx, cmd, logger)
+
+	case "pg_rotate_role_password":
+		return a.executeRotateRolePassword(ctx, cmd, logger)
+
+	case "pg_drop_role":
+		return a.executeDropRole(ctx, cmd, logger)
+
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())
 	}

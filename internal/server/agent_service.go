@@ -26,6 +26,8 @@ type AgentService struct {
 	commands       *db.AgentCommandRepository
 	commandLogs    *db.CommandLogRepository
 	agentTokenRepo *db.AgentTokenRepository
+	commandSecrets *db.AgentCommandSecretRepository
+	postgresRoles  *db.PostgresRoleRepository
 	log            *slog.Logger
 }
 
@@ -39,6 +41,14 @@ func NewAgentService(cfg *Config, clusters *db.ClusterRepository, nodes *db.Node
 		agentTokenRepo: agentTokenRepo,
 		log:            log,
 	}
+}
+
+func (s *AgentService) SetCommandSecretRepository(repo *db.AgentCommandSecretRepository) {
+	s.commandSecrets = repo
+}
+
+func (s *AgentService) SetPostgresRoleRepository(repo *db.PostgresRoleRepository) {
+	s.postgresRoles = repo
 }
 
 func (s *AgentService) validateAgentToken(token string) (bool, error) {
@@ -283,17 +293,46 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 
 	var protoCmds []*skylexv1.AgentCommand
 	for _, c := range cmds {
-		protoCmds = append(protoCmds, &skylexv1.AgentCommand{
+		protoCmd := &skylexv1.AgentCommand{
 			Id:      c.ID,
 			NodeId:  c.NodeID,
 			Action:  c.Action,
 			Payload: c.Payload,
-		})
+		}
+
+		// Resolve command secrets for role management commands.
+		if s.commandSecrets != nil && isRoleManagementAction(c.Action) {
+			secrets, err := s.commandSecrets.ResolveAllForCommand(ctx, c.ID)
+			if err != nil {
+				s.log.Warn("resolve command secrets failed", "command_id", c.ID, "error", err)
+			} else if len(secrets) > 0 {
+				protoCmd.Secrets = secrets
+			}
+		}
+
+		protoCmds = append(protoCmds, protoCmd)
 	}
 
 	return &skylexv1.FetchCommandResponse{
 		Commands: protoCmds,
 	}, nil
+}
+
+// isRoleManagementAction reports whether an action carries command secrets.
+func isRoleManagementAction(action string) bool {
+	switch action {
+	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role":
+		return true
+	default:
+		return false
+	}
+}
+
+func (s *AgentService) handleRoleManagementCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+	if s.postgresRoles == nil {
+		return false, nil
+	}
+	return s.postgresRoles.HandleCommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
 }
 
 func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.ReportCommandResultRequest) (*skylexv1.ReportCommandResultResponse, error) {
@@ -307,6 +346,16 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 
 	if err := s.commands.UpdateResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetOutput(), req.GetError()); err != nil {
 		return nil, status.Errorf(codes.Internal, "update command result: %v", err)
+	}
+	if handled, err := s.handleRoleManagementCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
+		s.log.Warn("handle role management command result failed", "command_id", req.GetCommandId(), "error", err)
+	} else if handled {
+		return &skylexv1.ReportCommandResultResponse{}, nil
+	}
+	if s.commandSecrets != nil {
+		if err := s.commandSecrets.DeleteForCommand(ctx, req.GetCommandId()); err != nil {
+			s.log.Warn("delete command secrets failed", "command_id", req.GetCommandId(), "error", err)
+		}
 	}
 
 	if handled, err := s.handleAgentLifecycleCommandResult(ctx, req.GetCommandId(), req.GetSuccess()); err != nil {

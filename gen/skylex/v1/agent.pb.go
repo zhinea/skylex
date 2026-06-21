@@ -773,11 +773,15 @@ func (*ReportStatusResponse) Descriptor() ([]byte, []int) {
 }
 
 type AgentCommand struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	NodeId        string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	Action        string                 `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
-	Payload       string                 `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	NodeId  string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Action  string                 `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
+	Payload string                 `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
+	// secrets contains decrypted secret values resolved by FetchCommand on the
+	// server. Keys match the secret identifiers referenced in payload. Values
+	// are plaintext and must not be logged.
+	Secrets       map[string]string `protobuf:"bytes,5,rep,name=secrets,proto3" json:"secrets,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -838,6 +842,13 @@ func (x *AgentCommand) GetPayload() string {
 		return x.Payload
 	}
 	return ""
+}
+
+func (x *AgentCommand) GetSecrets() map[string]string {
+	if x != nil {
+		return x.Secrets
+	}
+	return nil
 }
 
 type FetchCommandRequest struct {
@@ -1268,12 +1279,16 @@ const file_skylex_v1_agent_proto_rawDesc = "" +
 	"\x13ReportStatusRequest\x12\x19\n" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\x12@\n" +
 	"\rnode_statuses\x18\x02 \x03(\v2\x1b.skylex.v1.NodeStatusReportR\fnodeStatuses\"\x16\n" +
-	"\x14ReportStatusResponse\"i\n" +
+	"\x14ReportStatusResponse\"\xe5\x01\n" +
 	"\fAgentCommand\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x12\x16\n" +
 	"\x06action\x18\x03 \x01(\tR\x06action\x12\x18\n" +
-	"\apayload\x18\x04 \x01(\tR\apayload\"0\n" +
+	"\apayload\x18\x04 \x01(\tR\apayload\x12>\n" +
+	"\asecrets\x18\x05 \x03(\v2$.skylex.v1.AgentCommand.SecretsEntryR\asecrets\x1a:\n" +
+	"\fSecretsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"0\n" +
 	"\x13FetchCommandRequest\x12\x19\n" +
 	"\bagent_id\x18\x01 \x01(\tR\aagentId\"K\n" +
 	"\x14FetchCommandResponse\x123\n" +
@@ -1319,7 +1334,7 @@ func file_skylex_v1_agent_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_agent_proto_rawDescData
 }
 
-var file_skylex_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_skylex_v1_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_skylex_v1_agent_proto_goTypes = []any{
 	(*NodeCapabilities)(nil),            // 0: skylex.v1.NodeCapabilities
 	(*RegisterAgentRequest)(nil),        // 1: skylex.v1.RegisterAgentRequest
@@ -1339,35 +1354,37 @@ var file_skylex_v1_agent_proto_goTypes = []any{
 	(*ReportCommandLogRequest)(nil),     // 15: skylex.v1.ReportCommandLogRequest
 	(*ReportCommandLogResponse)(nil),    // 16: skylex.v1.ReportCommandLogResponse
 	nil,                                 // 17: skylex.v1.RegisterAgentRequest.LabelsEntry
-	(NodeRole)(0),                       // 18: skylex.v1.NodeRole
-	(InstallationState)(0),              // 19: skylex.v1.InstallationState
+	nil,                                 // 18: skylex.v1.AgentCommand.SecretsEntry
+	(NodeRole)(0),                       // 19: skylex.v1.NodeRole
+	(InstallationState)(0),              // 20: skylex.v1.InstallationState
 }
 var file_skylex_v1_agent_proto_depIdxs = []int32{
 	17, // 0: skylex.v1.RegisterAgentRequest.labels:type_name -> skylex.v1.RegisterAgentRequest.LabelsEntry
 	0,  // 1: skylex.v1.RegisterAgentRequest.capabilities:type_name -> skylex.v1.NodeCapabilities
-	18, // 2: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
-	19, // 3: skylex.v1.NodeStatusReport.installation_state:type_name -> skylex.v1.InstallationState
+	19, // 2: skylex.v1.HeartbeatRequest.current_role:type_name -> skylex.v1.NodeRole
+	20, // 3: skylex.v1.NodeStatusReport.installation_state:type_name -> skylex.v1.InstallationState
 	6,  // 4: skylex.v1.NodeStatusReport.system_metrics:type_name -> skylex.v1.NodeSystemMetrics
 	5,  // 5: skylex.v1.ReportStatusRequest.node_statuses:type_name -> skylex.v1.NodeStatusReport
-	9,  // 6: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
-	14, // 7: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
-	1,  // 8: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
-	3,  // 9: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
-	7,  // 10: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
-	10, // 11: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
-	12, // 12: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
-	15, // 13: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
-	2,  // 14: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
-	4,  // 15: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
-	8,  // 16: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
-	11, // 17: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
-	13, // 18: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
-	16, // 19: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	18, // 6: skylex.v1.AgentCommand.secrets:type_name -> skylex.v1.AgentCommand.SecretsEntry
+	9,  // 7: skylex.v1.FetchCommandResponse.commands:type_name -> skylex.v1.AgentCommand
+	14, // 8: skylex.v1.ReportCommandLogRequest.entries:type_name -> skylex.v1.CommandLogEntry
+	1,  // 9: skylex.v1.AgentService.RegisterAgent:input_type -> skylex.v1.RegisterAgentRequest
+	3,  // 10: skylex.v1.AgentService.Heartbeat:input_type -> skylex.v1.HeartbeatRequest
+	7,  // 11: skylex.v1.AgentService.ReportStatus:input_type -> skylex.v1.ReportStatusRequest
+	10, // 12: skylex.v1.AgentService.FetchCommand:input_type -> skylex.v1.FetchCommandRequest
+	12, // 13: skylex.v1.AgentService.ReportCommandResult:input_type -> skylex.v1.ReportCommandResultRequest
+	15, // 14: skylex.v1.AgentService.ReportCommandLog:input_type -> skylex.v1.ReportCommandLogRequest
+	2,  // 15: skylex.v1.AgentService.RegisterAgent:output_type -> skylex.v1.RegisterAgentResponse
+	4,  // 16: skylex.v1.AgentService.Heartbeat:output_type -> skylex.v1.HeartbeatResponse
+	8,  // 17: skylex.v1.AgentService.ReportStatus:output_type -> skylex.v1.ReportStatusResponse
+	11, // 18: skylex.v1.AgentService.FetchCommand:output_type -> skylex.v1.FetchCommandResponse
+	13, // 19: skylex.v1.AgentService.ReportCommandResult:output_type -> skylex.v1.ReportCommandResultResponse
+	16, // 20: skylex.v1.AgentService.ReportCommandLog:output_type -> skylex.v1.ReportCommandLogResponse
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_agent_proto_init() }
@@ -1382,7 +1399,7 @@ func file_skylex_v1_agent_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_agent_proto_rawDesc), len(file_skylex_v1_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

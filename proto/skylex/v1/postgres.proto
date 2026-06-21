@@ -4,10 +4,16 @@ package skylex.v1;
 
 import "google/protobuf/timestamp.proto";
 
-// PostgresManagementService manages connection profile metadata for a cluster.
+// PostgresManagementService manages connection profile metadata and managed roles for a cluster.
 service PostgresManagementService {
   rpc GetConnectionProfile(GetConnectionProfileRequest) returns (GetConnectionProfileResponse);
   rpc UpdateConnectionProfile(UpdateConnectionProfileRequest) returns (UpdateConnectionProfileResponse);
+
+  // Role management RPCs (Phase 3)
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
+  rpc RotateRolePassword(RotateRolePasswordRequest) returns (RotateRolePasswordResponse);
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
 }
 
 message ConnectionProfile {
@@ -58,3 +64,58 @@ message UpdateConnectionProfileRequest {
 message UpdateConnectionProfileResponse {
   ConnectionProfile profile = 1;
 }
+
+// ─── Managed Roles (Phase 3) ──────────────────────────────────────────────────
+
+message PostgresRole {
+  string id = 1;
+  string cluster_id = 2;
+  string role_name = 3;
+  // role_kind: "admin" | "read_write" | "read_only" | "custom"
+  string role_kind = 4;
+  int32 password_version = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  // status: "pending" | "ready" | "failed" | "deleting"
+  string status = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message ListRolesRequest {
+  string cluster_id = 1;
+}
+
+message ListRolesResponse {
+  repeated PostgresRole roles = 1;
+}
+
+message CreateRoleRequest {
+  string cluster_id = 1;
+  string role_name = 2;
+  // role_kind: "admin" | "read_write" | "read_only" | "custom"
+  string role_kind = 3;
+  // expires_at is optional; omit for non-expiring roles.
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+message CreateRoleResponse {
+  PostgresRole role = 1;
+  // one_time_password is shown exactly once; store it immediately.
+  string one_time_password = 2;
+}
+
+message RotateRolePasswordRequest {
+  string role_id = 1;
+}
+
+message RotateRolePasswordResponse {
+  PostgresRole role = 1;
+  // one_time_password is the new password; shown exactly once.
+  string one_time_password = 2;
+}
+
+message DeleteRoleRequest {
+  string role_id = 1;
+}
+
+message DeleteRoleResponse {}

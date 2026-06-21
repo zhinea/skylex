@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +23,12 @@ var (
 	redactPostgresPasswordEnv = regexp.MustCompile(`(?i)POSTGRES_PASSWORD\s*=\s*\S+`)
 	// redactPsqlVariablePassword matches psql variable arguments containing repl_pass.
 	redactPsqlVariablePassword = regexp.MustCompile(`(?i)repl_pass\s*=\s*\S+`)
+	// redactPostgresURL matches postgresql:// and postgres:// URIs that may contain passwords.
+	redactPostgresURL = regexp.MustCompile(`(?i)(postgresql|postgres)://[^:@\s]+:[^@\s]+@`)
+	// redactPasswordDDL matches SQL PASSWORD clauses like: WITH PASSWORD 'xxx' or PASSWORD 'xxx'.
+	redactPasswordDDL = regexp.MustCompile(`(?i)\bPASSWORD\s+'[^']*'`)
+	// redactJSONPassword matches JSON fields named password, secret, or token.
+	redactJSONPassword = regexp.MustCompile(`(?i)"(password|secret|token)"\s*:\s*"[^"]*"`)
 )
 
 // RedactSecrets removes common password patterns from log output before
@@ -32,6 +39,25 @@ func RedactSecrets(input string) string {
 	s = redactPsqlVariablePassword.ReplaceAllString(s, "repl_pass=***")
 	s = redactPasswordClause.ReplaceAllString(s, "password=***")
 	s = redactEncryptedPassword.ReplaceAllString(s, "ENCRYPTED PASSWORD '***'")
+	s = redactPostgresURL.ReplaceAllStringFunc(s, func(match string) string {
+		// Replace the user:password@ portion, keep the scheme and host.
+		schemeEnd := strings.Index(match, "://")
+		if schemeEnd < 0 {
+			return match
+		}
+		scheme := match[:schemeEnd+3]
+		return scheme + "***:***@"
+	})
+	s = redactPasswordDDL.ReplaceAllString(s, "PASSWORD '***'")
+	s = redactJSONPassword.ReplaceAllStringFunc(s, func(match string) string {
+		// Keep the key name, redact the value.
+		colonIdx := strings.Index(match, ":")
+		if colonIdx < 0 {
+			return match
+		}
+		key := match[:colonIdx+1]
+		return key + ` "***"`
+	})
 	return s
 }
 

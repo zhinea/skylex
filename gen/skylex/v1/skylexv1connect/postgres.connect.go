@@ -40,12 +40,29 @@ const (
 	// PostgresManagementServiceUpdateConnectionProfileProcedure is the fully-qualified name of the
 	// PostgresManagementService's UpdateConnectionProfile RPC.
 	PostgresManagementServiceUpdateConnectionProfileProcedure = "/skylex.v1.PostgresManagementService/UpdateConnectionProfile"
+	// PostgresManagementServiceListRolesProcedure is the fully-qualified name of the
+	// PostgresManagementService's ListRoles RPC.
+	PostgresManagementServiceListRolesProcedure = "/skylex.v1.PostgresManagementService/ListRoles"
+	// PostgresManagementServiceCreateRoleProcedure is the fully-qualified name of the
+	// PostgresManagementService's CreateRole RPC.
+	PostgresManagementServiceCreateRoleProcedure = "/skylex.v1.PostgresManagementService/CreateRole"
+	// PostgresManagementServiceRotateRolePasswordProcedure is the fully-qualified name of the
+	// PostgresManagementService's RotateRolePassword RPC.
+	PostgresManagementServiceRotateRolePasswordProcedure = "/skylex.v1.PostgresManagementService/RotateRolePassword"
+	// PostgresManagementServiceDeleteRoleProcedure is the fully-qualified name of the
+	// PostgresManagementService's DeleteRole RPC.
+	PostgresManagementServiceDeleteRoleProcedure = "/skylex.v1.PostgresManagementService/DeleteRole"
 )
 
 // PostgresManagementServiceClient is a client for the skylex.v1.PostgresManagementService service.
 type PostgresManagementServiceClient interface {
 	GetConnectionProfile(context.Context, *connect.Request[v1.GetConnectionProfileRequest]) (*connect.Response[v1.GetConnectionProfileResponse], error)
 	UpdateConnectionProfile(context.Context, *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error)
+	// Role management RPCs (Phase 3)
+	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
+	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
+	RotateRolePassword(context.Context, *connect.Request[v1.RotateRolePasswordRequest]) (*connect.Response[v1.RotateRolePasswordResponse], error)
+	DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error)
 }
 
 // NewPostgresManagementServiceClient constructs a client for the
@@ -71,6 +88,30 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 			connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateConnectionProfile")),
 			connect.WithClientOptions(opts...),
 		),
+		listRoles: connect.NewClient[v1.ListRolesRequest, v1.ListRolesResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceListRolesProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("ListRoles")),
+			connect.WithClientOptions(opts...),
+		),
+		createRole: connect.NewClient[v1.CreateRoleRequest, v1.CreateRoleResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceCreateRoleProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("CreateRole")),
+			connect.WithClientOptions(opts...),
+		),
+		rotateRolePassword: connect.NewClient[v1.RotateRolePasswordRequest, v1.RotateRolePasswordResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceRotateRolePasswordProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("RotateRolePassword")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteRole: connect.NewClient[v1.DeleteRoleRequest, v1.DeleteRoleResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceDeleteRoleProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteRole")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -78,6 +119,10 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 type postgresManagementServiceClient struct {
 	getConnectionProfile    *connect.Client[v1.GetConnectionProfileRequest, v1.GetConnectionProfileResponse]
 	updateConnectionProfile *connect.Client[v1.UpdateConnectionProfileRequest, v1.UpdateConnectionProfileResponse]
+	listRoles               *connect.Client[v1.ListRolesRequest, v1.ListRolesResponse]
+	createRole              *connect.Client[v1.CreateRoleRequest, v1.CreateRoleResponse]
+	rotateRolePassword      *connect.Client[v1.RotateRolePasswordRequest, v1.RotateRolePasswordResponse]
+	deleteRole              *connect.Client[v1.DeleteRoleRequest, v1.DeleteRoleResponse]
 }
 
 // GetConnectionProfile calls skylex.v1.PostgresManagementService.GetConnectionProfile.
@@ -90,11 +135,36 @@ func (c *postgresManagementServiceClient) UpdateConnectionProfile(ctx context.Co
 	return c.updateConnectionProfile.CallUnary(ctx, req)
 }
 
+// ListRoles calls skylex.v1.PostgresManagementService.ListRoles.
+func (c *postgresManagementServiceClient) ListRoles(ctx context.Context, req *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error) {
+	return c.listRoles.CallUnary(ctx, req)
+}
+
+// CreateRole calls skylex.v1.PostgresManagementService.CreateRole.
+func (c *postgresManagementServiceClient) CreateRole(ctx context.Context, req *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error) {
+	return c.createRole.CallUnary(ctx, req)
+}
+
+// RotateRolePassword calls skylex.v1.PostgresManagementService.RotateRolePassword.
+func (c *postgresManagementServiceClient) RotateRolePassword(ctx context.Context, req *connect.Request[v1.RotateRolePasswordRequest]) (*connect.Response[v1.RotateRolePasswordResponse], error) {
+	return c.rotateRolePassword.CallUnary(ctx, req)
+}
+
+// DeleteRole calls skylex.v1.PostgresManagementService.DeleteRole.
+func (c *postgresManagementServiceClient) DeleteRole(ctx context.Context, req *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error) {
+	return c.deleteRole.CallUnary(ctx, req)
+}
+
 // PostgresManagementServiceHandler is an implementation of the skylex.v1.PostgresManagementService
 // service.
 type PostgresManagementServiceHandler interface {
 	GetConnectionProfile(context.Context, *connect.Request[v1.GetConnectionProfileRequest]) (*connect.Response[v1.GetConnectionProfileResponse], error)
 	UpdateConnectionProfile(context.Context, *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error)
+	// Role management RPCs (Phase 3)
+	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
+	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
+	RotateRolePassword(context.Context, *connect.Request[v1.RotateRolePasswordRequest]) (*connect.Response[v1.RotateRolePasswordResponse], error)
+	DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error)
 }
 
 // NewPostgresManagementServiceHandler builds an HTTP handler from the service implementation. It
@@ -116,12 +186,44 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 		connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateConnectionProfile")),
 		connect.WithHandlerOptions(opts...),
 	)
+	postgresManagementServiceListRolesHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceListRolesProcedure,
+		svc.ListRoles,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("ListRoles")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceCreateRoleHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceCreateRoleProcedure,
+		svc.CreateRole,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("CreateRole")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceRotateRolePasswordHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceRotateRolePasswordProcedure,
+		svc.RotateRolePassword,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("RotateRolePassword")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceDeleteRoleHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceDeleteRoleProcedure,
+		svc.DeleteRole,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteRole")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.PostgresManagementService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PostgresManagementServiceGetConnectionProfileProcedure:
 			postgresManagementServiceGetConnectionProfileHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceUpdateConnectionProfileProcedure:
 			postgresManagementServiceUpdateConnectionProfileHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceListRolesProcedure:
+			postgresManagementServiceListRolesHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceCreateRoleProcedure:
+			postgresManagementServiceCreateRoleHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceRotateRolePasswordProcedure:
+			postgresManagementServiceRotateRolePasswordHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceDeleteRoleProcedure:
+			postgresManagementServiceDeleteRoleHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -137,4 +239,20 @@ func (UnimplementedPostgresManagementServiceHandler) GetConnectionProfile(contex
 
 func (UnimplementedPostgresManagementServiceHandler) UpdateConnectionProfile(context.Context, *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.UpdateConnectionProfile is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.ListRoles is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.CreateRole is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) RotateRolePassword(context.Context, *connect.Request[v1.RotateRolePasswordRequest]) (*connect.Response[v1.RotateRolePasswordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.RotateRolePassword is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.DeleteRole is not implemented"))
 }

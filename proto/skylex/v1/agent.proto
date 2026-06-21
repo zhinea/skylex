@@ -99,6 +99,10 @@ message AgentCommand {
   string node_id = 2;
   string action = 3;
   string payload = 4;
+  // secrets contains decrypted secret values resolved by FetchCommand on the
+  // server. Keys match the secret identifiers referenced in payload. Values
+  // are plaintext and must not be logged.
+  map<string, string> secrets = 5;
 }
 
 message FetchCommandRequest {
