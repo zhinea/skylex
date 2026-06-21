@@ -57,11 +57,17 @@ type PostgresManagementService struct {
 	clusters       *db.ClusterRepository
 	roles          *db.PostgresRoleRepository
 	databases      *db.PostgresDatabaseRepository
+	access         *db.PostgresAccessRepository
+	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
 	clusterLocksMu sync.Mutex
 	clusterLocks   map[string]*sync.Mutex
 	log            *slog.Logger
+}
+
+func (s *PostgresManagementService) SetAuditRepository(repo *db.AuditRepository) {
+	s.audit = repo
 }
 
 func NewPostgresManagementService(
@@ -70,6 +76,7 @@ func NewPostgresManagementService(
 	clusters *db.ClusterRepository,
 	roles *db.PostgresRoleRepository,
 	databases *db.PostgresDatabaseRepository,
+	access *db.PostgresAccessRepository,
 	roleEncryptKey []byte,
 	log *slog.Logger,
 ) *PostgresManagementService {
@@ -87,6 +94,7 @@ func NewPostgresManagementService(
 		clusters:       clusters,
 		roles:          roles,
 		databases:      databases,
+		access:         access,
 		roleEncryptKey: roleEncryptKey,
 		validate:       validate,
 		clusterLocks:   make(map[string]*sync.Mutex),
@@ -104,6 +112,10 @@ type createDatabaseInput struct {
 	ClusterID    string `validate:"required"`
 	DatabaseName string `validate:"required,pgdatabase"`
 	OwnerRoleID  string `validate:"omitempty"`
+}
+
+type updateNetworkAccessInput struct {
+	ClusterID string `validate:"required"`
 }
 
 func (s *PostgresManagementService) clusterLock(clusterID string) *sync.Mutex {
@@ -228,13 +240,20 @@ func (s *PostgresManagementService) UpdateConnectionProfile(
 		allowedCIDRs = []string{}
 	}
 
+	current, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get existing connection profile: %w", err))
+	}
+
 	updated, err := s.profiles.Upsert(ctx, &db.ConnectionProfile{
-		ClusterID:    clusterID,
-		EndpointMode: endpointMode,
-		PublicHost:   publicHost,
-		PublicPort:   publicPort,
-		SSLMode:      sslMode,
-		AllowedCIDRs: allowedCIDRs,
+		ClusterID:               clusterID,
+		EndpointMode:            endpointMode,
+		PublicHost:              publicHost,
+		PublicPort:              publicPort,
+		SSLMode:                 sslMode,
+		AllowedCIDRs:            allowedCIDRs,
+		AllowedAdminCIDRs:       current.AllowedAdminCIDRs,
+		AllowedReplicationCIDRs: current.AllowedReplicationCIDRs,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("upsert connection profile: %w", err))
@@ -245,15 +264,335 @@ func (s *PostgresManagementService) UpdateConnectionProfile(
 	}), nil
 }
 
+func (s *PostgresManagementService) GetNetworkAccess(
+	ctx context.Context,
+	req *connect.Request[skylexv1.GetNetworkAccessRequest],
+) (*connect.Response[skylexv1.GetNetworkAccessResponse], error) {
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	profile, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	statuses, err := s.hbaStatuses(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&skylexv1.GetNetworkAccessResponse{
+		AllowedApplicationCidrs:  profile.AllowedCIDRs,
+		AllowedAdminCidrs:        profile.AllowedAdminCIDRs,
+		InternalReplicationCidrs: profile.AllowedReplicationCIDRs,
+		HbaStatuses:              statuses,
+	}), nil
+}
+
+func (s *PostgresManagementService) UpdateNetworkAccess(
+	ctx context.Context,
+	req *connect.Request[skylexv1.UpdateNetworkAccessRequest],
+) (*connect.Response[skylexv1.UpdateNetworkAccessResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot update network access"))
+	}
+
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if err := s.validate.Struct(updateNetworkAccessInput{ClusterID: clusterID}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid network access request: %w", err))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	applicationCIDRs, err := normalizeCIDRs(req.Msg.GetAllowedApplicationCidrs(), "allowed_application_cidrs")
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	adminCIDRs, err := normalizeCIDRs(req.Msg.GetAllowedAdminCidrs(), "allowed_admin_cidrs")
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	replicationCIDRs, err := normalizeCIDRs(req.Msg.GetInternalReplicationCidrs(), "internal_replication_cidrs")
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	mu := s.clusterLock(clusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	current, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	updated, err := s.profiles.Upsert(ctx, &db.ConnectionProfile{
+		ClusterID:               clusterID,
+		EndpointMode:            current.EndpointMode,
+		PublicHost:              current.PublicHost,
+		PublicPort:              current.PublicPort,
+		SSLMode:                 current.SSLMode,
+		AllowedCIDRs:            applicationCIDRs,
+		AllowedAdminCIDRs:       adminCIDRs,
+		AllowedReplicationCIDRs: replicationCIDRs,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("upsert network access: %w", err))
+	}
+	s.auditAccessChange(ctx, clusterID, "update", updated)
+
+	return connect.NewResponse(&skylexv1.UpdateNetworkAccessResponse{
+		AllowedApplicationCidrs:  updated.AllowedCIDRs,
+		AllowedAdminCidrs:        updated.AllowedAdminCIDRs,
+		InternalReplicationCidrs: updated.AllowedReplicationCIDRs,
+	}), nil
+}
+
+func (s *PostgresManagementService) ApplyHBA(
+	ctx context.Context,
+	req *connect.Request[skylexv1.ApplyHBARequest],
+) (*connect.Response[skylexv1.ApplyHBAResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot apply HBA"))
+	}
+	if s.access == nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("postgres access repository is not configured"))
+	}
+
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	mu := s.clusterLock(clusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	profile, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list cluster nodes: %w", err))
+	}
+	readyNodes := make([]*models.Node, 0, len(nodes))
+	for _, node := range nodes {
+		if node.AgentID == "" || !node.PostgresInstalled || !node.PostgresDataInitialized {
+			continue
+		}
+		readyNodes = append(readyNodes, node)
+	}
+	if len(readyNodes) == 0 {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("no ready nodes found for HBA apply"))
+	}
+
+	roles, err := s.roles.ListByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list managed roles: %w", err))
+	}
+	databases, err := s.databases.ListByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list managed databases: %w", err))
+	}
+	appRules, adminRules, replicationRules := hbaRuleSets(profile, readyNodes)
+	adminRoles := readyAdminRoleNames(roles)
+	appRoles := readyApplicationRoleNames(roles)
+	appDatabases := readyApplicationDatabaseNames(databases)
+	commands := make([]db.ApplyHBANodeCommand, 0, len(readyNodes))
+	for _, node := range readyNodes {
+		payload, err := json.Marshal(map[string]interface{}{
+			"cluster_id":            clusterID,
+			"node_id":               node.ID,
+			"admin_cidrs":           adminRules,
+			"replication_cidrs":     replicationRules,
+			"application_cidrs":     appRules,
+			"admin_roles":           adminRoles,
+			"application_roles":     appRoles,
+			"application_databases": appDatabases,
+			"allow_promote":         node.Role == models.NodeRolePrimary && len(readyNodes) == 1,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal hba payload: %w", err))
+		}
+		commands = append(commands, db.ApplyHBANodeCommand{
+			NodeID:  node.ID,
+			AgentID: node.AgentID,
+			Payload: string(payload),
+		})
+	}
+
+	statuses, err := s.access.QueueApplyHBACommands(ctx, clusterID, commands)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("queue hba apply commands: %w", err))
+	}
+	s.auditAccessChange(ctx, clusterID, "apply_hba", profile)
+
+	protoStatuses := make([]*skylexv1.HBAApplyStatus, 0, len(statuses))
+	for _, status := range statuses {
+		protoStatuses = append(protoStatuses, hbaStatusToProto(status))
+	}
+	return connect.NewResponse(&skylexv1.ApplyHBAResponse{HbaStatuses: protoStatuses}), nil
+}
+
+func normalizeCIDRs(raw []string, field string) ([]string, error) {
+	if raw == nil {
+		return []string{}, nil
+	}
+	seen := make(map[string]bool, len(raw))
+	out := make([]string, 0, len(raw))
+	for _, value := range raw {
+		cidr := strings.TrimSpace(value)
+		if cidr == "" {
+			continue
+		}
+		prefix, err := netip.ParsePrefix(cidr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid %s CIDR %q: %w", field, cidr, err)
+		}
+		canonical := prefix.Masked().String()
+		if seen[canonical] {
+			continue
+		}
+		seen[canonical] = true
+		out = append(out, canonical)
+	}
+	return out, nil
+}
+
+func hbaRuleSets(profile *db.ConnectionProfile, nodes []*models.Node) ([]string, []string, []string) {
+	app := append([]string{}, profile.AllowedCIDRs...)
+	admin := append([]string{}, profile.AllowedAdminCIDRs...)
+	replication := append([]string{}, profile.AllowedReplicationCIDRs...)
+	seenReplication := make(map[string]bool, len(replication)+len(nodes)*2)
+	for _, cidr := range replication {
+		seenReplication[cidr] = true
+	}
+	for _, node := range nodes {
+		for _, host := range []string{node.Address, node.Hostname} {
+			cidr := hostToHostCIDR(host)
+			if cidr == "" || seenReplication[cidr] {
+				continue
+			}
+			seenReplication[cidr] = true
+			replication = append(replication, cidr)
+		}
+	}
+	return app, admin, replication
+}
+
+func readyAdminRoleNames(roles []*db.PostgresRole) []string {
+	names := make([]string, 0, len(roles))
+	for _, role := range roles {
+		if role.Status != "ready" || role.RoleKind != "admin" {
+			continue
+		}
+		names = append(names, role.RoleName)
+	}
+	return names
+}
+
+func readyApplicationRoleNames(roles []*db.PostgresRole) []string {
+	names := make([]string, 0, len(roles))
+	for _, role := range roles {
+		if role.Status != "ready" || role.RoleKind == "admin" {
+			continue
+		}
+		names = append(names, role.RoleName)
+	}
+	return names
+}
+
+func readyApplicationDatabaseNames(databases []*db.PostgresDatabase) []string {
+	names := make([]string, 0, len(databases))
+	for _, database := range databases {
+		if database.Status != "ready" {
+			continue
+		}
+		names = append(names, database.DatabaseName)
+	}
+	return names
+}
+
+func hostToHostCIDR(host string) string {
+	addr, err := netip.ParseAddr(strings.TrimSpace(host))
+	if err != nil {
+		return ""
+	}
+	if addr.Is4() {
+		return netip.PrefixFrom(addr, 32).String()
+	}
+	return netip.PrefixFrom(addr, 128).String()
+}
+
+func (s *PostgresManagementService) hbaStatuses(ctx context.Context, clusterID string) ([]*skylexv1.HBAApplyStatus, error) {
+	if s.access == nil {
+		return []*skylexv1.HBAApplyStatus{}, nil
+	}
+	statuses, err := s.access.ListHBAStatusByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list hba apply status: %w", err))
+	}
+	protoStatuses := make([]*skylexv1.HBAApplyStatus, 0, len(statuses))
+	for _, status := range statuses {
+		protoStatuses = append(protoStatuses, hbaStatusToProto(status))
+	}
+	return protoStatuses, nil
+}
+
+func hbaStatusToProto(s *db.PostgresHBAApplyStatus) *skylexv1.HBAApplyStatus {
+	proto := &skylexv1.HBAApplyStatus{
+		ClusterId: s.ClusterID,
+		NodeId:    s.NodeID,
+		CommandId: s.CommandID,
+		Status:    s.Status,
+		Error:     s.Error,
+	}
+	if s.AppliedAt != nil {
+		proto.AppliedAt = timestamppb.New(*s.AppliedAt)
+	}
+	if !s.UpdatedAt.IsZero() {
+		proto.UpdatedAt = timestamppb.New(s.UpdatedAt)
+	}
+	return proto
+}
+
+func (s *PostgresManagementService) auditAccessChange(ctx context.Context, clusterID, action string, profile *db.ConnectionProfile) {
+	if s.audit == nil || profile == nil {
+		return
+	}
+	detail := fmt.Sprintf("action=%s cluster_id=%s application_cidrs=%d admin_cidrs=%d replication_cidrs=%d", action, clusterID, len(profile.AllowedCIDRs), len(profile.AllowedAdminCIDRs), len(profile.AllowedReplicationCIDRs))
+	if err := s.audit.Log(&models.AuditLog{
+		UserID:    UserIDFromContext(ctx),
+		Action:    models.AuditActionUpdatePostgresAccess,
+		Resource:  "PostgresManagementService.NetworkAccess",
+		Detail:    detail,
+		CreatedAt: time.Now().UTC(),
+	}); err != nil {
+		s.log.Warn("audit postgres access change failed", "cluster_id", clusterID, "error", err)
+	}
+}
+
 // profileToProto converts a db.ConnectionProfile to the proto message.
 func profileToProto(p *db.ConnectionProfile) *skylexv1.ConnectionProfile {
 	proto := &skylexv1.ConnectionProfile{
-		ClusterId:    p.ClusterID,
-		EndpointMode: p.EndpointMode,
-		PublicHost:   p.PublicHost,
-		PublicPort:   int32(p.PublicPort),
-		SslMode:      p.SSLMode,
-		AllowedCidrs: p.AllowedCIDRs,
+		ClusterId:               p.ClusterID,
+		EndpointMode:            p.EndpointMode,
+		PublicHost:              p.PublicHost,
+		PublicPort:              int32(p.PublicPort),
+		SslMode:                 p.SSLMode,
+		AllowedCidrs:            p.AllowedCIDRs,
+		AllowedAdminCidrs:       p.AllowedAdminCIDRs,
+		AllowedReplicationCidrs: p.AllowedReplicationCIDRs,
 	}
 	if !p.CreatedAt.IsZero() {
 		proto.CreatedAt = timestamppb.New(p.CreatedAt)

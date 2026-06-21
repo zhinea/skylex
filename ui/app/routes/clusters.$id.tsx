@@ -4,7 +4,7 @@ import { useCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
-import { useConnectionProfile, useUpdateConnectionProfile } from "~/hooks/useConnectionProfile";
+import { useApplyHBA, useConnectionProfile, useNetworkAccess, useUpdateConnectionProfile, useUpdateNetworkAccess } from "~/hooks/useConnectionProfile";
 import { useCreatePostgresDatabase, useDeletePostgresDatabase, usePostgresDatabases, type PostgresDatabase } from "~/hooks/usePostgresDatabases";
 import { useCreatePostgresRole, useDeletePostgresRole, usePostgresRoles, useRotatePostgresRolePassword, type PostgresRole } from "~/hooks/usePostgresRoles";
 import { useRestartNode } from "~/hooks/useClusters";
@@ -507,6 +507,153 @@ function ManagedDatabasesCard({
   );
 }
 
+function cidrTextToList(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function cidrListToText(values: string[]) {
+  return values.join("\n");
+}
+
+function NetworkAccessCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] }) {
+  const { data, isLoading } = useNetworkAccess(clusterId);
+  const updateAccess = useUpdateNetworkAccess();
+  const applyHBA = useApplyHBA();
+  const [editing, setEditing] = useState(false);
+  const [applicationCIDRs, setApplicationCIDRs] = useState("");
+  const [adminCIDRs, setAdminCIDRs] = useState("");
+  const [replicationCIDRs, setReplicationCIDRs] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+
+  const hbaStatuses = data?.hbaStatuses ?? [];
+  const nodeNames = new Map(nodes.map((node) => [node.id, node.hostname]));
+
+  function openEditor() {
+    setApplicationCIDRs(cidrListToText(data?.allowedApplicationCidrs ?? []));
+    setAdminCIDRs(cidrListToText(data?.allowedAdminCidrs ?? []));
+    setReplicationCIDRs(cidrListToText(data?.internalReplicationCidrs ?? []));
+    setMessage(null);
+    setEditing(true);
+  }
+
+  function saveAccess() {
+    setMessage(null);
+    updateAccess.mutate(
+      {
+        clusterId,
+        allowedApplicationCidrs: cidrTextToList(applicationCIDRs),
+        allowedAdminCidrs: cidrTextToList(adminCIDRs),
+        internalReplicationCidrs: cidrTextToList(replicationCIDRs),
+      },
+      {
+        onSuccess: () => {
+          setEditing(false);
+          setMessage("Access allowlists saved. Apply HBA to enforce them on nodes.");
+        },
+        onError: (err) => setMessage(err instanceof Error ? err.message : "Failed to save access allowlists"),
+      },
+    );
+  }
+
+  function apply() {
+    setMessage(null);
+    applyHBA.mutate(clusterId, {
+      onSuccess: () => setMessage("HBA apply queued for ready nodes."),
+      onError: (err) => setMessage(err instanceof Error ? err.message : "Failed to queue HBA apply"),
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <Card title="Network Access">
+        <PageSpinner />
+      </Card>
+    );
+  }
+
+  const renderCIDRs = (values: string[]) =>
+    values.length === 0 ? (
+      <span className="text-sm text-gray-500 dark:text-gray-400">No CIDRs configured</span>
+    ) : (
+      <div className="flex flex-wrap gap-1">
+        {values.map((cidr) => (
+          <span key={cidr} className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            {cidr}
+          </span>
+        ))}
+      </div>
+    );
+
+  return (
+    <Card title="Network Access">
+      <div className="space-y-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Manage Skylex-generated pg_hba.conf allowlists. Firewall and security group rules are still managed outside Skylex.
+        </p>
+
+        {editing ? (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                Application CIDRs
+                <textarea value={applicationCIDRs} onChange={(e) => setApplicationCIDRs(e.target.value)} rows={4} className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+              </label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                Admin CIDRs
+                <textarea value={adminCIDRs} onChange={(e) => setAdminCIDRs(e.target.value)} rows={4} className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+              </label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                Internal Replication CIDRs
+                <textarea value={replicationCIDRs} onChange={(e) => setReplicationCIDRs(e.target.value)} rows={4} className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+              </label>
+            </div>
+            <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">Use one CIDR per line or comma-separated values. CIDRs are validated by the API.</p>
+            <div className="mt-3 flex gap-2">
+              <button onClick={saveAccess} disabled={updateAccess.isPending} className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {updateAccess.isPending ? "Saving..." : "Save Access"}
+              </button>
+              <button onClick={() => setEditing(false)} className="rounded-lg border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div><div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Application CIDRs</div>{renderCIDRs(data?.allowedApplicationCidrs ?? [])}</div>
+            <div><div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Admin CIDRs</div>{renderCIDRs(data?.allowedAdminCidrs ?? [])}</div>
+            <div><div className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Replication CIDRs</div>{renderCIDRs(data?.internalReplicationCidrs ?? [])}</div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          {!editing && <button onClick={openEditor} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">Edit Access</button>}
+          <button onClick={apply} disabled={applyHBA.isPending} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            {applyHBA.isPending ? "Queueing..." : "Apply HBA"}
+          </button>
+          {message && <span className="text-sm text-gray-600 dark:text-gray-300">{message}</span>}
+        </div>
+
+        <div>
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">HBA Apply Status</div>
+          {hbaStatuses.length === 0 ? (
+            <p className="rounded-lg border border-gray-200 py-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">HBA has not been applied yet.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Node</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Status</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Updated</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Error</th></tr></thead>
+                <tbody>{hbaStatuses.map((status) => (<tr key={status.nodeId} className="border-b border-gray-100 last:border-b-0 dark:border-gray-800"><td className="px-3 py-2 text-gray-900 dark:text-white">{nodeNames.get(status.nodeId) || status.nodeId.slice(0, 8)}</td><td className="px-3 py-2"><RoleStatusBadge status={status.status} /></td><td className="px-3 py-2 text-gray-600 dark:text-gray-300">{status.updatedAt ? new Date(status.updatedAt).toLocaleString() : "-"}</td><td className="px-3 py-2 text-red-600 dark:text-red-400">{status.error || "-"}</td></tr>))}</tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: string; nodes: Node[]; cluster: Cluster }) {
   // Only show when nodes are assigned
   if (nodes.length === 0) return null;
@@ -795,25 +942,7 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
           onDismissReveal={() => setRevealedRole(null)}
         />
         <ManagedDatabasesCard clusterId={clusterId} host={displayHost} port={displayPort} revealedRole={revealedRole} />
-
-        {/* Allowed CIDRs summary */}
-        {profile?.allowedCidrs && profile.allowedCidrs.length > 0 && (
-          <div>
-            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-              Allowed CIDRs
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {profile.allowedCidrs.map((cidr) => (
-                <span
-                  key={cidr}
-                  className="px-2 py-0.5 rounded text-xs font-mono bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                >
-                  {cidr}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        <NetworkAccessCard clusterId={clusterId} nodes={nodes} />
 
         {/* Replica endpoints */}
         {(replicaEndpoints.length > 0 || fallbackReplicas.length > 0) && (

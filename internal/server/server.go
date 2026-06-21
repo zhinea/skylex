@@ -116,6 +116,7 @@ func (s *Server) Start(ctx context.Context) error {
 	commandSecretRepo := db.NewAgentCommandSecretRepository(conn, s.log, roleEncryptKey)
 	postgresRoleRepo := db.NewPostgresRoleRepository(conn, s.log)
 	postgresDatabaseRepo := db.NewPostgresDatabaseRepository(conn, s.log)
+	postgresAccessRepo := db.NewPostgresAccessRepository(conn, s.log)
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
 	backupRepo := db.NewBackupRepository(conn, s.log)
 
@@ -125,7 +126,9 @@ func (s *Server) Start(ctx context.Context) error {
 	s.agentService.SetCommandSecretRepository(commandSecretRepo)
 	s.agentService.SetPostgresRoleRepository(postgresRoleRepo)
 	s.agentService.SetPostgresDatabaseRepository(postgresDatabaseRepo)
-	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, roleEncryptKey, s.log)
+	s.agentService.SetPostgresAccessRepository(postgresAccessRepo)
+	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, postgresAccessRepo, roleEncryptKey, s.log)
+	s.postgresService.SetAuditRepository(auditRepo)
 
 	tlsConfig, err := LoadTLSCredentials(s.cfg.TLS)
 	if err != nil {

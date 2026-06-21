@@ -40,6 +40,15 @@ const (
 	// PostgresManagementServiceUpdateConnectionProfileProcedure is the fully-qualified name of the
 	// PostgresManagementService's UpdateConnectionProfile RPC.
 	PostgresManagementServiceUpdateConnectionProfileProcedure = "/skylex.v1.PostgresManagementService/UpdateConnectionProfile"
+	// PostgresManagementServiceGetNetworkAccessProcedure is the fully-qualified name of the
+	// PostgresManagementService's GetNetworkAccess RPC.
+	PostgresManagementServiceGetNetworkAccessProcedure = "/skylex.v1.PostgresManagementService/GetNetworkAccess"
+	// PostgresManagementServiceUpdateNetworkAccessProcedure is the fully-qualified name of the
+	// PostgresManagementService's UpdateNetworkAccess RPC.
+	PostgresManagementServiceUpdateNetworkAccessProcedure = "/skylex.v1.PostgresManagementService/UpdateNetworkAccess"
+	// PostgresManagementServiceApplyHBAProcedure is the fully-qualified name of the
+	// PostgresManagementService's ApplyHBA RPC.
+	PostgresManagementServiceApplyHBAProcedure = "/skylex.v1.PostgresManagementService/ApplyHBA"
 	// PostgresManagementServiceListRolesProcedure is the fully-qualified name of the
 	// PostgresManagementService's ListRoles RPC.
 	PostgresManagementServiceListRolesProcedure = "/skylex.v1.PostgresManagementService/ListRoles"
@@ -67,6 +76,9 @@ const (
 type PostgresManagementServiceClient interface {
 	GetConnectionProfile(context.Context, *connect.Request[v1.GetConnectionProfileRequest]) (*connect.Response[v1.GetConnectionProfileResponse], error)
 	UpdateConnectionProfile(context.Context, *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error)
+	GetNetworkAccess(context.Context, *connect.Request[v1.GetNetworkAccessRequest]) (*connect.Response[v1.GetNetworkAccessResponse], error)
+	UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error)
+	ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error)
 	// Role management RPCs (Phase 3)
 	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
@@ -99,6 +111,24 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 			httpClient,
 			baseURL+PostgresManagementServiceUpdateConnectionProfileProcedure,
 			connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateConnectionProfile")),
+			connect.WithClientOptions(opts...),
+		),
+		getNetworkAccess: connect.NewClient[v1.GetNetworkAccessRequest, v1.GetNetworkAccessResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceGetNetworkAccessProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("GetNetworkAccess")),
+			connect.WithClientOptions(opts...),
+		),
+		updateNetworkAccess: connect.NewClient[v1.UpdateNetworkAccessRequest, v1.UpdateNetworkAccessResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceUpdateNetworkAccessProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateNetworkAccess")),
+			connect.WithClientOptions(opts...),
+		),
+		applyHBA: connect.NewClient[v1.ApplyHBARequest, v1.ApplyHBAResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceApplyHBAProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyHBA")),
 			connect.WithClientOptions(opts...),
 		),
 		listRoles: connect.NewClient[v1.ListRolesRequest, v1.ListRolesResponse](
@@ -150,6 +180,9 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 type postgresManagementServiceClient struct {
 	getConnectionProfile    *connect.Client[v1.GetConnectionProfileRequest, v1.GetConnectionProfileResponse]
 	updateConnectionProfile *connect.Client[v1.UpdateConnectionProfileRequest, v1.UpdateConnectionProfileResponse]
+	getNetworkAccess        *connect.Client[v1.GetNetworkAccessRequest, v1.GetNetworkAccessResponse]
+	updateNetworkAccess     *connect.Client[v1.UpdateNetworkAccessRequest, v1.UpdateNetworkAccessResponse]
+	applyHBA                *connect.Client[v1.ApplyHBARequest, v1.ApplyHBAResponse]
 	listRoles               *connect.Client[v1.ListRolesRequest, v1.ListRolesResponse]
 	createRole              *connect.Client[v1.CreateRoleRequest, v1.CreateRoleResponse]
 	rotateRolePassword      *connect.Client[v1.RotateRolePasswordRequest, v1.RotateRolePasswordResponse]
@@ -167,6 +200,21 @@ func (c *postgresManagementServiceClient) GetConnectionProfile(ctx context.Conte
 // UpdateConnectionProfile calls skylex.v1.PostgresManagementService.UpdateConnectionProfile.
 func (c *postgresManagementServiceClient) UpdateConnectionProfile(ctx context.Context, req *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error) {
 	return c.updateConnectionProfile.CallUnary(ctx, req)
+}
+
+// GetNetworkAccess calls skylex.v1.PostgresManagementService.GetNetworkAccess.
+func (c *postgresManagementServiceClient) GetNetworkAccess(ctx context.Context, req *connect.Request[v1.GetNetworkAccessRequest]) (*connect.Response[v1.GetNetworkAccessResponse], error) {
+	return c.getNetworkAccess.CallUnary(ctx, req)
+}
+
+// UpdateNetworkAccess calls skylex.v1.PostgresManagementService.UpdateNetworkAccess.
+func (c *postgresManagementServiceClient) UpdateNetworkAccess(ctx context.Context, req *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error) {
+	return c.updateNetworkAccess.CallUnary(ctx, req)
+}
+
+// ApplyHBA calls skylex.v1.PostgresManagementService.ApplyHBA.
+func (c *postgresManagementServiceClient) ApplyHBA(ctx context.Context, req *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error) {
+	return c.applyHBA.CallUnary(ctx, req)
 }
 
 // ListRoles calls skylex.v1.PostgresManagementService.ListRoles.
@@ -209,6 +257,9 @@ func (c *postgresManagementServiceClient) DeleteDatabase(ctx context.Context, re
 type PostgresManagementServiceHandler interface {
 	GetConnectionProfile(context.Context, *connect.Request[v1.GetConnectionProfileRequest]) (*connect.Response[v1.GetConnectionProfileResponse], error)
 	UpdateConnectionProfile(context.Context, *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error)
+	GetNetworkAccess(context.Context, *connect.Request[v1.GetNetworkAccessRequest]) (*connect.Response[v1.GetNetworkAccessResponse], error)
+	UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error)
+	ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error)
 	// Role management RPCs (Phase 3)
 	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
@@ -237,6 +288,24 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 		PostgresManagementServiceUpdateConnectionProfileProcedure,
 		svc.UpdateConnectionProfile,
 		connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateConnectionProfile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceGetNetworkAccessHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceGetNetworkAccessProcedure,
+		svc.GetNetworkAccess,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("GetNetworkAccess")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceUpdateNetworkAccessHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceUpdateNetworkAccessProcedure,
+		svc.UpdateNetworkAccess,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateNetworkAccess")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceApplyHBAHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceApplyHBAProcedure,
+		svc.ApplyHBA,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyHBA")),
 		connect.WithHandlerOptions(opts...),
 	)
 	postgresManagementServiceListRolesHandler := connect.NewUnaryHandler(
@@ -287,6 +356,12 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 			postgresManagementServiceGetConnectionProfileHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceUpdateConnectionProfileProcedure:
 			postgresManagementServiceUpdateConnectionProfileHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceGetNetworkAccessProcedure:
+			postgresManagementServiceGetNetworkAccessHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceUpdateNetworkAccessProcedure:
+			postgresManagementServiceUpdateNetworkAccessHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceApplyHBAProcedure:
+			postgresManagementServiceApplyHBAHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceListRolesProcedure:
 			postgresManagementServiceListRolesHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceCreateRoleProcedure:
@@ -316,6 +391,18 @@ func (UnimplementedPostgresManagementServiceHandler) GetConnectionProfile(contex
 
 func (UnimplementedPostgresManagementServiceHandler) UpdateConnectionProfile(context.Context, *connect.Request[v1.UpdateConnectionProfileRequest]) (*connect.Response[v1.UpdateConnectionProfileResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.UpdateConnectionProfile is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) GetNetworkAccess(context.Context, *connect.Request[v1.GetNetworkAccessRequest]) (*connect.Response[v1.GetNetworkAccessResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.GetNetworkAccess is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.UpdateNetworkAccess is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.ApplyHBA is not implemented"))
 }
 
 func (UnimplementedPostgresManagementServiceHandler) ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error) {

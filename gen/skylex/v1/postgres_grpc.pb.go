@@ -21,6 +21,9 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	PostgresManagementService_GetConnectionProfile_FullMethodName    = "/skylex.v1.PostgresManagementService/GetConnectionProfile"
 	PostgresManagementService_UpdateConnectionProfile_FullMethodName = "/skylex.v1.PostgresManagementService/UpdateConnectionProfile"
+	PostgresManagementService_GetNetworkAccess_FullMethodName        = "/skylex.v1.PostgresManagementService/GetNetworkAccess"
+	PostgresManagementService_UpdateNetworkAccess_FullMethodName     = "/skylex.v1.PostgresManagementService/UpdateNetworkAccess"
+	PostgresManagementService_ApplyHBA_FullMethodName                = "/skylex.v1.PostgresManagementService/ApplyHBA"
 	PostgresManagementService_ListRoles_FullMethodName               = "/skylex.v1.PostgresManagementService/ListRoles"
 	PostgresManagementService_CreateRole_FullMethodName              = "/skylex.v1.PostgresManagementService/CreateRole"
 	PostgresManagementService_RotateRolePassword_FullMethodName      = "/skylex.v1.PostgresManagementService/RotateRolePassword"
@@ -38,6 +41,9 @@ const (
 type PostgresManagementServiceClient interface {
 	GetConnectionProfile(ctx context.Context, in *GetConnectionProfileRequest, opts ...grpc.CallOption) (*GetConnectionProfileResponse, error)
 	UpdateConnectionProfile(ctx context.Context, in *UpdateConnectionProfileRequest, opts ...grpc.CallOption) (*UpdateConnectionProfileResponse, error)
+	GetNetworkAccess(ctx context.Context, in *GetNetworkAccessRequest, opts ...grpc.CallOption) (*GetNetworkAccessResponse, error)
+	UpdateNetworkAccess(ctx context.Context, in *UpdateNetworkAccessRequest, opts ...grpc.CallOption) (*UpdateNetworkAccessResponse, error)
+	ApplyHBA(ctx context.Context, in *ApplyHBARequest, opts ...grpc.CallOption) (*ApplyHBAResponse, error)
 	// Role management RPCs (Phase 3)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
@@ -71,6 +77,36 @@ func (c *postgresManagementServiceClient) UpdateConnectionProfile(ctx context.Co
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateConnectionProfileResponse)
 	err := c.cc.Invoke(ctx, PostgresManagementService_UpdateConnectionProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) GetNetworkAccess(ctx context.Context, in *GetNetworkAccessRequest, opts ...grpc.CallOption) (*GetNetworkAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNetworkAccessResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_GetNetworkAccess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) UpdateNetworkAccess(ctx context.Context, in *UpdateNetworkAccessRequest, opts ...grpc.CallOption) (*UpdateNetworkAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateNetworkAccessResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_UpdateNetworkAccess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) ApplyHBA(ctx context.Context, in *ApplyHBARequest, opts ...grpc.CallOption) (*ApplyHBAResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyHBAResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_ApplyHBA_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +191,9 @@ func (c *postgresManagementServiceClient) DeleteDatabase(ctx context.Context, in
 type PostgresManagementServiceServer interface {
 	GetConnectionProfile(context.Context, *GetConnectionProfileRequest) (*GetConnectionProfileResponse, error)
 	UpdateConnectionProfile(context.Context, *UpdateConnectionProfileRequest) (*UpdateConnectionProfileResponse, error)
+	GetNetworkAccess(context.Context, *GetNetworkAccessRequest) (*GetNetworkAccessResponse, error)
+	UpdateNetworkAccess(context.Context, *UpdateNetworkAccessRequest) (*UpdateNetworkAccessResponse, error)
+	ApplyHBA(context.Context, *ApplyHBARequest) (*ApplyHBAResponse, error)
 	// Role management RPCs (Phase 3)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
@@ -179,6 +218,15 @@ func (UnimplementedPostgresManagementServiceServer) GetConnectionProfile(context
 }
 func (UnimplementedPostgresManagementServiceServer) UpdateConnectionProfile(context.Context, *UpdateConnectionProfileRequest) (*UpdateConnectionProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateConnectionProfile not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) GetNetworkAccess(context.Context, *GetNetworkAccessRequest) (*GetNetworkAccessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNetworkAccess not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) UpdateNetworkAccess(context.Context, *UpdateNetworkAccessRequest) (*UpdateNetworkAccessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateNetworkAccess not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) ApplyHBA(context.Context, *ApplyHBARequest) (*ApplyHBAResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyHBA not implemented")
 }
 func (UnimplementedPostgresManagementServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRoles not implemented")
@@ -255,6 +303,60 @@ func _PostgresManagementService_UpdateConnectionProfile_Handler(srv interface{},
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostgresManagementServiceServer).UpdateConnectionProfile(ctx, req.(*UpdateConnectionProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_GetNetworkAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNetworkAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).GetNetworkAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_GetNetworkAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).GetNetworkAccess(ctx, req.(*GetNetworkAccessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_UpdateNetworkAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateNetworkAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).UpdateNetworkAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_UpdateNetworkAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).UpdateNetworkAccess(ctx, req.(*UpdateNetworkAccessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_ApplyHBA_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyHBARequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).ApplyHBA(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_ApplyHBA_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).ApplyHBA(ctx, req.(*ApplyHBARequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -399,6 +501,18 @@ var PostgresManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateConnectionProfile",
 			Handler:    _PostgresManagementService_UpdateConnectionProfile_Handler,
+		},
+		{
+			MethodName: "GetNetworkAccess",
+			Handler:    _PostgresManagementService_GetNetworkAccess_Handler,
+		},
+		{
+			MethodName: "UpdateNetworkAccess",
+			Handler:    _PostgresManagementService_UpdateNetworkAccess_Handler,
+		},
+		{
+			MethodName: "ApplyHBA",
+			Handler:    _PostgresManagementService_ApplyHBA_Handler,
 		},
 		{
 			MethodName: "ListRoles",

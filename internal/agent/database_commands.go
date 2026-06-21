@@ -18,6 +18,16 @@ type databaseCommandPayload struct {
 	AllowPromote  bool   `json:"allow_promote"`
 }
 
+type hbaCommandPayload struct {
+	AdminCIDRs       []string `json:"admin_cidrs"`
+	ReplicationCIDRs []string `json:"replication_cidrs"`
+	ApplicationCIDRs []string `json:"application_cidrs"`
+	AdminRoles       []string `json:"admin_roles"`
+	ApplicationRoles []string `json:"application_roles"`
+	ApplicationDBs   []string `json:"application_databases"`
+	AllowPromote     bool     `json:"allow_promote"`
+}
+
 func (a *Agent) executeEnsureDatabase(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
 	var p databaseCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
@@ -71,4 +81,29 @@ func (a *Agent) executeGrantDatabasePrivileges(ctx context.Context, cmd *skylexv
 		return false, "", fmt.Sprintf("pg_grant_database_privileges failed: %v", err)
 	}
 	return true, fmt.Sprintf("database privileges granted on %q to %q", p.DatabaseName, p.GrantRoleName), ""
+}
+
+func (a *Agent) executeApplyHBA(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	var p hbaCommandPayload
+	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
+		return false, "", fmt.Sprintf("pg_apply_hba: invalid payload: %v", err)
+	}
+
+	logger.Info(fmt.Sprintf("applying HBA allowlists: admin=%d replication=%d application=%d", len(p.AdminCIDRs), len(p.ReplicationCIDRs), len(p.ApplicationCIDRs)))
+	if p.AllowPromote {
+		if err := a.pg.Promote(ctx); err != nil {
+			return false, "", fmt.Sprintf("pg_apply_hba promote failed: %v", err)
+		}
+	}
+	if err := a.pg.ApplyHBA(ctx, postgres.HBAPolicy{
+		AdminCIDRs:       p.AdminCIDRs,
+		ReplicationCIDRs: p.ReplicationCIDRs,
+		ApplicationCIDRs: p.ApplicationCIDRs,
+		AdminRoles:       p.AdminRoles,
+		ApplicationRoles: p.ApplicationRoles,
+		ApplicationDBs:   p.ApplicationDBs,
+	}); err != nil {
+		return false, "", fmt.Sprintf("pg_apply_hba failed: %v", err)
+	}
+	return true, "HBA allowlists applied and PostgreSQL reloaded", ""
 }

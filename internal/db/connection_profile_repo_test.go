@@ -34,6 +34,9 @@ func TestConnectionProfileRepo_DefaultsOnMissingRow(t *testing.T) {
 	if len(p.AllowedCIDRs) != 0 {
 		t.Errorf("expected empty AllowedCIDRs, got %v", p.AllowedCIDRs)
 	}
+	if p.AllowedAdminCIDRs == nil || p.AllowedReplicationCIDRs == nil {
+		t.Error("expected non-nil network access CIDR slices")
+	}
 }
 
 // TestConnectionProfileRepo_UpsertAndGet verifies create-then-read round trip.
@@ -46,12 +49,14 @@ func TestConnectionProfileRepo_UpsertAndGet(t *testing.T) {
 	clusterID := insertTestCluster(t, database, "test-cluster-profile")
 
 	in := &ConnectionProfile{
-		ClusterID:    clusterID,
-		EndpointMode: "manual_stable_endpoint",
-		PublicHost:   "pg.example.com",
-		PublicPort:   5433,
-		SSLMode:      "require",
-		AllowedCIDRs: []string{"10.0.0.0/8", "192.168.1.0/24"},
+		ClusterID:               clusterID,
+		EndpointMode:            "manual_stable_endpoint",
+		PublicHost:              "pg.example.com",
+		PublicPort:              5433,
+		SSLMode:                 "require",
+		AllowedCIDRs:            []string{"10.0.0.0/8", "192.168.1.0/24"},
+		AllowedAdminCIDRs:       []string{"10.1.0.0/16"},
+		AllowedReplicationCIDRs: []string{"10.2.0.0/16"},
 	}
 
 	out, err := repo.Upsert(ctx, in)
@@ -75,6 +80,12 @@ func TestConnectionProfileRepo_UpsertAndGet(t *testing.T) {
 	}
 	if len(out.AllowedCIDRs) != 2 {
 		t.Errorf("expected 2 allowed_cidrs, got %d", len(out.AllowedCIDRs))
+	}
+	if len(out.AllowedAdminCIDRs) != 1 || out.AllowedAdminCIDRs[0] != "10.1.0.0/16" {
+		t.Errorf("allowed_admin_cidrs mismatch: got %v", out.AllowedAdminCIDRs)
+	}
+	if len(out.AllowedReplicationCIDRs) != 1 || out.AllowedReplicationCIDRs[0] != "10.2.0.0/16" {
+		t.Errorf("allowed_replication_cidrs mismatch: got %v", out.AllowedReplicationCIDRs)
 	}
 	if out.CreatedAt.IsZero() {
 		t.Error("expected non-zero created_at")
@@ -106,24 +117,28 @@ func TestConnectionProfileRepo_UpsertUpdatesExisting(t *testing.T) {
 	clusterID := insertTestCluster(t, database, "test-cluster-update")
 
 	first, err := repo.Upsert(ctx, &ConnectionProfile{
-		ClusterID:    clusterID,
-		EndpointMode: "direct_primary",
-		PublicHost:   "",
-		PublicPort:   5432,
-		SSLMode:      "prefer",
-		AllowedCIDRs: []string{},
+		ClusterID:               clusterID,
+		EndpointMode:            "direct_primary",
+		PublicHost:              "",
+		PublicPort:              5432,
+		SSLMode:                 "prefer",
+		AllowedCIDRs:            []string{},
+		AllowedAdminCIDRs:       []string{"10.10.0.0/16"},
+		AllowedReplicationCIDRs: []string{"10.20.0.0/16"},
 	})
 	if err != nil {
 		t.Fatalf("first upsert: %v", err)
 	}
 
 	second, err := repo.Upsert(ctx, &ConnectionProfile{
-		ClusterID:    clusterID,
-		EndpointMode: "manual_stable_endpoint",
-		PublicHost:   "stable.example.com",
-		PublicPort:   5432,
-		SSLMode:      "require",
-		AllowedCIDRs: []string{"0.0.0.0/0"},
+		ClusterID:               clusterID,
+		EndpointMode:            "manual_stable_endpoint",
+		PublicHost:              "stable.example.com",
+		PublicPort:              5432,
+		SSLMode:                 "require",
+		AllowedCIDRs:            []string{"0.0.0.0/0"},
+		AllowedAdminCIDRs:       []string{"10.11.0.0/16"},
+		AllowedReplicationCIDRs: []string{"10.21.0.0/16"},
 	})
 	if err != nil {
 		t.Fatalf("second upsert: %v", err)
@@ -151,6 +166,12 @@ func TestConnectionProfileRepo_UpsertUpdatesExisting(t *testing.T) {
 	if len(got.AllowedCIDRs) != 1 || got.AllowedCIDRs[0] != "0.0.0.0/0" {
 		t.Errorf("allowed_cidrs not updated: got %v", got.AllowedCIDRs)
 	}
+	if len(got.AllowedAdminCIDRs) != 1 || got.AllowedAdminCIDRs[0] != "10.11.0.0/16" {
+		t.Errorf("allowed_admin_cidrs not updated: got %v", got.AllowedAdminCIDRs)
+	}
+	if len(got.AllowedReplicationCIDRs) != 1 || got.AllowedReplicationCIDRs[0] != "10.21.0.0/16" {
+		t.Errorf("allowed_replication_cidrs not updated: got %v", got.AllowedReplicationCIDRs)
+	}
 }
 
 // TestMigrations_SQLite_ConnectionProfileTable verifies that the migration
@@ -161,7 +182,7 @@ func TestMigrations_SQLite_ConnectionProfileTable(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := conn.ExecContext(ctx,
-		`SELECT cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, created_at, updated_at
+		`SELECT cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, created_at, updated_at
 		 FROM cluster_connection_profiles LIMIT 0`)
 	if err != nil {
 		t.Fatalf("cluster_connection_profiles table missing expected columns: %v", err)

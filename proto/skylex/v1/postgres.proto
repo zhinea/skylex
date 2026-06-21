@@ -8,6 +8,9 @@ import "google/protobuf/timestamp.proto";
 service PostgresManagementService {
   rpc GetConnectionProfile(GetConnectionProfileRequest) returns (GetConnectionProfileResponse);
   rpc UpdateConnectionProfile(UpdateConnectionProfileRequest) returns (UpdateConnectionProfileResponse);
+  rpc GetNetworkAccess(GetNetworkAccessRequest) returns (GetNetworkAccessResponse);
+  rpc UpdateNetworkAccess(UpdateNetworkAccessRequest) returns (UpdateNetworkAccessResponse);
+  rpc ApplyHBA(ApplyHBARequest) returns (ApplyHBAResponse);
 
   // Role management RPCs (Phase 3)
   rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
@@ -32,6 +35,8 @@ message ConnectionProfile {
   repeated string allowed_cidrs = 6;
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
+  repeated string allowed_admin_cidrs = 9;
+  repeated string allowed_replication_cidrs = 10;
 }
 
 message NodeEndpoint {
@@ -68,6 +73,49 @@ message UpdateConnectionProfileRequest {
 
 message UpdateConnectionProfileResponse {
   ConnectionProfile profile = 1;
+}
+
+message HBAApplyStatus {
+  string cluster_id = 1;
+  string node_id = 2;
+  string command_id = 3;
+  // status: "pending" | "running" | "succeeded" | "failed"
+  string status = 4;
+  string error = 5;
+  google.protobuf.Timestamp applied_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message GetNetworkAccessRequest {
+  string cluster_id = 1;
+}
+
+message GetNetworkAccessResponse {
+  repeated string allowed_application_cidrs = 1;
+  repeated string allowed_admin_cidrs = 2;
+  repeated string internal_replication_cidrs = 3;
+  repeated HBAApplyStatus hba_statuses = 4;
+}
+
+message UpdateNetworkAccessRequest {
+  string cluster_id = 1;
+  repeated string allowed_application_cidrs = 2;
+  repeated string allowed_admin_cidrs = 3;
+  repeated string internal_replication_cidrs = 4;
+}
+
+message UpdateNetworkAccessResponse {
+  repeated string allowed_application_cidrs = 1;
+  repeated string allowed_admin_cidrs = 2;
+  repeated string internal_replication_cidrs = 3;
+}
+
+message ApplyHBARequest {
+  string cluster_id = 1;
+}
+
+message ApplyHBAResponse {
+  repeated HBAApplyStatus hba_statuses = 1;
 }
 
 // ─── Managed Roles (Phase 3) ──────────────────────────────────────────────────

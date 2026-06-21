@@ -11,14 +11,16 @@ import (
 
 // ConnectionProfile holds the editable connection metadata for a cluster.
 type ConnectionProfile struct {
-	ClusterID    string
-	EndpointMode string
-	PublicHost   string
-	PublicPort   int
-	SSLMode      string
-	AllowedCIDRs []string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ClusterID               string
+	EndpointMode            string
+	PublicHost              string
+	PublicPort              int
+	SSLMode                 string
+	AllowedCIDRs            []string
+	AllowedAdminCIDRs       []string
+	AllowedReplicationCIDRs []string
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
 }
 
 const (
@@ -41,26 +43,28 @@ func NewConnectionProfileRepository(conn *sql.DB, log *slog.Logger) *ConnectionP
 // If no profile has been saved yet, a profile populated with defaults is returned (no error).
 func (r *ConnectionProfileRepository) GetByClusterID(ctx context.Context, clusterID string) (*ConnectionProfile, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, created_at, updated_at
+		Rebind(`SELECT cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, created_at, updated_at
 		 FROM cluster_connection_profiles WHERE cluster_id = ?`),
 		clusterID,
 	)
 
 	var p ConnectionProfile
-	var allowedCIDRsJSON string
+	var allowedCIDRsJSON, allowedAdminCIDRsJSON, allowedReplicationCIDRsJSON string
 
 	err := row.Scan(&p.ClusterID, &p.EndpointMode, &p.PublicHost, &p.PublicPort,
-		&p.SSLMode, &allowedCIDRsJSON, &p.CreatedAt, &p.UpdatedAt)
+		&p.SSLMode, &allowedCIDRsJSON, &allowedAdminCIDRsJSON, &allowedReplicationCIDRsJSON, &p.CreatedAt, &p.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return &ConnectionProfile{
-			ClusterID:    clusterID,
-			EndpointMode: DefaultEndpointMode,
-			PublicHost:   "",
-			PublicPort:   DefaultPublicPort,
-			SSLMode:      DefaultSSLMode,
-			AllowedCIDRs: []string{},
-			CreatedAt:    time.Time{},
-			UpdatedAt:    time.Time{},
+			ClusterID:               clusterID,
+			EndpointMode:            DefaultEndpointMode,
+			PublicHost:              "",
+			PublicPort:              DefaultPublicPort,
+			SSLMode:                 DefaultSSLMode,
+			AllowedCIDRs:            []string{},
+			AllowedAdminCIDRs:       []string{},
+			AllowedReplicationCIDRs: []string{},
+			CreatedAt:               time.Time{},
+			UpdatedAt:               time.Time{},
 		}, nil
 	}
 	if err != nil {
@@ -68,6 +72,8 @@ func (r *ConnectionProfileRepository) GetByClusterID(ctx context.Context, cluste
 	}
 
 	p.AllowedCIDRs = unmarshalCIDRs(allowedCIDRsJSON)
+	p.AllowedAdminCIDRs = unmarshalCIDRs(allowedAdminCIDRsJSON)
+	p.AllowedReplicationCIDRs = unmarshalCIDRs(allowedReplicationCIDRsJSON)
 	return &p, nil
 }
 
@@ -78,6 +84,14 @@ func (r *ConnectionProfileRepository) Upsert(ctx context.Context, p *ConnectionP
 	cidrsJSON, err := json.Marshal(p.AllowedCIDRs)
 	if err != nil {
 		return nil, fmt.Errorf("marshal allowed_cidrs: %w", err)
+	}
+	adminCIDRsJSON, err := json.Marshal(p.AllowedAdminCIDRs)
+	if err != nil {
+		return nil, fmt.Errorf("marshal allowed_admin_cidrs: %w", err)
+	}
+	replicationCIDRsJSON, err := json.Marshal(p.AllowedReplicationCIDRs)
+	if err != nil {
+		return nil, fmt.Errorf("marshal allowed_replication_cidrs: %w", err)
 	}
 
 	tx, err := r.conn.BeginTx(ctx, nil)
@@ -109,10 +123,10 @@ func (r *ConnectionProfileRepository) Upsert(ctx context.Context, p *ConnectionP
 
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`INSERT INTO cluster_connection_profiles
-		 (cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`),
+		 (cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		p.ClusterID, p.EndpointMode, p.PublicHost, p.PublicPort,
-		p.SSLMode, string(cidrsJSON), createdAt, now,
+		p.SSLMode, string(cidrsJSON), string(adminCIDRsJSON), string(replicationCIDRsJSON), createdAt, now,
 	); err != nil {
 		return nil, fmt.Errorf("insert connection profile: %w", err)
 	}

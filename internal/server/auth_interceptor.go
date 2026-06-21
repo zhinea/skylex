@@ -42,6 +42,7 @@ var (
 		"/skylex.v1.NodeService/ListNodes":                          true,
 		"/skylex.v1.NodeService/GetNode":                            true,
 		"/skylex.v1.PostgresManagementService/GetConnectionProfile": true,
+		"/skylex.v1.PostgresManagementService/GetNetworkAccess":     true,
 		"/skylex.v1.PostgresManagementService/ListRoles":            true,
 		"/skylex.v1.PostgresManagementService/ListDatabases":        true,
 		"/skylex.v1.BackupService/GetBackup":                        true,

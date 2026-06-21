@@ -25,6 +25,18 @@ func (c *connectPostgresService) UpdateConnectionProfile(ctx context.Context, re
 	return c.svc.UpdateConnectionProfile(ctx, req)
 }
 
+func (c *connectPostgresService) GetNetworkAccess(ctx context.Context, req *connect.Request[skylexv1.GetNetworkAccessRequest]) (*connect.Response[skylexv1.GetNetworkAccessResponse], error) {
+	return c.svc.GetNetworkAccess(ctx, req)
+}
+
+func (c *connectPostgresService) UpdateNetworkAccess(ctx context.Context, req *connect.Request[skylexv1.UpdateNetworkAccessRequest]) (*connect.Response[skylexv1.UpdateNetworkAccessResponse], error) {
+	return c.svc.UpdateNetworkAccess(ctx, req)
+}
+
+func (c *connectPostgresService) ApplyHBA(ctx context.Context, req *connect.Request[skylexv1.ApplyHBARequest]) (*connect.Response[skylexv1.ApplyHBAResponse], error) {
+	return c.svc.ApplyHBA(ctx, req)
+}
+
 func (c *connectPostgresService) ListRoles(ctx context.Context, req *connect.Request[skylexv1.ListRolesRequest]) (*connect.Response[skylexv1.ListRolesResponse], error) {
 	return c.svc.ListRoles(ctx, req)
 }
@@ -100,6 +112,8 @@ var unauthenticatedPaths = map[string]bool{
 
 var writeMethods = map[string]bool{
 	skylexv1connect.PostgresManagementServiceUpdateConnectionProfileProcedure: true,
+	skylexv1connect.PostgresManagementServiceUpdateNetworkAccessProcedure:     true,
+	skylexv1connect.PostgresManagementServiceApplyHBAProcedure:                true,
 	skylexv1connect.PostgresManagementServiceCreateRoleProcedure:              true,
 	skylexv1connect.PostgresManagementServiceRotateRolePasswordProcedure:      true,
 	skylexv1connect.PostgresManagementServiceDeleteRoleProcedure:              true,

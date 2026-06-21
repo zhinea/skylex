@@ -652,6 +652,9 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 	case "pg_grant_database_privileges":
 		return a.executeGrantDatabasePrivileges(ctx, cmd, logger)
 
+	case "pg_apply_hba":
+		return a.executeApplyHBA(ctx, cmd, logger)
+
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())
 	}

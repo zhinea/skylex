@@ -29,6 +29,7 @@ type AgentService struct {
 	commandSecrets *db.AgentCommandSecretRepository
 	postgresRoles  *db.PostgresRoleRepository
 	postgresDBs    *db.PostgresDatabaseRepository
+	postgresAccess *db.PostgresAccessRepository
 	log            *slog.Logger
 }
 
@@ -54,6 +55,10 @@ func (s *AgentService) SetPostgresRoleRepository(repo *db.PostgresRoleRepository
 
 func (s *AgentService) SetPostgresDatabaseRepository(repo *db.PostgresDatabaseRepository) {
 	s.postgresDBs = repo
+}
+
+func (s *AgentService) SetPostgresAccessRepository(repo *db.PostgresAccessRepository) {
+	s.postgresAccess = repo
 }
 
 func (s *AgentService) validateAgentToken(token string) (bool, error) {
@@ -400,6 +405,13 @@ func (s *AgentService) handleDatabaseManagementCommandResult(ctx context.Context
 	return true, nil
 }
 
+func (s *AgentService) handlePostgresAccessCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+	if s.postgresAccess == nil {
+		return false, nil
+	}
+	return s.postgresAccess.HandleHBACommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
+}
+
 func (s *AgentService) allowPromotionForCluster(ctx context.Context, clusterID string) (bool, error) {
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
 	if err != nil {
@@ -427,6 +439,11 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	}
 	if handled, err := s.handleDatabaseManagementCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
 		s.log.Warn("handle database management command result failed", "command_id", req.GetCommandId(), "error", err)
+	} else if handled {
+		return &skylexv1.ReportCommandResultResponse{}, nil
+	}
+	if handled, err := s.handlePostgresAccessCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
+		s.log.Warn("handle postgres access command result failed", "command_id", req.GetCommandId(), "error", err)
 	} else if handled {
 		return &skylexv1.ReportCommandResultResponse{}, nil
 	}

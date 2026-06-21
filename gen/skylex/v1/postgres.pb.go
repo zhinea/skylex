@@ -30,12 +30,14 @@ type ConnectionProfile struct {
 	PublicHost   string `protobuf:"bytes,3,opt,name=public_host,json=publicHost,proto3" json:"public_host,omitempty"`
 	PublicPort   int32  `protobuf:"varint,4,opt,name=public_port,json=publicPort,proto3" json:"public_port,omitempty"`
 	// ssl_mode: "prefer" | "require" | "disable"
-	SslMode       string                 `protobuf:"bytes,5,opt,name=ssl_mode,json=sslMode,proto3" json:"ssl_mode,omitempty"`
-	AllowedCidrs  []string               `protobuf:"bytes,6,rep,name=allowed_cidrs,json=allowedCidrs,proto3" json:"allowed_cidrs,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	SslMode                 string                 `protobuf:"bytes,5,opt,name=ssl_mode,json=sslMode,proto3" json:"ssl_mode,omitempty"`
+	AllowedCidrs            []string               `protobuf:"bytes,6,rep,name=allowed_cidrs,json=allowedCidrs,proto3" json:"allowed_cidrs,omitempty"`
+	CreatedAt               *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt               *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AllowedAdminCidrs       []string               `protobuf:"bytes,9,rep,name=allowed_admin_cidrs,json=allowedAdminCidrs,proto3" json:"allowed_admin_cidrs,omitempty"`
+	AllowedReplicationCidrs []string               `protobuf:"bytes,10,rep,name=allowed_replication_cidrs,json=allowedReplicationCidrs,proto3" json:"allowed_replication_cidrs,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *ConnectionProfile) Reset() {
@@ -120,6 +122,20 @@ func (x *ConnectionProfile) GetCreatedAt() *timestamppb.Timestamp {
 func (x *ConnectionProfile) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *ConnectionProfile) GetAllowedAdminCidrs() []string {
+	if x != nil {
+		return x.AllowedAdminCidrs
+	}
+	return nil
+}
+
+func (x *ConnectionProfile) GetAllowedReplicationCidrs() []string {
+	if x != nil {
+		return x.AllowedReplicationCidrs
 	}
 	return nil
 }
@@ -451,6 +467,427 @@ func (x *UpdateConnectionProfileResponse) GetProfile() *ConnectionProfile {
 	return nil
 }
 
+type HBAApplyStatus struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	NodeId    string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	CommandId string                 `protobuf:"bytes,3,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	// status: "pending" | "running" | "succeeded" | "failed"
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	Error         string                 `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
+	AppliedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=applied_at,json=appliedAt,proto3" json:"applied_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HBAApplyStatus) Reset() {
+	*x = HBAApplyStatus{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HBAApplyStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HBAApplyStatus) ProtoMessage() {}
+
+func (x *HBAApplyStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HBAApplyStatus.ProtoReflect.Descriptor instead.
+func (*HBAApplyStatus) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *HBAApplyStatus) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+func (x *HBAApplyStatus) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *HBAApplyStatus) GetCommandId() string {
+	if x != nil {
+		return x.CommandId
+	}
+	return ""
+}
+
+func (x *HBAApplyStatus) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *HBAApplyStatus) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *HBAApplyStatus) GetAppliedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AppliedAt
+	}
+	return nil
+}
+
+func (x *HBAApplyStatus) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type GetNetworkAccessRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNetworkAccessRequest) Reset() {
+	*x = GetNetworkAccessRequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNetworkAccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNetworkAccessRequest) ProtoMessage() {}
+
+func (x *GetNetworkAccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNetworkAccessRequest.ProtoReflect.Descriptor instead.
+func (*GetNetworkAccessRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetNetworkAccessRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+type GetNetworkAccessResponse struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	AllowedApplicationCidrs  []string               `protobuf:"bytes,1,rep,name=allowed_application_cidrs,json=allowedApplicationCidrs,proto3" json:"allowed_application_cidrs,omitempty"`
+	AllowedAdminCidrs        []string               `protobuf:"bytes,2,rep,name=allowed_admin_cidrs,json=allowedAdminCidrs,proto3" json:"allowed_admin_cidrs,omitempty"`
+	InternalReplicationCidrs []string               `protobuf:"bytes,3,rep,name=internal_replication_cidrs,json=internalReplicationCidrs,proto3" json:"internal_replication_cidrs,omitempty"`
+	HbaStatuses              []*HBAApplyStatus      `protobuf:"bytes,4,rep,name=hba_statuses,json=hbaStatuses,proto3" json:"hba_statuses,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *GetNetworkAccessResponse) Reset() {
+	*x = GetNetworkAccessResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNetworkAccessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNetworkAccessResponse) ProtoMessage() {}
+
+func (x *GetNetworkAccessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNetworkAccessResponse.ProtoReflect.Descriptor instead.
+func (*GetNetworkAccessResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetNetworkAccessResponse) GetAllowedApplicationCidrs() []string {
+	if x != nil {
+		return x.AllowedApplicationCidrs
+	}
+	return nil
+}
+
+func (x *GetNetworkAccessResponse) GetAllowedAdminCidrs() []string {
+	if x != nil {
+		return x.AllowedAdminCidrs
+	}
+	return nil
+}
+
+func (x *GetNetworkAccessResponse) GetInternalReplicationCidrs() []string {
+	if x != nil {
+		return x.InternalReplicationCidrs
+	}
+	return nil
+}
+
+func (x *GetNetworkAccessResponse) GetHbaStatuses() []*HBAApplyStatus {
+	if x != nil {
+		return x.HbaStatuses
+	}
+	return nil
+}
+
+type UpdateNetworkAccessRequest struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId                string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	AllowedApplicationCidrs  []string               `protobuf:"bytes,2,rep,name=allowed_application_cidrs,json=allowedApplicationCidrs,proto3" json:"allowed_application_cidrs,omitempty"`
+	AllowedAdminCidrs        []string               `protobuf:"bytes,3,rep,name=allowed_admin_cidrs,json=allowedAdminCidrs,proto3" json:"allowed_admin_cidrs,omitempty"`
+	InternalReplicationCidrs []string               `protobuf:"bytes,4,rep,name=internal_replication_cidrs,json=internalReplicationCidrs,proto3" json:"internal_replication_cidrs,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *UpdateNetworkAccessRequest) Reset() {
+	*x = UpdateNetworkAccessRequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNetworkAccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNetworkAccessRequest) ProtoMessage() {}
+
+func (x *UpdateNetworkAccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNetworkAccessRequest.ProtoReflect.Descriptor instead.
+func (*UpdateNetworkAccessRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *UpdateNetworkAccessRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+func (x *UpdateNetworkAccessRequest) GetAllowedApplicationCidrs() []string {
+	if x != nil {
+		return x.AllowedApplicationCidrs
+	}
+	return nil
+}
+
+func (x *UpdateNetworkAccessRequest) GetAllowedAdminCidrs() []string {
+	if x != nil {
+		return x.AllowedAdminCidrs
+	}
+	return nil
+}
+
+func (x *UpdateNetworkAccessRequest) GetInternalReplicationCidrs() []string {
+	if x != nil {
+		return x.InternalReplicationCidrs
+	}
+	return nil
+}
+
+type UpdateNetworkAccessResponse struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	AllowedApplicationCidrs  []string               `protobuf:"bytes,1,rep,name=allowed_application_cidrs,json=allowedApplicationCidrs,proto3" json:"allowed_application_cidrs,omitempty"`
+	AllowedAdminCidrs        []string               `protobuf:"bytes,2,rep,name=allowed_admin_cidrs,json=allowedAdminCidrs,proto3" json:"allowed_admin_cidrs,omitempty"`
+	InternalReplicationCidrs []string               `protobuf:"bytes,3,rep,name=internal_replication_cidrs,json=internalReplicationCidrs,proto3" json:"internal_replication_cidrs,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *UpdateNetworkAccessResponse) Reset() {
+	*x = UpdateNetworkAccessResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateNetworkAccessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateNetworkAccessResponse) ProtoMessage() {}
+
+func (x *UpdateNetworkAccessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateNetworkAccessResponse.ProtoReflect.Descriptor instead.
+func (*UpdateNetworkAccessResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdateNetworkAccessResponse) GetAllowedApplicationCidrs() []string {
+	if x != nil {
+		return x.AllowedApplicationCidrs
+	}
+	return nil
+}
+
+func (x *UpdateNetworkAccessResponse) GetAllowedAdminCidrs() []string {
+	if x != nil {
+		return x.AllowedAdminCidrs
+	}
+	return nil
+}
+
+func (x *UpdateNetworkAccessResponse) GetInternalReplicationCidrs() []string {
+	if x != nil {
+		return x.InternalReplicationCidrs
+	}
+	return nil
+}
+
+type ApplyHBARequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyHBARequest) Reset() {
+	*x = ApplyHBARequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyHBARequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyHBARequest) ProtoMessage() {}
+
+func (x *ApplyHBARequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyHBARequest.ProtoReflect.Descriptor instead.
+func (*ApplyHBARequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ApplyHBARequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+type ApplyHBAResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HbaStatuses   []*HBAApplyStatus      `protobuf:"bytes,1,rep,name=hba_statuses,json=hbaStatuses,proto3" json:"hba_statuses,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyHBAResponse) Reset() {
+	*x = ApplyHBAResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyHBAResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyHBAResponse) ProtoMessage() {}
+
+func (x *ApplyHBAResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyHBAResponse.ProtoReflect.Descriptor instead.
+func (*ApplyHBAResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ApplyHBAResponse) GetHbaStatuses() []*HBAApplyStatus {
+	if x != nil {
+		return x.HbaStatuses
+	}
+	return nil
+}
+
 type PostgresRole struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -470,7 +907,7 @@ type PostgresRole struct {
 
 func (x *PostgresRole) Reset() {
 	*x = PostgresRole{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[6]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -482,7 +919,7 @@ func (x *PostgresRole) String() string {
 func (*PostgresRole) ProtoMessage() {}
 
 func (x *PostgresRole) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[6]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -495,7 +932,7 @@ func (x *PostgresRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostgresRole.ProtoReflect.Descriptor instead.
 func (*PostgresRole) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{6}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *PostgresRole) GetId() string {
@@ -570,7 +1007,7 @@ type ListRolesRequest struct {
 
 func (x *ListRolesRequest) Reset() {
 	*x = ListRolesRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[7]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -582,7 +1019,7 @@ func (x *ListRolesRequest) String() string {
 func (*ListRolesRequest) ProtoMessage() {}
 
 func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[7]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -595,7 +1032,7 @@ func (x *ListRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListRolesRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{7}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListRolesRequest) GetClusterId() string {
@@ -614,7 +1051,7 @@ type ListRolesResponse struct {
 
 func (x *ListRolesResponse) Reset() {
 	*x = ListRolesResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[8]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -626,7 +1063,7 @@ func (x *ListRolesResponse) String() string {
 func (*ListRolesResponse) ProtoMessage() {}
 
 func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[8]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -639,7 +1076,7 @@ func (x *ListRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListRolesResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{8}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListRolesResponse) GetRoles() []*PostgresRole {
@@ -663,7 +1100,7 @@ type CreateRoleRequest struct {
 
 func (x *CreateRoleRequest) Reset() {
 	*x = CreateRoleRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[9]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -675,7 +1112,7 @@ func (x *CreateRoleRequest) String() string {
 func (*CreateRoleRequest) ProtoMessage() {}
 
 func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[9]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -688,7 +1125,7 @@ func (x *CreateRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoleRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{9}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateRoleRequest) GetClusterId() string {
@@ -730,7 +1167,7 @@ type CreateRoleResponse struct {
 
 func (x *CreateRoleResponse) Reset() {
 	*x = CreateRoleResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[10]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -742,7 +1179,7 @@ func (x *CreateRoleResponse) String() string {
 func (*CreateRoleResponse) ProtoMessage() {}
 
 func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[10]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -755,7 +1192,7 @@ func (x *CreateRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoleResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoleResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{10}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *CreateRoleResponse) GetRole() *PostgresRole {
@@ -781,7 +1218,7 @@ type RotateRolePasswordRequest struct {
 
 func (x *RotateRolePasswordRequest) Reset() {
 	*x = RotateRolePasswordRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[11]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -793,7 +1230,7 @@ func (x *RotateRolePasswordRequest) String() string {
 func (*RotateRolePasswordRequest) ProtoMessage() {}
 
 func (x *RotateRolePasswordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[11]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -806,7 +1243,7 @@ func (x *RotateRolePasswordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateRolePasswordRequest.ProtoReflect.Descriptor instead.
 func (*RotateRolePasswordRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{11}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RotateRolePasswordRequest) GetRoleId() string {
@@ -827,7 +1264,7 @@ type RotateRolePasswordResponse struct {
 
 func (x *RotateRolePasswordResponse) Reset() {
 	*x = RotateRolePasswordResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[12]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -839,7 +1276,7 @@ func (x *RotateRolePasswordResponse) String() string {
 func (*RotateRolePasswordResponse) ProtoMessage() {}
 
 func (x *RotateRolePasswordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[12]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -852,7 +1289,7 @@ func (x *RotateRolePasswordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RotateRolePasswordResponse.ProtoReflect.Descriptor instead.
 func (*RotateRolePasswordResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{12}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RotateRolePasswordResponse) GetRole() *PostgresRole {
@@ -878,7 +1315,7 @@ type DeleteRoleRequest struct {
 
 func (x *DeleteRoleRequest) Reset() {
 	*x = DeleteRoleRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[13]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -890,7 +1327,7 @@ func (x *DeleteRoleRequest) String() string {
 func (*DeleteRoleRequest) ProtoMessage() {}
 
 func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[13]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -903,7 +1340,7 @@ func (x *DeleteRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{13}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *DeleteRoleRequest) GetRoleId() string {
@@ -921,7 +1358,7 @@ type DeleteRoleResponse struct {
 
 func (x *DeleteRoleResponse) Reset() {
 	*x = DeleteRoleResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[14]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +1370,7 @@ func (x *DeleteRoleResponse) String() string {
 func (*DeleteRoleResponse) ProtoMessage() {}
 
 func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[14]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +1383,7 @@ func (x *DeleteRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{14}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{21}
 }
 
 type PostgresDatabase struct {
@@ -967,7 +1404,7 @@ type PostgresDatabase struct {
 
 func (x *PostgresDatabase) Reset() {
 	*x = PostgresDatabase{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[15]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -979,7 +1416,7 @@ func (x *PostgresDatabase) String() string {
 func (*PostgresDatabase) ProtoMessage() {}
 
 func (x *PostgresDatabase) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[15]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -992,7 +1429,7 @@ func (x *PostgresDatabase) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostgresDatabase.ProtoReflect.Descriptor instead.
 func (*PostgresDatabase) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{15}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *PostgresDatabase) GetId() string {
@@ -1060,7 +1497,7 @@ type ListDatabasesRequest struct {
 
 func (x *ListDatabasesRequest) Reset() {
 	*x = ListDatabasesRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[16]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1509,7 @@ func (x *ListDatabasesRequest) String() string {
 func (*ListDatabasesRequest) ProtoMessage() {}
 
 func (x *ListDatabasesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[16]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +1522,7 @@ func (x *ListDatabasesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatabasesRequest.ProtoReflect.Descriptor instead.
 func (*ListDatabasesRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{16}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListDatabasesRequest) GetClusterId() string {
@@ -1104,7 +1541,7 @@ type ListDatabasesResponse struct {
 
 func (x *ListDatabasesResponse) Reset() {
 	*x = ListDatabasesResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1116,7 +1553,7 @@ func (x *ListDatabasesResponse) String() string {
 func (*ListDatabasesResponse) ProtoMessage() {}
 
 func (x *ListDatabasesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[17]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1129,7 +1566,7 @@ func (x *ListDatabasesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListDatabasesResponse.ProtoReflect.Descriptor instead.
 func (*ListDatabasesResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{17}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListDatabasesResponse) GetDatabases() []*PostgresDatabase {
@@ -1151,7 +1588,7 @@ type CreateDatabaseRequest struct {
 
 func (x *CreateDatabaseRequest) Reset() {
 	*x = CreateDatabaseRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1163,7 +1600,7 @@ func (x *CreateDatabaseRequest) String() string {
 func (*CreateDatabaseRequest) ProtoMessage() {}
 
 func (x *CreateDatabaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[18]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1176,7 +1613,7 @@ func (x *CreateDatabaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDatabaseRequest.ProtoReflect.Descriptor instead.
 func (*CreateDatabaseRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{18}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreateDatabaseRequest) GetClusterId() string {
@@ -1209,7 +1646,7 @@ type CreateDatabaseResponse struct {
 
 func (x *CreateDatabaseResponse) Reset() {
 	*x = CreateDatabaseResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1221,7 +1658,7 @@ func (x *CreateDatabaseResponse) String() string {
 func (*CreateDatabaseResponse) ProtoMessage() {}
 
 func (x *CreateDatabaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[19]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1234,7 +1671,7 @@ func (x *CreateDatabaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateDatabaseResponse.ProtoReflect.Descriptor instead.
 func (*CreateDatabaseResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{19}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CreateDatabaseResponse) GetDatabase() *PostgresDatabase {
@@ -1253,7 +1690,7 @@ type DeleteDatabaseRequest struct {
 
 func (x *DeleteDatabaseRequest) Reset() {
 	*x = DeleteDatabaseRequest{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1265,7 +1702,7 @@ func (x *DeleteDatabaseRequest) String() string {
 func (*DeleteDatabaseRequest) ProtoMessage() {}
 
 func (x *DeleteDatabaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[20]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1278,7 +1715,7 @@ func (x *DeleteDatabaseRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDatabaseRequest.ProtoReflect.Descriptor instead.
 func (*DeleteDatabaseRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{20}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *DeleteDatabaseRequest) GetDatabaseId() string {
@@ -1296,7 +1733,7 @@ type DeleteDatabaseResponse struct {
 
 func (x *DeleteDatabaseResponse) Reset() {
 	*x = DeleteDatabaseResponse{}
-	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1308,7 +1745,7 @@ func (x *DeleteDatabaseResponse) String() string {
 func (*DeleteDatabaseResponse) ProtoMessage() {}
 
 func (x *DeleteDatabaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_postgres_proto_msgTypes[21]
+	mi := &file_skylex_v1_postgres_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1321,14 +1758,14 @@ func (x *DeleteDatabaseResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteDatabaseResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDatabaseResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{21}
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{28}
 }
 
 var File_skylex_v1_postgres_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\n" +
-	"\x18skylex/v1/postgres.proto\x12\tskylex.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcf\x02\n" +
+	"\x18skylex/v1/postgres.proto\x12\tskylex.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbb\x03\n" +
 	"\x11ConnectionProfile\x12\x1d\n" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12#\n" +
@@ -1342,7 +1779,10 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x7f\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12.\n" +
+	"\x13allowed_admin_cidrs\x18\t \x03(\tR\x11allowedAdminCidrs\x12:\n" +
+	"\x19allowed_replication_cidrs\x18\n" +
+	" \x03(\tR\x17allowedReplicationCidrs\"\x7f\n" +
 	"\fNodeEndpoint\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12\x1a\n" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x12\x12\n" +
@@ -1369,7 +1809,42 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\bssl_mode\x18\x05 \x01(\tR\asslMode\x12#\n" +
 	"\rallowed_cidrs\x18\x06 \x03(\tR\fallowedCidrs\"Y\n" +
 	"\x1fUpdateConnectionProfileResponse\x126\n" +
-	"\aprofile\x18\x01 \x01(\v2\x1c.skylex.v1.ConnectionProfileR\aprofile\"\xeb\x02\n" +
+	"\aprofile\x18\x01 \x01(\v2\x1c.skylex.v1.ConnectionProfileR\aprofile\"\x8b\x02\n" +
+	"\x0eHBAApplyStatus\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x17\n" +
+	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x12\x1d\n" +
+	"\n" +
+	"command_id\x18\x03 \x01(\tR\tcommandId\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x14\n" +
+	"\x05error\x18\x05 \x01(\tR\x05error\x129\n" +
+	"\n" +
+	"applied_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tappliedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"8\n" +
+	"\x17GetNetworkAccessRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\"\x82\x02\n" +
+	"\x18GetNetworkAccessResponse\x12:\n" +
+	"\x19allowed_application_cidrs\x18\x01 \x03(\tR\x17allowedApplicationCidrs\x12.\n" +
+	"\x13allowed_admin_cidrs\x18\x02 \x03(\tR\x11allowedAdminCidrs\x12<\n" +
+	"\x1ainternal_replication_cidrs\x18\x03 \x03(\tR\x18internalReplicationCidrs\x12<\n" +
+	"\fhba_statuses\x18\x04 \x03(\v2\x19.skylex.v1.HBAApplyStatusR\vhbaStatuses\"\xe5\x01\n" +
+	"\x1aUpdateNetworkAccessRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12:\n" +
+	"\x19allowed_application_cidrs\x18\x02 \x03(\tR\x17allowedApplicationCidrs\x12.\n" +
+	"\x13allowed_admin_cidrs\x18\x03 \x03(\tR\x11allowedAdminCidrs\x12<\n" +
+	"\x1ainternal_replication_cidrs\x18\x04 \x03(\tR\x18internalReplicationCidrs\"\xc7\x01\n" +
+	"\x1bUpdateNetworkAccessResponse\x12:\n" +
+	"\x19allowed_application_cidrs\x18\x01 \x03(\tR\x17allowedApplicationCidrs\x12.\n" +
+	"\x13allowed_admin_cidrs\x18\x02 \x03(\tR\x11allowedAdminCidrs\x12<\n" +
+	"\x1ainternal_replication_cidrs\x18\x03 \x03(\tR\x18internalReplicationCidrs\"0\n" +
+	"\x0fApplyHBARequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\"P\n" +
+	"\x10ApplyHBAResponse\x12<\n" +
+	"\fhba_statuses\x18\x01 \x03(\v2\x19.skylex.v1.HBAApplyStatusR\vhbaStatuses\"\xeb\x02\n" +
 	"\fPostgresRole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -1434,10 +1909,13 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\x15DeleteDatabaseRequest\x12\x1f\n" +
 	"\vdatabase_id\x18\x01 \x01(\tR\n" +
 	"databaseId\"\x18\n" +
-	"\x16DeleteDatabaseResponse2\xb9\x06\n" +
+	"\x16DeleteDatabaseResponse2\xc1\b\n" +
 	"\x19PostgresManagementService\x12g\n" +
 	"\x14GetConnectionProfile\x12&.skylex.v1.GetConnectionProfileRequest\x1a'.skylex.v1.GetConnectionProfileResponse\x12p\n" +
-	"\x17UpdateConnectionProfile\x12).skylex.v1.UpdateConnectionProfileRequest\x1a*.skylex.v1.UpdateConnectionProfileResponse\x12F\n" +
+	"\x17UpdateConnectionProfile\x12).skylex.v1.UpdateConnectionProfileRequest\x1a*.skylex.v1.UpdateConnectionProfileResponse\x12[\n" +
+	"\x10GetNetworkAccess\x12\".skylex.v1.GetNetworkAccessRequest\x1a#.skylex.v1.GetNetworkAccessResponse\x12d\n" +
+	"\x13UpdateNetworkAccess\x12%.skylex.v1.UpdateNetworkAccessRequest\x1a&.skylex.v1.UpdateNetworkAccessResponse\x12C\n" +
+	"\bApplyHBA\x12\x1a.skylex.v1.ApplyHBARequest\x1a\x1b.skylex.v1.ApplyHBAResponse\x12F\n" +
 	"\tListRoles\x12\x1b.skylex.v1.ListRolesRequest\x1a\x1c.skylex.v1.ListRolesResponse\x12I\n" +
 	"\n" +
 	"CreateRole\x12\x1c.skylex.v1.CreateRoleRequest\x1a\x1d.skylex.v1.CreateRoleResponse\x12a\n" +
@@ -1462,7 +1940,7 @@ func file_skylex_v1_postgres_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_postgres_proto_rawDescData
 }
 
-var file_skylex_v1_postgres_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_skylex_v1_postgres_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_skylex_v1_postgres_proto_goTypes = []any{
 	(*ConnectionProfile)(nil),               // 0: skylex.v1.ConnectionProfile
 	(*NodeEndpoint)(nil),                    // 1: skylex.v1.NodeEndpoint
@@ -1470,65 +1948,82 @@ var file_skylex_v1_postgres_proto_goTypes = []any{
 	(*GetConnectionProfileResponse)(nil),    // 3: skylex.v1.GetConnectionProfileResponse
 	(*UpdateConnectionProfileRequest)(nil),  // 4: skylex.v1.UpdateConnectionProfileRequest
 	(*UpdateConnectionProfileResponse)(nil), // 5: skylex.v1.UpdateConnectionProfileResponse
-	(*PostgresRole)(nil),                    // 6: skylex.v1.PostgresRole
-	(*ListRolesRequest)(nil),                // 7: skylex.v1.ListRolesRequest
-	(*ListRolesResponse)(nil),               // 8: skylex.v1.ListRolesResponse
-	(*CreateRoleRequest)(nil),               // 9: skylex.v1.CreateRoleRequest
-	(*CreateRoleResponse)(nil),              // 10: skylex.v1.CreateRoleResponse
-	(*RotateRolePasswordRequest)(nil),       // 11: skylex.v1.RotateRolePasswordRequest
-	(*RotateRolePasswordResponse)(nil),      // 12: skylex.v1.RotateRolePasswordResponse
-	(*DeleteRoleRequest)(nil),               // 13: skylex.v1.DeleteRoleRequest
-	(*DeleteRoleResponse)(nil),              // 14: skylex.v1.DeleteRoleResponse
-	(*PostgresDatabase)(nil),                // 15: skylex.v1.PostgresDatabase
-	(*ListDatabasesRequest)(nil),            // 16: skylex.v1.ListDatabasesRequest
-	(*ListDatabasesResponse)(nil),           // 17: skylex.v1.ListDatabasesResponse
-	(*CreateDatabaseRequest)(nil),           // 18: skylex.v1.CreateDatabaseRequest
-	(*CreateDatabaseResponse)(nil),          // 19: skylex.v1.CreateDatabaseResponse
-	(*DeleteDatabaseRequest)(nil),           // 20: skylex.v1.DeleteDatabaseRequest
-	(*DeleteDatabaseResponse)(nil),          // 21: skylex.v1.DeleteDatabaseResponse
-	(*timestamppb.Timestamp)(nil),           // 22: google.protobuf.Timestamp
+	(*HBAApplyStatus)(nil),                  // 6: skylex.v1.HBAApplyStatus
+	(*GetNetworkAccessRequest)(nil),         // 7: skylex.v1.GetNetworkAccessRequest
+	(*GetNetworkAccessResponse)(nil),        // 8: skylex.v1.GetNetworkAccessResponse
+	(*UpdateNetworkAccessRequest)(nil),      // 9: skylex.v1.UpdateNetworkAccessRequest
+	(*UpdateNetworkAccessResponse)(nil),     // 10: skylex.v1.UpdateNetworkAccessResponse
+	(*ApplyHBARequest)(nil),                 // 11: skylex.v1.ApplyHBARequest
+	(*ApplyHBAResponse)(nil),                // 12: skylex.v1.ApplyHBAResponse
+	(*PostgresRole)(nil),                    // 13: skylex.v1.PostgresRole
+	(*ListRolesRequest)(nil),                // 14: skylex.v1.ListRolesRequest
+	(*ListRolesResponse)(nil),               // 15: skylex.v1.ListRolesResponse
+	(*CreateRoleRequest)(nil),               // 16: skylex.v1.CreateRoleRequest
+	(*CreateRoleResponse)(nil),              // 17: skylex.v1.CreateRoleResponse
+	(*RotateRolePasswordRequest)(nil),       // 18: skylex.v1.RotateRolePasswordRequest
+	(*RotateRolePasswordResponse)(nil),      // 19: skylex.v1.RotateRolePasswordResponse
+	(*DeleteRoleRequest)(nil),               // 20: skylex.v1.DeleteRoleRequest
+	(*DeleteRoleResponse)(nil),              // 21: skylex.v1.DeleteRoleResponse
+	(*PostgresDatabase)(nil),                // 22: skylex.v1.PostgresDatabase
+	(*ListDatabasesRequest)(nil),            // 23: skylex.v1.ListDatabasesRequest
+	(*ListDatabasesResponse)(nil),           // 24: skylex.v1.ListDatabasesResponse
+	(*CreateDatabaseRequest)(nil),           // 25: skylex.v1.CreateDatabaseRequest
+	(*CreateDatabaseResponse)(nil),          // 26: skylex.v1.CreateDatabaseResponse
+	(*DeleteDatabaseRequest)(nil),           // 27: skylex.v1.DeleteDatabaseRequest
+	(*DeleteDatabaseResponse)(nil),          // 28: skylex.v1.DeleteDatabaseResponse
+	(*timestamppb.Timestamp)(nil),           // 29: google.protobuf.Timestamp
 }
 var file_skylex_v1_postgres_proto_depIdxs = []int32{
-	22, // 0: skylex.v1.ConnectionProfile.created_at:type_name -> google.protobuf.Timestamp
-	22, // 1: skylex.v1.ConnectionProfile.updated_at:type_name -> google.protobuf.Timestamp
+	29, // 0: skylex.v1.ConnectionProfile.created_at:type_name -> google.protobuf.Timestamp
+	29, // 1: skylex.v1.ConnectionProfile.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: skylex.v1.GetConnectionProfileResponse.profile:type_name -> skylex.v1.ConnectionProfile
 	1,  // 3: skylex.v1.GetConnectionProfileResponse.primary_endpoint:type_name -> skylex.v1.NodeEndpoint
 	1,  // 4: skylex.v1.GetConnectionProfileResponse.replica_endpoints:type_name -> skylex.v1.NodeEndpoint
 	0,  // 5: skylex.v1.UpdateConnectionProfileResponse.profile:type_name -> skylex.v1.ConnectionProfile
-	22, // 6: skylex.v1.PostgresRole.expires_at:type_name -> google.protobuf.Timestamp
-	22, // 7: skylex.v1.PostgresRole.created_at:type_name -> google.protobuf.Timestamp
-	22, // 8: skylex.v1.PostgresRole.updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 9: skylex.v1.ListRolesResponse.roles:type_name -> skylex.v1.PostgresRole
-	22, // 10: skylex.v1.CreateRoleRequest.expires_at:type_name -> google.protobuf.Timestamp
-	6,  // 11: skylex.v1.CreateRoleResponse.role:type_name -> skylex.v1.PostgresRole
-	6,  // 12: skylex.v1.RotateRolePasswordResponse.role:type_name -> skylex.v1.PostgresRole
-	22, // 13: skylex.v1.PostgresDatabase.created_at:type_name -> google.protobuf.Timestamp
-	22, // 14: skylex.v1.PostgresDatabase.updated_at:type_name -> google.protobuf.Timestamp
-	15, // 15: skylex.v1.ListDatabasesResponse.databases:type_name -> skylex.v1.PostgresDatabase
-	15, // 16: skylex.v1.CreateDatabaseResponse.database:type_name -> skylex.v1.PostgresDatabase
-	2,  // 17: skylex.v1.PostgresManagementService.GetConnectionProfile:input_type -> skylex.v1.GetConnectionProfileRequest
-	4,  // 18: skylex.v1.PostgresManagementService.UpdateConnectionProfile:input_type -> skylex.v1.UpdateConnectionProfileRequest
-	7,  // 19: skylex.v1.PostgresManagementService.ListRoles:input_type -> skylex.v1.ListRolesRequest
-	9,  // 20: skylex.v1.PostgresManagementService.CreateRole:input_type -> skylex.v1.CreateRoleRequest
-	11, // 21: skylex.v1.PostgresManagementService.RotateRolePassword:input_type -> skylex.v1.RotateRolePasswordRequest
-	13, // 22: skylex.v1.PostgresManagementService.DeleteRole:input_type -> skylex.v1.DeleteRoleRequest
-	16, // 23: skylex.v1.PostgresManagementService.ListDatabases:input_type -> skylex.v1.ListDatabasesRequest
-	18, // 24: skylex.v1.PostgresManagementService.CreateDatabase:input_type -> skylex.v1.CreateDatabaseRequest
-	20, // 25: skylex.v1.PostgresManagementService.DeleteDatabase:input_type -> skylex.v1.DeleteDatabaseRequest
-	3,  // 26: skylex.v1.PostgresManagementService.GetConnectionProfile:output_type -> skylex.v1.GetConnectionProfileResponse
-	5,  // 27: skylex.v1.PostgresManagementService.UpdateConnectionProfile:output_type -> skylex.v1.UpdateConnectionProfileResponse
-	8,  // 28: skylex.v1.PostgresManagementService.ListRoles:output_type -> skylex.v1.ListRolesResponse
-	10, // 29: skylex.v1.PostgresManagementService.CreateRole:output_type -> skylex.v1.CreateRoleResponse
-	12, // 30: skylex.v1.PostgresManagementService.RotateRolePassword:output_type -> skylex.v1.RotateRolePasswordResponse
-	14, // 31: skylex.v1.PostgresManagementService.DeleteRole:output_type -> skylex.v1.DeleteRoleResponse
-	17, // 32: skylex.v1.PostgresManagementService.ListDatabases:output_type -> skylex.v1.ListDatabasesResponse
-	19, // 33: skylex.v1.PostgresManagementService.CreateDatabase:output_type -> skylex.v1.CreateDatabaseResponse
-	21, // 34: skylex.v1.PostgresManagementService.DeleteDatabase:output_type -> skylex.v1.DeleteDatabaseResponse
-	26, // [26:35] is the sub-list for method output_type
-	17, // [17:26] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	29, // 6: skylex.v1.HBAApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
+	29, // 7: skylex.v1.HBAApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 8: skylex.v1.GetNetworkAccessResponse.hba_statuses:type_name -> skylex.v1.HBAApplyStatus
+	6,  // 9: skylex.v1.ApplyHBAResponse.hba_statuses:type_name -> skylex.v1.HBAApplyStatus
+	29, // 10: skylex.v1.PostgresRole.expires_at:type_name -> google.protobuf.Timestamp
+	29, // 11: skylex.v1.PostgresRole.created_at:type_name -> google.protobuf.Timestamp
+	29, // 12: skylex.v1.PostgresRole.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 13: skylex.v1.ListRolesResponse.roles:type_name -> skylex.v1.PostgresRole
+	29, // 14: skylex.v1.CreateRoleRequest.expires_at:type_name -> google.protobuf.Timestamp
+	13, // 15: skylex.v1.CreateRoleResponse.role:type_name -> skylex.v1.PostgresRole
+	13, // 16: skylex.v1.RotateRolePasswordResponse.role:type_name -> skylex.v1.PostgresRole
+	29, // 17: skylex.v1.PostgresDatabase.created_at:type_name -> google.protobuf.Timestamp
+	29, // 18: skylex.v1.PostgresDatabase.updated_at:type_name -> google.protobuf.Timestamp
+	22, // 19: skylex.v1.ListDatabasesResponse.databases:type_name -> skylex.v1.PostgresDatabase
+	22, // 20: skylex.v1.CreateDatabaseResponse.database:type_name -> skylex.v1.PostgresDatabase
+	2,  // 21: skylex.v1.PostgresManagementService.GetConnectionProfile:input_type -> skylex.v1.GetConnectionProfileRequest
+	4,  // 22: skylex.v1.PostgresManagementService.UpdateConnectionProfile:input_type -> skylex.v1.UpdateConnectionProfileRequest
+	7,  // 23: skylex.v1.PostgresManagementService.GetNetworkAccess:input_type -> skylex.v1.GetNetworkAccessRequest
+	9,  // 24: skylex.v1.PostgresManagementService.UpdateNetworkAccess:input_type -> skylex.v1.UpdateNetworkAccessRequest
+	11, // 25: skylex.v1.PostgresManagementService.ApplyHBA:input_type -> skylex.v1.ApplyHBARequest
+	14, // 26: skylex.v1.PostgresManagementService.ListRoles:input_type -> skylex.v1.ListRolesRequest
+	16, // 27: skylex.v1.PostgresManagementService.CreateRole:input_type -> skylex.v1.CreateRoleRequest
+	18, // 28: skylex.v1.PostgresManagementService.RotateRolePassword:input_type -> skylex.v1.RotateRolePasswordRequest
+	20, // 29: skylex.v1.PostgresManagementService.DeleteRole:input_type -> skylex.v1.DeleteRoleRequest
+	23, // 30: skylex.v1.PostgresManagementService.ListDatabases:input_type -> skylex.v1.ListDatabasesRequest
+	25, // 31: skylex.v1.PostgresManagementService.CreateDatabase:input_type -> skylex.v1.CreateDatabaseRequest
+	27, // 32: skylex.v1.PostgresManagementService.DeleteDatabase:input_type -> skylex.v1.DeleteDatabaseRequest
+	3,  // 33: skylex.v1.PostgresManagementService.GetConnectionProfile:output_type -> skylex.v1.GetConnectionProfileResponse
+	5,  // 34: skylex.v1.PostgresManagementService.UpdateConnectionProfile:output_type -> skylex.v1.UpdateConnectionProfileResponse
+	8,  // 35: skylex.v1.PostgresManagementService.GetNetworkAccess:output_type -> skylex.v1.GetNetworkAccessResponse
+	10, // 36: skylex.v1.PostgresManagementService.UpdateNetworkAccess:output_type -> skylex.v1.UpdateNetworkAccessResponse
+	12, // 37: skylex.v1.PostgresManagementService.ApplyHBA:output_type -> skylex.v1.ApplyHBAResponse
+	15, // 38: skylex.v1.PostgresManagementService.ListRoles:output_type -> skylex.v1.ListRolesResponse
+	17, // 39: skylex.v1.PostgresManagementService.CreateRole:output_type -> skylex.v1.CreateRoleResponse
+	19, // 40: skylex.v1.PostgresManagementService.RotateRolePassword:output_type -> skylex.v1.RotateRolePasswordResponse
+	21, // 41: skylex.v1.PostgresManagementService.DeleteRole:output_type -> skylex.v1.DeleteRoleResponse
+	24, // 42: skylex.v1.PostgresManagementService.ListDatabases:output_type -> skylex.v1.ListDatabasesResponse
+	26, // 43: skylex.v1.PostgresManagementService.CreateDatabase:output_type -> skylex.v1.CreateDatabaseResponse
+	28, // 44: skylex.v1.PostgresManagementService.DeleteDatabase:output_type -> skylex.v1.DeleteDatabaseResponse
+	33, // [33:45] is the sub-list for method output_type
+	21, // [21:33] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_postgres_proto_init() }
@@ -1542,7 +2037,7 @@ func file_skylex_v1_postgres_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_postgres_proto_rawDesc), len(file_skylex_v1_postgres_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

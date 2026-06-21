@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"log/slog"
+	"time"
 
 	"github.com/zhinea/skylex/internal/models"
 )
@@ -17,11 +18,16 @@ func NewAuditRepository(db *sql.DB, log *slog.Logger) *AuditRepository {
 }
 
 func (r *AuditRepository) Log(entry *models.AuditLog) error {
-	query := Rebind(`INSERT INTO audit_logs (user_id, action, resource, detail, ip_address) VALUES (?, ?, ?, ?, ?) RETURNING id`)
-	err := r.db.QueryRow(query, entry.UserID, entry.Action, entry.Resource, entry.Detail, entry.IPAddress).Scan(&entry.ID)
+	createdAt := entry.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = time.Now().UTC()
+	}
+	query := Rebind(`INSERT INTO audit_logs (user_id, action, resource, detail, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id`)
+	err := r.db.QueryRow(query, entry.UserID, entry.Action, entry.Resource, entry.Detail, entry.IPAddress, createdAt).Scan(&entry.ID)
 	if err != nil {
 		return err
 	}
+	entry.CreatedAt = createdAt
 	return nil
 }
 
