@@ -13,7 +13,7 @@ import (
 func (p *Instance) localConnectDatabase(ctx context.Context, databaseName string) (*pgx.Conn, error) {
 	u := url.URL{
 		Scheme: "postgres",
-		Host:   fmt.Sprintf("localhost:%d", p.Port),
+		Host:   fmt.Sprintf("127.0.0.1:%d", p.Port),
 		Path:   "/" + databaseName,
 		User:   url.User(p.Superuser),
 	}

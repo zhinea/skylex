@@ -463,7 +463,7 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 
 func (p *Instance) CreateReplicationSlot(ctx context.Context, slotName string) error {
 	cmd := p.pgCmd(ctx, "psql",
-		"-h", "localhost",
+		"-h", "127.0.0.1",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
 		"-v", fmt.Sprintf("slot=%s", slotName),
@@ -481,7 +481,7 @@ func (p *Instance) CreateReplicationSlot(ctx context.Context, slotName string) e
 
 func (p *Instance) CreateReplicationUser(ctx context.Context) error {
 	cmd := p.pgCmd(ctx, "psql",
-		"-h", "localhost",
+		"-h", "127.0.0.1",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
 		"-c", fmt.Sprintf("DO $$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = %s) THEN EXECUTE format('CREATE ROLE %%I WITH LOGIN REPLICATION ENCRYPTED PASSWORD %%L', %s, %s); END IF; END $$", pqQuoteLiteral(p.ReplUser), pqQuoteLiteral(p.ReplUser), pqQuoteLiteral(p.ReplPass)),
@@ -502,7 +502,7 @@ func pqQuoteLiteral(value string) string {
 
 func (p *Instance) HealthCheck(ctx context.Context) error {
 	cmd := p.pgCmd(ctx, "psql",
-		"-h", "localhost",
+		"-h", "127.0.0.1",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
 		"-c", "SELECT 1",
@@ -520,7 +520,7 @@ func (p *Instance) HealthCheck(ctx context.Context) error {
 
 func (p *Instance) GetReplicationLag(ctx context.Context) (string, error) {
 	cmd := p.pgCmd(ctx, "psql",
-		"-h", "localhost",
+		"-h", "127.0.0.1",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
 		"-t", "-A",
@@ -537,7 +537,7 @@ func (p *Instance) GetReplicationLag(ctx context.Context) (string, error) {
 
 func (p *Instance) GetVersion(ctx context.Context) (string, error) {
 	cmd := p.pgCmd(ctx, "psql",
-		"-h", "localhost",
+		"-h", "127.0.0.1",
 		"-p", fmt.Sprintf("%d", p.Port),
 		"-U", p.Superuser,
 		"-t", "-A",
@@ -608,8 +608,10 @@ logging_collector = on
 func (p *Instance) writePgHBAConf() error {
 	conf := `
 local   all             all                                     scram-sha-256
-host    all             all             0.0.0.0/0               scram-sha-256
-host    replication     all             0.0.0.0/0               scram-sha-256
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             ::1/128                 scram-sha-256
+	host    all             all             0.0.0.0/0               scram-sha-256
+	host    replication     all             0.0.0.0/0               scram-sha-256
 `
 
 	confPath := filepath.Join(p.DataDir, "pg_hba.conf")

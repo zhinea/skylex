@@ -30,7 +30,7 @@ $$`
 
 // localConnect opens a single pgx connection to the local PostgreSQL instance.
 func (p *Instance) localConnect(ctx context.Context) (*pgx.Conn, error) {
-	connStr := fmt.Sprintf("host=localhost port=%d user=%s dbname=postgres sslmode=disable", p.Port, p.Superuser)
+	connStr := fmt.Sprintf("host=127.0.0.1 port=%d user=%s dbname=postgres sslmode=disable", p.Port, p.Superuser)
 	cfg, err := pgx.ParseConfig(connStr)
 	if err != nil {
 		return nil, fmt.Errorf("parse local postgres connection config: %w", err)
