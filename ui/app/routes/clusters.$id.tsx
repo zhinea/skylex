@@ -156,63 +156,80 @@ export default function ClusterDetailPage() {
   return (
     <div className="flex h-full w-full overflow-hidden">
       {/* Secondary Cluster Project Sidebar */}
-      <aside className="w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-full shrink-0">
-        <div className="p-4 border-b border-sidebar-border space-y-3">
-          <Link to="/clusters" className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-fit">
-            <ArrowLeft className="size-3.5" /> Back to Clusters
+      <aside className="w-60 flex flex-col py-4 px-3 bg-card border-r border-border h-full shrink-0">
+        <div className="mb-6 px-1 space-y-3">
+          <Link
+            to="/clusters"
+            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-xs mb-4"
+          >
+            <span className="material-symbols-outlined text-sm">arrow_back</span>
+            Back to Clusters
           </Link>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold tracking-tight text-foreground truncate max-w-[10rem]" title={cluster.name}>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-foreground truncate max-w-[10rem]" title={cluster.name}>
                 {cluster.name}
               </h2>
-              <span className="gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold tracking-wide border flex items-center w-fit bg-primary/5 border-primary/20 text-primary uppercase shrink-0">
+              <span className={`text-[9px] font-bold uppercase shrink-0 ${
+                cluster.status.toLowerCase() === "degraded" ? "text-destructive" : "text-emerald-500"
+              }`}>
                 {cluster.status}
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <span className="text-[10px] font-mono text-muted-foreground">
               PostgreSQL {cluster.config?.version || "16"} • {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER" ? "Docker" : "Native"}
-            </p>
+            </span>
           </div>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar">
           {menuItems.map((item) => {
-            const Icon = item.icon;
             const isActive = activeMenu === item.id;
+            const iconName = (() => {
+              switch (item.id) {
+                case "overview": return "dashboard";
+                case "connection": return "link";
+                case "databases": return "database";
+                case "roles": return "group";
+                case "network": return "security";
+                case "tls": return "lock";
+                case "settings": return "settings";
+                case "diagnostics": return "info";
+                default: return "help";
+              }
+            })();
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveMenu(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors cursor-pointer text-left ${
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                    : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    ? "bg-neutral-100 dark:bg-neutral-900 text-foreground font-medium"
+                    : "text-muted-foreground hover:bg-neutral-50 dark:hover:bg-neutral-950 hover:text-foreground"
                 }`}
               >
-                <Icon className="size-4 shrink-0" />
-                {item.label}
+                <span className="material-symbols-outlined text-lg">{iconName}</span>
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
-        <div className="p-4 border-t border-sidebar-border bg-muted/20">
-          <Button
+        <div className="mt-auto pt-4 border-t border-border">
+          <button
             onClick={() => setDeleteClusterOpen(true)}
-            variant="destructive"
-            size="xs"
-            className="w-full justify-center text-xs font-medium"
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs text-destructive hover:bg-destructive/10 transition-colors cursor-pointer text-left"
           >
+            <span className="material-symbols-outlined text-lg">delete</span>
             Delete Cluster
-          </Button>
+          </button>
         </div>
       </aside>
 
       {/* Main Workspace Pane */}
-      <main className="flex-1 overflow-auto bg-background p-8">
+      <main className="flex-1 overflow-y-auto scrolling-content p-6 space-y-6 bg-background">
         <div className="max-w-5xl mx-auto space-y-6">
           {activeMenu === "overview" && (
             <div className="space-y-6">
-              {/* Neon-Style Stats Grid */}
+              {/* Redesigned Stats Grid */}
               <ClusterStatsGrid cluster={cluster} nodes={nodes} />
 
               {/* Show installation progress if not fully healthy or in CREATING status */}
@@ -243,70 +260,97 @@ export default function ClusterDetailPage() {
                 onAction={(action) => setClusterAction(action)}
               />
 
-              <Card className="shadow-xs">
-                <CardHeader className="border-b border-border/60 pb-4">
-                  <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-                    <Layers className="size-4 text-muted-foreground" />
-                    Nodes ({nodes.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {nodes.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-4 text-center">
-                      No nodes registered for this cluster.
-                    </p>
-                  ) : (
-                    <div className="overflow-x-auto rounded-lg border border-border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/30">
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">Hostname</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">Role</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">Address</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">PostgreSQL</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">Agent</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4">Version</TableHead>
-                            <TableHead className="h-9 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 text-right">Last Seen</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {nodes.map((n) => (
-                            <TableRow key={n.id} className="hover:bg-muted/10 border-b border-border/40 last:border-none">
-                              <TableCell className="px-4 py-2.5 font-semibold text-foreground">{n.hostname}</TableCell>
-                              <TableCell className="px-4 py-2.5"><Badge label={n.role} /></TableCell>
-                              <TableCell className="px-4 py-2.5 font-mono text-xs text-foreground">{n.address}:{n.port}</TableCell>
-                              <TableCell className="px-4 py-2.5">
-                                <PgStatusBadges
-                                  installed={n.postgresInstalled}
-                                  version={n.postgresVersion}
-                                  dataInitialized={n.postgresDataInitialized}
-                                />
-                              </TableCell>
-                              <TableCell className="px-4 py-2.5">
-                                <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
-                              </TableCell>
-                              <TableCell className="px-4 py-2.5 text-foreground/80 text-xs">{n.agentVersion || "-"}</TableCell>
-                              <TableCell className="px-4 py-2.5 text-muted-foreground text-xs text-right">
-                                {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              {/* Nodes Table Section */}
+              <section className="v-card rounded-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-foreground">
+                    <span className="material-symbols-outlined text-lg">dns</span>
+                    <h3 className="text-xs font-semibold">Nodes ({nodes.length})</h3>
+                  </div>
+                  <button 
+                    onClick={() => setActiveMenu("diagnostics")}
+                    className="text-foreground hover:underline text-[10px] font-bold uppercase tracking-tight cursor-pointer"
+                  >
+                    View metrics
+                  </button>
+                </div>
+                {nodes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-6 text-center">
+                    No nodes registered for this cluster.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="bg-neutral-50/30 dark:bg-neutral-900/30 border-b border-border text-muted-foreground font-medium">
+                          <th className="px-4 py-2 font-medium uppercase tracking-wider text-[10px]">Hostname</th>
+                          <th className="px-4 py-2 font-medium uppercase tracking-wider text-[10px]">Role</th>
+                          <th className="px-4 py-2 font-medium uppercase tracking-wider text-[10px]">Port</th>
+                          <th className="px-4 py-2 font-medium uppercase tracking-wider text-[10px]">PostgreSQL</th>
+                          <th className="px-4 py-2 font-medium uppercase tracking-wider text-[10px]">Agent</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {nodes.map((n) => {
+                          const isPrimary = n.role === "NODE_ROLE_PRIMARY";
+                          return (
+                            <tr key={n.id} className="hover:bg-neutral-50/30 dark:hover:bg-neutral-900/30 transition-colors">
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <div className="rounded bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center w-5 h-5 shrink-0 text-foreground">
+                                    <span className="material-symbols-outlined text-sm">terminal</span>
+                                  </div>
+                                  <span className="font-semibold text-foreground text-[11px]">{n.hostname}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                                  isPrimary 
+                                    ? "bg-neutral-100 dark:bg-neutral-800 text-foreground" 
+                                    : "bg-neutral-50 dark:bg-neutral-900 text-muted-foreground"
+                                }`}>
+                                  {isPrimary ? "PRIMARY" : "REPLICA"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <span className="font-mono text-muted-foreground text-[11px]">:{n.port}</span>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-semibold text-foreground text-[11px]">v{n.postgresVersion || cluster.config?.version || "16"}</span>
+                                  <span className={`px-1 py-0.5 text-[8px] font-bold uppercase rounded border ${
+                                    n.postgresInstalled && n.postgresDataInitialized
+                                      ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                      : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                  }`}>
+                                    {n.postgresInstalled && n.postgresDataInitialized ? "Ready" : "Uninitialized"}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center gap-1.5">
+                                  <div className={`w-1.5 h-1.5 rounded-full ${n.agentConnected ? "bg-emerald-500" : "bg-neutral-400"}`}></div>
+                                  <span className="font-medium text-foreground text-[11px]">
+                                    {n.agentConnected ? "Connected" : "Disconnected"}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="shadow-xs">
-                  <CardHeader className="border-b border-border/60 pb-4">
-                    <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-                      <SettingsIcon className="size-4 text-muted-foreground" />
-                      Configuration
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
+                <div className="v-card rounded-lg overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
+                    <span className="material-symbols-outlined text-lg text-foreground">settings</span>
+                    <h3 className="text-xs font-semibold">Configuration</h3>
+                  </div>
+                  <div className="p-4">
                     <dl className="space-y-2 text-xs">
                       <div className="flex justify-between py-1.5 border-b border-border/40">
                         <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Engine</dt>
@@ -341,17 +385,15 @@ export default function ClusterDetailPage() {
                         <dd className="text-foreground font-semibold">{new Date(cluster.createdAt).toLocaleString()}</dd>
                       </div>
                     </dl>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
-                <Card className="shadow-xs">
-                  <CardHeader className="border-b border-border/60 pb-4">
-                    <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-                      <Layers className="size-4 text-muted-foreground" />
-                      Labels
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
+                <div className="v-card rounded-lg overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
+                    <span className="material-symbols-outlined text-lg text-foreground">layers</span>
+                    <h3 className="text-xs font-semibold">Labels</h3>
+                  </div>
+                  <div className="p-4">
                     {cluster.config?.labels && Object.keys(cluster.config.labels).length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {Object.entries(cluster.config.labels).map(([k, v]) => (
@@ -363,8 +405,8 @@ export default function ClusterDetailPage() {
                     ) : (
                       <p className="text-xs text-muted-foreground">No labels configured</p>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -427,14 +469,12 @@ export default function ClusterDetailPage() {
 
           {activeMenu === "diagnostics" && (
             <div className="space-y-6">
-              <Card className="shadow-xs">
-                <CardHeader className="border-b border-border/60 pb-4">
-                  <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-muted-foreground" />
-                    Diagnostics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-5 pt-6">
+              <div className="v-card rounded-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
+                  <span className="material-symbols-outlined text-lg text-foreground">info</span>
+                  <h3 className="text-xs font-semibold">Diagnostics</h3>
+                </div>
+                <div className="p-4 space-y-5">
                   {/* Overall progress bar */}
                   <div>
                     <div className="flex justify-between text-xs mb-2">
@@ -534,17 +574,15 @@ export default function ClusterDetailPage() {
                       </Table>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card className="shadow-xs">
-                <CardHeader className="border-b border-border/60 pb-4">
-                  <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-muted-foreground" />
-                    Command Logs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
+              <div className="v-card rounded-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
+                  <span className="material-symbols-outlined text-lg text-foreground">terminal</span>
+                  <h3 className="text-xs font-semibold">Command Logs</h3>
+                </div>
+                <div className="p-4">
                   {logs.length === 0 ? (
                     <p className="text-xs text-muted-foreground py-4 text-center">
                       No command logs yet. Logs appear while the agent executes commands.
@@ -574,8 +612,8 @@ export default function ClusterDetailPage() {
                       </table>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -177,64 +177,68 @@ export default function TopNavbar() {
             )}
           </div>
 
-          <span className="text-muted-foreground/30 font-light text-base px-2">/</span>
+          {activeClusterId && (
+            <>
+              <span className="text-muted-foreground/30 font-light text-base px-2">/</span>
 
-          {/* Cluster Dropdown Selector */}
-          <div className="relative" ref={clusterRef}>
-            <button
-              onClick={() => setClusterOpen(!clusterOpen)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-sidebar-accent/50 text-sm font-semibold text-foreground transition-all cursor-pointer"
-            >
-              <Database className="size-3.5 text-emerald-500/80" />
-              <span className="truncate max-w-[160px]">
-                {activeCluster ? activeCluster.name : "Select Cluster"}
-              </span>
-              <ChevronDown className="size-3 text-muted-foreground/60 transition-transform duration-200" style={{ transform: clusterOpen ? 'rotate(180deg)' : 'none' }} />
-            </button>
+              {/* Cluster Dropdown Selector */}
+              <div className="relative" ref={clusterRef}>
+                <button
+                  onClick={() => setClusterOpen(!clusterOpen)}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-sidebar-accent/50 text-sm font-semibold text-foreground transition-all cursor-pointer"
+                >
+                  <Database className="size-3.5 text-emerald-500/80" />
+                  <span className="truncate max-w-[160px]">
+                    {activeCluster ? activeCluster.name : "Select Cluster"}
+                  </span>
+                  <ChevronDown className="size-3 text-muted-foreground/60 transition-transform duration-200" style={{ transform: clusterOpen ? 'rotate(180deg)' : 'none' }} />
+                </button>
 
-            {clusterOpen && (
-              <div className="absolute left-0 mt-1.5 w-64 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-200">
-                <div className="px-2 py-1.5 text-[10px] uppercase font-bold tracking-wider text-muted-foreground flex items-center justify-between">
-                  <span>Clusters ({clusters.length})</span>
-                  <Link to="/clusters/create" onClick={() => setClusterOpen(false)} className="text-emerald-500 hover:text-emerald-400 flex items-center gap-0.5">
-                    <Plus className="size-3" /> New
-                  </Link>
-                </div>
-                <div className="max-h-60 overflow-y-auto space-y-0.5">
-                  {clusters.length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground p-3 text-center">No active clusters</p>
-                  ) : (
-                    clusters.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => {
-                          setClusterOpen(false);
-                          navigate(`/clusters/${c.id}`);
-                        }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 text-sm rounded-md text-left transition-colors cursor-pointer ${
-                          activeClusterId === c.id
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold"
-                            : "hover:bg-muted text-foreground/90 border border-transparent"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <Server className={`size-3.5 shrink-0 ${activeClusterId === c.id ? "text-emerald-400" : "text-muted-foreground"}`} />
-                          <span className="truncate">{c.name}</span>
-                        </div>
-                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase border shrink-0 ${
-                          c.status === "RUNNING" || c.status === "HEALTHY"
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                            : "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                        }`}>
-                          {c.status}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
+                {clusterOpen && (
+                  <div className="absolute left-0 mt-1.5 w-64 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg p-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="px-2 py-1.5 text-[10px] uppercase font-bold tracking-wider text-muted-foreground flex items-center justify-between">
+                      <span>Clusters ({clusters.length})</span>
+                      <Link to="/clusters/create" onClick={() => setClusterOpen(false)} className="text-emerald-500 hover:text-emerald-400 flex items-center gap-0.5">
+                        <Plus className="size-3" /> New
+                      </Link>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-0.5">
+                      {clusters.length === 0 ? (
+                        <p className="text-[11px] text-muted-foreground p-3 text-center">No active clusters</p>
+                      ) : (
+                        clusters.map((c) => (
+                          <button
+                            key={c.id}
+                            onClick={() => {
+                              setClusterOpen(false);
+                              navigate(`/clusters/${c.id}`);
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-2 text-sm rounded-md text-left transition-colors cursor-pointer ${
+                              activeClusterId === c.id
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold"
+                                : "hover:bg-muted text-foreground/90 border border-transparent"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              <Server className={`size-3.5 shrink-0 ${activeClusterId === c.id ? "text-emerald-400" : "text-muted-foreground"}`} />
+                              <span className="truncate">{c.name}</span>
+                            </div>
+                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase border shrink-0 ${
+                              c.status === "RUNNING" || c.status === "HEALTHY"
+                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                            }`}>
+                              {c.status}
+                            </span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
         {/* Right Side: Health Status, Ask AI button, Help, Docs, User Dropdown */}

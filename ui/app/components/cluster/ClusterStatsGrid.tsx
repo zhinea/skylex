@@ -1,7 +1,5 @@
 import type { Node } from "~/hooks/useNodes";
 import type { Cluster } from "~/hooks/useClusters";
-import { Card, CardContent } from "~/components/ui/card";
-import { Cpu, HardDrive, Cpu as MemoryIcon, Activity, Info } from "lucide-react";
 
 interface ClusterStatsGridProps {
   cluster: Cluster;
@@ -16,23 +14,24 @@ export function ClusterStatsGrid({ cluster, nodes }: ClusterStatsGridProps) {
     return (bytes / (1024 * 1024 * 1024)).toFixed(2);
   };
 
-  const getPercentageColor = (pct: number) => {
-    if (pct > 85) return "text-red-500 font-semibold";
-    if (pct > 60) return "text-amber-500 font-semibold";
-    return "text-foreground font-semibold";
+  const toTB = (bytes: number) => {
+    if (!bytes) return "0.00";
+    return (bytes / (1024 * 1024 * 1024 * 1024)).toFixed(2);
   };
 
-  const cpuText = primaryNode 
-    ? `${primaryNode.cpuUsagePercent ?? 0}% / ${primaryNode.cpuCores ?? 1} Cores` 
-    : "No primary node specs";
+  const cpuPercent = primaryNode?.cpuUsagePercent ?? 0;
+  const cores = primaryNode?.cpuCores ?? 1;
 
-  const memText = primaryNode
-    ? `${toGB(primaryNode.memoryUsedBytes ?? 0)} / ${toGB(primaryNode.memoryTotalBytes ?? 0)} GB`
-    : "N/A";
+  const memUsedGB = primaryNode ? toGB(primaryNode.memoryUsedBytes ?? 0) : "0.00";
+  const memTotalGB = primaryNode ? toGB(primaryNode.memoryTotalBytes ?? 0) : "0.00";
+  const memPct = primaryNode ? (primaryNode.memoryUsagePercent ?? 0) : 0;
 
-  const diskText = primaryNode
-    ? `${toGB(primaryNode.diskUsedBytes ?? 0)} / ${toGB(primaryNode.diskTotalBytes ?? 0)} GB`
-    : "N/A";
+  const diskUsedGB = primaryNode ? toGB(primaryNode.diskUsedBytes ?? 0) : "0.00";
+  const diskTotalBytes = primaryNode?.diskTotalBytes ?? 0;
+  const diskTotalDisplay = diskTotalBytes >= 1024 * 1024 * 1024 * 1024 
+    ? `${toTB(diskTotalBytes)} TB` 
+    : `${toGB(diskTotalBytes)} GB`;
+  const diskPct = primaryNode ? (primaryNode.diskUsagePercent ?? 0) : 0;
 
   const agentLatency = primaryNode
     ? primaryNode.agentConnected
@@ -40,97 +39,94 @@ export function ClusterStatsGrid({ cluster, nodes }: ClusterStatsGridProps) {
       : "Disconnected"
     : "N/A";
 
+  const isConnected = primaryNode?.agentConnected ?? false;
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Compute Card */}
-      <Card className="shadow-xs hover:border-border/80 transition-colors">
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              Compute (CPU)
-              <span className="cursor-help" title="Primary CPU utilization and core count">
-                <Info className="size-3 text-muted-foreground/60" />
-              </span>
-            </span>
-            <Cpu className="size-3.5 text-muted-foreground/80" />
-          </div>
-          <div className="space-y-0.5">
-            <div className={`text-lg font-bold ${primaryNode ? getPercentageColor(primaryNode.cpuUsagePercent ?? 0) : ""}`}>
-              {cpuText}
-            </div>
-            <p className="text-[10px] text-muted-foreground">Primary node real-time CPU load</p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* CPU */}
+      <div className="v-card p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            Compute (CPU)
+          </span>
+          <span className="material-symbols-outlined text-sm text-neutral-400 cursor-help" title="Primary CPU utilization and core count">info</span>
+        </div>
+        <div className="flex items-baseline gap-1 mb-2">
+          <span className="text-xl font-bold">{cpuPercent}%</span>
+          <span className="text-[10px] text-muted-foreground">/ {cores} Cores</span>
+        </div>
+        <div className="h-8 w-full mt-2">
+          <svg className="w-full h-full sparkline-svg" viewBox="0 0 100 20">
+            <path d="M0,15 L10,12 L20,18 L30,5 L40,14 L50,10 L60,16 L70,3 L80,12 L90,8 L100,10"></path>
+          </svg>
+        </div>
+      </div>
 
-      {/* Memory Card */}
-      <Card className="shadow-xs hover:border-border/80 transition-colors">
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              Memory (RAM)
-              <span className="cursor-help" title="Memory usage on primary database node">
-                <Info className="size-3 text-muted-foreground/60" />
-              </span>
-            </span>
-            <MemoryIcon className="size-3.5 text-muted-foreground/80" />
-          </div>
-          <div className="space-y-0.5">
-            <div className={`text-lg font-bold ${primaryNode ? getPercentageColor(primaryNode.memoryUsagePercent ?? 0) : ""}`}>
-              {memText}
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {primaryNode ? `${primaryNode.memoryUsagePercent?.toFixed(0) ?? 0}% utilized` : "No primary node detected"}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Memory */}
+      <div className="v-card p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            Memory (RAM)
+          </span>
+          <span className="material-symbols-outlined text-sm text-neutral-400 cursor-help" title="Memory usage on primary database node">info</span>
+        </div>
+        <div className="flex items-baseline gap-1 mb-2">
+          <span className="text-xl font-bold">{memUsedGB} GB</span>
+          <span className="text-[10px] text-muted-foreground">/ {memTotalGB} GB</span>
+        </div>
+        <div className="mt-4 h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-full bg-foreground" style={{ width: `${memPct}%` }}></div>
+        </div>
+      </div>
 
-      {/* Storage Card */}
-      <Card className="shadow-xs hover:border-border/80 transition-colors">
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              Storage (Disk)
-              <span className="cursor-help" title="Disk space consumption of PostgreSQL directory">
-                <Info className="size-3 text-muted-foreground/60" />
-              </span>
-            </span>
-            <HardDrive className="size-3.5 text-muted-foreground/80" />
-          </div>
-          <div className="space-y-0.5">
-            <div className={`text-lg font-bold ${primaryNode ? getPercentageColor(primaryNode.diskUsagePercent ?? 0) : ""}`}>
-              {diskText}
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {primaryNode ? `${primaryNode.diskUsagePercent?.toFixed(0) ?? 0}% capacity` : "No primary node detected"}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Storage */}
+      <div className="v-card p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider font-sans">
+            Storage
+          </span>
+          <span className="material-symbols-outlined text-sm text-neutral-400 cursor-help" title="Disk space consumption of PostgreSQL directory">info</span>
+        </div>
+        <div className="flex items-baseline gap-1 mb-2">
+          <span className="text-xl font-bold">{diskUsedGB} GB</span>
+          <span className="text-[10px] text-muted-foreground">/ {diskTotalDisplay}</span>
+        </div>
+        <div className="mt-4 h-1 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+          <div className="h-full bg-foreground" style={{ width: `${diskPct}%` }}></div>
+        </div>
+      </div>
 
-      {/* Connection Latency Card */}
-      <Card className="shadow-xs hover:border-border/80 transition-colors">
-        <CardContent className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-              Agent Latency
-              <span className="cursor-help" title="Skylex agent heartbeats ping time">
-                <Info className="size-3 text-muted-foreground/60" />
-              </span>
-            </span>
-            <Activity className="size-3.5 text-muted-foreground/80" />
-          </div>
-          <div className="space-y-0.5">
-            <div className={`text-lg font-bold ${primaryNode?.agentConnected ? "text-foreground" : "text-destructive"}`}>
-              {agentLatency}
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {primaryNode?.agentConnected ? "Connected to control plane" : "Agent offline or unreachable"}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Latency */}
+      <div className="v-card p-4 rounded-lg">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            Latency
+          </span>
+          <span className="material-symbols-outlined text-sm text-neutral-400 cursor-help" title="Skylex agent heartbeats ping time">info</span>
+        </div>
+        <div className="flex items-baseline gap-1 mb-2">
+          <span className="text-xl font-bold">{agentLatency}</span>
+        </div>
+        <div className="mt-2 h-8 w-full flex items-end gap-1">
+          {isConnected ? (
+            <>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-4 rounded-t-sm"></div>
+              <div className="flex-1 bg-foreground h-6 rounded-t-sm"></div>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-3 rounded-t-sm"></div>
+              <div className="flex-1 bg-foreground h-5 rounded-t-sm"></div>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-4 rounded-t-sm"></div>
+            </>
+          ) : (
+            <>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-1 rounded-t-sm"></div>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-1 rounded-t-sm"></div>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-1 rounded-t-sm"></div>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-1 rounded-t-sm"></div>
+              <div className="flex-1 bg-neutral-100 dark:bg-neutral-800 h-1 rounded-t-sm"></div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,6 @@
 import type { Cluster } from "~/hooks/useClusters";
 import type { Node } from "~/hooks/useNodes";
 import type { CommandLog } from "~/hooks/useCommandLogs";
-import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Layers } from "lucide-react";
-import { FeatureNote } from "./ClusterHelpers";
 
 function hasPendingLifecycleCommand(logs: CommandLog[]) {
   let pending = false;
@@ -50,61 +46,61 @@ export function LifecycleCard({
       : "";
 
   return (
-    <Card className="shadow-xs">
-      <CardHeader className="border-b border-border/60 pb-4">
-        <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-          <Layers className="size-4 text-muted-foreground" />
-          Service Lifecycle
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-5 pt-6">
-        <FeatureNote title="What this does:">
-          Start, pause, or restart PostgreSQL on the ready nodes. Use Pause before maintenance, and Restart after changes that need a full database restart.
-        </FeatureNote>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border px-3 py-2 bg-muted/10">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Ready Nodes</div>
-            <div className="text-lg font-bold text-foreground mt-0.5">{readyNodes.length}/{nodes.length}</div>
+    <section className="v-card rounded-lg overflow-hidden">
+      <div className="px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-lg text-foreground">layers</span>
+            <h3 className="text-xs font-semibold text-foreground">Service Lifecycle</h3>
+            <span className="material-symbols-outlined text-xs text-neutral-400 cursor-help"
+                title="Lifecycle operations allow you to start, pause, or restart PostgreSQL.">info</span>
           </div>
-          <div className="rounded-lg border border-border px-3 py-2 bg-muted/10">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Running</div>
-            <div className="text-lg font-bold text-foreground mt-0.5">{runningNodes.length}</div>
-          </div>
-          <div className="rounded-lg border border-border px-3 py-2 bg-muted/10">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Stopped</div>
-            <div className="text-lg font-bold text-foreground mt-0.5">{stoppedNodes.length}</div>
+          <div className="flex items-center gap-3 border-l border-border pl-4">
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase">Ready:</span>
+              <span className="text-[10px] font-bold text-foreground">{readyNodes.length}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase">Running:</span>
+              <span className="text-[10px] font-bold text-foreground">{runningNodes.length}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase">Stopped:</span>
+              <span className="text-[10px] font-bold text-muted-foreground">{stoppedNodes.length}</span>
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2 pt-2">
-          <Button
-            onClick={() => onAction("start")}
-            disabled={busy || !hasReadyNodes}
-            size="sm"
-            className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white"
-          >
-            Start
-          </Button>
-          <Button
-            onClick={() => onAction("pause")}
-            disabled={busy || !hasReadyNodes}
-            variant="outline"
-            size="sm"
-          >
-            Pause
-          </Button>
-          <Button
-            onClick={() => onAction("restart")}
-            disabled={busy || !hasReadyNodes}
-            size="sm"
-          >
-            Restart
-          </Button>
-          {busy && <span className="text-xs font-medium text-muted-foreground animate-pulse ml-2">Lifecycle command pending...</span>}
+        <div className="flex items-center gap-2">
+          {busy && <span className="text-[10px] font-medium text-muted-foreground animate-pulse mr-2">Lifecycle pending...</span>}
+          <button
+              onClick={() => onAction("start")}
+              disabled={busy || !hasReadyNodes}
+              className="bg-foreground text-background text-[11px] font-medium px-3 py-1 rounded hover:opacity-85 disabled:opacity-40 transition-all flex items-center gap-1 cursor-pointer">
+              <span className="material-symbols-outlined text-sm">play_arrow</span>
+              Start
+          </button>
+          <button
+              onClick={() => onAction("pause")}
+              disabled={busy || !hasReadyNodes}
+              className="bg-transparent border border-border text-foreground text-[11px] font-medium px-3 py-1 rounded hover:bg-neutral-50 dark:hover:bg-neutral-900 disabled:opacity-40 transition-all flex items-center gap-1 cursor-pointer">
+              <span className="material-symbols-outlined text-sm">pause</span>
+              Pause
+          </button>
+          <button
+              onClick={() => onAction("restart")}
+              disabled={busy || !hasReadyNodes}
+              className="bg-transparent border border-border text-foreground text-[11px] font-medium px-3 py-1 rounded hover:bg-neutral-50 dark:hover:bg-neutral-900 disabled:opacity-40 transition-all flex items-center gap-1 cursor-pointer">
+              <span className="material-symbols-outlined text-sm">replay</span>
+              Restart
+          </button>
         </div>
-        {disabledReason && <p className="text-xs text-muted-foreground">{disabledReason}</p>}
-        {error && <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">{error}</p>}
-      </CardContent>
-    </Card>
+      </div>
+      {(disabledReason || error) && (
+        <div className="px-4 pb-3 pt-1.5 border-t border-border bg-muted/10 space-y-1">
+          {disabledReason && <p className="text-xs text-muted-foreground">{disabledReason}</p>}
+          {error && <p className="text-xs font-semibold text-destructive">{error}</p>}
+        </div>
+      )}
+    </section>
   );
 }
