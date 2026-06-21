@@ -13,6 +13,7 @@ import { PageSpinner } from "~/components/Spinner";
 import { SettingInput, curatedSettings, validateSettingValue } from "~/components/SettingInput";
 import { AgentStatus } from "~/components/AgentStatus";
 import type { Node } from "~/hooks/useNodes";
+import type { Cluster } from "~/hooks/useClusters";
 
 function PgStatusBadges({
   installed,
@@ -80,6 +81,144 @@ function statusDetailColor(detail: string): string {
     default:
       return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
   }
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copy to clipboard"
+      className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+    >
+      {copied ? "Copied" : "Copy"}
+    </button>
+  );
+}
+
+function ConnectionRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2 py-2 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
+      <dt className="w-36 shrink-0 text-xs text-gray-500 dark:text-gray-400 pt-0.5">{label}</dt>
+      <dd className="flex-1 min-w-0 flex items-start gap-1">
+        <code className="text-xs font-mono text-gray-900 dark:text-gray-100 break-all">{value}</code>
+        <CopyButton text={value} />
+      </dd>
+    </div>
+  );
+}
+
+function PostgreSQLConnectionCard({ nodes, cluster }: { nodes: Node[]; cluster: Cluster }) {
+  // Only show when nodes are assigned
+  if (nodes.length === 0) return null;
+
+  const primaryNode = nodes.find(
+    (n) => n.role === "NODE_ROLE_PRIMARY" && n.postgresInstalled && n.postgresDataInitialized,
+  );
+
+  const replicaNodes = nodes.filter(
+    (n) => n.role === "NODE_ROLE_REPLICA" && n.postgresInstalled && n.postgresDataInitialized,
+  );
+
+  const serviceLocation =
+    cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" ||
+    cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER"
+      ? "Dockerized"
+      : "Native";
+
+  if (!primaryNode) {
+    return (
+      <Card title="PostgreSQL Connection">
+        <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
+          <span className="text-yellow-600 dark:text-yellow-400 mt-0.5 text-base leading-none">⏳</span>
+          <div className="text-sm">
+            <p className="font-medium text-yellow-900 dark:text-yellow-100">Primary not ready</p>
+            <p className="mt-1 text-yellow-700 dark:text-yellow-300">
+              Connection details will appear once the primary node has PostgreSQL installed and data
+              initialized.
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  const host = primaryNode.address || primaryNode.hostname;
+  const port = primaryNode.port || 5432;
+  const endpoint = `${host}:${port}`;
+  const psqlCommand = `psql "host=${host} port=${port} dbname=postgres user=<user> sslmode=prefer"`;
+  const uriTemplate = `postgresql://<user>:<password>@${host}:${port}/postgres?sslmode=prefer`;
+
+  return (
+    <Card title="PostgreSQL Connection">
+      <div className="space-y-4">
+        {/* Warnings */}
+        <div className="space-y-2">
+          <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 dark:border-yellow-800 dark:bg-yellow-900/20">
+            <span className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400">⚠</span>
+            <p className="text-xs text-yellow-800 dark:text-yellow-200">
+              <span className="font-medium">Direct node endpoint:</span> This endpoint points directly
+              to the primary node and may change after a failover. A stable endpoint (VIP, DNS, or
+              proxy) is not yet configured.
+            </p>
+          </div>
+          <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-800 dark:bg-blue-900/20">
+            <span className="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400">ℹ</span>
+            <p className="text-xs text-blue-800 dark:text-blue-200">
+              <span className="font-medium">Firewall:</span> Ensure port {port} is open from your
+              application to the PostgreSQL node. Skylex does not manage firewall or security group
+              rules.
+            </p>
+          </div>
+        </div>
+
+        {/* Connection details */}
+        <dl className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 divide-y-0">
+          <ConnectionRow label="Primary Endpoint" value={endpoint} />
+          <ConnectionRow label="Default Database" value="postgres" />
+          <ConnectionRow label="Service Location" value={serviceLocation} />
+          <ConnectionRow label="psql Command" value={psqlCommand} />
+          <ConnectionRow label="URI Template" value={uriTemplate} />
+        </dl>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Replace <code className="font-mono">&lt;user&gt;</code> and{" "}
+          <code className="font-mono">&lt;password&gt;</code> with your PostgreSQL credentials.
+          Passwords are never stored or shown by Skylex.
+        </p>
+
+        {/* Replica endpoints */}
+        {replicaNodes.length > 0 && (
+          <div>
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              Replica Endpoints (read-only)
+            </div>
+            <dl className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 divide-y-0">
+              {replicaNodes.map((n) => {
+                const rHost = n.address || n.hostname;
+                const rPort = n.port || 5432;
+                return (
+                  <ConnectionRow
+                    key={n.id}
+                    label={n.hostname}
+                    value={`${rHost}:${rPort}`}
+                  />
+                );
+              })}
+            </dl>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
 }
 
 function InstallationConflictCard({ nodes, onResolve, pending }: {
@@ -413,6 +552,12 @@ export default function ClusterDetailPage() {
       <div className="mb-6">
         <InstallationProgressCard nodes={nodes} logs={logs} />
       </div>
+
+      {nodes.length > 0 && (
+        <div className="mb-6">
+          <PostgreSQLConnectionCard nodes={nodes} cluster={cluster} />
+        </div>
+      )}
 
       {conflictNodes.length > 0 && (
         <div className="mb-6">
