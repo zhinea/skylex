@@ -10,3 +10,4 @@ node_modules
 config.yaml
 skylex.db
 skylex-server
+.vite
