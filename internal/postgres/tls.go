@@ -241,16 +241,18 @@ func canonicalCertificateHosts(hosts []string) []string {
 }
 
 func (p *Instance) verifyTLSActive(ctx context.Context, mode string) error {
-	conn, err := p.localConnect(ctx)
+	cmd := p.pgCmd(ctx, "psql",
+		"-h", "127.0.0.1",
+		"-p", fmt.Sprintf("%d", p.Port),
+		"-U", p.Superuser,
+		"-t", "-A",
+		"-c", "SHOW ssl",
+	)
+	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
-		return err
+		return fmt.Errorf("show ssl: %w\n%s", err, string(output))
 	}
-	defer conn.Close(ctx)
-
-	var ssl string
-	if err := conn.QueryRow(ctx, "SHOW ssl").Scan(&ssl); err != nil {
-		return fmt.Errorf("show ssl: %w", redactPGError(err))
-	}
+	ssl := strings.TrimSpace(string(output))
 	switch mode {
 	case TLSModeDisabled:
 		if strings.EqualFold(ssl, "off") {

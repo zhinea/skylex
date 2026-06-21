@@ -1,10 +1,12 @@
 package postgres
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -63,5 +65,19 @@ func TestTLSConfigEnsureManagedCertificate(t *testing.T) {
 	}
 	if len(cert.DNSNames) == 0 || cert.DNSNames[0] != "pg.example.test" {
 		t.Fatalf("expected DNS SAN pg.example.test, got %#v", cert.DNSNames)
+	}
+}
+
+func TestPGCmdDockerRunsInsideContainerWithPassword(t *testing.T) {
+	p := New("/data", "", "16", 5432, "postgres", "replicator", "secret", nil)
+	p.UseDocker("postgres:16", "skylex-postgres", "", "postgres")
+
+	cmd := p.pgCmd(context.Background(), "psql", "-h", "127.0.0.1", "-c", "SHOW ssl")
+	want := []string{
+		"docker", "exec", "-u", "postgres", "-e", "PGDATA=/var/lib/postgresql/data",
+		"-e", "PGPASSWORD=secret", "skylex-postgres", "psql", "-h", "127.0.0.1", "-c", "SHOW ssl",
+	}
+	if !reflect.DeepEqual(cmd.Args, want) {
+		t.Fatalf("unexpected docker pg command args:\nwant %#v\n got %#v", want, cmd.Args)
 	}
 }
