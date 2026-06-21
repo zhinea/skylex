@@ -1,11 +1,14 @@
 package installer
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 type LogSink interface {
@@ -34,18 +37,66 @@ func run(ctx context.Context, log LogSink, name string, args ...string) error {
 	}
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Env = os.Environ()
-	out, err := cmd.CombinedOutput()
-	if len(out) > 0 && log != nil {
-		for _, line := range strings.Split(strings.TrimRight(string(out), "\n"), "\n") {
-			if line != "" {
-				log.Info(line)
-			}
-		}
-	}
+	out, err := runCommand(ctx, cmd, log)
 	if err != nil {
 		return fmt.Errorf("%s failed: %w: %s", name, err, strings.TrimSpace(string(out)))
 	}
 	return nil
+}
+
+func runCommand(ctx context.Context, cmd *exec.Cmd, log LogSink) ([]byte, error) {
+	if log == nil {
+		return cmd.CombinedOutput()
+	}
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("stdout pipe: %w", err)
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("stderr pipe: %w", err)
+	}
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	var outMu sync.Mutex
+	var output []byte
+	scan := func(r io.Reader, level string) {
+		scanner := bufio.NewScanner(r)
+		scanner.Buffer(make([]byte, 4096), 1024*1024)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if level == "error" {
+				log.Error(line)
+			} else {
+				log.Info(line)
+			}
+			outMu.Lock()
+			output = append(output, line...)
+			output = append(output, '\n')
+			outMu.Unlock()
+		}
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() { defer wg.Done(); scan(stdoutPipe, "info") }()
+	go func() { defer wg.Done(); scan(stderrPipe, "error") }()
+
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+
+	select {
+	case <-ctx.Done():
+		_ = cmd.Process.Kill()
+		wg.Wait()
+		return output, ctx.Err()
+	case err := <-done:
+		wg.Wait()
+		return output, err
+	}
 }
 
 func runPrivileged(ctx context.Context, log LogSink, name string, args ...string) error {

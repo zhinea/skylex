@@ -1,11 +1,28 @@
 import { useState } from "react";
 import { useNodes, useNodeMetrics, useDrainNode, useRejoinNode, useDeleteNode, type Node, type NodeMetric } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
-import { Card } from "~/components/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { PageSpinner } from "~/components/Spinner";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
 import { InstallAgentModal } from "~/components/InstallAgentModal";
 import { AgentStatus } from "~/components/AgentStatus";
+import { Button } from "~/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "~/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "~/components/ui/dialog";
+import { PlusIcon, Network, RefreshCw, Trash2, Cpu, Database, Server } from "lucide-react";
 
 export default function NodesPage() {
   const [page, setPage] = useState(1);
@@ -29,150 +46,167 @@ export default function NodesPage() {
   const pageSize = data?.pagination?.pageSize || 50;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Nodes</h2>
-        <button
-          onClick={() => setInstallOpen(true)}
-          className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
+    <div className="space-y-8 animate-in fade-in duration-300">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Nodes</h2>
+          <p className="text-xs text-muted-foreground mt-1">Manage database agent hosts, hardware metrics, and lifecycle states.</p>
+        </div>
+        <Button onClick={() => setInstallOpen(true)} variant="default" size="sm">
+          <PlusIcon className="size-3.5 mr-1.5" />
           Add Node
-        </button>
+        </Button>
       </div>
 
-      <Card>
-        {nodes.length === 0 ? (
-          <div className="py-10 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No agents yet
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-              Add your first database server by installing the Skylex agent. You&apos;ll get a copy-paste command to run on the target host.
-            </p>
-            <button
-              onClick={() => setInstallOpen(true)}
-              className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Install Agent
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Hostname</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Cluster</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent Version</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {nodes.map((n) => (
-                  <tr key={n.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750">
-                    <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{n.hostname}</td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">
-                      {n.clusterId ? <span className="text-xs text-gray-500">{n.clusterId.substring(0, 8)}...</span> : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge label={n.role} />
-                        {n.status === "drained" && <Badge label="drained" />}
-                        {n.status === "deleting" && <Badge label="deleting" />}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{n.address}:{n.port}</td>
-                    <td className="px-4 py-3">
-                      <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{n.agentVersion || "-"}</td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                      {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setDetailNodeId(n.id)}
-                          className="text-xs text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                          title="Show node details"
-                        >
-                          Details
-                        </button>
-                        {!n.agentConnected && n.status !== "deleting" && (
-                          <button
-                            onClick={() => setReconnectNode({ id: n.id, hostname: n.hostname })}
-                            className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                            title="Show reconnect command"
-                          >
-                            Reconnect
-                          </button>
-                        )}
-                        {n.clusterId && n.status === "drained" && (
-                          <button
-                            onClick={() => setRejoinId(n.id)}
-                            className="text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                            title="Rejoin cluster"
-                          >
-                            Rejoin
-                          </button>
-                        )}
-                        {n.status !== "drained" && n.status !== "deleting" && (
-                          <button
-                            onClick={() => setDrainId(n.id)}
-                            className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
-                          >
-                            Drain
-                          </button>
-                        )}
-                        {n.status !== "deleting" && (
-                          <button
-                            onClick={() => {
-                              if (n.clusterId) {
-                                setBlockedDeleteNode(n);
-                                return;
-                              }
-                              setDeleteId(n.id);
-                            }}
-                            className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {total > pageSize && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Page {page} of {Math.ceil(total / pageSize)}
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50 text-gray-700 dark:text-gray-300"
-              >
-                Prev
-              </button>
-              <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={page >= Math.ceil(total / pageSize)}
-                className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50 text-gray-700 dark:text-gray-300"
-              >
-                Next
-              </button>
+      <Card className="shadow-xs">
+        <CardHeader className="border-b border-border/60 pb-4">
+          <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Network className="size-4 text-muted-foreground" />
+            Registered Nodes ({total})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {nodes.length === 0 ? (
+            <div className="py-16 text-center">
+              <h3 className="text-sm font-semibold text-foreground mb-2">No agents yet</h3>
+              <p className="text-xs text-muted-foreground mb-6 max-w-sm mx-auto">
+                Add your first database server by installing the Skylex agent. You&apos;ll get a copy-paste command to run on the target host.
+              </p>
+              <Button onClick={() => setInstallOpen(true)} size="sm">
+                Install Agent
+              </Button>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Hostname</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Cluster</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Role</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Address</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Agent</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Agent Version</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Last Seen</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {nodes.map((n) => (
+                    <TableRow key={n.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="px-6 py-3.5 text-foreground font-semibold">{n.hostname}</TableCell>
+                      <TableCell className="px-6 py-3.5 text-xs text-muted-foreground font-mono">
+                        {n.clusterId ? `${n.clusterId.substring(0, 8)}...` : "-"}
+                      </TableCell>
+                      <TableCell className="px-6 py-3.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <Badge label={n.role} />
+                          {n.status === "drained" && <Badge label="drained" />}
+                          {n.status === "deleting" && <Badge label="deleting" />}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-6 py-3.5 text-foreground/90 font-medium text-xs font-mono">{n.address}:{n.port}</TableCell>
+                      <TableCell className="px-6 py-3.5">
+                        <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
+                      </TableCell>
+                      <TableCell className="px-6 py-3.5 text-muted-foreground text-xs font-mono">{n.agentVersion || "-"}</TableCell>
+                      <TableCell className="px-6 py-3.5 text-muted-foreground text-xs">
+                        {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}
+                      </TableCell>
+                      <TableCell className="px-6 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDetailNodeId(n.id)}
+                            className="text-foreground text-xs font-medium h-7 px-2"
+                          >
+                            Details
+                          </Button>
+                          {!n.agentConnected && n.status !== "deleting" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setReconnectNode({ id: n.id, hostname: n.hostname })}
+                              className="text-primary text-xs font-medium h-7 px-2"
+                              title="Show reconnect command"
+                            >
+                              Reconnect
+                            </Button>
+                          )}
+                          {n.clusterId && n.status === "drained" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setRejoinId(n.id)}
+                              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/20 text-xs font-medium h-7 px-2"
+                              title="Rejoin cluster"
+                            >
+                              Rejoin
+                            </Button>
+                          )}
+                          {n.status !== "drained" && n.status !== "deleting" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDrainId(n.id)}
+                              className="text-destructive hover:bg-destructive/10 text-xs font-medium h-7 px-2"
+                            >
+                              Drain
+                            </Button>
+                          )}
+                          {n.status !== "deleting" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (n.clusterId) {
+                                  setBlockedDeleteNode(n);
+                                  return;
+                                }
+                                setDeleteId(n.id);
+                              }}
+                              className="text-destructive hover:bg-destructive/10 text-xs font-medium h-7 px-2"
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          {total > pageSize && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
+              <span className="text-xs text-muted-foreground">
+                Page {page} of {Math.ceil(total / pageSize)}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="h-8 text-xs"
+                >
+                  Prev
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page >= Math.ceil(total / pageSize)}
+                  className="h-8 text-xs"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <ConfirmDialog
@@ -190,7 +224,7 @@ export default function NodesPage() {
         message="This will repoint the node to follow the current primary and restart. Any divergent data will be overwritten. Are you sure?"
         confirmLabel="Rejoin"
         onConfirm={() => { if (rejoinId) { rejoinNode.mutate(rejoinId); setRejoinId(null); }}}
-        onCancel={() => setRejoinId(null)}
+        onCancel={() => rejoinId && setRejoinId(null)}
       />
 
       <ConfirmDialog
@@ -217,128 +251,132 @@ export default function NodesPage() {
 }
 
 function BlockedDeleteDialog({ node, onClose }: { node: Node | null; onClose: () => void }) {
-  if (!node) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cannot Delete Node</h3>
-        <div className="mt-3 space-y-3 text-sm text-gray-600 dark:text-gray-400">
-          <p>
-            <span className="font-medium text-gray-900 dark:text-white">{node.hostname}</span> is still assigned to a cluster, so Skylex cannot delete it directly.
-          </p>
-          <p>
-            Direct deletion could leave the cluster without its expected primary/replica member, break replication or failover decisions, and leave cluster metadata pointing at a missing node.
-          </p>
-          <p>
-            Drain the node first if you need to stop PostgreSQL, or delete/reconfigure the cluster before removing this node from Skylex.
-          </p>
-        </div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 rounded-lg"
-          >
+    <Dialog open={!!node} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-base font-semibold text-foreground">Cannot Delete Node</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground mt-1">
+            Node is currently associated with an active cluster.
+          </DialogDescription>
+        </DialogHeader>
+        {node && (
+          <div className="space-y-3 text-sm text-foreground/80 pt-2 leading-relaxed">
+            <p>
+              <span className="font-semibold text-foreground">{node.hostname}</span> is still assigned to a cluster, so Skylex cannot delete it directly.
+            </p>
+            <p>
+              Direct deletion could leave the cluster without its expected primary/replica member, break replication or failover decisions, and leave cluster metadata pointing at a missing node.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Drain the node first if you need to stop PostgreSQL, or delete/reconfigure the cluster before removing this node from Skylex.
+            </p>
+          </div>
+        )}
+        <div className="mt-4 flex justify-end">
+          <Button variant="outline" size="sm" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 function NodeDetailModal({ node, onClose }: { node: Node | null; onClose: () => void }) {
   const { data: metricsData } = useNodeMetrics(node?.id, 120);
+
   if (!node) return null;
 
   const latest = node.latestMetric || node;
   const history = metricsData?.metrics || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{node.hostname}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{node.id}</p>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="px-6 py-4 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <Dialog open={!!node} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-6">
+        <DialogHeader className="border-b border-border pb-4">
+          <DialogTitle className="text-lg font-bold tracking-tight text-foreground">{node.hostname}</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground font-mono mt-1">{node.id}</DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-6 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <MetricCard label="CPU" value={formatPercent(latest.cpuUsagePercent)} detail={`${latest.cpuCores || "-"} cores`} />
             <MetricCard label="Memory" value={formatPercent(latest.memoryUsagePercent)} detail={`${formatBytes(latest.memoryUsedBytes)} / ${formatBytes(latest.memoryTotalBytes)}`} />
             <MetricCard label="Disk" value={formatPercent(latest.diskUsagePercent)} detail={`${formatBytes(latest.diskUsedBytes)} / ${formatBytes(latest.diskTotalBytes)}`} />
           </div>
 
-          <DetailSection title="Metrics History">
-            <MetricSparkline label="CPU" metrics={history} valueKey="cpuUsagePercent" />
-            <MetricSparkline label="Memory" metrics={history} valueKey="memoryUsagePercent" />
-            <MetricSparkline label="Disk" metrics={history} valueKey="diskUsagePercent" />
+          <DetailSection title="Metrics History" icon={<Cpu className="size-4 text-muted-foreground" />}>
+            <MetricSparkline label="CPU Usage" metrics={history} valueKey="cpuUsagePercent" />
+            <MetricSparkline label="Memory Usage" metrics={history} valueKey="memoryUsagePercent" />
+            <MetricSparkline label="Disk Usage" metrics={history} valueKey="diskUsagePercent" />
           </DetailSection>
 
-          <DetailSection title="Server">
-            <DetailItem label="OS" value={latest.os || "-"} />
-            <DetailItem label="Platform" value={formatPlatform(latest)} />
-            <DetailItem label="Kernel" value={latest.kernelVersion || "-"} />
-            <DetailItem label="Architecture" value={latest.architecture || "-"} />
-            <DetailItem label="Uptime" value={formatDuration(latest.uptimeSeconds)} />
-            <DetailItem label="Load average" value={formatLoad(latest)} />
-          </DetailSection>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DetailSection title="System Information" icon={<Server className="size-4 text-muted-foreground" />}>
+              <DetailItem label="OS" value={latest.os || "-"} />
+              <DetailItem label="Platform" value={formatPlatform(latest)} />
+              <DetailItem label="Kernel" value={latest.kernelVersion || "-"} />
+              <DetailItem label="Architecture" value={latest.architecture || "-"} />
+              <DetailItem label="Uptime" value={formatDuration(latest.uptimeSeconds)} />
+              <DetailItem label="Load Average" value={formatLoad(latest)} />
+            </DetailSection>
 
-          <DetailSection title="Agent & Database">
-            <DetailItem label="Agent" value={node.agentConnected ? "Connected" : "Disconnected"} />
-            <DetailItem label="Agent latency" value={node.agentConnected ? `${node.agentLatencyMs} ms` : "-"} />
-            <DetailItem label="Agent version" value={node.agentVersion || "-"} />
-            <DetailItem label="Last seen" value={node.lastSeen ? new Date(node.lastSeen).toLocaleString() : "-"} />
-            <DetailItem label="PostgreSQL" value={node.postgresInstalled ? node.postgresVersion || "Installed" : "Not installed"} />
-            <DetailItem label="Data initialized" value={node.postgresDataInitialized ? "Yes" : "No"} />
-            <DetailItem label="Service location" value={node.serviceLocation || "-"} />
-            <DetailItem label="Docker available" value={node.dockerAvailable ? "Yes" : "No"} />
-          </DetailSection>
+            <DetailSection title="Agent & Database" icon={<Database className="size-4 text-muted-foreground" />}>
+              <DetailItem label="Agent Connection" value={node.agentConnected ? "Connected" : "Disconnected"} />
+              <DetailItem label="Agent Latency" value={node.agentConnected ? `${node.agentLatencyMs} ms` : "-"} />
+              <DetailItem label="Agent Version" value={node.agentVersion || "-"} />
+              <DetailItem label="Last Seen" value={node.lastSeen ? new Date(node.lastSeen).toLocaleString() : "-"} />
+              <DetailItem label="PostgreSQL" value={node.postgresInstalled ? node.postgresVersion || "Installed" : "Not installed"} />
+              <DetailItem label="Data Directory" value={node.postgresDataInitialized ? "Initialized" : "Not initialized"} />
+              <DetailItem label="Service Location" value={node.serviceLocation || "-"} />
+              <DetailItem label="Docker Available" value={node.dockerAvailable ? "Yes" : "No"} />
+            </DetailSection>
+          </div>
 
-          <DetailSection title="Node">
-            <DetailItem label="Status" value={node.status} />
-            <DetailItem label="Status detail" value={node.statusDetail || "-"} />
-            <DetailItem label="Role" value={node.role || "-"} />
-            <DetailItem label="Address" value={`${node.address}:${node.port}`} />
-            <DetailItem label="Cluster" value={node.clusterId || "-"} />
-            <DetailItem label="Installation state" value={node.installationState || "-"} />
+          <DetailSection title="Metadata & State" icon={<Network className="size-4 text-muted-foreground" />}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+              <DetailItem label="State" value={node.status} />
+              <DetailItem label="State Detail" value={node.statusDetail || "-"} />
+              <DetailItem label="Role" value={node.role || "-"} />
+              <DetailItem label="Address" value={`${node.address}:${node.port}`} />
+              <DetailItem label="Cluster Association" value={node.clusterId || "None"} />
+              <DetailItem label="Installation State" value={node.installationState || "-"} />
+            </div>
           </DetailSection>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+function DetailSection({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section>
-      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{title}</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{children}</div>
-    </section>
+    <div className="space-y-3">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        {icon}
+        {title}
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{children}</div>
+    </div>
   );
 }
 
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
-      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
-      <div className="mt-1 text-sm font-medium text-gray-900 dark:text-white break-all">{value}</div>
+    <div className="rounded-lg border border-border p-3 bg-muted/10 shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1 text-sm font-medium text-foreground break-all">{value}</div>
     </div>
   );
 }
 
 function MetricCard({ label, value, detail }: { label: string; value: string; detail: string }) {
   return (
-    <div className="rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 p-4">
-      <div className="text-xs text-gray-500 dark:text-gray-400">{label}</div>
-      <div className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">{value}</div>
-      <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{detail}</div>
+    <div className="rounded-lg bg-muted/20 border border-border p-4 hover:border-foreground/15 transition-all duration-200">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1.5 text-2xl font-bold tracking-tight text-foreground">{value}</div>
+      <div className="mt-1 text-xs text-muted-foreground font-medium">{detail}</div>
     </div>
   );
 }
@@ -349,15 +387,15 @@ function MetricSparkline({ label, metrics, valueKey }: { label: string; metrics:
   const latest = points.length ? points[points.length - 1] : 0;
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+    <div className="rounded-lg border border-border p-3 bg-muted/10">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
-        <span className="text-xs font-medium text-gray-900 dark:text-white">{points.length ? formatPercent(latest) : "No history"}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+        <span className="text-xs font-bold text-foreground">{points.length ? formatPercent(latest) : "No history"}</span>
       </div>
-      <svg viewBox="0 0 120 36" className="h-10 w-full text-blue-600 dark:text-blue-400" preserveAspectRatio="none">
-        {path ? <path d={path} fill="none" stroke="currentColor" strokeWidth="2" /> : <line x1="0" y1="18" x2="120" y2="18" stroke="currentColor" strokeWidth="1" opacity="0.25" />}
+      <svg viewBox="0 0 120 36" className="h-10 w-full text-foreground/80" preserveAspectRatio="none">
+        {path ? <path d={path} fill="none" stroke="currentColor" strokeWidth="1.5" /> : <line x1="0" y1="18" x2="120" y2="18" stroke="currentColor" strokeWidth="1" opacity="0.25" />}
       </svg>
-      <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Last {points.length} samples</div>
+      <div className="mt-1.5 text-[9px] text-muted-foreground uppercase tracking-wider font-semibold">Last {points.length} samples</div>
     </div>
   );
 }

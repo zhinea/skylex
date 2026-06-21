@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { useUsers } from "~/hooks/useUsers";
 import { Badge } from "~/components/Badge";
-import { Card } from "~/components/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Modal } from "~/components/Modal";
 import { PageSpinner } from "~/components/Spinner";
 import { api } from "~/lib/api";
+import { Button } from "~/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "~/components/ui/table";
+import { Settings, PlusIcon, Trash2 } from "lucide-react";
 
 export default function SettingsPage() {
   const { data, isLoading } = useUsers();
@@ -44,101 +54,139 @@ export default function SettingsPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg"
-        >
+    <div className="space-y-8 animate-in fade-in duration-300">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Settings</h2>
+          <p className="text-xs text-muted-foreground mt-1">Configure global control plane settings, users, and roles.</p>
+        </div>
+        <Button onClick={() => setShowCreate(true)} variant="default" size="sm">
+          <PlusIcon className="size-3.5 mr-1.5" />
           Add User
-        </button>
+        </Button>
       </div>
 
       {success && (
-        <div className="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-emerald-50/60 border border-emerald-200/50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-800/50 px-3 py-2.5 rounded-lg text-xs font-medium">
           {success}
         </div>
       )}
 
-      <Card title="Users">
-        {users.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">No users found.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Email</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Name</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Created</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{u.email}</td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{u.displayName || "-"}</td>
-                    <td className="px-4 py-3"><Badge label={u.role} /></td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{new Date(u.createdAt).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <Card className="shadow-xs">
+        <CardHeader className="border-b border-border/60 pb-4">
+          <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Settings className="size-4 text-muted-foreground" />
+            Control Plane Users ({users.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {users.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-sm text-muted-foreground">No users found.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Email</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Name</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Role</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Created</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((u) => (
+                    <TableRow key={u.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="px-6 py-3.5 text-foreground font-semibold">{u.email}</TableCell>
+                      <TableCell className="px-6 py-3.5 text-foreground">{u.displayName || "-"}</TableCell>
+                      <TableCell className="px-6 py-3.5"><Badge label={u.role} /></TableCell>
+                      <TableCell className="text-muted-foreground px-6 py-3.5 text-xs">
+                        {new Date(u.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="px-6 py-3.5 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs font-medium h-7 px-2"
+                        >
+                          <Trash2 className="size-3 mr-1" />
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <Modal open={showCreate} title="Create User" onClose={() => setShowCreate(false)}>
         <form onSubmit={handleCreateUser} className="space-y-4">
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-3 py-2.5 rounded-lg text-xs font-medium">
               {error}
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+          
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              placeholder="e.g. dev@skylex.local"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Name</label>
-            <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Display Name</label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              placeholder="e.g. Developer Name"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="ADMIN">Admin</option>
-              <option value="OPERATOR">Operator</option>
-              <option value="VIEWER">Viewer</option>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+            >
+              <option value="ADMIN" className="bg-popover text-popover-foreground">Admin</option>
+              <option value="OPERATOR" className="bg-popover text-popover-foreground">Operator</option>
+              <option value="VIEWER" className="bg-popover text-popover-foreground">Viewer</option>
             </select>
           </div>
-          <div className="flex gap-3 pt-2">
-            <button type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">
+
+          <div className="flex gap-3 pt-4 border-t border-border mt-6">
+            <Button type="submit" size="sm">
               Create User
-            </button>
-            <button type="button" onClick={() => setShowCreate(false)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg">
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowCreate(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>

@@ -1,9 +1,19 @@
 import { useState } from "react";
 import { useStorageConfigs, useCreateStorageConfig, useDeleteStorageConfig } from "~/hooks/useStorage";
-import { Card } from "~/components/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Modal } from "~/components/Modal";
 import { PageSpinner } from "~/components/Spinner";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
+import { Button } from "~/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "~/components/ui/table";
+import { HardDrive, PlusIcon, Trash2 } from "lucide-react";
 
 export default function StoragePage() {
   const { data, isLoading } = useStorageConfigs();
@@ -37,110 +47,171 @@ export default function StoragePage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Storage</h2>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg"
-        >
+    <div className="space-y-8 animate-in fade-in duration-300">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Storage</h2>
+          <p className="text-xs text-muted-foreground mt-1">Configure S3-compatible object storage profiles for database backups.</p>
+        </div>
+        <Button onClick={() => setShowCreate(true)} variant="default" size="sm">
+          <PlusIcon className="size-3.5 mr-1.5" />
           Add Storage
-        </button>
+        </Button>
       </div>
 
-      <Card>
-        {configs.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-            No storage configurations. Add an S3-compatible storage backend to enable backups.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Name</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Endpoint</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Bucket</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Region</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">TLS</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {configs.map((c) => (
-                  <tr key={c.id} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{c.name}</td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{c.endpoint}</td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{c.bucket}</td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{c.region || "-"}</td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{c.useTls ? "Yes" : "No"}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setDeleteId(c.id)}
-                        className="text-xs text-red-600 hover:text-red-800 dark:text-red-400"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <Card className="shadow-xs">
+        <CardHeader className="border-b border-border/60 pb-4">
+          <CardTitle className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <HardDrive className="size-4 text-muted-foreground" />
+            Storage Configurations ({configs.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {configs.length === 0 ? (
+            <div className="py-16 text-center">
+              <p className="text-sm text-muted-foreground">
+                No storage configurations. Add an S3-compatible storage backend to enable backups.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/30">
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Name</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Endpoint</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Bucket</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">Region</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6">TLS</TableHead>
+                    <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-6 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {configs.map((c) => (
+                    <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="px-6 py-3.5 text-foreground font-semibold">{c.name}</TableCell>
+                      <TableCell className="text-muted-foreground px-6 py-3.5 text-xs font-mono">{c.endpoint}</TableCell>
+                      <TableCell className="text-foreground px-6 py-3.5 text-xs">{c.bucket}</TableCell>
+                      <TableCell className="text-foreground px-6 py-3.5 text-xs">{c.region || "-"}</TableCell>
+                      <TableCell className="text-foreground px-6 py-3.5 text-xs font-semibold">{c.useTls ? "Yes" : "No"}</TableCell>
+                      <TableCell className="px-6 py-3.5 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteId(c.id)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs font-medium h-7 px-2"
+                        >
+                          <Trash2 className="size-3 mr-1" />
+                          Delete
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <Modal open={showCreate} title="Add Storage Config" onClose={() => setShowCreate(false)}>
         <form onSubmit={handleCreate} className="space-y-4">
           {error && (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-3 py-2.5 rounded-lg text-xs font-medium">
               {error}
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+          
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Configuration Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              placeholder="e.g. minio-backup"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Endpoint</label>
-            <input type="text" value={endpoint} onChange={(e) => setEndpoint(e.target.value)} required placeholder="s3.amazonaws.com"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">S3 Endpoint</label>
+            <input
+              type="text"
+              value={endpoint}
+              onChange={(e) => setEndpoint(e.target.value)}
+              required
+              placeholder="e.g. s3.amazonaws.com"
+              className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bucket</label>
-            <input type="text" value={bucket} onChange={(e) => setBucket(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Bucket</label>
+              <input
+                type="text"
+                value={bucket}
+                onChange={(e) => setBucket(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Region</label>
+              <input
+                type="text"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder="us-east-1"
+                className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
-            <input type="text" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="us-east-1"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Access Key</label>
+              <input
+                type="text"
+                value={accessKey}
+                onChange={(e) => setAccessKey(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Secret Key</label>
+              <input
+                type="password"
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Access Key</label>
-            <input type="text" value={accessKey} onChange={(e) => setAccessKey(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+
+          <div className="flex items-center gap-2 pt-1">
+            <input
+              type="checkbox"
+              id="useTls"
+              checked={useTls}
+              onChange={(e) => setUseTls(e.target.checked)}
+              className="rounded border-input text-primary focus:ring-ring"
+            />
+            <label htmlFor="useTls" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Use Secure TLS Connection
+            </label>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Secret Key</label>
-            <input type="password" value={secretKey} onChange={(e) => setSecretKey(e.target.value)} required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-          </div>
-          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" checked={useTls} onChange={(e) => setUseTls(e.target.checked)}
-              className="rounded border-gray-300 dark:border-gray-600" />
-            Use TLS
-          </label>
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={createConfig.isPending}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg">
-              {createConfig.isPending ? "Saving..." : "Save"}
-            </button>
-            <button type="button" onClick={() => setShowCreate(false)}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg">
+
+          <div className="flex gap-3 pt-4 border-t border-border mt-6">
+            <Button type="submit" disabled={createConfig.isPending} size="sm">
+              {createConfig.isPending ? "Saving..." : "Save Config"}
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowCreate(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>

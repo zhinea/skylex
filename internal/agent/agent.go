@@ -412,6 +412,10 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 		logger.Info(fmt.Sprintf("executing command: %s", cmd.GetAction()))
 		cmdCtx := postgres.WithLogSink(ctx, logger)
 		success, output, errMsg := a.executeCommand(cmdCtx, cmd, logger)
+		if !success && errMsg != "" {
+			a.log.Error("command failed", "command_id", cmd.GetId(), "action", cmd.GetAction(), "error", errMsg)
+			logger.Error(errMsg)
+		}
 		logger.Info(fmt.Sprintf("command finished: success=%v", success))
 		logger.Close()
 		if reportErr := a.reportCommandResult(ctx, cmd.GetId(), success, output, errMsg); reportErr != nil {

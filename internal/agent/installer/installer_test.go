@@ -2,9 +2,20 @@ package installer
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
 )
+
+type captureLogSink struct {
+	info  []string
+	error []string
+}
+
+func (s *captureLogSink) Info(message string)  { s.info = append(s.info, message) }
+func (s *captureLogSink) Error(message string) { s.error = append(s.error, message) }
 
 // ---------------------------------------------------------------------------
 // formatCommand
@@ -61,6 +72,35 @@ func TestPrivilegedCommand_NonRootWithoutSudoReturnsActionableError(t *testing.T
 	if !strings.Contains(err.Error(), "requires root privileges") {
 		t.Fatalf("expected privilege error, got %q", err.Error())
 	}
+}
+
+func TestRunCommandStreamsStdoutAndStderr(t *testing.T) {
+	cmd := exec.CommandContext(context.Background(), os.Args[0], "-test.run=TestHelperProcessRunCommand", "--")
+	cmd.Env = append(os.Environ(), "SKYLEX_HELPER_PROCESS=1")
+	log := &captureLogSink{}
+
+	output, err := runCommand(context.Background(), cmd, log)
+	if err != nil {
+		t.Fatalf("run command: %v", err)
+	}
+	if !strings.Contains(string(output), "stdout line") || !strings.Contains(string(output), "stderr line") {
+		t.Fatalf("expected combined output to include stdout and stderr, got %q", string(output))
+	}
+	if len(log.info) != 1 || log.info[0] != "stdout line" {
+		t.Fatalf("expected stdout log line, got %#v", log.info)
+	}
+	if len(log.error) != 1 || log.error[0] != "stderr line" {
+		t.Fatalf("expected stderr log line, got %#v", log.error)
+	}
+}
+
+func TestHelperProcessRunCommand(t *testing.T) {
+	if os.Getenv("SKYLEX_HELPER_PROCESS") != "1" {
+		return
+	}
+	fmt.Fprintln(os.Stdout, "stdout line")
+	fmt.Fprintln(os.Stderr, "stderr line")
+	os.Exit(0)
 }
 
 // ---------------------------------------------------------------------------

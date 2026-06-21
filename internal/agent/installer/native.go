@@ -102,6 +102,9 @@ func (NativeInstaller) Install(ctx context.Context, cfg InstallConfig, log LogSi
 	default:
 		return fmt.Errorf("unsupported package manager: %s", pm)
 	}
+	// Distro packages may auto-create and start a default cluster on 5432.
+	// Stop it so Skylex can own the configured data directory and port.
+	stopNativePostgres(ctx, cfg, log)
 	return ensureDataDirWritable(ctx, cfg.DataDir, log)
 }
 

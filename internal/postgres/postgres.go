@@ -265,16 +265,17 @@ func (p *Instance) InitDB(ctx context.Context) error {
 	if err := os.MkdirAll(p.DataDir, 0700); err != nil {
 		return fmt.Errorf("create data dir: %w", err)
 	}
+	passwordFile, cleanup, err := p.writeInitPasswordFile()
+	if err != nil {
+		return err
+	}
+	defer cleanup()
 
 	cmd := p.pgCmd(ctx, "initdb",
 		"-D", p.pgDataDir(),
 		"--username", p.Superuser,
 		"--auth", "scram-sha-256",
-		"--pwprompt",
-	)
-
-	cmd.Env = append(os.Environ(),
-		fmt.Sprintf("PGPASSWORD=%s", p.ReplPass),
+		"--pwfile", passwordFile,
 	)
 
 	output, err := runStreamingCmd(ctx, cmd)
@@ -293,6 +294,29 @@ func (p *Instance) InitDB(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (p *Instance) writeInitPasswordFile() (string, func(), error) {
+	file, err := os.CreateTemp("", "skylex-initdb-password-*")
+	if err != nil {
+		return "", func() {}, fmt.Errorf("create initdb password file: %w", err)
+	}
+	cleanup := func() { _ = os.Remove(file.Name()) }
+	if err := file.Chmod(0600); err != nil {
+		_ = file.Close()
+		cleanup()
+		return "", func() {}, fmt.Errorf("secure initdb password file: %w", err)
+	}
+	if _, err := file.WriteString(p.ReplPass + "\n"); err != nil {
+		_ = file.Close()
+		cleanup()
+		return "", func() {}, fmt.Errorf("write initdb password file: %w", err)
+	}
+	if err := file.Close(); err != nil {
+		cleanup()
+		return "", func() {}, fmt.Errorf("close initdb password file: %w", err)
+	}
+	return file.Name(), cleanup, nil
 }
 
 func (p *Instance) Start(ctx context.Context) error {
