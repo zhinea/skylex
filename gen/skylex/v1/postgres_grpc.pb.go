@@ -25,13 +25,16 @@ const (
 	PostgresManagementService_CreateRole_FullMethodName              = "/skylex.v1.PostgresManagementService/CreateRole"
 	PostgresManagementService_RotateRolePassword_FullMethodName      = "/skylex.v1.PostgresManagementService/RotateRolePassword"
 	PostgresManagementService_DeleteRole_FullMethodName              = "/skylex.v1.PostgresManagementService/DeleteRole"
+	PostgresManagementService_ListDatabases_FullMethodName           = "/skylex.v1.PostgresManagementService/ListDatabases"
+	PostgresManagementService_CreateDatabase_FullMethodName          = "/skylex.v1.PostgresManagementService/CreateDatabase"
+	PostgresManagementService_DeleteDatabase_FullMethodName          = "/skylex.v1.PostgresManagementService/DeleteDatabase"
 )
 
 // PostgresManagementServiceClient is the client API for PostgresManagementService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// PostgresManagementService manages connection profile metadata and managed roles for a cluster.
+// PostgresManagementService manages connection profile metadata, managed roles, and managed databases for a cluster.
 type PostgresManagementServiceClient interface {
 	GetConnectionProfile(ctx context.Context, in *GetConnectionProfileRequest, opts ...grpc.CallOption) (*GetConnectionProfileResponse, error)
 	UpdateConnectionProfile(ctx context.Context, in *UpdateConnectionProfileRequest, opts ...grpc.CallOption) (*UpdateConnectionProfileResponse, error)
@@ -40,6 +43,10 @@ type PostgresManagementServiceClient interface {
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
 	RotateRolePassword(ctx context.Context, in *RotateRolePasswordRequest, opts ...grpc.CallOption) (*RotateRolePasswordResponse, error)
 	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleResponse, error)
+	// Database management RPCs (Phase 4)
+	ListDatabases(ctx context.Context, in *ListDatabasesRequest, opts ...grpc.CallOption) (*ListDatabasesResponse, error)
+	CreateDatabase(ctx context.Context, in *CreateDatabaseRequest, opts ...grpc.CallOption) (*CreateDatabaseResponse, error)
+	DeleteDatabase(ctx context.Context, in *DeleteDatabaseRequest, opts ...grpc.CallOption) (*DeleteDatabaseResponse, error)
 }
 
 type postgresManagementServiceClient struct {
@@ -110,11 +117,41 @@ func (c *postgresManagementServiceClient) DeleteRole(ctx context.Context, in *De
 	return out, nil
 }
 
+func (c *postgresManagementServiceClient) ListDatabases(ctx context.Context, in *ListDatabasesRequest, opts ...grpc.CallOption) (*ListDatabasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDatabasesResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_ListDatabases_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) CreateDatabase(ctx context.Context, in *CreateDatabaseRequest, opts ...grpc.CallOption) (*CreateDatabaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateDatabaseResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_CreateDatabase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) DeleteDatabase(ctx context.Context, in *DeleteDatabaseRequest, opts ...grpc.CallOption) (*DeleteDatabaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteDatabaseResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_DeleteDatabase_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostgresManagementServiceServer is the server API for PostgresManagementService service.
 // All implementations must embed UnimplementedPostgresManagementServiceServer
 // for forward compatibility.
 //
-// PostgresManagementService manages connection profile metadata and managed roles for a cluster.
+// PostgresManagementService manages connection profile metadata, managed roles, and managed databases for a cluster.
 type PostgresManagementServiceServer interface {
 	GetConnectionProfile(context.Context, *GetConnectionProfileRequest) (*GetConnectionProfileResponse, error)
 	UpdateConnectionProfile(context.Context, *UpdateConnectionProfileRequest) (*UpdateConnectionProfileResponse, error)
@@ -123,6 +160,10 @@ type PostgresManagementServiceServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
 	RotateRolePassword(context.Context, *RotateRolePasswordRequest) (*RotateRolePasswordResponse, error)
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error)
+	// Database management RPCs (Phase 4)
+	ListDatabases(context.Context, *ListDatabasesRequest) (*ListDatabasesResponse, error)
+	CreateDatabase(context.Context, *CreateDatabaseRequest) (*CreateDatabaseResponse, error)
+	DeleteDatabase(context.Context, *DeleteDatabaseRequest) (*DeleteDatabaseResponse, error)
 	mustEmbedUnimplementedPostgresManagementServiceServer()
 }
 
@@ -150,6 +191,15 @@ func (UnimplementedPostgresManagementServiceServer) RotateRolePassword(context.C
 }
 func (UnimplementedPostgresManagementServiceServer) DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteRole not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) ListDatabases(context.Context, *ListDatabasesRequest) (*ListDatabasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDatabases not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) CreateDatabase(context.Context, *CreateDatabaseRequest) (*CreateDatabaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDatabase not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) DeleteDatabase(context.Context, *DeleteDatabaseRequest) (*DeleteDatabaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteDatabase not implemented")
 }
 func (UnimplementedPostgresManagementServiceServer) mustEmbedUnimplementedPostgresManagementServiceServer() {
 }
@@ -281,6 +331,60 @@ func _PostgresManagementService_DeleteRole_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostgresManagementService_ListDatabases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDatabasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).ListDatabases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_ListDatabases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).ListDatabases(ctx, req.(*ListDatabasesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_CreateDatabase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDatabaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).CreateDatabase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_CreateDatabase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).CreateDatabase(ctx, req.(*CreateDatabaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_DeleteDatabase_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteDatabaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).DeleteDatabase(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_DeleteDatabase_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).DeleteDatabase(ctx, req.(*DeleteDatabaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostgresManagementService_ServiceDesc is the grpc.ServiceDesc for PostgresManagementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -311,6 +415,18 @@ var PostgresManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRole",
 			Handler:    _PostgresManagementService_DeleteRole_Handler,
+		},
+		{
+			MethodName: "ListDatabases",
+			Handler:    _PostgresManagementService_ListDatabases_Handler,
+		},
+		{
+			MethodName: "CreateDatabase",
+			Handler:    _PostgresManagementService_CreateDatabase_Handler,
+		},
+		{
+			MethodName: "DeleteDatabase",
+			Handler:    _PostgresManagementService_DeleteDatabase_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

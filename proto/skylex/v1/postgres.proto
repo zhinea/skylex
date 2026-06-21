@@ -4,7 +4,7 @@ package skylex.v1;
 
 import "google/protobuf/timestamp.proto";
 
-// PostgresManagementService manages connection profile metadata and managed roles for a cluster.
+// PostgresManagementService manages connection profile metadata, managed roles, and managed databases for a cluster.
 service PostgresManagementService {
   rpc GetConnectionProfile(GetConnectionProfileRequest) returns (GetConnectionProfileResponse);
   rpc UpdateConnectionProfile(UpdateConnectionProfileRequest) returns (UpdateConnectionProfileResponse);
@@ -14,6 +14,11 @@ service PostgresManagementService {
   rpc CreateRole(CreateRoleRequest) returns (CreateRoleResponse);
   rpc RotateRolePassword(RotateRolePasswordRequest) returns (RotateRolePasswordResponse);
   rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
+
+  // Database management RPCs (Phase 4)
+  rpc ListDatabases(ListDatabasesRequest) returns (ListDatabasesResponse);
+  rpc CreateDatabase(CreateDatabaseRequest) returns (CreateDatabaseResponse);
+  rpc DeleteDatabase(DeleteDatabaseRequest) returns (DeleteDatabaseResponse);
 }
 
 message ConnectionProfile {
@@ -119,3 +124,43 @@ message DeleteRoleRequest {
 }
 
 message DeleteRoleResponse {}
+
+// Managed Databases (Phase 4)
+
+message PostgresDatabase {
+  string id = 1;
+  string cluster_id = 2;
+  string database_name = 3;
+  // owner_role_id is empty when ownership remains with the Skylex-managed admin/superuser role.
+  string owner_role_id = 4;
+  string owner_role_name = 5;
+  // status: "pending" | "ready" | "failed" | "deleting"
+  string status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message ListDatabasesRequest {
+  string cluster_id = 1;
+}
+
+message ListDatabasesResponse {
+  repeated PostgresDatabase databases = 1;
+}
+
+message CreateDatabaseRequest {
+  string cluster_id = 1;
+  string database_name = 2;
+  // owner_role_id is optional. Omit to keep default Skylex admin ownership.
+  string owner_role_id = 3;
+}
+
+message CreateDatabaseResponse {
+  PostgresDatabase database = 1;
+}
+
+message DeleteDatabaseRequest {
+  string database_id = 1;
+}
+
+message DeleteDatabaseResponse {}

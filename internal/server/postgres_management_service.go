@@ -47,12 +47,16 @@ var validRoleKinds = map[string]bool{
 // roleNamePattern allows only safe PostgreSQL identifier characters.
 var roleNamePattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_$]{0,62}$`)
 
+// databaseNamePattern allows safe PostgreSQL identifier characters for database names.
+var databaseNamePattern = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]{0,62}$`)
+
 // PostgresManagementService implements the PostgresManagementService Connect-RPC handler.
 type PostgresManagementService struct {
 	profiles       *db.ConnectionProfileRepository
 	nodes          *db.NodeRepository
 	clusters       *db.ClusterRepository
 	roles          *db.PostgresRoleRepository
+	databases      *db.PostgresDatabaseRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
 	clusterLocksMu sync.Mutex
@@ -65,6 +69,7 @@ func NewPostgresManagementService(
 	nodes *db.NodeRepository,
 	clusters *db.ClusterRepository,
 	roles *db.PostgresRoleRepository,
+	databases *db.PostgresDatabaseRepository,
 	roleEncryptKey []byte,
 	log *slog.Logger,
 ) *PostgresManagementService {
@@ -72,12 +77,16 @@ func NewPostgresManagementService(
 	_ = validate.RegisterValidation("pgrole", func(fl validator.FieldLevel) bool {
 		return roleNamePattern.MatchString(fl.Field().String())
 	})
+	_ = validate.RegisterValidation("pgdatabase", func(fl validator.FieldLevel) bool {
+		return databaseNamePattern.MatchString(fl.Field().String())
+	})
 
 	return &PostgresManagementService{
 		profiles:       profiles,
 		nodes:          nodes,
 		clusters:       clusters,
 		roles:          roles,
+		databases:      databases,
 		roleEncryptKey: roleEncryptKey,
 		validate:       validate,
 		clusterLocks:   make(map[string]*sync.Mutex),
@@ -89,6 +98,12 @@ type createRoleInput struct {
 	ClusterID string `validate:"required"`
 	RoleName  string `validate:"required,pgrole"`
 	RoleKind  string `validate:"required,oneof=admin read_write read_only custom"`
+}
+
+type createDatabaseInput struct {
+	ClusterID    string `validate:"required"`
+	DatabaseName string `validate:"required,pgdatabase"`
+	OwnerRoleID  string `validate:"omitempty"`
 }
 
 func (s *PostgresManagementService) clusterLock(clusterID string) *sync.Mutex {
@@ -592,6 +607,15 @@ func (s *PostgresManagementService) DeleteRole(
 	if role.Status == "deleting" {
 		return connect.NewResponse(&skylexv1.DeleteRoleResponse{}), nil
 	}
+	if s.databases != nil {
+		hasDatabases, err := s.databases.HasByOwnerRole(ctx, role.ID)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("check databases owned by role: %w", err))
+		}
+		if hasDatabases {
+			return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("role owns one or more managed databases"))
+		}
+	}
 
 	mu := s.clusterLock(role.ClusterID)
 	mu.Lock()
@@ -633,6 +657,225 @@ func (s *PostgresManagementService) DeleteRole(
 	s.log.Info("queued pg_drop_role", "role_id", role.ID, "command_id", txResult.Command.ID)
 
 	return connect.NewResponse(&skylexv1.DeleteRoleResponse{}), nil
+}
+
+// Managed Databases (Phase 4)
+
+func (s *PostgresManagementService) ListDatabases(
+	ctx context.Context,
+	req *connect.Request[skylexv1.ListDatabasesRequest],
+) (*connect.Response[skylexv1.ListDatabasesResponse], error) {
+	clusterID := req.Msg.GetClusterId()
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+	if s.databases == nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("database repository is not configured"))
+	}
+
+	databases, err := s.databases.ListByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list databases: %w", err))
+	}
+	roles, err := s.roles.ListByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list owner roles: %w", err))
+	}
+	roleNames := make(map[string]string, len(roles))
+	for _, role := range roles {
+		roleNames[role.ID] = role.RoleName
+	}
+
+	protoDatabases := make([]*skylexv1.PostgresDatabase, 0, len(databases))
+	for _, database := range databases {
+		ownerRoleName := ""
+		if database.OwnerRoleID != nil {
+			ownerRoleName = roleNames[*database.OwnerRoleID]
+		}
+		protoDatabases = append(protoDatabases, databaseToProto(database, ownerRoleName))
+	}
+	return connect.NewResponse(&skylexv1.ListDatabasesResponse{Databases: protoDatabases}), nil
+}
+
+func (s *PostgresManagementService) CreateDatabase(
+	ctx context.Context,
+	req *connect.Request[skylexv1.CreateDatabaseRequest],
+) (*connect.Response[skylexv1.CreateDatabaseResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot create databases"))
+	}
+	if s.databases == nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("database repository is not configured"))
+	}
+
+	clusterID := req.Msg.GetClusterId()
+	databaseName := strings.TrimSpace(req.Msg.GetDatabaseName())
+	ownerRoleID := strings.TrimSpace(req.Msg.GetOwnerRoleId())
+	if err := s.validate.Struct(createDatabaseInput{ClusterID: clusterID, DatabaseName: databaseName, OwnerRoleID: ownerRoleID}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid create database request: %w", err))
+	}
+	if isReservedDatabaseName(databaseName) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("database %q is reserved", databaseName))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	var ownerRole *db.PostgresRole
+	if ownerRoleID != "" {
+		role, err := s.roles.GetByID(ctx, ownerRoleID)
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get owner role: %w", err))
+		}
+		if role == nil {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("owner role %q not found", ownerRoleID))
+		}
+		if role.ClusterID != clusterID {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("owner role belongs to a different cluster"))
+		}
+		if role.Status != "ready" {
+			return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("owner role must be ready"))
+		}
+		if role.RoleKind == "read_only" {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("read-only roles cannot own databases"))
+		}
+		ownerRole = role
+	}
+
+	mu := s.clusterLock(clusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	primary, err := s.resolveManagementPrimary(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	allowPromote, err := s.allowPromotionForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	existing, err := s.databases.GetByClusterAndName(ctx, clusterID, databaseName)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("check existing database: %w", err))
+	}
+	if existing != nil {
+		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("database %q already exists in cluster %q", databaseName, clusterID))
+	}
+
+	databaseID := id.New()
+	opID := id.New()
+	cmdID := id.New()
+	payloadMap := map[string]interface{}{
+		"database_id":   databaseID,
+		"operation_id":  opID,
+		"database_name": databaseName,
+		"allow_promote": allowPromote,
+	}
+	if ownerRole != nil {
+		payloadMap["owner_role_name"] = ownerRole.RoleName
+		payloadMap["owner_role_kind"] = ownerRole.RoleKind
+	}
+	payload, err := json.Marshal(payloadMap)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal database payload: %w", err))
+	}
+
+	txResult, err := s.databases.CreateWithCommand(ctx, db.CreateDatabaseTxInput{
+		DatabaseID:   databaseID,
+		OperationID:  opID,
+		CommandID:    cmdID,
+		ClusterID:    clusterID,
+		NodeID:       primary.ID,
+		AgentID:      primary.AgentID,
+		DatabaseName: databaseName,
+		OwnerRoleID:  ownerRoleID,
+		Payload:      string(payload),
+		BeforeAction: managementBeforeAction(allowPromote),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("create database and queue command: %w", err))
+	}
+	s.log.Info("queued pg_ensure_database", "database_id", txResult.Database.ID, "command_id", txResult.Command.ID)
+
+	ownerRoleName := ""
+	if ownerRole != nil {
+		ownerRoleName = ownerRole.RoleName
+	}
+	return connect.NewResponse(&skylexv1.CreateDatabaseResponse{Database: databaseToProto(txResult.Database, ownerRoleName)}), nil
+}
+
+func (s *PostgresManagementService) DeleteDatabase(
+	ctx context.Context,
+	req *connect.Request[skylexv1.DeleteDatabaseRequest],
+) (*connect.Response[skylexv1.DeleteDatabaseResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot delete databases"))
+	}
+	if s.databases == nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("database repository is not configured"))
+	}
+
+	databaseID := req.Msg.GetDatabaseId()
+	if databaseID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("database_id is required"))
+	}
+	database, err := s.databases.GetByID(ctx, databaseID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get database: %w", err))
+	}
+	if database == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("database %q not found", databaseID))
+	}
+	if database.Status == "deleting" {
+		return connect.NewResponse(&skylexv1.DeleteDatabaseResponse{}), nil
+	}
+
+	mu := s.clusterLock(database.ClusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	primary, err := s.resolveManagementPrimary(ctx, database.ClusterID)
+	if err != nil {
+		return nil, err
+	}
+	allowPromote, err := s.allowPromotionForCluster(ctx, database.ClusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	opID := id.New()
+	cmdID := id.New()
+	payload, err := json.Marshal(map[string]interface{}{
+		"database_id":   database.ID,
+		"operation_id":  opID,
+		"database_name": database.DatabaseName,
+		"allow_promote": allowPromote,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal database delete payload: %w", err))
+	}
+
+	txResult, err := s.databases.DeleteWithCommand(ctx, db.DeleteDatabaseTxInput{
+		DatabaseID:   database.ID,
+		OperationID:  opID,
+		CommandID:    cmdID,
+		NodeID:       primary.ID,
+		AgentID:      primary.AgentID,
+		Payload:      string(payload),
+		BeforeAction: managementBeforeAction(allowPromote),
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("mark database deleting and queue command: %w", err))
+	}
+	s.log.Info("queued pg_drop_database", "database_id", database.ID, "command_id", txResult.Command.ID)
+
+	return connect.NewResponse(&skylexv1.DeleteDatabaseResponse{}), nil
 }
 
 func (s *PostgresManagementService) resolveManagementPrimary(ctx context.Context, clusterID string) (*models.Node, error) {
@@ -702,4 +945,33 @@ func roleToProto(r *db.PostgresRole) *skylexv1.PostgresRole {
 		proto.ExpiresAt = timestamppb.New(*r.ExpiresAt)
 	}
 	return proto
+}
+
+func databaseToProto(d *db.PostgresDatabase, ownerRoleName string) *skylexv1.PostgresDatabase {
+	proto := &skylexv1.PostgresDatabase{
+		Id:            d.ID,
+		ClusterId:     d.ClusterID,
+		DatabaseName:  d.DatabaseName,
+		OwnerRoleName: ownerRoleName,
+		Status:        d.Status,
+	}
+	if d.OwnerRoleID != nil {
+		proto.OwnerRoleId = *d.OwnerRoleID
+	}
+	if !d.CreatedAt.IsZero() {
+		proto.CreatedAt = timestamppb.New(d.CreatedAt)
+	}
+	if !d.UpdatedAt.IsZero() {
+		proto.UpdatedAt = timestamppb.New(d.UpdatedAt)
+	}
+	return proto
+}
+
+func isReservedDatabaseName(name string) bool {
+	switch strings.ToLower(name) {
+	case "postgres", "template0", "template1":
+		return true
+	default:
+		return false
+	}
 }

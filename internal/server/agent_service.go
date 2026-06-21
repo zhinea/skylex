@@ -28,6 +28,7 @@ type AgentService struct {
 	agentTokenRepo *db.AgentTokenRepository
 	commandSecrets *db.AgentCommandSecretRepository
 	postgresRoles  *db.PostgresRoleRepository
+	postgresDBs    *db.PostgresDatabaseRepository
 	log            *slog.Logger
 }
 
@@ -49,6 +50,10 @@ func (s *AgentService) SetCommandSecretRepository(repo *db.AgentCommandSecretRep
 
 func (s *AgentService) SetPostgresRoleRepository(repo *db.PostgresRoleRepository) {
 	s.postgresRoles = repo
+}
+
+func (s *AgentService) SetPostgresDatabaseRepository(repo *db.PostgresDatabaseRepository) {
+	s.postgresDBs = repo
 }
 
 func (s *AgentService) validateAgentToken(token string) (bool, error) {
@@ -335,6 +340,74 @@ func (s *AgentService) handleRoleManagementCommandResult(ctx context.Context, co
 	return s.postgresRoles.HandleCommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
 }
 
+func (s *AgentService) handleDatabaseManagementCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+	if s.postgresDBs == nil {
+		return false, nil
+	}
+	handled, grant, err := s.postgresDBs.HandleCommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
+	if err != nil || !handled || grant == nil {
+		return handled, err
+	}
+
+	primary, resolveErr := s.nodes.GetPrimary(ctx, grant.ClusterID)
+	if resolveErr != nil {
+		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, "resolve current primary for grant: "+resolveErr.Error()); markErr != nil {
+			return true, fmt.Errorf("resolve grant primary: %w; mark failed: %v", resolveErr, markErr)
+		}
+		return true, fmt.Errorf("resolve grant primary: %w", resolveErr)
+	}
+	if primary == nil || primary.AgentID == "" || !primary.PostgresInstalled || !primary.PostgresDataInitialized {
+		msg := "current primary is not ready for database grant"
+		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, msg); markErr != nil {
+			return true, fmt.Errorf("mark database create failed after grant primary check: %w", markErr)
+		}
+		return true, nil
+	}
+	allowPromote, err := s.allowPromotionForCluster(ctx, grant.ClusterID)
+	if err != nil {
+		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, err.Error()); markErr != nil {
+			return true, fmt.Errorf("allow promotion check: %w; mark failed: %v", err, markErr)
+		}
+		return true, err
+	}
+
+	payload, err := json.Marshal(map[string]interface{}{
+		"database_id":     grant.DatabaseID,
+		"operation_id":    grant.OperationID,
+		"database_name":   grant.DatabaseName,
+		"grant_role_name": grant.GrantRoleName,
+		"grant_role_kind": grant.GrantRoleKind,
+		"allow_promote":   allowPromote,
+	})
+	if err != nil {
+		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, "marshal database grant payload"); markErr != nil {
+			return true, fmt.Errorf("marshal grant payload: %w; mark failed: %v", err, markErr)
+		}
+		return true, fmt.Errorf("marshal grant payload: %w", err)
+	}
+	cmd, err := s.postgresDBs.QueueGrantCommand(ctx, db.GrantDatabaseTxInput{
+		NodeID:  primary.ID,
+		AgentID: primary.AgentID,
+		Payload: string(payload),
+	})
+	if err != nil {
+		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, err.Error()); markErr != nil {
+			return true, fmt.Errorf("queue database grant: %w; mark failed: %v", err, markErr)
+		}
+		return true, err
+	}
+	s.log.Info("queued pg_grant_database_privileges", "database_id", grant.DatabaseID, "command_id", cmd.ID)
+	return true, nil
+}
+
+func (s *AgentService) allowPromotionForCluster(ctx context.Context, clusterID string) (bool, error) {
+	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
+	if err != nil {
+		return false, fmt.Errorf("list cluster nodes: %w", err)
+	}
+	return len(nodes) == 1, nil
+}
+
 func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.ReportCommandResultRequest) (*skylexv1.ReportCommandResultResponse, error) {
 	node, err := s.nodeForAgent(ctx, req.GetAgentId())
 	if err != nil {
@@ -349,6 +422,11 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	}
 	if handled, err := s.handleRoleManagementCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
 		s.log.Warn("handle role management command result failed", "command_id", req.GetCommandId(), "error", err)
+	} else if handled {
+		return &skylexv1.ReportCommandResultResponse{}, nil
+	}
+	if handled, err := s.handleDatabaseManagementCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
+		s.log.Warn("handle database management command result failed", "command_id", req.GetCommandId(), "error", err)
 	} else if handled {
 		return &skylexv1.ReportCommandResultResponse{}, nil
 	}

@@ -61,7 +61,7 @@ func (p *Instance) connectWritable(ctx context.Context, allowPromote bool) (*pgx
 
 	conn.Close(ctx)
 	if !allowPromote {
-		return nil, fmt.Errorf("postgresql is in recovery/read-only; role management must run on the writable primary")
+		return nil, fmt.Errorf("postgresql is in recovery/read-only; PostgreSQL management must run on the writable primary")
 	}
 	return nil, fmt.Errorf("postgresql is in recovery/read-only after promotion command; retry after promotion completes")
 }

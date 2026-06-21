@@ -5,6 +5,7 @@ import { useNodes } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
 import { useConnectionProfile, useUpdateConnectionProfile } from "~/hooks/useConnectionProfile";
+import { useCreatePostgresDatabase, useDeletePostgresDatabase, usePostgresDatabases, type PostgresDatabase } from "~/hooks/usePostgresDatabases";
 import { useCreatePostgresRole, useDeletePostgresRole, usePostgresRoles, useRotatePostgresRolePassword, type PostgresRole } from "~/hooks/usePostgresRoles";
 import { useRestartNode } from "~/hooks/useClusters";
 import { useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
@@ -141,7 +142,31 @@ function connectionURI(host: string, port: number, roleName: string, password?: 
   return `postgresql://${user}:${pass}@${host}:${port}/postgres?sslmode=prefer`;
 }
 
-function ManagedRolesCard({ clusterId, host, port }: { clusterId: string; host: string; port: number }) {
+function databaseConnectionURI(host: string, port: number, databaseName: string, roleName?: string, password?: string) {
+  const user = roleName || "<user>";
+  const pass = password || "<password>";
+  return `postgresql://${user}:${pass}@${host}:${port}/${databaseName}?sslmode=prefer`;
+}
+
+function databasePsqlCommand(host: string, port: number, databaseName: string, roleName?: string) {
+  return `psql "host=${host} port=${port} dbname=${databaseName} user=${roleName || "<user>"} sslmode=prefer"`;
+}
+
+function ManagedRolesCard({
+  clusterId,
+  host,
+  port,
+  revealed,
+  onReveal,
+  onDismissReveal,
+}: {
+  clusterId: string;
+  host: string;
+  port: number;
+  revealed: { role: PostgresRole; password: string } | null;
+  onReveal: (value: { role: PostgresRole; password: string }) => void;
+  onDismissReveal: () => void;
+}) {
   const { data, isLoading } = usePostgresRoles(clusterId);
   const createRole = useCreatePostgresRole();
   const rotatePassword = useRotatePostgresRolePassword(clusterId);
@@ -149,7 +174,6 @@ function ManagedRolesCard({ clusterId, host, port }: { clusterId: string; host: 
   const [roleName, setRoleName] = useState("");
   const [roleKind, setRoleKind] = useState("read_write");
   const [error, setError] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState<{ role: PostgresRole; password: string } | null>(null);
 
   const roles = data?.roles ?? [];
 
@@ -160,7 +184,7 @@ function ManagedRolesCard({ clusterId, host, port }: { clusterId: string; host: 
       {
         onSuccess: (res) => {
           setRoleName("");
-          setRevealed({ role: res.role, password: res.oneTimePassword });
+          onReveal({ role: res.role, password: res.oneTimePassword });
         },
         onError: (err) => setError(err instanceof Error ? err.message : "Failed to create role"),
       },
@@ -170,7 +194,7 @@ function ManagedRolesCard({ clusterId, host, port }: { clusterId: string; host: 
   function handleRotate(role: PostgresRole) {
     setError(null);
     rotatePassword.mutate(role.id, {
-      onSuccess: (res) => setRevealed({ role: res.role, password: res.oneTimePassword }),
+      onSuccess: (res) => onReveal({ role: res.role, password: res.oneTimePassword }),
       onError: (err) => setError(err instanceof Error ? err.message : "Failed to rotate password"),
     });
   }
@@ -206,7 +230,7 @@ function ManagedRolesCard({ clusterId, host, port }: { clusterId: string; host: 
                 </p>
               </div>
               <button
-                onClick={() => setRevealed(null)}
+                onClick={onDismissReveal}
                 className="shrink-0 rounded border border-green-300 px-2 py-1 text-xs font-medium text-green-800 hover:bg-green-100 dark:border-green-700 dark:text-green-200 dark:hover:bg-green-900/40"
               >
                 Dismiss
@@ -316,6 +340,173 @@ function ManagedRolesCard({ clusterId, host, port }: { clusterId: string; host: 
   );
 }
 
+function ManagedDatabasesCard({
+  clusterId,
+  host,
+  port,
+  revealedRole,
+}: {
+  clusterId: string;
+  host: string;
+  port: number;
+  revealedRole: { role: PostgresRole; password: string } | null;
+}) {
+  const { data: roleData } = usePostgresRoles(clusterId);
+  const { data, isLoading } = usePostgresDatabases(clusterId);
+  const createDatabase = useCreatePostgresDatabase();
+  const deleteDatabase = useDeletePostgresDatabase(clusterId);
+  const [databaseName, setDatabaseName] = useState("");
+  const [ownerRoleId, setOwnerRoleId] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const roles = (roleData?.roles ?? []).filter((role) => role.status === "ready" && role.roleKind !== "read_only");
+  const databases = data?.databases ?? [];
+  const revealedDatabasePassword = (database: PostgresDatabase) =>
+    revealedRole?.role.roleName === database.ownerRoleName ? revealedRole?.password : undefined;
+
+  function handleCreate() {
+    setError(null);
+    createDatabase.mutate(
+      { clusterId, databaseName: databaseName.trim(), ownerRoleId: ownerRoleId || undefined },
+      {
+        onSuccess: () => {
+          setDatabaseName("");
+          setOwnerRoleId("");
+        },
+        onError: (err) => setError(err instanceof Error ? err.message : "Failed to create database"),
+      },
+    );
+  }
+
+  function handleDelete(database: PostgresDatabase) {
+    setError(null);
+    if (!window.confirm(`Drop PostgreSQL database ${database.databaseName}? This cannot be undone.`)) return;
+    deleteDatabase.mutate(database.id, {
+      onError: (err) => setError(err instanceof Error ? err.message : "Failed to delete database"),
+    });
+  }
+
+  const canSubmit = databaseName.trim().length > 0 && !createDatabase.isPending;
+
+  return (
+    <Card title="Managed Databases">
+      <div className="space-y-5">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Create application databases and optionally attach ownership to a managed read/write or admin role.
+        </p>
+
+        <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_14rem_auto] md:items-end">
+            <div>
+              <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">Database Name</label>
+              <input
+                type="text"
+                value={databaseName}
+                onChange={(e) => setDatabaseName(e.target.value)}
+                placeholder="app_db"
+                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-600 dark:text-gray-400">Owner Role</label>
+              <select
+                value={ownerRoleId}
+                onChange={(e) => setOwnerRoleId(e.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">Skylex admin default</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>{role.roleName}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleCreate}
+              disabled={!canSubmit}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+            >
+              {createDatabase.isPending ? "Creating..." : "Create Database"}
+            </button>
+          </div>
+          {error && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
+        </div>
+
+        {isLoading ? (
+          <PageSpinner />
+        ) : databases.length === 0 ? (
+          <p className="rounded-lg border border-gray-200 py-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
+            No managed databases yet.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40">
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Database</th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Owner</th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Status</th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">URI Template</th>
+                  <th className="px-3 py-2 text-right font-medium text-gray-600 dark:text-gray-400">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {databases.map((database) => (
+                  <tr key={database.id} className="border-b border-gray-100 last:border-b-0 dark:border-gray-800">
+                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-white">{database.databaseName}</td>
+                    <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{database.ownerRoleName || "Skylex admin"}</td>
+                    <td className="px-3 py-2"><RoleStatusBadge status={database.status} /></td>
+                    <td className="px-3 py-2">
+                      {host ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1">
+                            <code className="max-w-[28rem] truncate text-xs text-gray-700 dark:text-gray-300">
+                              {databaseConnectionURI(
+                                host,
+                                port,
+                                database.databaseName,
+                                database.ownerRoleName,
+                                revealedDatabasePassword(database),
+                              )}
+                            </code>
+                            <CopyButton text={databaseConnectionURI(
+                              host,
+                              port,
+                              database.databaseName,
+                              database.ownerRoleName,
+                              revealedDatabasePassword(database),
+                            )} />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <code className="max-w-[28rem] truncate text-xs text-gray-500 dark:text-gray-400">
+                              {databasePsqlCommand(host, port, database.databaseName, database.ownerRoleName)}
+                            </code>
+                            <CopyButton text={databasePsqlCommand(host, port, database.databaseName, database.ownerRoleName)} />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Endpoint unavailable</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <button
+                        onClick={() => handleDelete(database)}
+                        disabled={database.status === "deleting" || deleteDatabase.isPending}
+                        className="text-xs font-medium text-red-600 hover:underline disabled:opacity-50 dark:text-red-400"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: string; nodes: Node[]; cluster: Cluster }) {
   // Only show when nodes are assigned
   if (nodes.length === 0) return null;
@@ -332,6 +523,7 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
   const [editCIDRs, setEditCIDRs] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedOk, setSavedOk] = useState(false);
+  const [revealedRole, setRevealedRole] = useState<{ role: PostgresRole; password: string } | null>(null);
 
   const profile = profileData?.profile;
   const primaryEndpoint = profileData?.primaryEndpoint;
@@ -594,7 +786,15 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
           </p>
         )}
 
-        <ManagedRolesCard clusterId={clusterId} host={displayHost} port={displayPort} />
+        <ManagedRolesCard
+          clusterId={clusterId}
+          host={displayHost}
+          port={displayPort}
+          revealed={revealedRole}
+          onReveal={setRevealedRole}
+          onDismissReveal={() => setRevealedRole(null)}
+        />
+        <ManagedDatabasesCard clusterId={clusterId} host={displayHost} port={displayPort} revealedRole={revealedRole} />
 
         {/* Allowed CIDRs summary */}
         {profile?.allowedCidrs && profile.allowedCidrs.length > 0 && (

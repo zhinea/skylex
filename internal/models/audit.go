@@ -24,6 +24,8 @@ const (
 	AuditActionCreateRole      AuditAction = "postgres_role.create"
 	AuditActionRotateRole      AuditAction = "postgres_role.rotate"
 	AuditActionDeleteRole      AuditAction = "postgres_role.delete"
+	AuditActionCreateDatabase  AuditAction = "postgres_database.create"
+	AuditActionDeleteDatabase  AuditAction = "postgres_database.delete"
 )
 
 type AuditLog struct {

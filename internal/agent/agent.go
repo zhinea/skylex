@@ -643,6 +643,15 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 	case "pg_drop_role":
 		return a.executeDropRole(ctx, cmd, logger)
 
+	case "pg_ensure_database":
+		return a.executeEnsureDatabase(ctx, cmd, logger)
+
+	case "pg_drop_database":
+		return a.executeDropDatabase(ctx, cmd, logger)
+
+	case "pg_grant_database_privileges":
+		return a.executeGrantDatabasePrivileges(ctx, cmd, logger)
+
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())
 	}

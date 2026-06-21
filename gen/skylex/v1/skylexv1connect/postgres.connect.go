@@ -52,6 +52,15 @@ const (
 	// PostgresManagementServiceDeleteRoleProcedure is the fully-qualified name of the
 	// PostgresManagementService's DeleteRole RPC.
 	PostgresManagementServiceDeleteRoleProcedure = "/skylex.v1.PostgresManagementService/DeleteRole"
+	// PostgresManagementServiceListDatabasesProcedure is the fully-qualified name of the
+	// PostgresManagementService's ListDatabases RPC.
+	PostgresManagementServiceListDatabasesProcedure = "/skylex.v1.PostgresManagementService/ListDatabases"
+	// PostgresManagementServiceCreateDatabaseProcedure is the fully-qualified name of the
+	// PostgresManagementService's CreateDatabase RPC.
+	PostgresManagementServiceCreateDatabaseProcedure = "/skylex.v1.PostgresManagementService/CreateDatabase"
+	// PostgresManagementServiceDeleteDatabaseProcedure is the fully-qualified name of the
+	// PostgresManagementService's DeleteDatabase RPC.
+	PostgresManagementServiceDeleteDatabaseProcedure = "/skylex.v1.PostgresManagementService/DeleteDatabase"
 )
 
 // PostgresManagementServiceClient is a client for the skylex.v1.PostgresManagementService service.
@@ -63,6 +72,10 @@ type PostgresManagementServiceClient interface {
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
 	RotateRolePassword(context.Context, *connect.Request[v1.RotateRolePasswordRequest]) (*connect.Response[v1.RotateRolePasswordResponse], error)
 	DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error)
+	// Database management RPCs (Phase 4)
+	ListDatabases(context.Context, *connect.Request[v1.ListDatabasesRequest]) (*connect.Response[v1.ListDatabasesResponse], error)
+	CreateDatabase(context.Context, *connect.Request[v1.CreateDatabaseRequest]) (*connect.Response[v1.CreateDatabaseResponse], error)
+	DeleteDatabase(context.Context, *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error)
 }
 
 // NewPostgresManagementServiceClient constructs a client for the
@@ -112,6 +125,24 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 			connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteRole")),
 			connect.WithClientOptions(opts...),
 		),
+		listDatabases: connect.NewClient[v1.ListDatabasesRequest, v1.ListDatabasesResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceListDatabasesProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("ListDatabases")),
+			connect.WithClientOptions(opts...),
+		),
+		createDatabase: connect.NewClient[v1.CreateDatabaseRequest, v1.CreateDatabaseResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceCreateDatabaseProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("CreateDatabase")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteDatabase: connect.NewClient[v1.DeleteDatabaseRequest, v1.DeleteDatabaseResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceDeleteDatabaseProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteDatabase")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -123,6 +154,9 @@ type postgresManagementServiceClient struct {
 	createRole              *connect.Client[v1.CreateRoleRequest, v1.CreateRoleResponse]
 	rotateRolePassword      *connect.Client[v1.RotateRolePasswordRequest, v1.RotateRolePasswordResponse]
 	deleteRole              *connect.Client[v1.DeleteRoleRequest, v1.DeleteRoleResponse]
+	listDatabases           *connect.Client[v1.ListDatabasesRequest, v1.ListDatabasesResponse]
+	createDatabase          *connect.Client[v1.CreateDatabaseRequest, v1.CreateDatabaseResponse]
+	deleteDatabase          *connect.Client[v1.DeleteDatabaseRequest, v1.DeleteDatabaseResponse]
 }
 
 // GetConnectionProfile calls skylex.v1.PostgresManagementService.GetConnectionProfile.
@@ -155,6 +189,21 @@ func (c *postgresManagementServiceClient) DeleteRole(ctx context.Context, req *c
 	return c.deleteRole.CallUnary(ctx, req)
 }
 
+// ListDatabases calls skylex.v1.PostgresManagementService.ListDatabases.
+func (c *postgresManagementServiceClient) ListDatabases(ctx context.Context, req *connect.Request[v1.ListDatabasesRequest]) (*connect.Response[v1.ListDatabasesResponse], error) {
+	return c.listDatabases.CallUnary(ctx, req)
+}
+
+// CreateDatabase calls skylex.v1.PostgresManagementService.CreateDatabase.
+func (c *postgresManagementServiceClient) CreateDatabase(ctx context.Context, req *connect.Request[v1.CreateDatabaseRequest]) (*connect.Response[v1.CreateDatabaseResponse], error) {
+	return c.createDatabase.CallUnary(ctx, req)
+}
+
+// DeleteDatabase calls skylex.v1.PostgresManagementService.DeleteDatabase.
+func (c *postgresManagementServiceClient) DeleteDatabase(ctx context.Context, req *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error) {
+	return c.deleteDatabase.CallUnary(ctx, req)
+}
+
 // PostgresManagementServiceHandler is an implementation of the skylex.v1.PostgresManagementService
 // service.
 type PostgresManagementServiceHandler interface {
@@ -165,6 +214,10 @@ type PostgresManagementServiceHandler interface {
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
 	RotateRolePassword(context.Context, *connect.Request[v1.RotateRolePasswordRequest]) (*connect.Response[v1.RotateRolePasswordResponse], error)
 	DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error)
+	// Database management RPCs (Phase 4)
+	ListDatabases(context.Context, *connect.Request[v1.ListDatabasesRequest]) (*connect.Response[v1.ListDatabasesResponse], error)
+	CreateDatabase(context.Context, *connect.Request[v1.CreateDatabaseRequest]) (*connect.Response[v1.CreateDatabaseResponse], error)
+	DeleteDatabase(context.Context, *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error)
 }
 
 // NewPostgresManagementServiceHandler builds an HTTP handler from the service implementation. It
@@ -210,6 +263,24 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 		connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteRole")),
 		connect.WithHandlerOptions(opts...),
 	)
+	postgresManagementServiceListDatabasesHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceListDatabasesProcedure,
+		svc.ListDatabases,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("ListDatabases")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceCreateDatabaseHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceCreateDatabaseProcedure,
+		svc.CreateDatabase,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("CreateDatabase")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceDeleteDatabaseHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceDeleteDatabaseProcedure,
+		svc.DeleteDatabase,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteDatabase")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.PostgresManagementService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PostgresManagementServiceGetConnectionProfileProcedure:
@@ -224,6 +295,12 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 			postgresManagementServiceRotateRolePasswordHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceDeleteRoleProcedure:
 			postgresManagementServiceDeleteRoleHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceListDatabasesProcedure:
+			postgresManagementServiceListDatabasesHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceCreateDatabaseProcedure:
+			postgresManagementServiceCreateDatabaseHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceDeleteDatabaseProcedure:
+			postgresManagementServiceDeleteDatabaseHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -255,4 +332,16 @@ func (UnimplementedPostgresManagementServiceHandler) RotateRolePassword(context.
 
 func (UnimplementedPostgresManagementServiceHandler) DeleteRole(context.Context, *connect.Request[v1.DeleteRoleRequest]) (*connect.Response[v1.DeleteRoleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.DeleteRole is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) ListDatabases(context.Context, *connect.Request[v1.ListDatabasesRequest]) (*connect.Response[v1.ListDatabasesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.ListDatabases is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) CreateDatabase(context.Context, *connect.Request[v1.CreateDatabaseRequest]) (*connect.Response[v1.CreateDatabaseResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.CreateDatabase is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) DeleteDatabase(context.Context, *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.DeleteDatabase is not implemented"))
 }

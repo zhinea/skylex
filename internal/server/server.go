@@ -115,6 +115,7 @@ func (s *Server) Start(ctx context.Context) error {
 	roleEncryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-role-credentials"))
 	commandSecretRepo := db.NewAgentCommandSecretRepository(conn, s.log, roleEncryptKey)
 	postgresRoleRepo := db.NewPostgresRoleRepository(conn, s.log)
+	postgresDatabaseRepo := db.NewPostgresDatabaseRepository(conn, s.log)
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
 	backupRepo := db.NewBackupRepository(conn, s.log)
 
@@ -123,7 +124,8 @@ func (s *Server) Start(ctx context.Context) error {
 	s.agentService = NewAgentService(s.cfg, clusterRepo, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
 	s.agentService.SetCommandSecretRepository(commandSecretRepo)
 	s.agentService.SetPostgresRoleRepository(postgresRoleRepo)
-	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, roleEncryptKey, s.log)
+	s.agentService.SetPostgresDatabaseRepository(postgresDatabaseRepo)
+	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, roleEncryptKey, s.log)
 
 	tlsConfig, err := LoadTLSCredentials(s.cfg.TLS)
 	if err != nil {

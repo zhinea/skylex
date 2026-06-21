@@ -64,6 +64,8 @@ func methodToAuditAction(method string) models.AuditAction {
 		"/skylex.v1.PostgresManagementService/CreateRole":         models.AuditActionCreateRole,
 		"/skylex.v1.PostgresManagementService/RotateRolePassword": models.AuditActionRotateRole,
 		"/skylex.v1.PostgresManagementService/DeleteRole":         models.AuditActionDeleteRole,
+		"/skylex.v1.PostgresManagementService/CreateDatabase":     models.AuditActionCreateDatabase,
+		"/skylex.v1.PostgresManagementService/DeleteDatabase":     models.AuditActionDeleteDatabase,
 		"/skylex.v1.BackupService/CreateBackup":                   models.AuditActionCreateBackup,
 		"/skylex.v1.BackupService/DeleteBackup":                   models.AuditActionDeleteBackup,
 		"/skylex.v1.BackupService/CreateRestoreJob":               models.AuditActionRestore,
