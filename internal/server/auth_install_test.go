@@ -128,7 +128,7 @@ func TestInstallAgentScriptConfiguresNativeProvisioningSudoers(t *testing.T) {
 		`/usr/bin/apt-get install -y --no-install-recommends postgresql-* postgresql-client-*`,
 		`/usr/bin/apt-get purge -y postgresql-* postgresql-client-*`,
 		`/usr/bin/systemctl stop postgresql@*-main`,
-		`/usr/bin/chown -R ${user_uid}:${user_gid} ${DATA_DIR}`,
+		`/usr/bin/install -d -o ${user_uid} -g ${user_gid} -m 0700 ${DATA_DIR}`,
 		`/usr/bin/rm -rf -- ${DATA_DIR}`,
 		`chmod 0440 "$sudoers_file"`,
 	}

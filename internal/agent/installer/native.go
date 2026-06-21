@@ -231,12 +231,8 @@ func ensureDataDirWritable(ctx context.Context, dataDir string, log LogSink) err
 	if clean == "." || clean == string(filepath.Separator) || !filepath.IsAbs(clean) {
 		return fmt.Errorf("unsafe data directory: %q", dataDir)
 	}
-	if err := runPrivileged(ctx, log, "mkdir", "-p", clean); err != nil {
-		return fmt.Errorf("create PostgreSQL data directory: %w", err)
-	}
-	owner := fmt.Sprintf("%d:%d", os.Geteuid(), os.Getegid())
-	if err := runPrivileged(ctx, log, "chown", "-R", owner, clean); err != nil {
-		return fmt.Errorf("set PostgreSQL data directory owner: %w", err)
+	if err := runPrivileged(ctx, log, "install", "-d", "-o", fmt.Sprintf("%d", os.Geteuid()), "-g", fmt.Sprintf("%d", os.Getegid()), "-m", "0700", clean); err != nil {
+		return fmt.Errorf("create writable PostgreSQL data directory: %w", err)
 	}
 	return nil
 }
