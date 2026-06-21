@@ -637,10 +637,8 @@ func (s *PostgresManagementService) UpdateTLSConfig(
 	certFile := strings.TrimSpace(req.Msg.GetCertFile())
 	keyFile := strings.TrimSpace(req.Msg.GetKeyFile())
 	caFile := strings.TrimSpace(req.Msg.GetCaFile())
-	if tlsMode != "disabled" {
-		if certFile == "" || keyFile == "" {
-			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cert_file and key_file are required unless TLS is disabled"))
-		}
+	if tlsMode != "disabled" && ((certFile == "") != (keyFile == "")) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cert_file and key_file must both be set for manual TLS certificates, or both left empty for Skylex-managed certificates"))
 	}
 	for field, path := range map[string]string{"cert_file": certFile, "key_file": keyFile, "ca_file": caFile} {
 		if err := validateAgentPath(path); err != nil {
@@ -713,10 +711,6 @@ func (s *PostgresManagementService) ApplyTLS(
 	if !validSSLModes[tlsMode] {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid TLS mode %q", profile.SSLMode))
 	}
-	if tlsMode != "disabled" && (profile.TLSCertFile == "" || profile.TLSKeyFile == "") {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("cert_file and key_file must be configured before applying TLS"))
-	}
-
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list cluster nodes: %w", err))
@@ -734,6 +728,7 @@ func (s *PostgresManagementService) ApplyTLS(
 
 	commands := make([]db.ApplyTLSNodeCommand, 0, len(readyNodes))
 	for _, node := range readyNodes {
+		certHosts := tlsCertificateHosts(profile, node)
 		payload, err := json.Marshal(map[string]interface{}{
 			"cluster_id": clusterID,
 			"node_id":    node.ID,
@@ -741,6 +736,7 @@ func (s *PostgresManagementService) ApplyTLS(
 			"cert_file":  profile.TLSCertFile,
 			"key_file":   profile.TLSKeyFile,
 			"ca_file":    profile.TLSCAFile,
+			"cert_hosts": certHosts,
 		})
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal tls payload: %w", err))
@@ -809,8 +805,11 @@ func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStat
 func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus) []string {
 	tlsMode := normalizeTLSMode(p.SSLMode)
 	warnings := []string{}
-	if tlsMode == "required" && (p.TLSCertFile == "" || p.TLSKeyFile == "") {
-		warnings = append(warnings, "TLS is required but certificate and key paths are not both configured.")
+	if tlsMode != "disabled" && p.TLSCertFile == "" && p.TLSKeyFile == "" {
+		warnings = append(warnings, "TLS will use Skylex-managed self-signed certificates unless certificate and key paths are configured.")
+	}
+	if tlsMode != "disabled" && ((p.TLSCertFile == "") != (p.TLSKeyFile == "")) {
+		warnings = append(warnings, "TLS manual certificate paths are incomplete; set both certificate and key paths, or clear both for Skylex-managed certificates.")
 	}
 	if tlsMode == "required" && len(statuses) == 0 {
 		warnings = append(warnings, "TLS required mode is configured but has not been applied to any ready node yet.")
@@ -826,6 +825,28 @@ func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus) [
 		}
 	}
 	return warnings
+}
+
+func tlsCertificateHosts(profile *db.ConnectionProfile, node *models.Node) []string {
+	seen := map[string]bool{}
+	hosts := []string{}
+	add := func(value string) {
+		value = strings.TrimSpace(value)
+		if value == "" || seen[value] {
+			return
+		}
+		seen[value] = true
+		hosts = append(hosts, value)
+	}
+	add(node.Hostname)
+	add(node.Address)
+	if profile.EndpointMode == "manual_stable_endpoint" {
+		add(profile.PublicHost)
+	}
+	add("localhost")
+	add("127.0.0.1")
+	add("::1")
+	return hosts
 }
 
 func normalizeTLSMode(mode string) string {

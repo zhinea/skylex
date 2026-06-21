@@ -778,6 +778,15 @@ func (p *Instance) ApplyTLS(ctx context.Context, cfg TLSConfig) error {
 	if err := cfg.Validate(); err != nil {
 		return err
 	}
+	resolvedCfg, managedCert, err := cfg.resolved(p.DataDir)
+	if err != nil {
+		return err
+	}
+	if managedCert {
+		if err := resolvedCfg.ensureManagedCertificate(); err != nil {
+			return fmt.Errorf("ensure managed TLS certificate: %w", err)
+		}
+	}
 
 	includePath := filepath.Join(p.DataDir, includeFileName)
 	previousInclude, readErr := os.ReadFile(includePath)
@@ -786,7 +795,7 @@ func (p *Instance) ApplyTLS(ctx context.Context, cfg TLSConfig) error {
 	}
 	previousIncludeExists := readErr == nil
 
-	settings := cfg.Settings(includePath)
+	settings := resolvedCfg.Settings(includePath)
 	if err := p.writeSkylexInclude(settings); err != nil {
 		return fmt.Errorf("write tls include file: %w", err)
 	}
@@ -799,7 +808,7 @@ func (p *Instance) ApplyTLS(ctx context.Context, cfg TLSConfig) error {
 		restoreIncludeFile(includePath, previousInclude, previousIncludeExists)
 		return fmt.Errorf("reload after tls apply failed; previous TLS configuration restored: %w", err)
 	}
-	if err := p.verifyTLSActive(ctx, cfg.Mode); err != nil {
+	if err := p.verifyTLSActive(ctx, resolvedCfg.Mode); err != nil {
 		restoreIncludeFile(includePath, previousInclude, previousIncludeExists)
 		_ = p.Reload(ctx)
 		return fmt.Errorf("verify tls configuration failed; previous TLS configuration restored: %w", err)

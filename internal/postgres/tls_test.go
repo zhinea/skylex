@@ -1,7 +1,10 @@
 package postgres
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -21,5 +24,44 @@ func TestTLSConfigSettingsPreservesExistingSettings(t *testing.T) {
 	}
 	if _, ok := settings["ssl_ca_file"]; ok {
 		t.Fatalf("expected ssl_ca_file to be removed when omitted, got %#v", settings)
+	}
+}
+
+func TestTLSConfigEnsureManagedCertificate(t *testing.T) {
+	dir := t.TempDir()
+	cfg, managed, err := (TLSConfig{Mode: TLSModeRequired, Hosts: []string{"pg.example.test", "127.0.0.1"}}).resolved(dir)
+	if err != nil {
+		t.Fatalf("resolve managed cert paths: %v", err)
+	}
+	if !managed {
+		t.Fatal("expected managed certificate mode")
+	}
+	if err := cfg.ensureManagedCertificate(); err != nil {
+		t.Fatalf("ensure managed cert: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, managedTLSDirName, managedTLSCertName)); err != nil {
+		t.Fatalf("expected certificate file: %v", err)
+	}
+	keyInfo, err := os.Stat(filepath.Join(dir, managedTLSDirName, managedTLSKeyName))
+	if err != nil {
+		t.Fatalf("expected key file: %v", err)
+	}
+	if keyInfo.Mode().Perm() != 0600 {
+		t.Fatalf("expected key mode 0600, got %v", keyInfo.Mode().Perm())
+	}
+	certPEM, err := os.ReadFile(cfg.CertFile)
+	if err != nil {
+		t.Fatalf("read cert: %v", err)
+	}
+	block, _ := pem.Decode(certPEM)
+	if block == nil {
+		t.Fatal("expected PEM certificate")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		t.Fatalf("parse cert: %v", err)
+	}
+	if len(cert.DNSNames) == 0 || cert.DNSNames[0] != "pg.example.test" {
+		t.Fatalf("expected DNS SAN pg.example.test, got %#v", cert.DNSNames)
 	}
 }

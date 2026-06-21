@@ -29,10 +29,11 @@ type hbaCommandPayload struct {
 }
 
 type tlsCommandPayload struct {
-	TLSMode  string `json:"tls_mode"`
-	CertFile string `json:"cert_file"`
-	KeyFile  string `json:"key_file"`
-	CAFile   string `json:"ca_file"`
+	TLSMode   string   `json:"tls_mode"`
+	CertFile  string   `json:"cert_file"`
+	KeyFile   string   `json:"key_file"`
+	CAFile    string   `json:"ca_file"`
+	CertHosts []string `json:"cert_hosts"`
 }
 
 func (a *Agent) executeEnsureDatabase(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
@@ -130,6 +131,7 @@ func (a *Agent) executeApplyTLS(ctx context.Context, cmd *skylexv1.AgentCommand,
 		CertFile: p.CertFile,
 		KeyFile:  p.KeyFile,
 		CAFile:   p.CAFile,
+		Hosts:    p.CertHosts,
 	}); err != nil {
 		return false, "", fmt.Sprintf("pg_apply_tls failed: %v", err)
 	}

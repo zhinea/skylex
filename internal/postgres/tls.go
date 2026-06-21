@@ -2,9 +2,18 @@ package postgres
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
+	"math/big"
+	"net"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 const (
@@ -13,12 +22,19 @@ const (
 	TLSModeRequired = "required"
 )
 
-// TLSConfig describes certificate paths that already exist on the agent host.
+const (
+	managedTLSDirName  = "skylex-tls"
+	managedTLSCertName = "server.crt"
+	managedTLSKeyName  = "server.key"
+)
+
+// TLSConfig describes either manual certificate paths or Skylex-managed cert generation.
 type TLSConfig struct {
 	Mode     string
 	CertFile string
 	KeyFile  string
 	CAFile   string
+	Hosts    []string
 }
 
 func (c TLSConfig) Validate() error {
@@ -30,8 +46,8 @@ func (c TLSConfig) Validate() error {
 	if c.Mode == TLSModeDisabled {
 		return nil
 	}
-	if c.CertFile == "" || c.KeyFile == "" {
-		return fmt.Errorf("cert_file and key_file are required when TLS is enabled")
+	if (c.CertFile == "") != (c.KeyFile == "") {
+		return fmt.Errorf("cert_file and key_file must both be set for manual TLS certificates, or both left empty for Skylex-managed certificates")
 	}
 	for label, path := range map[string]string{"cert_file": c.CertFile, "key_file": c.KeyFile, "ca_file": c.CAFile} {
 		if path == "" {
@@ -43,6 +59,79 @@ func (c TLSConfig) Validate() error {
 		if _, err := os.Stat(path); err != nil {
 			return fmt.Errorf("%s %q is not readable: %w", label, path, err)
 		}
+	}
+	return nil
+}
+
+func (c TLSConfig) resolved(dataDir string) (TLSConfig, bool, error) {
+	if c.Mode == TLSModeDisabled || (c.CertFile != "" && c.KeyFile != "") {
+		return c, false, nil
+	}
+	managedDir := filepath.Join(dataDir, managedTLSDirName)
+	resolved := c
+	resolved.CertFile = filepath.Join(managedDir, managedTLSCertName)
+	resolved.KeyFile = filepath.Join(managedDir, managedTLSKeyName)
+	return resolved, true, nil
+}
+
+func (c TLSConfig) ensureManagedCertificate() error {
+	if c.CertFile == "" || c.KeyFile == "" {
+		return fmt.Errorf("managed certificate paths are empty")
+	}
+	if _, certErr := os.Stat(c.CertFile); certErr == nil {
+		if _, keyErr := os.Stat(c.KeyFile); keyErr == nil {
+			return nil
+		}
+	} else if !os.IsNotExist(certErr) {
+		return fmt.Errorf("stat managed certificate: %w", certErr)
+	}
+	if err := os.MkdirAll(filepath.Dir(c.CertFile), 0700); err != nil {
+		return fmt.Errorf("create managed tls directory: %w", err)
+	}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 3072)
+	if err != nil {
+		return fmt.Errorf("generate private key: %w", err)
+	}
+	serialLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serial, err := rand.Int(rand.Reader, serialLimit)
+	if err != nil {
+		return fmt.Errorf("generate serial number: %w", err)
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serial,
+		Subject: pkix.Name{
+			CommonName: firstCertificateHost(c.Hosts),
+		},
+		NotBefore:             time.Now().UTC().Add(-5 * time.Minute),
+		NotAfter:              time.Now().UTC().AddDate(1, 0, 0),
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+	for _, host := range canonicalCertificateHosts(c.Hosts) {
+		if ip := net.ParseIP(host); ip != nil {
+			template.IPAddresses = append(template.IPAddresses, ip)
+			continue
+		}
+		template.DNSNames = append(template.DNSNames, host)
+	}
+	if len(template.DNSNames) == 0 && len(template.IPAddresses) == 0 {
+		template.DNSNames = []string{"localhost"}
+	}
+
+	der, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return fmt.Errorf("create certificate: %w", err)
+	}
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)})
+	if err := os.WriteFile(c.CertFile, certPEM, 0644); err != nil {
+		return fmt.Errorf("write managed certificate: %w", err)
+	}
+	if err := os.WriteFile(c.KeyFile, keyPEM, 0600); err != nil {
+		return fmt.Errorf("write managed private key: %w", err)
 	}
 	return nil
 }
@@ -92,6 +181,30 @@ func readSkylexIncludeSettings(path string) map[string]string {
 
 func quoteConfigValue(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
+func firstCertificateHost(hosts []string) string {
+	for _, host := range canonicalCertificateHosts(hosts) {
+		return host
+	}
+	return "localhost"
+}
+
+func canonicalCertificateHosts(hosts []string) []string {
+	seen := map[string]bool{}
+	out := make([]string, 0, len(hosts)+1)
+	for _, host := range hosts {
+		h := strings.TrimSpace(host)
+		if h == "" || seen[h] {
+			continue
+		}
+		seen[h] = true
+		out = append(out, h)
+	}
+	if !seen["localhost"] {
+		out = append(out, "localhost")
+	}
+	return out
 }
 
 func (p *Instance) verifyTLSActive(ctx context.Context, mode string) error {

@@ -713,7 +713,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
     <Card title="TLS">
       <div className="space-y-4">
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Manage PostgreSQL server-side TLS settings. Certificate files must already exist on every target agent host.
+          Manage PostgreSQL server-side TLS settings. Leave certificate and key paths empty to let Skylex generate a self-signed certificate on each node, or set both paths to use manually managed files.
         </p>
 
         {warnings.length > 0 && (
@@ -738,11 +738,11 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
                 </select>
               </label>
               <label className="text-xs text-gray-600 dark:text-gray-400">
-                Server Certificate Path
+                Server Certificate Path (optional)
                 <input value={certFile} onChange={(e) => setCertFile(e.target.value)} placeholder="/etc/skylex/postgres/server.crt" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
               </label>
               <label className="text-xs text-gray-600 dark:text-gray-400">
-                Server Key Path
+                Server Key Path (optional)
                 <input value={keyFile} onChange={(e) => setKeyFile(e.target.value)} placeholder="/etc/skylex/postgres/server.key" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
               </label>
               <label className="text-xs text-gray-600 dark:text-gray-400">
@@ -750,7 +750,7 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
                 <input value={caFile} onChange={(e) => setCAFile(e.target.value)} placeholder="/etc/skylex/postgres/ca.crt" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
               </label>
             </div>
-            <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">Skylex stores only file paths, not certificate material or private keys.</p>
+            <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">Skylex stores only file paths. Empty certificate/key paths use per-node generated self-signed certificates; manual mode requires both certificate and key paths.</p>
             <div className="mt-3 flex gap-2">
               <button onClick={saveTLS} disabled={updateTLS.isPending} className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
                 {updateTLS.isPending ? "Saving..." : "Save TLS"}
@@ -763,8 +763,8 @@ function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] 
         ) : (
           <dl className="rounded-lg border border-gray-200 px-3 dark:border-gray-700">
             <ConnectionRow label="TLS Mode" value={config?.tlsMode ?? "prefer"} />
-            <ConnectionRow label="Server Certificate" value={config?.certFile || "Not configured"} />
-            <ConnectionRow label="Server Key" value={config?.keyFile || "Not configured"} />
+            <ConnectionRow label="Server Certificate" value={config?.certFile || "Skylex-managed per node"} />
+            <ConnectionRow label="Server Key" value={config?.keyFile || "Skylex-managed per node"} />
             <ConnectionRow label="CA File" value={config?.caFile || "Not configured"} />
           </dl>
         )}

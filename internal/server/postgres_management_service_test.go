@@ -195,7 +195,7 @@ func TestPostgresManagementService_ApplyHBAQueuesReadyNodes(t *testing.T) {
 	}
 }
 
-func TestPostgresManagementService_UpdateTLSConfigRejectsViewerAndMissingCerts(t *testing.T) {
+func TestPostgresManagementService_UpdateTLSConfigRejectsViewerAndPartialManualCerts(t *testing.T) {
 	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
 	viewerCtx := contextWithUserRole(models.RoleViewer)
 
@@ -214,9 +214,27 @@ func TestPostgresManagementService_UpdateTLSConfigRejectsViewerAndMissingCerts(t
 	_, err = svc.UpdateTLSConfig(operatorCtx, connect.NewRequest(&skylexv1.UpdateTLSConfigRequest{
 		ClusterId: clusterID,
 		TlsMode:   "required",
+		CertFile:  "/etc/skylex/postgres/server.crt",
 	}))
 	if err == nil {
-		t.Fatal("expected required TLS without cert/key to fail")
+		t.Fatal("expected partial manual TLS cert paths to fail")
+	}
+}
+
+func TestPostgresManagementService_UpdateTLSConfigAllowsManagedCerts(t *testing.T) {
+	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleOperator)
+	clusterID := createPostgresManagementTestCluster(t, ctx, svc, "tls-managed")
+
+	resp, err := svc.UpdateTLSConfig(ctx, connect.NewRequest(&skylexv1.UpdateTLSConfigRequest{
+		ClusterId: clusterID,
+		TlsMode:   "required",
+	}))
+	if err != nil {
+		t.Fatalf("expected managed TLS config to save without paths: %v", err)
+	}
+	if resp.Msg.GetConfig().GetTlsMode() != "required" {
+		t.Fatalf("expected required TLS mode, got %q", resp.Msg.GetConfig().GetTlsMode())
 	}
 }
 
@@ -237,9 +255,6 @@ func TestPostgresManagementService_ApplyTLSQueuesReadyNodes(t *testing.T) {
 	if _, err := svc.UpdateTLSConfig(ctx, connect.NewRequest(&skylexv1.UpdateTLSConfigRequest{
 		ClusterId: clusterID,
 		TlsMode:   "required",
-		CertFile:  "/etc/skylex/postgres/server.crt",
-		KeyFile:   "/etc/skylex/postgres/server.key",
-		CaFile:    "/etc/skylex/postgres/ca.crt",
 	})); err != nil {
 		t.Fatalf("update tls config: %v", err)
 	}
@@ -259,7 +274,7 @@ func TestPostgresManagementService_ApplyTLSQueuesReadyNodes(t *testing.T) {
 	}
 	found := false
 	for _, command := range pending {
-		if command.Action == "pg_apply_tls" && strings.Contains(command.Payload, "server.crt") && !strings.Contains(command.Payload, "PASSWORD") {
+		if command.Action == "pg_apply_tls" && strings.Contains(command.Payload, "cert_hosts") && !strings.Contains(command.Payload, "PASSWORD") {
 			found = true
 		}
 	}
