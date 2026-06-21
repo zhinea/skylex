@@ -4,6 +4,7 @@ import { useCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
+import { useConnectionProfile, useUpdateConnectionProfile } from "~/hooks/useConnectionProfile";
 import { useRestartNode } from "~/hooks/useClusters";
 import { useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
 import { Badge } from "~/components/Badge";
@@ -116,15 +117,34 @@ function ConnectionRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PostgreSQLConnectionCard({ nodes, cluster }: { nodes: Node[]; cluster: Cluster }) {
+function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: string; nodes: Node[]; cluster: Cluster }) {
   // Only show when nodes are assigned
   if (nodes.length === 0) return null;
 
-  const primaryNode = nodes.find(
+  const { data: profileData, isLoading: profileLoading } = useConnectionProfile(clusterId);
+  const updateProfile = useUpdateConnectionProfile();
+
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editMode, setEditMode] = useState("direct_primary");
+  const [editPublicHost, setEditPublicHost] = useState("");
+  const [editPublicPort, setEditPublicPort] = useState(5432);
+  const [editSSLMode, setEditSSLMode] = useState("prefer");
+  const [editCIDRs, setEditCIDRs] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedOk, setSavedOk] = useState(false);
+
+  const profile = profileData?.profile;
+  const primaryEndpoint = profileData?.primaryEndpoint;
+  const replicaEndpoints = profileData?.replicaEndpoints ?? [];
+  const effectiveHost = profileData?.effectiveHost ?? "";
+  const effectivePort = profileData?.effectivePort ?? 0;
+
+  // Fallback to node data when profile API hasn't loaded yet
+  const fallbackPrimary = nodes.find(
     (n) => n.role === "NODE_ROLE_PRIMARY" && n.postgresInstalled && n.postgresDataInitialized,
   );
-
-  const replicaNodes = nodes.filter(
+  const fallbackReplicas = nodes.filter(
     (n) => n.role === "NODE_ROLE_REPLICA" && n.postgresInstalled && n.postgresDataInitialized,
   );
 
@@ -134,7 +154,61 @@ function PostgreSQLConnectionCard({ nodes, cluster }: { nodes: Node[]; cluster: 
       ? "Dockerized"
       : "Native";
 
-  if (!primaryNode) {
+  // Determine the endpoint to display
+  const displayHost = effectiveHost || (fallbackPrimary ? (fallbackPrimary.address || fallbackPrimary.hostname) : "");
+  const displayPort = effectivePort || (fallbackPrimary?.port ?? 5432);
+  const sslMode = profile?.sslMode ?? "prefer";
+
+  const isPrimaryReady = !!primaryEndpoint || !!fallbackPrimary;
+
+  function handleEditOpen() {
+    setEditMode(profile?.endpointMode ?? "direct_primary");
+    setEditPublicHost(profile?.publicHost ?? "");
+    setEditPublicPort(profile?.publicPort ?? 5432);
+    setEditSSLMode(profile?.sslMode ?? "prefer");
+    setEditCIDRs((profile?.allowedCidrs ?? []).join(", "));
+    setSaveError(null);
+    setSavedOk(false);
+    setEditing(true);
+  }
+
+  function handleSave() {
+    setSaveError(null);
+    const cidrs = editCIDRs
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    updateProfile.mutate(
+      {
+        clusterId,
+        endpointMode: editMode,
+        publicHost: editPublicHost,
+        publicPort: editPublicPort,
+        sslMode: editSSLMode,
+        allowedCidrs: cidrs,
+      },
+      {
+        onSuccess: () => {
+          setSavedOk(true);
+          setEditing(false);
+          setTimeout(() => setSavedOk(false), 3000);
+        },
+        onError: (err) => {
+          setSaveError(err instanceof Error ? err.message : "Failed to save profile");
+        },
+      },
+    );
+  }
+
+  if (profileLoading) {
+    return (
+      <Card title="PostgreSQL Connection">
+        <PageSpinner />
+      </Card>
+    );
+  }
+
+  if (!isPrimaryReady) {
     return (
       <Card title="PostgreSQL Connection">
         <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700">
@@ -151,29 +225,150 @@ function PostgreSQLConnectionCard({ nodes, cluster }: { nodes: Node[]; cluster: 
     );
   }
 
-  const host = primaryNode.address || primaryNode.hostname;
-  const port = primaryNode.port || 5432;
-  const endpoint = `${host}:${port}`;
-  const psqlCommand = `psql "host=${host} port=${port} dbname=postgres user=<user> sslmode=prefer"`;
-  const uriTemplate = `postgresql://<user>:<password>@${host}:${port}/postgres?sslmode=prefer`;
+  const endpoint = displayHost ? `${displayHost}:${displayPort}` : "";
+  const psqlCommand = displayHost
+    ? `psql "host=${displayHost} port=${displayPort} dbname=postgres user=<user> sslmode=${sslMode}"`
+    : "";
+  const uriTemplate = displayHost
+    ? `postgresql://<user>:<password>@${displayHost}:${displayPort}/postgres?sslmode=${sslMode}`
+    : "";
+
+  const isManualMode = profile?.endpointMode === "manual_stable_endpoint";
+  const hasPublicHost = !!(profile?.publicHost);
 
   return (
     <Card title="PostgreSQL Connection">
       <div className="space-y-4">
+        {/* Edit profile button */}
+        <div className="flex justify-end gap-2">
+          {savedOk && (
+            <span className="text-sm text-green-600 dark:text-green-400 self-center">Profile saved.</span>
+          )}
+          {!editing && (
+            <button
+              onClick={handleEditOpen}
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+            >
+              Edit Profile
+            </button>
+          )}
+        </div>
+
+        {/* Edit form */}
+        {editing && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20 px-4 py-4 space-y-3">
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Connection Profile</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Endpoint Mode</label>
+                <select
+                  value={editMode}
+                  onChange={(e) => setEditMode(e.target.value)}
+                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-2 py-1.5 text-gray-900 dark:text-white"
+                >
+                  <option value="direct_primary">Direct Primary (computed from node)</option>
+                  <option value="manual_stable_endpoint">Manual Stable Endpoint</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">SSL Mode</label>
+                <select
+                  value={editSSLMode}
+                  onChange={(e) => setEditSSLMode(e.target.value)}
+                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-2 py-1.5 text-gray-900 dark:text-white"
+                >
+                  <option value="prefer">prefer</option>
+                  <option value="require">require</option>
+                  <option value="disable">disable</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Public Host</label>
+                <input
+                  type="text"
+                  value={editPublicHost}
+                  onChange={(e) => setEditPublicHost(e.target.value)}
+                  placeholder="e.g. pg.example.com"
+                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-2 py-1.5 text-gray-900 dark:text-white placeholder-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Public Port</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={65535}
+                  value={editPublicPort}
+                  onChange={(e) => setEditPublicPort(Number(e.target.value))}
+                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-2 py-1.5 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                  Allowed CIDRs <span className="text-gray-400">(comma-separated, e.g. 10.0.0.0/8, 192.168.1.0/24)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editCIDRs}
+                  onChange={(e) => setEditCIDRs(e.target.value)}
+                  placeholder="e.g. 10.0.0.0/8, 0.0.0.0/0"
+                  className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-2 py-1.5 text-gray-900 dark:text-white placeholder-gray-400"
+                />
+              </div>
+            </div>
+
+            {saveError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={handleSave}
+                disabled={updateProfile.isPending}
+                className="px-4 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              >
+                {updateProfile.isPending ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="px-4 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Warnings */}
         <div className="space-y-2">
-          <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 dark:border-yellow-800 dark:bg-yellow-900/20">
-            <span className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400">⚠</span>
-            <p className="text-xs text-yellow-800 dark:text-yellow-200">
-              <span className="font-medium">Direct node endpoint:</span> This endpoint points directly
-              to the primary node and may change after a failover. A stable endpoint (VIP, DNS, or
-              proxy) is not yet configured.
-            </p>
-          </div>
+          {!isManualMode && (
+            <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 dark:border-yellow-800 dark:bg-yellow-900/20">
+              <span className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400">⚠</span>
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                <span className="font-medium">Direct node endpoint:</span> This endpoint points directly
+                to the primary node and may change after a failover. Configure a stable endpoint (VIP, DNS, or
+                proxy) via Edit Profile.
+              </p>
+            </div>
+          )}
+          {isManualMode && !hasPublicHost && (
+            <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 dark:border-yellow-800 dark:bg-yellow-900/20">
+              <span className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400">⚠</span>
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                <span className="font-medium">Manual stable endpoint mode is active</span> but no public host is
+                set. Set a public host via Edit Profile or switch to Direct Primary.
+              </p>
+            </div>
+          )}
           <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 dark:border-blue-800 dark:bg-blue-900/20">
             <span className="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400">ℹ</span>
             <p className="text-xs text-blue-800 dark:text-blue-200">
-              <span className="font-medium">Firewall:</span> Ensure port {port} is open from your
+              <span className="font-medium">Firewall:</span> Ensure port {displayPort} is open from your
               application to the PostgreSQL node. Skylex does not manage firewall or security group
               rules.
             </p>
@@ -181,38 +376,64 @@ function PostgreSQLConnectionCard({ nodes, cluster }: { nodes: Node[]; cluster: 
         </div>
 
         {/* Connection details */}
-        <dl className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 divide-y-0">
-          <ConnectionRow label="Primary Endpoint" value={endpoint} />
-          <ConnectionRow label="Default Database" value="postgres" />
-          <ConnectionRow label="Service Location" value={serviceLocation} />
-          <ConnectionRow label="psql Command" value={psqlCommand} />
-          <ConnectionRow label="URI Template" value={uriTemplate} />
-        </dl>
+        {endpoint && (
+          <dl className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 divide-y-0">
+            <ConnectionRow label="Primary Endpoint" value={endpoint} />
+            <ConnectionRow label="Default Database" value="postgres" />
+            <ConnectionRow label="SSL Mode" value={sslMode} />
+            <ConnectionRow label="Service Location" value={serviceLocation} />
+            {psqlCommand && <ConnectionRow label="psql Command" value={psqlCommand} />}
+            {uriTemplate && <ConnectionRow label="URI Template" value={uriTemplate} />}
+          </dl>
+        )}
 
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Replace <code className="font-mono">&lt;user&gt;</code> and{" "}
-          <code className="font-mono">&lt;password&gt;</code> with your PostgreSQL credentials.
-          Passwords are never stored or shown by Skylex.
-        </p>
+        {endpoint && (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Replace <code className="font-mono">&lt;user&gt;</code> and{" "}
+            <code className="font-mono">&lt;password&gt;</code> with your PostgreSQL credentials.
+            Passwords are never stored or shown by Skylex.
+          </p>
+        )}
+
+        {/* Allowed CIDRs summary */}
+        {profile?.allowedCidrs && profile.allowedCidrs.length > 0 && (
+          <div>
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Allowed CIDRs
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {profile.allowedCidrs.map((cidr) => (
+                <span
+                  key={cidr}
+                  className="px-2 py-0.5 rounded text-xs font-mono bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                >
+                  {cidr}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Replica endpoints */}
-        {replicaNodes.length > 0 && (
+        {(replicaEndpoints.length > 0 || fallbackReplicas.length > 0) && (
           <div>
             <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Replica Endpoints (read-only)
             </div>
             <dl className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 divide-y-0">
-              {replicaNodes.map((n) => {
-                const rHost = n.address || n.hostname;
-                const rPort = n.port || 5432;
-                return (
-                  <ConnectionRow
-                    key={n.id}
-                    label={n.hostname}
-                    value={`${rHost}:${rPort}`}
-                  />
-                );
-              })}
+              {(replicaEndpoints.length > 0 ? replicaEndpoints : fallbackReplicas.map((n) => ({
+                nodeId: n.id,
+                hostname: n.hostname,
+                host: n.address || n.hostname,
+                port: n.port || 5432,
+                role: n.role,
+              }))).map((ep) => (
+                <ConnectionRow
+                  key={ep.nodeId}
+                  label={ep.hostname}
+                  value={`${ep.host}:${ep.port}`}
+                />
+              ))}
             </dl>
           </div>
         )}
@@ -555,7 +776,7 @@ export default function ClusterDetailPage() {
 
       {nodes.length > 0 && (
         <div className="mb-6">
-          <PostgreSQLConnectionCard nodes={nodes} cluster={cluster} />
+          <PostgreSQLConnectionCard clusterId={id || ""} nodes={nodes} cluster={cluster} />
         </div>
       )}
 

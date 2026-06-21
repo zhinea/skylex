@@ -13,6 +13,18 @@ import (
 	"github.com/zhinea/skylex/internal/models"
 )
 
+type connectPostgresService struct {
+	svc *PostgresManagementService
+}
+
+func (c *connectPostgresService) GetConnectionProfile(ctx context.Context, req *connect.Request[skylexv1.GetConnectionProfileRequest]) (*connect.Response[skylexv1.GetConnectionProfileResponse], error) {
+	return c.svc.GetConnectionProfile(ctx, req)
+}
+
+func (c *connectPostgresService) UpdateConnectionProfile(ctx context.Context, req *connect.Request[skylexv1.UpdateConnectionProfileRequest]) (*connect.Response[skylexv1.UpdateConnectionProfileResponse], error) {
+	return c.svc.UpdateConnectionProfile(ctx, req)
+}
+
 func connectInterceptors(h http.Handler, srv *Server) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -59,7 +71,8 @@ var unauthenticatedPaths = map[string]bool{
 }
 
 var writeMethods = map[string]bool{
-	skylexv1connect.ClusterServiceCreateClusterProcedure:            true,
+	skylexv1connect.PostgresManagementServiceUpdateConnectionProfileProcedure: true,
+	skylexv1connect.ClusterServiceCreateClusterProcedure:                      true,
 	skylexv1connect.ClusterServiceUpdateClusterProcedure:            true,
 	skylexv1connect.ClusterServiceDeleteClusterProcedure:            true,
 	skylexv1connect.ClusterServiceFailoverClusterProcedure:          true,
@@ -502,6 +515,9 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 
 	schedulePath, scheduleHandler := skylexv1connect.NewScheduleServiceHandler(&connectScheduleService{svc: s.backupService})
 	mux.Handle(schedulePath, scheduleHandler)
+
+	postgresPath, postgresHandler := skylexv1connect.NewPostgresManagementServiceHandler(&connectPostgresService{svc: s.postgresService})
+	mux.Handle(postgresPath, postgresHandler)
 
 	mux.HandleFunc("/version", s.serveVersion)
 	if s.cfg.Server.DevMode {

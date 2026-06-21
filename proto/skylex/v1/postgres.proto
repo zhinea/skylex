@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package skylex.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// PostgresManagementService manages connection profile metadata for a cluster.
+service PostgresManagementService {
+  rpc GetConnectionProfile(GetConnectionProfileRequest) returns (GetConnectionProfileResponse);
+  rpc UpdateConnectionProfile(UpdateConnectionProfileRequest) returns (UpdateConnectionProfileResponse);
+}
+
+message ConnectionProfile {
+  string cluster_id = 1;
+  // endpoint_mode: "direct_primary" | "manual_stable_endpoint"
+  string endpoint_mode = 2;
+  string public_host = 3;
+  int32 public_port = 4;
+  // ssl_mode: "prefer" | "require" | "disable"
+  string ssl_mode = 5;
+  repeated string allowed_cidrs = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message NodeEndpoint {
+  string node_id = 1;
+  string hostname = 2;
+  string host = 3;
+  int32 port = 4;
+  string role = 5;
+}
+
+message GetConnectionProfileRequest {
+  string cluster_id = 1;
+}
+
+message GetConnectionProfileResponse {
+  ConnectionProfile profile = 1;
+  // Computed primary endpoint from node data.
+  NodeEndpoint primary_endpoint = 2;
+  // Computed replica endpoints from node data.
+  repeated NodeEndpoint replica_endpoints = 3;
+  // effective_endpoint is the endpoint operators should use (may be public_host or primary node).
+  string effective_host = 4;
+  int32 effective_port = 5;
+}
+
+message UpdateConnectionProfileRequest {
+  string cluster_id = 1;
+  string endpoint_mode = 2;
+  string public_host = 3;
+  int32 public_port = 4;
+  string ssl_mode = 5;
+  repeated string allowed_cidrs = 6;
+}
+
+message UpdateConnectionProfileResponse {
+  ConnectionProfile profile = 1;
+}
