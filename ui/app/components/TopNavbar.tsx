@@ -76,7 +76,10 @@ export default function TopNavbar() {
   const teamLabel = user?.displayName ? `${user.displayName}` : user?.email ? user.email.split("@")[0] : "Personal Team";
 
   // Compute system health (if any cluster has issues or nodes are offline)
-  const isHealthy = clusters.length === 0 || clusters.every((c) => c.status === "RUNNING" || c.status === "HEALTHY");
+  const isHealthy = clusters.length === 0 || clusters.every((c) => {
+    const s = c.status?.replace(/^CLUSTER_STATUS_/, "");
+    return s === "RUNNING" || s === "HEALTHY";
+  });
 
   // AI Assistant Chat state
   const [messages, setMessages] = useState<Array<{ sender: "ai" | "user"; text: string; time: string }>>([
@@ -223,13 +226,27 @@ export default function TopNavbar() {
                               <Server className={`size-3.5 shrink-0 ${activeClusterId === c.id ? "text-emerald-400" : "text-muted-foreground"}`} />
                               <span className="truncate">{c.name}</span>
                             </div>
-                            <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase border shrink-0 ${
-                              c.status === "RUNNING" || c.status === "HEALTHY"
-                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                                : "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                            }`}>
-                              {c.status}
-                            </span>
+                            {(() => {
+                              const cleanStatus = c.status?.replace(/^CLUSTER_STATUS_/, "") || "";
+                              const isGreen = cleanStatus === "RUNNING" || cleanStatus === "HEALTHY";
+                              const isDegraded = cleanStatus === "DEGRADED";
+                              const isFailed = cleanStatus === "FAILED" || cleanStatus === "DELETING";
+                              
+                              let badgeClass = "bg-amber-500/10 border-amber-500/20 text-amber-400"; // default warning (creating, stopped, etc)
+                              if (isGreen) {
+                                badgeClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                              } else if (isDegraded) {
+                                badgeClass = "bg-orange-500/10 border-orange-500/20 text-orange-400";
+                              } else if (isFailed) {
+                                badgeClass = "bg-rose-500/10 border-rose-500/20 text-rose-400";
+                              }
+
+                              return (
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase border shrink-0 ${badgeClass}`}>
+                                  {cleanStatus}
+                                </span>
+                              );
+                            })()}
                           </button>
                         ))
                       )}

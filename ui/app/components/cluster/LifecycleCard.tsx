@@ -37,7 +37,7 @@ export function LifecycleCard({
   const runningNodes = nodes.filter((node) => node.statusDetail === "healthy" || node.statusDetail === "running" || node.statusDetail === "syncing_replica" || node.status === "online");
   const stoppedNodes = nodes.filter((node) => node.statusDetail === "stopped" || node.status === "offline");
   const logPending = hasPendingLifecycleCommand(logs);
-  const busy = pending || logPending || cluster.status === "CLUSTER_STATUS_CREATING" || cluster.status === "CLUSTER_STATUS_DELETING";
+  const busy = pending || logPending || cluster.status === "CLUSTER_STATUS_CREATING" || cluster.status === "CREATING" || cluster.status === "CLUSTER_STATUS_DELETING" || cluster.status === "DELETING";
   const hasReadyNodes = readyNodes.length > 0;
   const disabledReason = !hasReadyNodes
     ? "Lifecycle controls require at least one connected node with PostgreSQL installed and initialized."

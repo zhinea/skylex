@@ -21,9 +21,12 @@ export default function DashboardPage() {
 
   const clusters = data?.clusters || [];
   const totalClusters = data?.pagination?.total || clusters.length;
-  const healthyClusters = clusters.filter((c) => c.status === "HEALTHY").length;
-  const degradedClusters = clusters.filter((c) => c.status === "DEGRADED").length;
-  const failedClusters = clusters.filter((c) => c.status === "FAILED").length;
+  const healthyClusters = clusters.filter((c) => {
+    const s = c.status?.replace(/^CLUSTER_STATUS_/, "");
+    return s === "HEALTHY" || s === "RUNNING";
+  }).length;
+  const degradedClusters = clusters.filter((c) => c.status?.replace(/^CLUSTER_STATUS_/, "") === "DEGRADED").length;
+  const failedClusters = clusters.filter((c) => c.status?.replace(/^CLUSTER_STATUS_/, "") === "FAILED").length;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

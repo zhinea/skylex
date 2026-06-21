@@ -170,11 +170,7 @@ export default function ClusterDetailPage() {
               <h2 className="text-sm font-semibold text-foreground truncate max-w-[10rem]" title={cluster.name}>
                 {cluster.name}
               </h2>
-              <span className={`text-[9px] font-bold uppercase shrink-0 ${
-                cluster.status.toLowerCase() === "degraded" ? "text-destructive" : "text-emerald-500"
-              }`}>
-                {cluster.status}
-              </span>
+              <Badge label={cluster.status} />
             </div>
             <span className="text-[10px] font-mono text-muted-foreground">
               PostgreSQL {cluster.config?.version || "16"} • {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER" ? "Docker" : "Native"}
@@ -233,7 +229,7 @@ export default function ClusterDetailPage() {
               <ClusterStatsGrid cluster={cluster} nodes={nodes} />
 
               {/* Show installation progress if not fully healthy or in CREATING status */}
-              {(cluster.status === "CREATING" || progressPct < 100) && (
+              {(cluster.status === "CREATING" || cluster.status === "CLUSTER_STATUS_CREATING" || progressPct < 100) && (
                 <InstallationProgressCard nodes={nodes} logs={logs} />
               )}
 
@@ -343,71 +339,6 @@ export default function ClusterDetailPage() {
                   </div>
                 )}
               </section>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="v-card rounded-lg overflow-hidden">
-                  <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
-                    <span className="material-symbols-outlined text-lg text-foreground">settings</span>
-                    <h3 className="text-xs font-semibold">Configuration</h3>
-                  </div>
-                  <div className="p-4">
-                    <dl className="space-y-2 text-xs">
-                      <div className="flex justify-between py-1.5 border-b border-border/40">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Engine</dt>
-                        <dd className="text-foreground font-semibold">{cluster.config?.engine || "POSTGRESQL"}</dd>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-border/40">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Version</dt>
-                        <dd className="text-foreground font-semibold">{cluster.config?.version || "16"}</dd>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-border/40">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Service Location</dt>
-                        <dd className="text-foreground font-semibold">
-                          {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER"
-                            ? "Dockerized"
-                            : "Native"}
-                        </dd>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-border/40">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Replication</dt>
-                        <dd className="text-foreground font-semibold">{cluster.config?.replicationMode || "ASYNC"}</dd>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-border/40">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Replicas</dt>
-                        <dd className="text-foreground font-semibold">{cluster.config?.replicaCount || 0}</dd>
-                      </div>
-                      <div className="flex justify-between py-1.5 border-b border-border/40">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">PITR</dt>
-                        <dd className="text-foreground font-semibold">{cluster.config?.pitrEnabled ? "Enabled" : "Disabled"}</dd>
-                      </div>
-                      <div className="flex justify-between py-1.5">
-                        <dt className="text-muted-foreground font-medium uppercase tracking-wider text-[10px]">Created</dt>
-                        <dd className="text-foreground font-semibold">{new Date(cluster.createdAt).toLocaleString()}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                </div>
-
-                <div className="v-card rounded-lg overflow-hidden">
-                  <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
-                    <span className="material-symbols-outlined text-lg text-foreground">layers</span>
-                    <h3 className="text-xs font-semibold">Labels</h3>
-                  </div>
-                  <div className="p-4">
-                    {cluster.config?.labels && Object.keys(cluster.config.labels).length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries(cluster.config.labels).map(([k, v]) => (
-                          <span key={k} className="px-2.5 py-1 bg-muted/40 text-foreground border border-border rounded-md text-xs font-mono">
-                            {k}: {v}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">No labels configured</p>
-                    )}
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
@@ -463,7 +394,7 @@ export default function ClusterDetailPage() {
 
           {activeMenu === "settings" && (
             <div className="space-y-6">
-              <SettingsCard clusterId={id || ""} />
+              <SettingsCard clusterId={id || ""} cluster={cluster} />
             </div>
           )}
 

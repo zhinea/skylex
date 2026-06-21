@@ -17,7 +17,7 @@ const statusMapping: Record<string, StatusBadgeStyle> = {
   Disconnected: { dotColor: "bg-rose-500", className: "bg-rose-50/60 text-rose-700 border-rose-200/50 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-800/50" },
   offline: { dotColor: "bg-rose-500", className: "bg-rose-50/60 text-rose-700 border-rose-200/50 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-800/50" },
 
-  DEGRADED: { dotColor: "bg-amber-500", className: "bg-amber-50/60 text-amber-700 border-amber-200/50 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-800/50" },
+  DEGRADED: { dotColor: "bg-orange-500", className: "bg-orange-50/60 text-orange-700 border-orange-200/50 dark:bg-orange-950/20 dark:text-orange-400 dark:border-orange-800/50" },
   drained: { dotColor: "bg-amber-500", className: "bg-amber-50/60 text-amber-700 border-amber-200/50 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-800/50" },
 
   CREATING: { dotColor: "bg-blue-500 animate-pulse", className: "bg-blue-50/60 text-blue-700 border-blue-200/50 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/50" },
@@ -34,7 +34,8 @@ const statusMapping: Record<string, StatusBadgeStyle> = {
 };
 
 export function Badge({ label, className = "" }: { label?: string | null; className?: string }) {
-  const normalized = label ?? "-";
+  const rawLabel = label ?? "-";
+  const normalized = rawLabel.replace(/^CLUSTER_STATUS_/, "");
   const matched = statusMapping[normalized] || statusMapping[normalized.toLowerCase()] || { className: "bg-neutral-50 text-neutral-600 border-neutral-200 dark:bg-neutral-900/20 dark:text-neutral-400 dark:border-neutral-800" };
 
   return (
