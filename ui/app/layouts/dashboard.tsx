@@ -2,15 +2,25 @@ import { useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { useAuth } from "~/lib/auth";
 import { Button } from "~/components/ui/button";
+import {
+  LayoutDashboard,
+  Server,
+  Network,
+  History,
+  HardDrive,
+  Settings,
+  FileText,
+  LogOut,
+} from "lucide-react";
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: "□" },
-  { to: "/clusters", label: "Clusters", icon: "◈" },
-  { to: "/nodes", label: "Nodes", icon: "◉" },
-  { to: "/backups", label: "Backups", icon: "↻" },
-  { to: "/storage", label: "Storage", icon: "☰" },
-  { to: "/settings", label: "Settings", icon: "⚙" },
-  { to: "/audit", label: "Audit Logs", icon: "≡" },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/clusters", label: "Clusters", icon: Server },
+  { to: "/nodes", label: "Nodes", icon: Network },
+  { to: "/backups", label: "Backups", icon: History },
+  { to: "/storage", label: "Storage", icon: HardDrive },
+  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/audit", label: "Audit Logs", icon: FileText },
 ];
 
 export default function DashboardLayout() {
@@ -29,50 +39,57 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-background text-foreground">
-      <aside className="w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-          <h1 className="text-xl font-bold">Skylex</h1>
+      <aside className="w-60 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
+        <div className="h-14 flex items-center px-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold tracking-tight text-foreground">Skylex</span>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground border">Beta</span>
+          </div>
         </div>
-        <nav className="flex-1 px-4 py-4 space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                }`
-              }
-            >
-              <span className="w-5 text-center">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
+        <nav className="flex-1 px-3 py-4 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) =>
+                  `flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                      : "text-sidebar-foreground/75 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                  }`
+                }
+              >
+                <Icon className="size-4 shrink-0" />
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-2 bg-muted/20">
           {user && (
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-sidebar-foreground/50 truncate max-w-[140px]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-sidebar-foreground/60 truncate" title={user.email}>
                 {user.email}
               </span>
               <Button
                 variant="ghost"
-                size="xs"
+                size="icon-xs"
                 onClick={logout}
-                className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                title="Logout"
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
               >
-                Logout
+                <LogOut className="size-3.5" />
               </Button>
             </div>
           )}
-          <div className="text-xs text-sidebar-foreground/40">Skylex v0.1.0</div>
+          <div className="text-[10px] text-sidebar-foreground/40">Skylex v0.1.0</div>
         </div>
       </aside>
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
+      <main className="flex-1 overflow-auto bg-background">
+        <div className="p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>

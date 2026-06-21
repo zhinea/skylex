@@ -15,6 +15,7 @@ import { SettingInput, curatedSettings, validateSettingValue } from "~/component
 import { AgentStatus } from "~/components/AgentStatus";
 import type { Node } from "~/hooks/useNodes";
 import type { Cluster } from "~/hooks/useClusters";
+import { LayoutDashboard, Link2, Settings as SettingsIcon, ShieldAlert } from "lucide-react";
 
 function PgStatusBadges({
   installed,
@@ -714,6 +715,7 @@ export default function ClusterDetailPage() {
   const [actionNodeId, setActionNodeId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"restart" | "rejoin" | null>(null);
   const [conflictAction, setConflictAction] = useState<{ nodeId: string; action: "PURGE" | "ABORT" } | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "connect" | "settings" | "diagnostics">("overview");
 
   const logs: CommandLog[] = logsData?.logs ?? [];
 
@@ -762,132 +764,122 @@ export default function ClusterDetailPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link to="/clusters" className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 mb-1 block">
+          <Link to="/clusters" className="text-sm text-muted-foreground hover:text-foreground mb-1 block transition-colors">
             ← Back to Clusters
           </Link>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{cluster.name}</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">{cluster.name}</h2>
         </div>
         <Badge label={cluster.status} />
       </div>
 
-      <div className="mb-6">
-        <InstallationProgressCard nodes={nodes} logs={logs} />
+      {/* Sub-menu Tabs */}
+      <div className="flex gap-6 border-b border-border mb-6">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 -mb-[2px] transition-all cursor-pointer ${
+            activeTab === "overview"
+              ? "border-primary text-foreground font-semibold"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <LayoutDashboard className="size-4" />
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("connect")}
+          className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 -mb-[2px] transition-all cursor-pointer ${
+            activeTab === "connect"
+              ? "border-primary text-foreground font-semibold"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Link2 className="size-4" />
+          Connect
+        </button>
+        <button
+          onClick={() => setActiveTab("settings")}
+          className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 -mb-[2px] transition-all cursor-pointer ${
+            activeTab === "settings"
+              ? "border-primary text-foreground font-semibold"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <SettingsIcon className="size-4" />
+          Settings
+        </button>
+        <button
+          onClick={() => setActiveTab("diagnostics")}
+          className={`flex items-center gap-2 pb-3 text-sm font-medium border-b-2 -mb-[2px] transition-all cursor-pointer ${
+            activeTab === "diagnostics"
+              ? "border-primary text-foreground font-semibold"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ShieldAlert className="size-4" />
+          Diagnostics & Logs
+        </button>
       </div>
 
-      {nodes.length > 0 && (
-        <div className="mb-6">
-          <PostgreSQLConnectionCard clusterId={id || ""} nodes={nodes} cluster={cluster} />
-        </div>
-      )}
+      {/* Tab Contents */}
+      {activeTab === "overview" && (
+        <div className="space-y-6">
+          {/* Show installation progress if not fully healthy or in CREATING status */}
+          {(cluster.status === "CREATING" || progressPct < 100) && (
+            <InstallationProgressCard nodes={nodes} logs={logs} />
+          )}
 
-      {conflictNodes.length > 0 && (
-        <div className="mb-6">
-          <InstallationConflictCard
-            nodes={conflictNodes}
-            pending={resolveConflict.isPending}
-            onResolve={(nodeId, action) => {
-              if (action === "ADOPT") {
-                resolveConflict.mutate({ nodeId, action });
-              } else {
-                setConflictAction({ nodeId, action });
-              }
-            }}
-          />
-        </div>
-      )}
+          {conflictNodes.length > 0 && (
+            <InstallationConflictCard
+              nodes={conflictNodes}
+              pending={resolveConflict.isPending}
+              onResolve={(nodeId, action) => {
+                if (action === "ADOPT") {
+                  resolveConflict.mutate({ nodeId, action });
+                } else {
+                  setConflictAction({ nodeId, action });
+                }
+              }}
+            />
+          )}
 
-      {/* Phase 4: Diagnostics Card */}
-      <div className="mb-6">
-        <Card title="Diagnostics">
-          <div className="space-y-4">
-            {/* Overall progress bar */}
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600 dark:text-gray-400">Cluster Progress</span>
-                <span className="text-gray-900 dark:text-white font-medium">
-                  {onlineNodes.length}/{totalNodes} nodes healthy
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                <div
-                  className={`h-2.5 rounded-full transition-all duration-500 ${
-                    progressPct === 100
-                      ? "bg-green-500"
-                      : progressPct > 50
-                        ? "bg-blue-500"
-                        : "bg-yellow-500"
-                  }`}
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Last error + suggested fix */}
-            {lastErrorLog && (
-              <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-700">
-                <span className="text-red-600 dark:text-red-400 mt-0.5">✗</span>
-                <div className="text-sm">
-                  <p className="text-red-800 dark:text-red-200 font-medium">Last Error</p>
-                  <p className="text-red-700 dark:text-red-300 mt-1 font-mono text-xs">
-                    [{lastErrorLog.hostname || lastErrorLog.nodeId?.slice(0, 8)}] {lastErrorLog.message}
-                  </p>
-                  {suggestedFix && (
-                    <p className="text-red-600 dark:text-red-400 mt-1">
-                      <span className="font-medium">Suggested fix:</span> {suggestedFix}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Per-node status with actions */}
-            {nodes.length > 0 && (
+          <Card title={`Nodes (${nodes.length})`}>
+            {nodes.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No nodes registered for this cluster.
+              </p>
+            ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Node</th>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Status</th>
-                      <th className="text-left px-3 py-2 font-medium text-gray-600 dark:text-gray-400">Actions</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Hostname</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Role</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Address</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">PostgreSQL</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Agent</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Version</th>
+                      <th className="text-left px-4 py-3 font-medium text-muted-foreground">Last Seen</th>
                     </tr>
                   </thead>
                   <tbody>
                     {nodes.map((n) => (
-                      <tr key={n.id} className="border-b border-gray-100 dark:border-gray-800">
-                        <td className="px-3 py-2">
-                          <div className="text-gray-900 dark:text-white font-medium">{n.hostname}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{n.role}</div>
+                      <tr key={n.id} className="border-b border-border/40 last:border-0 hover:bg-muted/10">
+                        <td className="px-4 py-3 text-foreground font-medium">{n.hostname}</td>
+                        <td className="px-4 py-3"><Badge label={n.role} /></td>
+                        <td className="px-4 py-3 text-foreground">{n.address}:{n.port}</td>
+                        <td className="px-4 py-3">
+                          <PgStatusBadges
+                            installed={n.postgresInstalled}
+                            version={n.postgresVersion}
+                            dataInitialized={n.postgresDataInitialized}
+                          />
                         </td>
-                        <td className="px-3 py-2">
-                          {n.statusDetail ? (
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusDetailColor(n.statusDetail)}`}>
-                              {n.statusDetail.replace(/_/g, " ")}
-                            </span>
-                          ) : n.installationState === "INSTALLATION_STATE_CONFLICT" ? (
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusDetailColor("installation_conflict")}`}>
-                              installation conflict
-                            </span>
-                          ) : (
-                            <Badge label={n.role} />
-                          )}
+                        <td className="px-4 py-3">
+                          <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
                         </td>
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => { setActionNodeId(n.id); setActionType("restart"); }}
-                              className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                            >
-                              Restart
-                            </button>
-                            {n.role === "NODE_ROLE_REPLICA" && (
-                              <button
-                                onClick={() => { setActionNodeId(n.id); setActionType("rejoin"); }}
-                                className="text-xs text-purple-600 hover:text-purple-800 dark:text-purple-400"
-                              >
-                                Re-sync
-                              </button>
-                            )}
-                          </div>
+                        <td className="px-4 py-3 text-foreground">{n.agentVersion || "-"}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}
                         </td>
                       </tr>
                     ))}
@@ -895,147 +887,216 @@ export default function ClusterDetailPage() {
                 </table>
               </div>
             )}
-          </div>
-        </Card>
-      </div>
+          </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card title="Configuration">
-          <dl className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">Engine</dt>
-              <dd className="text-gray-900 dark:text-white">{cluster.config?.engine || "POSTGRESQL"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">Version</dt>
-              <dd className="text-gray-900 dark:text-white">{cluster.config?.version || "16"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">Service Location</dt>
-              <dd className="text-gray-900 dark:text-white">
-                {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER"
-                  ? "Dockerized"
-                  : "Native"}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">Replication</dt>
-              <dd className="text-gray-900 dark:text-white">{cluster.config?.replicationMode || "ASYNC"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">Replicas</dt>
-              <dd className="text-gray-900 dark:text-white">{cluster.config?.replicaCount || 0}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">PITR</dt>
-              <dd className="text-gray-900 dark:text-white">{cluster.config?.pitrEnabled ? "Enabled" : "Disabled"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-gray-500 dark:text-gray-400">Created</dt>
-              <dd className="text-gray-900 dark:text-white">{new Date(cluster.createdAt).toLocaleString()}</dd>
-            </div>
-          </dl>
-        </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card title="Configuration">
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between py-1 border-b border-border/40">
+                  <dt className="text-muted-foreground">Engine</dt>
+                  <dd className="text-foreground font-medium">{cluster.config?.engine || "POSTGRESQL"}</dd>
+                </div>
+                <div className="flex justify-between py-1 border-b border-border/40">
+                  <dt className="text-muted-foreground">Version</dt>
+                  <dd className="text-foreground font-medium">{cluster.config?.version || "16"}</dd>
+                </div>
+                <div className="flex justify-between py-1 border-b border-border/40">
+                  <dt className="text-muted-foreground">Service Location</dt>
+                  <dd className="text-foreground font-medium">
+                    {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER"
+                      ? "Dockerized"
+                      : "Native"}
+                  </dd>
+                </div>
+                <div className="flex justify-between py-1 border-b border-border/40">
+                  <dt className="text-muted-foreground">Replication</dt>
+                  <dd className="text-foreground font-medium">{cluster.config?.replicationMode || "ASYNC"}</dd>
+                </div>
+                <div className="flex justify-between py-1 border-b border-border/40">
+                  <dt className="text-muted-foreground">Replicas</dt>
+                  <dd className="text-foreground font-medium">{cluster.config?.replicaCount || 0}</dd>
+                </div>
+                <div className="flex justify-between py-1 border-b border-border/40">
+                  <dt className="text-muted-foreground">PITR</dt>
+                  <dd className="text-foreground font-medium">{cluster.config?.pitrEnabled ? "Enabled" : "Disabled"}</dd>
+                </div>
+                <div className="flex justify-between py-1">
+                  <dt className="text-muted-foreground">Created</dt>
+                  <dd className="text-foreground font-medium">{new Date(cluster.createdAt).toLocaleString()}</dd>
+                </div>
+              </dl>
+            </Card>
 
-        <Card title="Labels">
-          {cluster.config?.labels && Object.keys(cluster.config.labels).length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(cluster.config.labels).map(([k, v]) => (
-                <span key={k} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs">
-                  {k}: {v}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No labels configured</p>
-          )}
-        </Card>
-      </div>
-
-      <div className="mb-6">
-        <SettingsCard clusterId={id || ""} />
-      </div>
-
-      <Card title={`Nodes (${nodes.length})`}>
-        {nodes.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-            No nodes registered for this cluster.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Hostname</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Role</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Address</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">PostgreSQL</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Agent</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Version</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">Last Seen</th>
-                </tr>
-              </thead>
-              <tbody>
-                {nodes.map((n) => (
-                  <tr key={n.id} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{n.hostname}</td>
-                    <td className="px-4 py-3"><Badge label={n.role} /></td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{n.address}:{n.port}</td>
-                    <td className="px-4 py-3">
-                      <PgStatusBadges
-                        installed={n.postgresInstalled}
-                        version={n.postgresVersion}
-                        dataInitialized={n.postgresDataInitialized}
-                      />
-                    </td>
-                    <td className="px-4 py-3">
-                      <AgentStatus connected={n.agentConnected} latencyMs={n.agentLatencyMs} />
-                    </td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">{n.agentVersion || "-"}</td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400">
-                      {n.lastSeen ? new Date(n.lastSeen).toLocaleString() : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
-
-      <div className="mt-6">
-        <Card title="Command Logs">
-          {logs.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-              No command logs yet. Logs appear while the agent executes commands.
-            </p>
-          ) : (
-            <div className="overflow-x-auto max-h-96 overflow-y-auto font-mono text-xs">
-              <table className="w-full">
-                <tbody>
-                  {logs.map((log) => (
-                    <tr key={log.id} className="border-b border-gray-100 dark:border-gray-800">
-                      <td className="px-2 py-1.5 whitespace-nowrap text-gray-500 dark:text-gray-400">
-                        {new Date(Number(log.timestampMs)).toLocaleTimeString()}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap text-gray-700 dark:text-gray-300">
-                        {log.hostname || log.nodeId?.slice(0, 8) || "-"}
-                      </td>
-                      <td className="px-2 py-1.5 whitespace-nowrap">
-                        <span className={levelColor(log.level)}>{log.level.toUpperCase()}</span>
-                      </td>
-                      <td className="px-2 py-1.5 text-gray-900 dark:text-white break-all">
-                        {log.message}
-                      </td>
-                    </tr>
+            <Card title="Labels">
+              {cluster.config?.labels && Object.keys(cluster.config.labels).length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(cluster.config.labels).map(([k, v]) => (
+                    <span key={k} className="px-2.5 py-1 bg-secondary text-secondary-foreground border rounded-md text-xs font-mono">
+                      {k}: {v}
+                    </span>
                   ))}
-                  <tr><td colSpan={4}><div ref={logsEndRef} /></td></tr>
-                </tbody>
-              </table>
-            </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No labels configured</p>
+              )}
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "connect" && (
+        <div className="space-y-6">
+          {nodes.length > 0 ? (
+            <PostgreSQLConnectionCard clusterId={id || ""} nodes={nodes} cluster={cluster} />
+          ) : (
+            <p className="text-sm text-muted-foreground py-8 text-center bg-card border rounded-xl">
+              No nodes configured. Add nodes to view connection details.
+            </p>
           )}
-        </Card>
-      </div>
+        </div>
+      )}
+
+      {activeTab === "settings" && (
+        <div className="space-y-6">
+          <SettingsCard clusterId={id || ""} />
+        </div>
+      )}
+
+      {activeTab === "diagnostics" && (
+        <div className="space-y-6">
+          <Card title="Diagnostics">
+            <div className="space-y-4">
+              {/* Overall progress bar */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Cluster Progress</span>
+                  <span className="text-foreground font-medium">
+                    {onlineNodes.length}/{totalNodes} nodes healthy
+                  </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${
+                      progressPct === 100
+                        ? "bg-green-500"
+                        : progressPct > 50
+                          ? "bg-blue-500"
+                          : "bg-yellow-500"
+                    }`}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Last error + suggested fix */}
+              {lastErrorLog && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-md bg-destructive/10 border border-destructive/20">
+                  <span className="text-destructive font-bold mt-0.5">✗</span>
+                  <div className="text-sm">
+                    <p className="text-destructive font-medium">Last Error</p>
+                    <p className="text-foreground/90 mt-1 font-mono text-xs">
+                      [{lastErrorLog.hostname || lastErrorLog.nodeId?.slice(0, 8)}] {lastErrorLog.message}
+                    </p>
+                    {suggestedFix && (
+                      <p className="text-muted-foreground mt-1.5">
+                        <span className="font-medium text-foreground">Suggested fix:</span> {suggestedFix}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Per-node status with actions */}
+              {nodes.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground">Node</th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground">Status</th>
+                        <th className="text-left px-3 py-2 font-medium text-muted-foreground">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {nodes.map((n) => (
+                        <tr key={n.id} className="border-b border-border/40 last:border-0">
+                          <td className="px-3 py-2">
+                            <div className="text-foreground font-medium">{n.hostname}</div>
+                            <div className="text-xs text-muted-foreground">{n.role}</div>
+                          </td>
+                          <td className="px-3 py-2">
+                            {n.statusDetail ? (
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDetailColor(n.statusDetail)}`}>
+                                {n.statusDetail.replace(/_/g, " ")}
+                              </span>
+                            ) : n.installationState === "INSTALLATION_STATE_CONFLICT" ? (
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusDetailColor("installation_conflict")}`}>
+                                installation conflict
+                              </span>
+                            ) : (
+                              <Badge label={n.role} />
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => { setActionNodeId(n.id); setActionType("restart"); }}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                Restart
+                              </button>
+                              {n.role === "NODE_ROLE_REPLICA" && (
+                                <button
+                                  onClick={() => { setActionNodeId(n.id); setActionType("rejoin"); }}
+                                  className="text-xs text-muted-foreground hover:text-foreground hover:underline"
+                                >
+                                  Re-sync
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          <Card title="Command Logs">
+            {logs.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No command logs yet. Logs appear while the agent executes commands.
+              </p>
+            ) : (
+              <div className="overflow-x-auto max-h-[500px] overflow-y-auto font-mono text-xs border rounded-md">
+                <table className="w-full">
+                  <tbody>
+                    {logs.map((log) => (
+                      <tr key={log.id} className="border-b border-border/40 last:border-0 hover:bg-muted/5">
+                        <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
+                          {new Date(Number(log.timestampMs)).toLocaleTimeString()}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-foreground/80">
+                          {log.hostname || log.nodeId?.slice(0, 8) || "-"}
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={levelColor(log.level)}>{log.level.toUpperCase()}</span>
+                        </td>
+                        <td className="px-3 py-2 text-foreground break-all">
+                          {log.message}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr><td colSpan={4}><div ref={logsEndRef} /></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
 
       {/* Action confirmation dialogs */}
       <ConfirmDialog

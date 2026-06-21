@@ -106,13 +106,13 @@ export function SettingInput({
   disabled,
 }: SettingInputProps) {
   const commonClasses =
-    "w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-900 " +
-    "border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white " +
-    "focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60";
+    "w-full px-3 py-2 text-sm border rounded-md bg-transparent " +
+    "border-input text-foreground transition-all " +
+    "focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50";
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
         {label}
       </label>
       {type === "enum" && options ? (
@@ -123,7 +123,7 @@ export function SettingInput({
           className={commonClasses}
         >
           {options.map((opt) => (
-            <option key={opt} value={opt}>
+            <option key={opt} value={opt} className="bg-popover text-popover-foreground">
               {opt}
             </option>
           ))}
@@ -138,7 +138,7 @@ export function SettingInput({
           className={commonClasses}
         />
       )}
-      {hint && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
