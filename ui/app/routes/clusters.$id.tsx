@@ -154,7 +154,7 @@ export default function ClusterDetailPage() {
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden">
       {/* Secondary Cluster Project Sidebar */}
       <aside className="w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col h-full shrink-0">
         <div className="p-4 border-b border-sidebar-border space-y-3">
