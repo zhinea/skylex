@@ -73,7 +73,7 @@ export default function TopNavbar() {
   })();
 
   // Compute team/personal label
-  const teamLabel = user?.displayName ? `${user.displayName}` : user?.email ? user.email.split("@")[0] : "Zidna";
+  const teamLabel = user?.displayName ? `${user.displayName}` : user?.email ? user.email.split("@")[0] : "Personal Team";
 
   // Compute system health (if any cluster has issues or nodes are offline)
   const isHealthy = clusters.length === 0 || clusters.every((c) => c.status === "RUNNING" || c.status === "HEALTHY");
@@ -131,21 +131,21 @@ export default function TopNavbar() {
               <rect x="3" y="14" width="7" height="7" rx="1.5" className="fill-emerald-500/60" />
               <rect x="14" y="14" width="7" height="7" rx="1.5" className="fill-emerald-500/20" />
             </svg>
-            <span className="font-extrabold tracking-tight text-sm text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+            <span className="font-extrabold tracking-tight text-base text-foreground bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
               Skylex
             </span>
           </Link>
 
-          <span className="text-muted-foreground/30 font-light text-sm px-2">/</span>
+          <span className="text-muted-foreground/30 font-light text-base px-2">/</span>
 
           {/* Team Dropdown */}
           <div className="relative" ref={teamRef}>
             <button
               onClick={() => setTeamOpen(!teamOpen)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-sidebar-accent/50 text-xs font-semibold text-foreground transition-all cursor-pointer"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-sidebar-accent/50 text-sm font-semibold text-foreground transition-all cursor-pointer"
             >
-              <span className="truncate max-w-[90px]">{teamLabel}</span>
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground/90 border border-border/60">
+              <span className="truncate max-w-[120px]">{teamLabel}</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground/90 border border-border/60">
                 Self-hosted
               </span>
               <ChevronDown className="size-3 text-muted-foreground/60 transition-transform duration-200" style={{ transform: teamOpen ? 'rotate(180deg)' : 'none' }} />
@@ -177,16 +177,16 @@ export default function TopNavbar() {
             )}
           </div>
 
-          <span className="text-muted-foreground/30 font-light text-sm px-2">/</span>
+          <span className="text-muted-foreground/30 font-light text-base px-2">/</span>
 
           {/* Cluster Dropdown Selector */}
           <div className="relative" ref={clusterRef}>
             <button
               onClick={() => setClusterOpen(!clusterOpen)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-sidebar-accent/50 text-xs font-semibold text-foreground transition-all cursor-pointer"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-sidebar-accent/50 text-sm font-semibold text-foreground transition-all cursor-pointer"
             >
               <Database className="size-3.5 text-emerald-500/80" />
-              <span className="truncate max-w-[140px]">
+              <span className="truncate max-w-[160px]">
                 {activeCluster ? activeCluster.name : "Select Cluster"}
               </span>
               <ChevronDown className="size-3 text-muted-foreground/60 transition-transform duration-200" style={{ transform: clusterOpen ? 'rotate(180deg)' : 'none' }} />
@@ -211,7 +211,7 @@ export default function TopNavbar() {
                           setClusterOpen(false);
                           navigate(`/clusters/${c.id}`);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-2 text-xs rounded-md text-left transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-2.5 py-2 text-sm rounded-md text-left transition-colors cursor-pointer ${
                           activeClusterId === c.id
                             ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold"
                             : "hover:bg-muted text-foreground/90 border border-transparent"
@@ -240,7 +240,7 @@ export default function TopNavbar() {
         {/* Right Side: Health Status, Ask AI button, Help, Docs, User Dropdown */}
         <div className="flex items-center gap-4">
           {/* Health Status Pill */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/30 border border-border/40 text-[10px] font-medium text-muted-foreground">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/30 border border-border/40 text-xs font-medium text-muted-foreground">
             <span className="relative flex h-1.5 w-1.5">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isHealthy ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
               <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${isHealthy ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
@@ -251,7 +251,7 @@ export default function TopNavbar() {
           {/* Ask AI Action Button */}
           <button
             onClick={() => setAiOpen(true)}
-            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-emerald-500 hover:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 transition-all cursor-pointer overflow-hidden shadow-[0_0_8px_rgba(16,185,129,0.05)] hover:shadow-[0_0_12px_rgba(16,185,129,0.15)] group"
+            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold text-emerald-500 hover:text-emerald-400 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 transition-all cursor-pointer overflow-hidden shadow-[0_0_8px_rgba(16,185,129,0.05)] hover:shadow-[0_0_12px_rgba(16,185,129,0.15)] group"
           >
             <Sparkles className="size-3.5 fill-emerald-500/10 group-hover:scale-110 transition-transform duration-200" />
             <span>Ask AI</span>

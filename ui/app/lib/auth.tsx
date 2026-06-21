@@ -32,6 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setAccessToken(localStorage.getItem("skylex_token"));
     setRefreshToken(localStorage.getItem("skylex_refresh_token"));
+    const storedUser = localStorage.getItem("skylex_user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse stored user", e);
+      }
+    }
     setIsLoading(false);
   }, []);
 
@@ -50,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (refreshTokenVal) {
       localStorage.setItem("skylex_refresh_token", refreshTokenVal);
     }
+    localStorage.setItem("skylex_user", JSON.stringify(userVal));
     setAccessToken(accessTokenVal);
     setRefreshToken(refreshTokenVal || null);
     setUser(userVal);
@@ -59,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     clearToken();
     localStorage.removeItem("skylex_refresh_token");
+    localStorage.removeItem("skylex_user");
     setAccessToken(null);
     setRefreshToken(null);
     setUser(null);
