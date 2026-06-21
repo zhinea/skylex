@@ -48,6 +48,27 @@ func run(ctx context.Context, log LogSink, name string, args ...string) error {
 	return nil
 }
 
+func runPrivileged(ctx context.Context, log LogSink, name string, args ...string) error {
+	cmdName, cmdArgs, err := privilegedCommand(os.Geteuid(), commandExists("sudo"), name, args...)
+	if err != nil {
+		return err
+	}
+	return run(ctx, log, cmdName, cmdArgs...)
+}
+
+func privilegedCommand(euid int, sudoExists bool, name string, args ...string) (string, []string, error) {
+	if euid == 0 {
+		return name, args, nil
+	}
+	if !sudoExists {
+		return "", nil, fmt.Errorf("%s requires root privileges; install sudo or run skylex-agent with package installation privileges", name)
+	}
+	cmdArgs := make([]string, 0, len(args)+2)
+	cmdArgs = append(cmdArgs, "-n", name)
+	cmdArgs = append(cmdArgs, args...)
+	return "sudo", cmdArgs, nil
+}
+
 func output(ctx context.Context, name string, args ...string) (string, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Env = os.Environ()

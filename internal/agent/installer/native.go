@@ -80,20 +80,29 @@ func (NativeInstaller) Install(ctx context.Context, cfg InstallConfig, log LogSi
 
 	switch pm {
 	case "apt-get":
-		if err := run(ctx, log, "apt-get", "update"); err != nil {
+		if err := runPrivileged(ctx, log, "apt-get", "update"); err != nil {
 			return err
 		}
-		return run(ctx, log, "apt-get", "install", "-y", "--no-install-recommends", "postgresql-"+cfg.Version, "postgresql-client-"+cfg.Version)
+		if err := runPrivileged(ctx, log, "apt-get", "install", "-y", "--no-install-recommends", "postgresql-"+cfg.Version, "postgresql-client-"+cfg.Version); err != nil {
+			return err
+		}
 	case "dnf":
-		return run(ctx, log, "dnf", "install", "-y", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
+		if err := runPrivileged(ctx, log, "dnf", "install", "-y", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server"); err != nil {
+			return err
+		}
 	case "apk":
 		pkg := "postgresql" + cfg.Version
-		return run(ctx, log, "apk", "add", "--no-cache", pkg, pkg+"-client")
+		if err := runPrivileged(ctx, log, "apk", "add", "--no-cache", pkg, pkg+"-client"); err != nil {
+			return err
+		}
 	case "zypper":
-		return run(ctx, log, "zypper", "--non-interactive", "install", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
+		if err := runPrivileged(ctx, log, "zypper", "--non-interactive", "install", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server"); err != nil {
+			return err
+		}
 	default:
 		return fmt.Errorf("unsupported package manager: %s", pm)
 	}
+	return ensureDataDirWritable(ctx, cfg.DataDir, log)
 }
 
 func (NativeInstaller) Purge(ctx context.Context, cfg InstallConfig, log LogSink) error {
@@ -107,14 +116,14 @@ func (NativeInstaller) Purge(ctx context.Context, cfg InstallConfig, log LogSink
 	var purgeErr error
 	switch pm {
 	case "apt-get":
-		purgeErr = run(ctx, log, "apt-get", "purge", "-y", "postgresql-"+cfg.Version, "postgresql-client-"+cfg.Version)
+		purgeErr = runPrivileged(ctx, log, "apt-get", "purge", "-y", "postgresql-"+cfg.Version, "postgresql-client-"+cfg.Version)
 	case "dnf":
-		purgeErr = run(ctx, log, "dnf", "remove", "-y", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
+		purgeErr = runPrivileged(ctx, log, "dnf", "remove", "-y", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
 	case "apk":
 		pkg := "postgresql" + cfg.Version
-		purgeErr = run(ctx, log, "apk", "del", pkg, pkg+"-client")
+		purgeErr = runPrivileged(ctx, log, "apk", "del", pkg, pkg+"-client")
 	case "zypper":
-		purgeErr = run(ctx, log, "zypper", "--non-interactive", "remove", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
+		purgeErr = runPrivileged(ctx, log, "zypper", "--non-interactive", "remove", "postgresql"+cfg.Version, "postgresql"+cfg.Version+"-server")
 	default:
 		return fmt.Errorf("unsupported package manager: %s", pm)
 	}
@@ -122,7 +131,7 @@ func (NativeInstaller) Purge(ctx context.Context, cfg InstallConfig, log LogSink
 		return purgeErr
 	}
 
-	if err := removeDataDir(cfg.DataDir); err != nil {
+	if err := removeDataDir(ctx, cfg.DataDir, log); err != nil {
 		return err
 	}
 	if log != nil {
@@ -199,12 +208,12 @@ func stopNativePostgres(ctx context.Context, cfg InstallConfig, log LogSink) {
 		}
 	}
 	if commandExists("systemctl") {
-		_ = run(ctx, log, "systemctl", "stop", "postgresql")
-		_ = run(ctx, log, "systemctl", "stop", "postgresql@"+cfg.Version+"-main")
+		_ = runPrivileged(ctx, log, "systemctl", "stop", "postgresql")
+		_ = runPrivileged(ctx, log, "systemctl", "stop", "postgresql@"+cfg.Version+"-main")
 	}
 }
 
-func removeDataDir(dataDir string) error {
+func removeDataDir(ctx context.Context, dataDir string, log LogSink) error {
 	clean := filepath.Clean(dataDir)
 	protected := map[string]bool{
 		"/": true, ".": true, "": true,
@@ -214,5 +223,20 @@ func removeDataDir(dataDir string) error {
 	if !filepath.IsAbs(clean) || protected[clean] {
 		return fmt.Errorf("refusing to remove unsafe data directory %q", dataDir)
 	}
-	return os.RemoveAll(clean)
+	return runPrivileged(ctx, log, "rm", "-rf", "--", clean)
+}
+
+func ensureDataDirWritable(ctx context.Context, dataDir string, log LogSink) error {
+	clean := filepath.Clean(dataDir)
+	if clean == "." || clean == string(filepath.Separator) || !filepath.IsAbs(clean) {
+		return fmt.Errorf("unsafe data directory: %q", dataDir)
+	}
+	if err := runPrivileged(ctx, log, "mkdir", "-p", clean); err != nil {
+		return fmt.Errorf("create PostgreSQL data directory: %w", err)
+	}
+	owner := fmt.Sprintf("%d:%d", os.Geteuid(), os.Getegid())
+	if err := runPrivileged(ctx, log, "chown", "-R", owner, clean); err != nil {
+		return fmt.Errorf("set PostgreSQL data directory owner: %w", err)
+	}
+	return nil
 }

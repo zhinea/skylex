@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 // ---------------------------------------------------------------------------
 // formatCommand
 // ---------------------------------------------------------------------------
@@ -23,6 +22,44 @@ func TestFormatCommand_WithArgs(t *testing.T) {
 	want := "$ apt-get install -y postgresql-16"
 	if got != want {
 		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestPrivilegedCommand_RootUsesOriginalCommand(t *testing.T) {
+	name, args, err := privilegedCommand(0, false, "apt-get", "update")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != "apt-get" {
+		t.Fatalf("expected apt-get, got %q", name)
+	}
+	if strings.Join(args, " ") != "update" {
+		t.Fatalf("unexpected args: %v", args)
+	}
+}
+
+func TestPrivilegedCommand_NonRootUsesNonInteractiveSudo(t *testing.T) {
+	name, args, err := privilegedCommand(1000, true, "apt-get", "purge", "-y", "postgresql-16")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if name != "sudo" {
+		t.Fatalf("expected sudo, got %q", name)
+	}
+	got := strings.Join(args, " ")
+	want := "-n apt-get purge -y postgresql-16"
+	if got != want {
+		t.Fatalf("expected args %q, got %q", want, got)
+	}
+}
+
+func TestPrivilegedCommand_NonRootWithoutSudoReturnsActionableError(t *testing.T) {
+	_, _, err := privilegedCommand(1000, false, "systemctl", "stop", "postgresql")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "requires root privileges") {
+		t.Fatalf("expected privilege error, got %q", err.Error())
 	}
 }
 

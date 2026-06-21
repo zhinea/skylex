@@ -118,6 +118,27 @@ func TestInstallAgentScriptReactivatesDeactivatedAgent(t *testing.T) {
 	}
 }
 
+func TestInstallAgentScriptConfiguresNativeProvisioningSudoers(t *testing.T) {
+	script := installScript()
+	wants := []string{
+		`install_native_sudoers`,
+		`sudoers_dir="/etc/sudoers.d"`,
+		`sudoers_file="${sudoers_dir}/skylex-agent"`,
+		`NOPASSWD: /usr/bin/apt-get update`,
+		`/usr/bin/apt-get install -y --no-install-recommends postgresql-* postgresql-client-*`,
+		`/usr/bin/apt-get purge -y postgresql-* postgresql-client-*`,
+		`/usr/bin/systemctl stop postgresql@*-main`,
+		`/usr/bin/chown -R ${user_uid}:${user_gid} ${DATA_DIR}`,
+		`/usr/bin/rm -rf -- ${DATA_DIR}`,
+		`chmod 0440 "$sudoers_file"`,
+	}
+	for _, want := range wants {
+		if !strings.Contains(script, want) {
+			t.Fatalf("expected install script to contain %q", want)
+		}
+	}
+}
+
 func TestLoadConfigReadsNestedSkyLexEnvVars(t *testing.T) {
 	configPath := filepath.Join(t.TempDir(), "config.yaml")
 	if err := os.WriteFile(configPath, []byte(`database:

@@ -148,6 +148,34 @@ ensure_docker_engine() {
   fi
 }
 
+install_native_sudoers() {
+  if $SKIP_USER; then
+    return
+  fi
+
+  if ! id -u "$USER" >/dev/null 2>&1; then
+    return
+  fi
+
+  if ! command -v sudo >/dev/null 2>&1; then
+    log "sudo not found; native cluster installs require running skylex-agent as root or installing sudo"
+    return
+  fi
+
+  local sudoers_dir="/etc/sudoers.d"
+  local sudoers_file="${sudoers_dir}/skylex-agent"
+  local user_uid
+  local user_gid
+  user_uid="$(id -u "$USER")"
+  user_gid="$(id -g "$USER")"
+  mkdir -p "$sudoers_dir"
+  cat > "$sudoers_file" <<EOF
+${USER} ALL=(root) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get install -y --no-install-recommends postgresql-* postgresql-client-*, /usr/bin/apt-get purge -y postgresql-* postgresql-client-*, /usr/bin/dnf install -y postgresql* postgresql*-server, /usr/bin/dnf remove -y postgresql* postgresql*-server, /sbin/apk add --no-cache postgresql* postgresql*-client, /sbin/apk del postgresql* postgresql*-client, /usr/bin/zypper --non-interactive install postgresql* postgresql*-server, /usr/bin/zypper --non-interactive remove postgresql* postgresql*-server, /bin/systemctl stop postgresql, /bin/systemctl stop postgresql@*-main, /usr/bin/systemctl stop postgresql, /usr/bin/systemctl stop postgresql@*-main, /bin/mkdir -p ${DATA_DIR}, /usr/bin/mkdir -p ${DATA_DIR}, /bin/chown -R ${user_uid}:${user_gid} ${DATA_DIR}, /usr/bin/chown -R ${user_uid}:${user_gid} ${DATA_DIR}, /bin/rm -rf -- ${DATA_DIR}, /usr/bin/rm -rf -- ${DATA_DIR}
+EOF
+  chmod 0440 "$sudoers_file"
+  log "installed sudoers policy for native PostgreSQL provisioning"
+}
+
 clear_deactivation_markers() {
   local removed=false
   local marker
@@ -257,6 +285,7 @@ fi
 # Install Docker Engine and/or add the agent user to the docker group so that
 # Docker-based clusters can be provisioned without manual host setup.
 ensure_docker_engine
+install_native_sudoers
 
 cat > /etc/systemd/system/skylex-agent.service <<EOF
 [Unit]
