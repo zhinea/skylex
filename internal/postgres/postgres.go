@@ -766,6 +766,47 @@ func (p *Instance) ApplySettings(ctx context.Context, settings map[string]string
 	return "reload", nil
 }
 
+// ApplyTLS writes Skylex-managed PostgreSQL TLS settings, reloads PostgreSQL,
+// and verifies the active server setting before reporting success.
+func (p *Instance) ApplyTLS(ctx context.Context, cfg TLSConfig) error {
+	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
+	defer cancel()
+
+	if !p.IsInitialized() {
+		return fmt.Errorf("data directory is not initialized")
+	}
+	if err := cfg.Validate(); err != nil {
+		return err
+	}
+
+	includePath := filepath.Join(p.DataDir, includeFileName)
+	previousInclude, readErr := os.ReadFile(includePath)
+	if readErr != nil && !os.IsNotExist(readErr) {
+		return fmt.Errorf("read previous include file: %w", readErr)
+	}
+	previousIncludeExists := readErr == nil
+
+	settings := cfg.Settings(includePath)
+	if err := p.writeSkylexInclude(settings); err != nil {
+		return fmt.Errorf("write tls include file: %w", err)
+	}
+	if err := p.ensureIncludeDirective(); err != nil {
+		restoreIncludeFile(includePath, previousInclude, previousIncludeExists)
+		return fmt.Errorf("ensure include directive: %w", err)
+	}
+
+	if err := p.Reload(ctx); err != nil {
+		restoreIncludeFile(includePath, previousInclude, previousIncludeExists)
+		return fmt.Errorf("reload after tls apply failed; previous TLS configuration restored: %w", err)
+	}
+	if err := p.verifyTLSActive(ctx, cfg.Mode); err != nil {
+		restoreIncludeFile(includePath, previousInclude, previousIncludeExists)
+		_ = p.Reload(ctx)
+		return fmt.Errorf("verify tls configuration failed; previous TLS configuration restored: %w", err)
+	}
+	return nil
+}
+
 // Reload signals PostgreSQL to reload its configuration without restarting.
 func (p *Instance) Reload(ctx context.Context) error {
 	cmd := p.pgCmd(ctx, "pg_ctl",
@@ -801,6 +842,14 @@ func (p *Instance) writeSkylexInclude(settings map[string]string) error {
 	}
 
 	return os.WriteFile(filepath.Join(p.DataDir, includeFileName), []byte(b.String()), 0600)
+}
+
+func restoreIncludeFile(path string, previous []byte, existed bool) {
+	if existed {
+		_ = os.WriteFile(path, previous, 0600)
+		return
+	}
+	_ = os.Remove(path)
 }
 
 // ensureIncludeDirective ensures the main postgresql.conf loads the Skylex

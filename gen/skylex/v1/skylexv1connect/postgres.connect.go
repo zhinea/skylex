@@ -49,6 +49,15 @@ const (
 	// PostgresManagementServiceApplyHBAProcedure is the fully-qualified name of the
 	// PostgresManagementService's ApplyHBA RPC.
 	PostgresManagementServiceApplyHBAProcedure = "/skylex.v1.PostgresManagementService/ApplyHBA"
+	// PostgresManagementServiceGetTLSConfigProcedure is the fully-qualified name of the
+	// PostgresManagementService's GetTLSConfig RPC.
+	PostgresManagementServiceGetTLSConfigProcedure = "/skylex.v1.PostgresManagementService/GetTLSConfig"
+	// PostgresManagementServiceUpdateTLSConfigProcedure is the fully-qualified name of the
+	// PostgresManagementService's UpdateTLSConfig RPC.
+	PostgresManagementServiceUpdateTLSConfigProcedure = "/skylex.v1.PostgresManagementService/UpdateTLSConfig"
+	// PostgresManagementServiceApplyTLSProcedure is the fully-qualified name of the
+	// PostgresManagementService's ApplyTLS RPC.
+	PostgresManagementServiceApplyTLSProcedure = "/skylex.v1.PostgresManagementService/ApplyTLS"
 	// PostgresManagementServiceListRolesProcedure is the fully-qualified name of the
 	// PostgresManagementService's ListRoles RPC.
 	PostgresManagementServiceListRolesProcedure = "/skylex.v1.PostgresManagementService/ListRoles"
@@ -79,6 +88,9 @@ type PostgresManagementServiceClient interface {
 	GetNetworkAccess(context.Context, *connect.Request[v1.GetNetworkAccessRequest]) (*connect.Response[v1.GetNetworkAccessResponse], error)
 	UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error)
 	ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error)
+	GetTLSConfig(context.Context, *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error)
+	UpdateTLSConfig(context.Context, *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error)
+	ApplyTLS(context.Context, *connect.Request[v1.ApplyTLSRequest]) (*connect.Response[v1.ApplyTLSResponse], error)
 	// Role management RPCs (Phase 3)
 	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
@@ -129,6 +141,24 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 			httpClient,
 			baseURL+PostgresManagementServiceApplyHBAProcedure,
 			connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyHBA")),
+			connect.WithClientOptions(opts...),
+		),
+		getTLSConfig: connect.NewClient[v1.GetTLSConfigRequest, v1.GetTLSConfigResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceGetTLSConfigProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("GetTLSConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		updateTLSConfig: connect.NewClient[v1.UpdateTLSConfigRequest, v1.UpdateTLSConfigResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceUpdateTLSConfigProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateTLSConfig")),
+			connect.WithClientOptions(opts...),
+		),
+		applyTLS: connect.NewClient[v1.ApplyTLSRequest, v1.ApplyTLSResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceApplyTLSProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyTLS")),
 			connect.WithClientOptions(opts...),
 		),
 		listRoles: connect.NewClient[v1.ListRolesRequest, v1.ListRolesResponse](
@@ -183,6 +213,9 @@ type postgresManagementServiceClient struct {
 	getNetworkAccess        *connect.Client[v1.GetNetworkAccessRequest, v1.GetNetworkAccessResponse]
 	updateNetworkAccess     *connect.Client[v1.UpdateNetworkAccessRequest, v1.UpdateNetworkAccessResponse]
 	applyHBA                *connect.Client[v1.ApplyHBARequest, v1.ApplyHBAResponse]
+	getTLSConfig            *connect.Client[v1.GetTLSConfigRequest, v1.GetTLSConfigResponse]
+	updateTLSConfig         *connect.Client[v1.UpdateTLSConfigRequest, v1.UpdateTLSConfigResponse]
+	applyTLS                *connect.Client[v1.ApplyTLSRequest, v1.ApplyTLSResponse]
 	listRoles               *connect.Client[v1.ListRolesRequest, v1.ListRolesResponse]
 	createRole              *connect.Client[v1.CreateRoleRequest, v1.CreateRoleResponse]
 	rotateRolePassword      *connect.Client[v1.RotateRolePasswordRequest, v1.RotateRolePasswordResponse]
@@ -215,6 +248,21 @@ func (c *postgresManagementServiceClient) UpdateNetworkAccess(ctx context.Contex
 // ApplyHBA calls skylex.v1.PostgresManagementService.ApplyHBA.
 func (c *postgresManagementServiceClient) ApplyHBA(ctx context.Context, req *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error) {
 	return c.applyHBA.CallUnary(ctx, req)
+}
+
+// GetTLSConfig calls skylex.v1.PostgresManagementService.GetTLSConfig.
+func (c *postgresManagementServiceClient) GetTLSConfig(ctx context.Context, req *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error) {
+	return c.getTLSConfig.CallUnary(ctx, req)
+}
+
+// UpdateTLSConfig calls skylex.v1.PostgresManagementService.UpdateTLSConfig.
+func (c *postgresManagementServiceClient) UpdateTLSConfig(ctx context.Context, req *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error) {
+	return c.updateTLSConfig.CallUnary(ctx, req)
+}
+
+// ApplyTLS calls skylex.v1.PostgresManagementService.ApplyTLS.
+func (c *postgresManagementServiceClient) ApplyTLS(ctx context.Context, req *connect.Request[v1.ApplyTLSRequest]) (*connect.Response[v1.ApplyTLSResponse], error) {
+	return c.applyTLS.CallUnary(ctx, req)
 }
 
 // ListRoles calls skylex.v1.PostgresManagementService.ListRoles.
@@ -260,6 +308,9 @@ type PostgresManagementServiceHandler interface {
 	GetNetworkAccess(context.Context, *connect.Request[v1.GetNetworkAccessRequest]) (*connect.Response[v1.GetNetworkAccessResponse], error)
 	UpdateNetworkAccess(context.Context, *connect.Request[v1.UpdateNetworkAccessRequest]) (*connect.Response[v1.UpdateNetworkAccessResponse], error)
 	ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error)
+	GetTLSConfig(context.Context, *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error)
+	UpdateTLSConfig(context.Context, *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error)
+	ApplyTLS(context.Context, *connect.Request[v1.ApplyTLSRequest]) (*connect.Response[v1.ApplyTLSResponse], error)
 	// Role management RPCs (Phase 3)
 	ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error)
 	CreateRole(context.Context, *connect.Request[v1.CreateRoleRequest]) (*connect.Response[v1.CreateRoleResponse], error)
@@ -306,6 +357,24 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 		PostgresManagementServiceApplyHBAProcedure,
 		svc.ApplyHBA,
 		connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyHBA")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceGetTLSConfigHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceGetTLSConfigProcedure,
+		svc.GetTLSConfig,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("GetTLSConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceUpdateTLSConfigHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceUpdateTLSConfigProcedure,
+		svc.UpdateTLSConfig,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("UpdateTLSConfig")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceApplyTLSHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceApplyTLSProcedure,
+		svc.ApplyTLS,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyTLS")),
 		connect.WithHandlerOptions(opts...),
 	)
 	postgresManagementServiceListRolesHandler := connect.NewUnaryHandler(
@@ -362,6 +431,12 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 			postgresManagementServiceUpdateNetworkAccessHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceApplyHBAProcedure:
 			postgresManagementServiceApplyHBAHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceGetTLSConfigProcedure:
+			postgresManagementServiceGetTLSConfigHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceUpdateTLSConfigProcedure:
+			postgresManagementServiceUpdateTLSConfigHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceApplyTLSProcedure:
+			postgresManagementServiceApplyTLSHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceListRolesProcedure:
 			postgresManagementServiceListRolesHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceCreateRoleProcedure:
@@ -403,6 +478,18 @@ func (UnimplementedPostgresManagementServiceHandler) UpdateNetworkAccess(context
 
 func (UnimplementedPostgresManagementServiceHandler) ApplyHBA(context.Context, *connect.Request[v1.ApplyHBARequest]) (*connect.Response[v1.ApplyHBAResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.ApplyHBA is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) GetTLSConfig(context.Context, *connect.Request[v1.GetTLSConfigRequest]) (*connect.Response[v1.GetTLSConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.GetTLSConfig is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) UpdateTLSConfig(context.Context, *connect.Request[v1.UpdateTLSConfigRequest]) (*connect.Response[v1.UpdateTLSConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.UpdateTLSConfig is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) ApplyTLS(context.Context, *connect.Request[v1.ApplyTLSRequest]) (*connect.Response[v1.ApplyTLSResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.ApplyTLS is not implemented"))
 }
 
 func (UnimplementedPostgresManagementServiceHandler) ListRoles(context.Context, *connect.Request[v1.ListRolesRequest]) (*connect.Response[v1.ListRolesResponse], error) {

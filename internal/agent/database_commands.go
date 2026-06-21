@@ -28,6 +28,13 @@ type hbaCommandPayload struct {
 	AllowPromote     bool     `json:"allow_promote"`
 }
 
+type tlsCommandPayload struct {
+	TLSMode  string `json:"tls_mode"`
+	CertFile string `json:"cert_file"`
+	KeyFile  string `json:"key_file"`
+	CAFile   string `json:"ca_file"`
+}
+
 func (a *Agent) executeEnsureDatabase(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
 	var p databaseCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
@@ -106,4 +113,28 @@ func (a *Agent) executeApplyHBA(ctx context.Context, cmd *skylexv1.AgentCommand,
 		return false, "", fmt.Sprintf("pg_apply_hba failed: %v", err)
 	}
 	return true, "HBA allowlists applied and PostgreSQL reloaded", ""
+}
+
+func (a *Agent) executeApplyTLS(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	var p tlsCommandPayload
+	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
+		return false, "", fmt.Sprintf("pg_apply_tls: invalid payload: %v", err)
+	}
+	if p.TLSMode == "" {
+		return false, "", "pg_apply_tls: tls_mode is required"
+	}
+
+	logger.Info(fmt.Sprintf("applying PostgreSQL TLS mode %q", p.TLSMode))
+	if err := a.pg.ApplyTLS(ctx, postgres.TLSConfig{
+		Mode:     p.TLSMode,
+		CertFile: p.CertFile,
+		KeyFile:  p.KeyFile,
+		CAFile:   p.CAFile,
+	}); err != nil {
+		return false, "", fmt.Sprintf("pg_apply_tls failed: %v", err)
+	}
+	if p.TLSMode == postgres.TLSModeDisabled {
+		return true, "PostgreSQL TLS disabled and configuration verified", ""
+	}
+	return true, "PostgreSQL TLS configuration applied and verified active", ""
 }

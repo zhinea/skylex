@@ -37,6 +37,18 @@ func (c *connectPostgresService) ApplyHBA(ctx context.Context, req *connect.Requ
 	return c.svc.ApplyHBA(ctx, req)
 }
 
+func (c *connectPostgresService) GetTLSConfig(ctx context.Context, req *connect.Request[skylexv1.GetTLSConfigRequest]) (*connect.Response[skylexv1.GetTLSConfigResponse], error) {
+	return c.svc.GetTLSConfig(ctx, req)
+}
+
+func (c *connectPostgresService) UpdateTLSConfig(ctx context.Context, req *connect.Request[skylexv1.UpdateTLSConfigRequest]) (*connect.Response[skylexv1.UpdateTLSConfigResponse], error) {
+	return c.svc.UpdateTLSConfig(ctx, req)
+}
+
+func (c *connectPostgresService) ApplyTLS(ctx context.Context, req *connect.Request[skylexv1.ApplyTLSRequest]) (*connect.Response[skylexv1.ApplyTLSResponse], error) {
+	return c.svc.ApplyTLS(ctx, req)
+}
+
 func (c *connectPostgresService) ListRoles(ctx context.Context, req *connect.Request[skylexv1.ListRolesRequest]) (*connect.Response[skylexv1.ListRolesResponse], error) {
 	return c.svc.ListRoles(ctx, req)
 }

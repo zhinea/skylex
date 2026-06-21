@@ -24,6 +24,9 @@ const (
 	PostgresManagementService_GetNetworkAccess_FullMethodName        = "/skylex.v1.PostgresManagementService/GetNetworkAccess"
 	PostgresManagementService_UpdateNetworkAccess_FullMethodName     = "/skylex.v1.PostgresManagementService/UpdateNetworkAccess"
 	PostgresManagementService_ApplyHBA_FullMethodName                = "/skylex.v1.PostgresManagementService/ApplyHBA"
+	PostgresManagementService_GetTLSConfig_FullMethodName            = "/skylex.v1.PostgresManagementService/GetTLSConfig"
+	PostgresManagementService_UpdateTLSConfig_FullMethodName         = "/skylex.v1.PostgresManagementService/UpdateTLSConfig"
+	PostgresManagementService_ApplyTLS_FullMethodName                = "/skylex.v1.PostgresManagementService/ApplyTLS"
 	PostgresManagementService_ListRoles_FullMethodName               = "/skylex.v1.PostgresManagementService/ListRoles"
 	PostgresManagementService_CreateRole_FullMethodName              = "/skylex.v1.PostgresManagementService/CreateRole"
 	PostgresManagementService_RotateRolePassword_FullMethodName      = "/skylex.v1.PostgresManagementService/RotateRolePassword"
@@ -44,6 +47,9 @@ type PostgresManagementServiceClient interface {
 	GetNetworkAccess(ctx context.Context, in *GetNetworkAccessRequest, opts ...grpc.CallOption) (*GetNetworkAccessResponse, error)
 	UpdateNetworkAccess(ctx context.Context, in *UpdateNetworkAccessRequest, opts ...grpc.CallOption) (*UpdateNetworkAccessResponse, error)
 	ApplyHBA(ctx context.Context, in *ApplyHBARequest, opts ...grpc.CallOption) (*ApplyHBAResponse, error)
+	GetTLSConfig(ctx context.Context, in *GetTLSConfigRequest, opts ...grpc.CallOption) (*GetTLSConfigResponse, error)
+	UpdateTLSConfig(ctx context.Context, in *UpdateTLSConfigRequest, opts ...grpc.CallOption) (*UpdateTLSConfigResponse, error)
+	ApplyTLS(ctx context.Context, in *ApplyTLSRequest, opts ...grpc.CallOption) (*ApplyTLSResponse, error)
 	// Role management RPCs (Phase 3)
 	ListRoles(ctx context.Context, in *ListRolesRequest, opts ...grpc.CallOption) (*ListRolesResponse, error)
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleResponse, error)
@@ -107,6 +113,36 @@ func (c *postgresManagementServiceClient) ApplyHBA(ctx context.Context, in *Appl
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ApplyHBAResponse)
 	err := c.cc.Invoke(ctx, PostgresManagementService_ApplyHBA_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) GetTLSConfig(ctx context.Context, in *GetTLSConfigRequest, opts ...grpc.CallOption) (*GetTLSConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTLSConfigResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_GetTLSConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) UpdateTLSConfig(ctx context.Context, in *UpdateTLSConfigRequest, opts ...grpc.CallOption) (*UpdateTLSConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateTLSConfigResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_UpdateTLSConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) ApplyTLS(ctx context.Context, in *ApplyTLSRequest, opts ...grpc.CallOption) (*ApplyTLSResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyTLSResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_ApplyTLS_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -194,6 +230,9 @@ type PostgresManagementServiceServer interface {
 	GetNetworkAccess(context.Context, *GetNetworkAccessRequest) (*GetNetworkAccessResponse, error)
 	UpdateNetworkAccess(context.Context, *UpdateNetworkAccessRequest) (*UpdateNetworkAccessResponse, error)
 	ApplyHBA(context.Context, *ApplyHBARequest) (*ApplyHBAResponse, error)
+	GetTLSConfig(context.Context, *GetTLSConfigRequest) (*GetTLSConfigResponse, error)
+	UpdateTLSConfig(context.Context, *UpdateTLSConfigRequest) (*UpdateTLSConfigResponse, error)
+	ApplyTLS(context.Context, *ApplyTLSRequest) (*ApplyTLSResponse, error)
 	// Role management RPCs (Phase 3)
 	ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error)
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleResponse, error)
@@ -227,6 +266,15 @@ func (UnimplementedPostgresManagementServiceServer) UpdateNetworkAccess(context.
 }
 func (UnimplementedPostgresManagementServiceServer) ApplyHBA(context.Context, *ApplyHBARequest) (*ApplyHBAResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ApplyHBA not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) GetTLSConfig(context.Context, *GetTLSConfigRequest) (*GetTLSConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTLSConfig not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) UpdateTLSConfig(context.Context, *UpdateTLSConfigRequest) (*UpdateTLSConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTLSConfig not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) ApplyTLS(context.Context, *ApplyTLSRequest) (*ApplyTLSResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyTLS not implemented")
 }
 func (UnimplementedPostgresManagementServiceServer) ListRoles(context.Context, *ListRolesRequest) (*ListRolesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRoles not implemented")
@@ -357,6 +405,60 @@ func _PostgresManagementService_ApplyHBA_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostgresManagementServiceServer).ApplyHBA(ctx, req.(*ApplyHBARequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_GetTLSConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTLSConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).GetTLSConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_GetTLSConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).GetTLSConfig(ctx, req.(*GetTLSConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_UpdateTLSConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTLSConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).UpdateTLSConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_UpdateTLSConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).UpdateTLSConfig(ctx, req.(*UpdateTLSConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_ApplyTLS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyTLSRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).ApplyTLS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_ApplyTLS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).ApplyTLS(ctx, req.(*ApplyTLSRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -513,6 +615,18 @@ var PostgresManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ApplyHBA",
 			Handler:    _PostgresManagementService_ApplyHBA_Handler,
+		},
+		{
+			MethodName: "GetTLSConfig",
+			Handler:    _PostgresManagementService_GetTLSConfig_Handler,
+		},
+		{
+			MethodName: "UpdateTLSConfig",
+			Handler:    _PostgresManagementService_UpdateTLSConfig_Handler,
+		},
+		{
+			MethodName: "ApplyTLS",
+			Handler:    _PostgresManagementService_ApplyTLS_Handler,
 		},
 		{
 			MethodName: "ListRoles",

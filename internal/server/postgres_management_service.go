@@ -31,9 +31,9 @@ var validEndpointModes = map[string]bool{
 
 // validSSLModes is the exhaustive set of accepted ssl_mode values.
 var validSSLModes = map[string]bool{
-	"prefer":  true,
-	"require": true,
-	"disable": true,
+	"disabled": true,
+	"prefer":   true,
+	"required": true,
 }
 
 // validRoleKinds is the exhaustive set of accepted role_kind values.
@@ -58,6 +58,7 @@ type PostgresManagementService struct {
 	roles          *db.PostgresRoleRepository
 	databases      *db.PostgresDatabaseRepository
 	access         *db.PostgresAccessRepository
+	tls            *db.PostgresTLSRepository
 	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
@@ -77,6 +78,7 @@ func NewPostgresManagementService(
 	roles *db.PostgresRoleRepository,
 	databases *db.PostgresDatabaseRepository,
 	access *db.PostgresAccessRepository,
+	tls *db.PostgresTLSRepository,
 	roleEncryptKey []byte,
 	log *slog.Logger,
 ) *PostgresManagementService {
@@ -95,6 +97,7 @@ func NewPostgresManagementService(
 		roles:          roles,
 		databases:      databases,
 		access:         access,
+		tls:            tls,
 		roleEncryptKey: roleEncryptKey,
 		validate:       validate,
 		clusterLocks:   make(map[string]*sync.Mutex),
@@ -116,6 +119,11 @@ type createDatabaseInput struct {
 
 type updateNetworkAccessInput struct {
 	ClusterID string `validate:"required"`
+}
+
+type updateTLSConfigInput struct {
+	ClusterID string `validate:"required"`
+	TLSMode   string `validate:"required,oneof=disabled prefer required"`
 }
 
 func (s *PostgresManagementService) clusterLock(clusterID string) *sync.Mutex {
@@ -160,6 +168,11 @@ func (s *PostgresManagementService) GetConnectionProfile(
 	protoProfile := profileToProto(profile)
 	primaryEndpoint, replicaEndpoints := computeEndpoints(nodes)
 	effectiveHost, effectivePort := computeEffectiveEndpoint(profile, primaryEndpoint)
+	tlsStatuses, err := s.tlsStatuses(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(profile, tlsStatuses)
 
 	return connect.NewResponse(&skylexv1.GetConnectionProfileResponse{
 		Profile:          protoProfile,
@@ -167,6 +180,9 @@ func (s *PostgresManagementService) GetConnectionProfile(
 		ReplicaEndpoints: replicaEndpoints,
 		EffectiveHost:    effectiveHost,
 		EffectivePort:    int32(effectivePort),
+		Warnings:         warnings,
+		TlsConfig:        tlsConfigToProto(profile, tlsStatuses, warnings),
+		TlsStatuses:      tlsStatuses,
 	}), nil
 }
 
@@ -224,9 +240,10 @@ func (s *PostgresManagementService) UpdateConnectionProfile(
 	if sslMode == "" {
 		sslMode = db.DefaultSSLMode
 	}
+	sslMode = normalizeTLSMode(sslMode)
 	if !validSSLModes[sslMode] {
 		return nil, connect.NewError(connect.CodeInvalidArgument,
-			fmt.Errorf("invalid ssl_mode %q: must be one of prefer, require, disable", sslMode))
+			fmt.Errorf("invalid ssl_mode %q: must be one of disabled, prefer, required", sslMode))
 	}
 
 	allowedCIDRs := req.Msg.GetAllowedCidrs()
@@ -254,6 +271,9 @@ func (s *PostgresManagementService) UpdateConnectionProfile(
 		AllowedCIDRs:            allowedCIDRs,
 		AllowedAdminCIDRs:       current.AllowedAdminCIDRs,
 		AllowedReplicationCIDRs: current.AllowedReplicationCIDRs,
+		TLSCertFile:             current.TLSCertFile,
+		TLSKeyFile:              current.TLSKeyFile,
+		TLSCAFile:               current.TLSCAFile,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("upsert connection profile: %w", err))
@@ -340,6 +360,9 @@ func (s *PostgresManagementService) UpdateNetworkAccess(
 		AllowedCIDRs:            applicationCIDRs,
 		AllowedAdminCIDRs:       adminCIDRs,
 		AllowedReplicationCIDRs: replicationCIDRs,
+		TLSCertFile:             current.TLSCertFile,
+		TLSKeyFile:              current.TLSKeyFile,
+		TLSCAFile:               current.TLSCAFile,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("upsert network access: %w", err))
@@ -566,6 +589,285 @@ func hbaStatusToProto(s *db.PostgresHBAApplyStatus) *skylexv1.HBAApplyStatus {
 	return proto
 }
 
+func (s *PostgresManagementService) GetTLSConfig(
+	ctx context.Context,
+	req *connect.Request[skylexv1.GetTLSConfigRequest],
+) (*connect.Response[skylexv1.GetTLSConfigResponse], error) {
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	profile, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	statuses, err := s.tlsStatuses(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(profile, statuses)
+	return connect.NewResponse(&skylexv1.GetTLSConfigResponse{Config: tlsConfigToProto(profile, statuses, warnings)}), nil
+}
+
+func (s *PostgresManagementService) UpdateTLSConfig(
+	ctx context.Context,
+	req *connect.Request[skylexv1.UpdateTLSConfigRequest],
+) (*connect.Response[skylexv1.UpdateTLSConfigResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot update TLS configuration"))
+	}
+
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	tlsMode := normalizeTLSMode(req.Msg.GetTlsMode())
+	if tlsMode == "" {
+		tlsMode = db.DefaultSSLMode
+	}
+	if err := s.validate.Struct(updateTLSConfigInput{ClusterID: clusterID, TLSMode: tlsMode}); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid TLS config request: %w", err))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	certFile := strings.TrimSpace(req.Msg.GetCertFile())
+	keyFile := strings.TrimSpace(req.Msg.GetKeyFile())
+	caFile := strings.TrimSpace(req.Msg.GetCaFile())
+	if tlsMode != "disabled" {
+		if certFile == "" || keyFile == "" {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cert_file and key_file are required unless TLS is disabled"))
+		}
+	}
+	for field, path := range map[string]string{"cert_file": certFile, "key_file": keyFile, "ca_file": caFile} {
+		if err := validateAgentPath(path); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid %s: %w", field, err))
+		}
+	}
+
+	mu := s.clusterLock(clusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	current, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	updated, err := s.profiles.Upsert(ctx, &db.ConnectionProfile{
+		ClusterID:               clusterID,
+		EndpointMode:            current.EndpointMode,
+		PublicHost:              current.PublicHost,
+		PublicPort:              current.PublicPort,
+		SSLMode:                 tlsMode,
+		AllowedCIDRs:            current.AllowedCIDRs,
+		AllowedAdminCIDRs:       current.AllowedAdminCIDRs,
+		AllowedReplicationCIDRs: current.AllowedReplicationCIDRs,
+		TLSCertFile:             certFile,
+		TLSKeyFile:              keyFile,
+		TLSCAFile:               caFile,
+	})
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("upsert TLS config: %w", err))
+	}
+	statuses, err := s.tlsStatuses(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	warnings := tlsWarnings(updated, statuses)
+	s.auditTLSChange(ctx, clusterID, "update", updated)
+	return connect.NewResponse(&skylexv1.UpdateTLSConfigResponse{Config: tlsConfigToProto(updated, statuses, warnings)}), nil
+}
+
+func (s *PostgresManagementService) ApplyTLS(
+	ctx context.Context,
+	req *connect.Request[skylexv1.ApplyTLSRequest],
+) (*connect.Response[skylexv1.ApplyTLSResponse], error) {
+	userRole, _ := ctx.Value(ctxKeyUserRole).(models.Role)
+	if userRole == models.RoleViewer {
+		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("viewer role cannot apply TLS configuration"))
+	}
+	if s.tls == nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("postgres TLS repository is not configured"))
+	}
+
+	clusterID := strings.TrimSpace(req.Msg.GetClusterId())
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	if err := s.requireCluster(ctx, clusterID); err != nil {
+		return nil, err
+	}
+
+	mu := s.clusterLock(clusterID)
+	mu.Lock()
+	defer mu.Unlock()
+
+	profile, err := s.profiles.GetByClusterID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get connection profile: %w", err))
+	}
+	tlsMode := normalizeTLSMode(profile.SSLMode)
+	if !validSSLModes[tlsMode] {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid TLS mode %q", profile.SSLMode))
+	}
+	if tlsMode != "disabled" && (profile.TLSCertFile == "" || profile.TLSKeyFile == "") {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("cert_file and key_file must be configured before applying TLS"))
+	}
+
+	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list cluster nodes: %w", err))
+	}
+	readyNodes := make([]*models.Node, 0, len(nodes))
+	for _, node := range nodes {
+		if node.AgentID == "" || !node.PostgresInstalled || !node.PostgresDataInitialized {
+			continue
+		}
+		readyNodes = append(readyNodes, node)
+	}
+	if len(readyNodes) == 0 {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("no ready nodes found for TLS apply"))
+	}
+
+	commands := make([]db.ApplyTLSNodeCommand, 0, len(readyNodes))
+	for _, node := range readyNodes {
+		payload, err := json.Marshal(map[string]interface{}{
+			"cluster_id": clusterID,
+			"node_id":    node.ID,
+			"tls_mode":   tlsMode,
+			"cert_file":  profile.TLSCertFile,
+			"key_file":   profile.TLSKeyFile,
+			"ca_file":    profile.TLSCAFile,
+		})
+		if err != nil {
+			return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal tls payload: %w", err))
+		}
+		commands = append(commands, db.ApplyTLSNodeCommand{NodeID: node.ID, AgentID: node.AgentID, Payload: string(payload)})
+	}
+
+	statuses, err := s.tls.QueueApplyTLSCommands(ctx, clusterID, tlsMode, commands)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("queue tls apply commands: %w", err))
+	}
+	s.auditTLSChange(ctx, clusterID, "apply_tls", profile)
+	protoStatuses := make([]*skylexv1.TLSApplyStatus, 0, len(statuses))
+	for _, status := range statuses {
+		protoStatuses = append(protoStatuses, tlsStatusToProto(status))
+	}
+	return connect.NewResponse(&skylexv1.ApplyTLSResponse{Statuses: protoStatuses}), nil
+}
+
+func (s *PostgresManagementService) tlsStatuses(ctx context.Context, clusterID string) ([]*skylexv1.TLSApplyStatus, error) {
+	if s.tls == nil {
+		return []*skylexv1.TLSApplyStatus{}, nil
+	}
+	statuses, err := s.tls.ListStatusByCluster(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("list tls apply status: %w", err))
+	}
+	protoStatuses := make([]*skylexv1.TLSApplyStatus, 0, len(statuses))
+	for _, status := range statuses {
+		protoStatuses = append(protoStatuses, tlsStatusToProto(status))
+	}
+	return protoStatuses, nil
+}
+
+func tlsStatusToProto(s *db.PostgresTLSApplyStatus) *skylexv1.TLSApplyStatus {
+	proto := &skylexv1.TLSApplyStatus{
+		ClusterId:        s.ClusterID,
+		NodeId:           s.NodeID,
+		CommandId:        s.CommandID,
+		RequestedTlsMode: s.RequestedTLSMode,
+		Status:           s.Status,
+		Error:            s.Error,
+		TlsActive:        s.TLSActive,
+	}
+	if s.AppliedAt != nil {
+		proto.AppliedAt = timestamppb.New(*s.AppliedAt)
+	}
+	if !s.UpdatedAt.IsZero() {
+		proto.UpdatedAt = timestamppb.New(s.UpdatedAt)
+	}
+	return proto
+}
+
+func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, warnings []string) *skylexv1.TLSConfig {
+	return &skylexv1.TLSConfig{
+		ClusterId: p.ClusterID,
+		TlsMode:   normalizeTLSMode(p.SSLMode),
+		CertFile:  p.TLSCertFile,
+		KeyFile:   p.TLSKeyFile,
+		CaFile:    p.TLSCAFile,
+		Statuses:  statuses,
+		Warnings:  warnings,
+	}
+}
+
+func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus) []string {
+	tlsMode := normalizeTLSMode(p.SSLMode)
+	warnings := []string{}
+	if tlsMode == "required" && (p.TLSCertFile == "" || p.TLSKeyFile == "") {
+		warnings = append(warnings, "TLS is required but certificate and key paths are not both configured.")
+	}
+	if tlsMode == "required" && len(statuses) == 0 {
+		warnings = append(warnings, "TLS required mode is configured but has not been applied to any ready node yet.")
+	}
+	for _, status := range statuses {
+		if status.GetStatus() != "succeeded" {
+			warnings = append(warnings, "TLS configuration is not active on all ready nodes.")
+			return warnings
+		}
+		if tlsMode == "required" && !status.GetTlsActive() {
+			warnings = append(warnings, "TLS required mode is waiting for PostgreSQL to confirm SSL is active on all nodes.")
+			return warnings
+		}
+	}
+	return warnings
+}
+
+func normalizeTLSMode(mode string) string {
+	switch strings.TrimSpace(mode) {
+	case "disable":
+		return "disabled"
+	case "require":
+		return "required"
+	default:
+		return strings.TrimSpace(mode)
+	}
+}
+
+func validateAgentPath(path string) error {
+	if path == "" {
+		return nil
+	}
+	if strings.ContainsAny(path, "\x00\r\n") {
+		return fmt.Errorf("path must not contain control characters")
+	}
+	if !strings.HasPrefix(path, "/") {
+		return fmt.Errorf("path must be absolute")
+	}
+	return nil
+}
+
+func (s *PostgresManagementService) auditTLSChange(ctx context.Context, clusterID, action string, profile *db.ConnectionProfile) {
+	if s.audit == nil || profile == nil {
+		return
+	}
+	detail := fmt.Sprintf("action=%s cluster_id=%s tls_mode=%s ca_configured=%v", action, clusterID, normalizeTLSMode(profile.SSLMode), profile.TLSCAFile != "")
+	if err := s.audit.Log(&models.AuditLog{
+		UserID:    UserIDFromContext(ctx),
+		Action:    models.AuditActionUpdatePostgresTLS,
+		Resource:  "PostgresManagementService.TLS",
+		Detail:    detail,
+		CreatedAt: time.Now().UTC(),
+	}); err != nil {
+		s.log.Warn("audit postgres tls change failed", "cluster_id", clusterID, "error", err)
+	}
+}
+
 func (s *PostgresManagementService) auditAccessChange(ctx context.Context, clusterID, action string, profile *db.ConnectionProfile) {
 	if s.audit == nil || profile == nil {
 		return
@@ -593,6 +895,9 @@ func profileToProto(p *db.ConnectionProfile) *skylexv1.ConnectionProfile {
 		AllowedCidrs:            p.AllowedCIDRs,
 		AllowedAdminCidrs:       p.AllowedAdminCIDRs,
 		AllowedReplicationCidrs: p.AllowedReplicationCIDRs,
+		TlsCertFile:             p.TLSCertFile,
+		TlsKeyFile:              p.TLSKeyFile,
+		TlsCaFile:               p.TLSCAFile,
 	}
 	if !p.CreatedAt.IsZero() {
 		proto.CreatedAt = timestamppb.New(p.CreatedAt)

@@ -30,6 +30,7 @@ type AgentService struct {
 	postgresRoles  *db.PostgresRoleRepository
 	postgresDBs    *db.PostgresDatabaseRepository
 	postgresAccess *db.PostgresAccessRepository
+	postgresTLS    *db.PostgresTLSRepository
 	log            *slog.Logger
 }
 
@@ -59,6 +60,10 @@ func (s *AgentService) SetPostgresDatabaseRepository(repo *db.PostgresDatabaseRe
 
 func (s *AgentService) SetPostgresAccessRepository(repo *db.PostgresAccessRepository) {
 	s.postgresAccess = repo
+}
+
+func (s *AgentService) SetPostgresTLSRepository(repo *db.PostgresTLSRepository) {
+	s.postgresTLS = repo
 }
 
 func (s *AgentService) validateAgentToken(token string) (bool, error) {
@@ -412,6 +417,13 @@ func (s *AgentService) handlePostgresAccessCommandResult(ctx context.Context, co
 	return s.postgresAccess.HandleHBACommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
 }
 
+func (s *AgentService) handlePostgresTLSCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+	if s.postgresTLS == nil {
+		return false, nil
+	}
+	return s.postgresTLS.HandleCommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
+}
+
 func (s *AgentService) allowPromotionForCluster(ctx context.Context, clusterID string) (bool, error) {
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
 	if err != nil {
@@ -444,6 +456,11 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	}
 	if handled, err := s.handlePostgresAccessCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
 		s.log.Warn("handle postgres access command result failed", "command_id", req.GetCommandId(), "error", err)
+	} else if handled {
+		return &skylexv1.ReportCommandResultResponse{}, nil
+	}
+	if handled, err := s.handlePostgresTLSCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
+		s.log.Warn("handle postgres tls command result failed", "command_id", req.GetCommandId(), "error", err)
 	} else if handled {
 		return &skylexv1.ReportCommandResultResponse{}, nil
 	}

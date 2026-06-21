@@ -21,7 +21,8 @@ func newPostgresManagementServiceTestDeps(t *testing.T) (*db.DB, *PostgresManage
 	roles := db.NewPostgresRoleRepository(conn, log)
 	databases := db.NewPostgresDatabaseRepository(conn, log)
 	access := db.NewPostgresAccessRepository(conn, log)
-	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, []byte("12345678901234567890123456789012"), log)
+	tls := db.NewPostgresTLSRepository(conn, log)
+	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, tls, []byte("12345678901234567890123456789012"), log)
 	return database, svc, roles, nodes
 }
 
@@ -191,5 +192,78 @@ func TestPostgresManagementService_ApplyHBAQueuesReadyNodes(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("expected pg_apply_hba command with CIDR payload, got %#v", pending)
+	}
+}
+
+func TestPostgresManagementService_UpdateTLSConfigRejectsViewerAndMissingCerts(t *testing.T) {
+	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
+	viewerCtx := contextWithUserRole(models.RoleViewer)
+
+	_, err := svc.UpdateTLSConfig(viewerCtx, connect.NewRequest(&skylexv1.UpdateTLSConfigRequest{
+		ClusterId: "cluster-1",
+		TlsMode:   "required",
+		CertFile:  "/etc/skylex/postgres/server.crt",
+		KeyFile:   "/etc/skylex/postgres/server.key",
+	}))
+	if err == nil {
+		t.Fatal("expected viewer update TLS config request to fail")
+	}
+
+	operatorCtx := contextWithUserRole(models.RoleOperator)
+	clusterID := createPostgresManagementTestCluster(t, operatorCtx, svc, "tls-invalid")
+	_, err = svc.UpdateTLSConfig(operatorCtx, connect.NewRequest(&skylexv1.UpdateTLSConfigRequest{
+		ClusterId: clusterID,
+		TlsMode:   "required",
+	}))
+	if err == nil {
+		t.Fatal("expected required TLS without cert/key to fail")
+	}
+}
+
+func TestPostgresManagementService_ApplyTLSQueuesReadyNodes(t *testing.T) {
+	database, svc, _, nodes := newPostgresManagementServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleOperator)
+	clusterID := createPostgresManagementTestCluster(t, ctx, svc, "tls-apply")
+	node, err := nodes.Create(ctx, clusterID, "primary", "10.0.0.10", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create primary node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(ctx, node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+	if err := nodes.UpdatePostgresStatus(ctx, node.ID, true, "16", true); err != nil {
+		t.Fatalf("update postgres status: %v", err)
+	}
+	if _, err := svc.UpdateTLSConfig(ctx, connect.NewRequest(&skylexv1.UpdateTLSConfigRequest{
+		ClusterId: clusterID,
+		TlsMode:   "required",
+		CertFile:  "/etc/skylex/postgres/server.crt",
+		KeyFile:   "/etc/skylex/postgres/server.key",
+		CaFile:    "/etc/skylex/postgres/ca.crt",
+	})); err != nil {
+		t.Fatalf("update tls config: %v", err)
+	}
+
+	resp, err := svc.ApplyTLS(ctx, connect.NewRequest(&skylexv1.ApplyTLSRequest{ClusterId: clusterID}))
+	if err != nil {
+		t.Fatalf("apply tls: %v", err)
+	}
+	if len(resp.Msg.GetStatuses()) != 1 {
+		t.Fatalf("expected one TLS status, got %d", len(resp.Msg.GetStatuses()))
+	}
+
+	commands := db.NewAgentCommandRepository(database.Conn(), svc.log)
+	pending, err := commands.ListPending(ctx, "agent-1", node.ID)
+	if err != nil {
+		t.Fatalf("list pending commands: %v", err)
+	}
+	found := false
+	for _, command := range pending {
+		if command.Action == "pg_apply_tls" && strings.Contains(command.Payload, "server.crt") && !strings.Contains(command.Payload, "PASSWORD") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected pg_apply_tls command with certificate payload, got %#v", pending)
 	}
 }

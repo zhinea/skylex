@@ -10,6 +10,9 @@ export interface ConnectionProfile {
   allowedCidrs: string[];
   allowedAdminCidrs?: string[];
   allowedReplicationCidrs?: string[];
+  tlsCertFile?: string;
+  tlsKeyFile?: string;
+  tlsCaFile?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -28,6 +31,9 @@ export interface ConnectionProfileData {
   replicaEndpoints?: NodeEndpoint[];
   effectiveHost: string;
   effectivePort: number;
+  warnings?: string[];
+  tlsConfig?: TLSConfig;
+  tlsStatuses?: TLSApplyStatus[];
 }
 
 export function useConnectionProfile(clusterId: string) {
@@ -123,6 +129,78 @@ export function useApplyHBA() {
       ),
     onSuccess: (_, clusterId) => {
       qc.invalidateQueries({ queryKey: ["networkAccess", clusterId] });
+      qc.invalidateQueries({ queryKey: ["commandLogs"] });
+    },
+  });
+}
+
+export interface TLSApplyStatus {
+  clusterId: string;
+  nodeId: string;
+  commandId: string;
+  requestedTlsMode: string;
+  status: string;
+  error: string;
+  tlsActive: boolean;
+  appliedAt?: string;
+  updatedAt?: string;
+}
+
+export interface TLSConfig {
+  clusterId: string;
+  tlsMode: string;
+  certFile: string;
+  keyFile: string;
+  caFile: string;
+  statuses: TLSApplyStatus[];
+  warnings: string[];
+}
+
+export function useTLSConfig(clusterId: string) {
+  return useQuery({
+    queryKey: ["tlsConfig", clusterId],
+    queryFn: () =>
+      api.post<{ config: TLSConfig }>(
+        "/skylex.v1.PostgresManagementService/GetTLSConfig",
+        { clusterId },
+      ),
+    enabled: !!clusterId,
+    refetchInterval: 5000,
+  });
+}
+
+export function useUpdateTLSConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      clusterId: string;
+      tlsMode: string;
+      certFile: string;
+      keyFile: string;
+      caFile: string;
+    }) =>
+      api.post<{ config: TLSConfig }>(
+        "/skylex.v1.PostgresManagementService/UpdateTLSConfig",
+        input,
+      ),
+    onSuccess: (_, input) => {
+      qc.invalidateQueries({ queryKey: ["tlsConfig", input.clusterId] });
+      qc.invalidateQueries({ queryKey: ["connectionProfile", input.clusterId] });
+    },
+  });
+}
+
+export function useApplyTLS() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (clusterId: string) =>
+      api.post<{ statuses: TLSApplyStatus[] }>(
+        "/skylex.v1.PostgresManagementService/ApplyTLS",
+        { clusterId },
+      ),
+    onSuccess: (_, clusterId) => {
+      qc.invalidateQueries({ queryKey: ["tlsConfig", clusterId] });
+      qc.invalidateQueries({ queryKey: ["connectionProfile", clusterId] });
       qc.invalidateQueries({ queryKey: ["commandLogs"] });
     },
   });

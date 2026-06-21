@@ -11,6 +11,9 @@ service PostgresManagementService {
   rpc GetNetworkAccess(GetNetworkAccessRequest) returns (GetNetworkAccessResponse);
   rpc UpdateNetworkAccess(UpdateNetworkAccessRequest) returns (UpdateNetworkAccessResponse);
   rpc ApplyHBA(ApplyHBARequest) returns (ApplyHBAResponse);
+  rpc GetTLSConfig(GetTLSConfigRequest) returns (GetTLSConfigResponse);
+  rpc UpdateTLSConfig(UpdateTLSConfigRequest) returns (UpdateTLSConfigResponse);
+  rpc ApplyTLS(ApplyTLSRequest) returns (ApplyTLSResponse);
 
   // Role management RPCs (Phase 3)
   rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
@@ -30,13 +33,16 @@ message ConnectionProfile {
   string endpoint_mode = 2;
   string public_host = 3;
   int32 public_port = 4;
-  // ssl_mode: "prefer" | "require" | "disable"
+  // ssl_mode: "disabled" | "prefer" | "required"
   string ssl_mode = 5;
   repeated string allowed_cidrs = 6;
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
   repeated string allowed_admin_cidrs = 9;
   repeated string allowed_replication_cidrs = 10;
+  string tls_cert_file = 11;
+  string tls_key_file = 12;
+  string tls_ca_file = 13;
 }
 
 message NodeEndpoint {
@@ -60,6 +66,9 @@ message GetConnectionProfileResponse {
   // effective_endpoint is the endpoint operators should use (may be public_host or primary node).
   string effective_host = 4;
   int32 effective_port = 5;
+  repeated string warnings = 6;
+  TLSConfig tls_config = 7;
+  repeated TLSApplyStatus tls_statuses = 8;
 }
 
 message UpdateConnectionProfileRequest {
@@ -116,6 +125,60 @@ message ApplyHBARequest {
 
 message ApplyHBAResponse {
   repeated HBAApplyStatus hba_statuses = 1;
+}
+
+message TLSConfig {
+  string cluster_id = 1;
+  // tls_mode: "disabled" | "prefer" | "required"
+  string tls_mode = 2;
+  string cert_file = 3;
+  string key_file = 4;
+  string ca_file = 5;
+  repeated TLSApplyStatus statuses = 6;
+  repeated string warnings = 7;
+}
+
+message TLSApplyStatus {
+  string cluster_id = 1;
+  string node_id = 2;
+  string command_id = 3;
+  // requested_tls_mode: "disabled" | "prefer" | "required"
+  string requested_tls_mode = 4;
+  // status: "pending" | "running" | "succeeded" | "failed"
+  string status = 5;
+  string error = 6;
+  bool tls_active = 7;
+  google.protobuf.Timestamp applied_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message GetTLSConfigRequest {
+  string cluster_id = 1;
+}
+
+message GetTLSConfigResponse {
+  TLSConfig config = 1;
+}
+
+message UpdateTLSConfigRequest {
+  string cluster_id = 1;
+  // tls_mode: "disabled" | "prefer" | "required"
+  string tls_mode = 2;
+  string cert_file = 3;
+  string key_file = 4;
+  string ca_file = 5;
+}
+
+message UpdateTLSConfigResponse {
+  TLSConfig config = 1;
+}
+
+message ApplyTLSRequest {
+  string cluster_id = 1;
+}
+
+message ApplyTLSResponse {
+  repeated TLSApplyStatus statuses = 1;
 }
 
 // ─── Managed Roles (Phase 3) ──────────────────────────────────────────────────

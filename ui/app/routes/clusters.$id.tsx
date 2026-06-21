@@ -4,7 +4,7 @@ import { useCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
-import { useApplyHBA, useConnectionProfile, useNetworkAccess, useUpdateConnectionProfile, useUpdateNetworkAccess } from "~/hooks/useConnectionProfile";
+import { useApplyHBA, useApplyTLS, useConnectionProfile, useNetworkAccess, useTLSConfig, useUpdateConnectionProfile, useUpdateNetworkAccess, useUpdateTLSConfig } from "~/hooks/useConnectionProfile";
 import { useCreatePostgresDatabase, useDeletePostgresDatabase, usePostgresDatabases, type PostgresDatabase } from "~/hooks/usePostgresDatabases";
 import { useCreatePostgresRole, useDeletePostgresRole, usePostgresRoles, useRotatePostgresRolePassword, type PostgresRole } from "~/hooks/usePostgresRoles";
 import { useRestartNode } from "~/hooks/useClusters";
@@ -654,6 +654,147 @@ function NetworkAccessCard({ clusterId, nodes }: { clusterId: string; nodes: Nod
   );
 }
 
+function TLSConfigCard({ clusterId, nodes }: { clusterId: string; nodes: Node[] }) {
+  const { data, isLoading } = useTLSConfig(clusterId);
+  const updateTLS = useUpdateTLSConfig();
+  const applyTLS = useApplyTLS();
+  const [editing, setEditing] = useState(false);
+  const [tlsMode, setTLSMode] = useState("prefer");
+  const [certFile, setCertFile] = useState("");
+  const [keyFile, setKeyFile] = useState("");
+  const [caFile, setCAFile] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+
+  const config = data?.config;
+  const statuses = config?.statuses ?? [];
+  const warnings = config?.warnings ?? [];
+  const nodeNames = new Map(nodes.map((node) => [node.id, node.hostname]));
+
+  function openEditor() {
+    setTLSMode(config?.tlsMode ?? "prefer");
+    setCertFile(config?.certFile ?? "");
+    setKeyFile(config?.keyFile ?? "");
+    setCAFile(config?.caFile ?? "");
+    setMessage(null);
+    setEditing(true);
+  }
+
+  function saveTLS() {
+    setMessage(null);
+    updateTLS.mutate(
+      { clusterId, tlsMode, certFile, keyFile, caFile },
+      {
+        onSuccess: () => {
+          setEditing(false);
+          setMessage("TLS configuration saved. Apply TLS to enforce it on ready nodes.");
+        },
+        onError: (err) => setMessage(err instanceof Error ? err.message : "Failed to save TLS configuration"),
+      },
+    );
+  }
+
+  function apply() {
+    setMessage(null);
+    applyTLS.mutate(clusterId, {
+      onSuccess: () => setMessage("TLS apply queued for ready nodes."),
+      onError: (err) => setMessage(err instanceof Error ? err.message : "Failed to queue TLS apply"),
+    });
+  }
+
+  if (isLoading) {
+    return (
+      <Card title="TLS">
+        <PageSpinner />
+      </Card>
+    );
+  }
+
+  return (
+    <Card title="TLS">
+      <div className="space-y-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Manage PostgreSQL server-side TLS settings. Certificate files must already exist on every target agent host.
+        </p>
+
+        {warnings.length > 0 && (
+          <div className="space-y-2">
+            {warnings.map((warning) => (
+              <div key={warning} className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
+                {warning}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {editing ? (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                TLS Mode
+                <select value={tlsMode} onChange={(e) => setTLSMode(e.target.value)} className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                  <option value="disabled">disabled</option>
+                  <option value="prefer">prefer</option>
+                  <option value="required">required</option>
+                </select>
+              </label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                Server Certificate Path
+                <input value={certFile} onChange={(e) => setCertFile(e.target.value)} placeholder="/etc/skylex/postgres/server.crt" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+              </label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                Server Key Path
+                <input value={keyFile} onChange={(e) => setKeyFile(e.target.value)} placeholder="/etc/skylex/postgres/server.key" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+              </label>
+              <label className="text-xs text-gray-600 dark:text-gray-400">
+                CA File Path (optional)
+                <input value={caFile} onChange={(e) => setCAFile(e.target.value)} placeholder="/etc/skylex/postgres/ca.crt" className="mt-1 w-full rounded border border-gray-300 bg-white px-2 py-1.5 font-mono text-xs text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+              </label>
+            </div>
+            <p className="mt-2 text-xs text-blue-800 dark:text-blue-200">Skylex stores only file paths, not certificate material or private keys.</p>
+            <div className="mt-3 flex gap-2">
+              <button onClick={saveTLS} disabled={updateTLS.isPending} className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {updateTLS.isPending ? "Saving..." : "Save TLS"}
+              </button>
+              <button onClick={() => setEditing(false)} className="rounded-lg border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <dl className="rounded-lg border border-gray-200 px-3 dark:border-gray-700">
+            <ConnectionRow label="TLS Mode" value={config?.tlsMode ?? "prefer"} />
+            <ConnectionRow label="Server Certificate" value={config?.certFile || "Not configured"} />
+            <ConnectionRow label="Server Key" value={config?.keyFile || "Not configured"} />
+            <ConnectionRow label="CA File" value={config?.caFile || "Not configured"} />
+          </dl>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          {!editing && <button onClick={openEditor} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">Edit TLS</button>}
+          <button onClick={apply} disabled={applyTLS.isPending} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+            {applyTLS.isPending ? "Queueing..." : "Apply TLS"}
+          </button>
+          {message && <span className="text-sm text-gray-600 dark:text-gray-300">{message}</span>}
+        </div>
+
+        <div>
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">TLS Apply Status</div>
+          {statuses.length === 0 ? (
+            <p className="rounded-lg border border-gray-200 py-4 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">TLS has not been applied yet.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Node</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Mode</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Status</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Active</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Updated</th><th className="px-3 py-2 text-left font-medium text-gray-600 dark:text-gray-400">Error</th></tr></thead>
+                <tbody>{statuses.map((status) => (<tr key={status.nodeId} className="border-b border-gray-100 last:border-b-0 dark:border-gray-800"><td className="px-3 py-2 text-gray-900 dark:text-white">{nodeNames.get(status.nodeId) || status.nodeId.slice(0, 8)}</td><td className="px-3 py-2 text-gray-600 dark:text-gray-300">{status.requestedTlsMode}</td><td className="px-3 py-2"><RoleStatusBadge status={status.status} /></td><td className="px-3 py-2 text-gray-600 dark:text-gray-300">{status.tlsActive ? "yes" : "no"}</td><td className="px-3 py-2 text-gray-600 dark:text-gray-300">{status.updatedAt ? new Date(status.updatedAt).toLocaleString() : "-"}</td><td className="px-3 py-2 text-red-600 dark:text-red-400">{status.error || "-"}</td></tr>))}</tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: string; nodes: Node[]; cluster: Cluster }) {
   // Only show when nodes are assigned
   if (nodes.length === 0) return null;
@@ -695,7 +836,8 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
   // Determine the endpoint to display
   const displayHost = effectiveHost || (fallbackPrimary ? (fallbackPrimary.address || fallbackPrimary.hostname) : "");
   const displayPort = effectivePort || (fallbackPrimary?.port ?? 5432);
-  const sslMode = profile?.sslMode ?? "prefer";
+  const sslMode = profile?.sslMode ?? profileData?.tlsConfig?.tlsMode ?? "prefer";
+  const profileWarnings = profileData?.warnings ?? profileData?.tlsConfig?.warnings ?? [];
 
   const isPrimaryReady = !!primaryEndpoint || !!fallbackPrimary;
 
@@ -817,9 +959,9 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
                   onChange={(e) => setEditSSLMode(e.target.value)}
                   className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-2 py-1.5 text-gray-900 dark:text-white"
                 >
+                  <option value="disabled">disabled</option>
                   <option value="prefer">prefer</option>
-                  <option value="require">require</option>
-                  <option value="disable">disable</option>
+                  <option value="required">required</option>
                 </select>
               </div>
 
@@ -911,6 +1053,12 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
               rules.
             </p>
           </div>
+          {profileWarnings.map((warning) => (
+            <div key={warning} className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 dark:border-yellow-800 dark:bg-yellow-900/20">
+              <span className="mt-0.5 shrink-0 text-yellow-600 dark:text-yellow-400">⚠</span>
+              <p className="text-xs text-yellow-800 dark:text-yellow-200">{warning}</p>
+            </div>
+          ))}
         </div>
 
         {/* Connection details */}
@@ -942,6 +1090,7 @@ function PostgreSQLConnectionCard({ clusterId, nodes, cluster }: { clusterId: st
           onDismissReveal={() => setRevealedRole(null)}
         />
         <ManagedDatabasesCard clusterId={clusterId} host={displayHost} port={displayPort} revealedRole={revealedRole} />
+        <TLSConfigCard clusterId={clusterId} nodes={nodes} />
         <NetworkAccessCard clusterId={clusterId} nodes={nodes} />
 
         {/* Replica endpoints */}

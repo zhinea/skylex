@@ -19,6 +19,9 @@ type ConnectionProfile struct {
 	AllowedCIDRs            []string
 	AllowedAdminCIDRs       []string
 	AllowedReplicationCIDRs []string
+	TLSCertFile             string
+	TLSKeyFile              string
+	TLSCAFile               string
 	CreatedAt               time.Time
 	UpdatedAt               time.Time
 }
@@ -43,7 +46,7 @@ func NewConnectionProfileRepository(conn *sql.DB, log *slog.Logger) *ConnectionP
 // If no profile has been saved yet, a profile populated with defaults is returned (no error).
 func (r *ConnectionProfileRepository) GetByClusterID(ctx context.Context, clusterID string) (*ConnectionProfile, error) {
 	row := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, created_at, updated_at
+		Rebind(`SELECT cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, tls_cert_file, tls_key_file, tls_ca_file, created_at, updated_at
 		 FROM cluster_connection_profiles WHERE cluster_id = ?`),
 		clusterID,
 	)
@@ -52,7 +55,7 @@ func (r *ConnectionProfileRepository) GetByClusterID(ctx context.Context, cluste
 	var allowedCIDRsJSON, allowedAdminCIDRsJSON, allowedReplicationCIDRsJSON string
 
 	err := row.Scan(&p.ClusterID, &p.EndpointMode, &p.PublicHost, &p.PublicPort,
-		&p.SSLMode, &allowedCIDRsJSON, &allowedAdminCIDRsJSON, &allowedReplicationCIDRsJSON, &p.CreatedAt, &p.UpdatedAt)
+		&p.SSLMode, &allowedCIDRsJSON, &allowedAdminCIDRsJSON, &allowedReplicationCIDRsJSON, &p.TLSCertFile, &p.TLSKeyFile, &p.TLSCAFile, &p.CreatedAt, &p.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return &ConnectionProfile{
 			ClusterID:               clusterID,
@@ -63,6 +66,9 @@ func (r *ConnectionProfileRepository) GetByClusterID(ctx context.Context, cluste
 			AllowedCIDRs:            []string{},
 			AllowedAdminCIDRs:       []string{},
 			AllowedReplicationCIDRs: []string{},
+			TLSCertFile:             "",
+			TLSKeyFile:              "",
+			TLSCAFile:               "",
 			CreatedAt:               time.Time{},
 			UpdatedAt:               time.Time{},
 		}, nil
@@ -123,10 +129,10 @@ func (r *ConnectionProfileRepository) Upsert(ctx context.Context, p *ConnectionP
 
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`INSERT INTO cluster_connection_profiles
-		 (cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
+		 (cluster_id, endpoint_mode, public_host, public_port, ssl_mode, allowed_cidrs, allowed_admin_cidrs, allowed_replication_cidrs, tls_cert_file, tls_key_file, tls_ca_file, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`),
 		p.ClusterID, p.EndpointMode, p.PublicHost, p.PublicPort,
-		p.SSLMode, string(cidrsJSON), string(adminCIDRsJSON), string(replicationCIDRsJSON), createdAt, now,
+		p.SSLMode, string(cidrsJSON), string(adminCIDRsJSON), string(replicationCIDRsJSON), p.TLSCertFile, p.TLSKeyFile, p.TLSCAFile, createdAt, now,
 	); err != nil {
 		return nil, fmt.Errorf("insert connection profile: %w", err)
 	}
