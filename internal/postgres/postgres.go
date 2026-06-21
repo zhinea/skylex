@@ -634,20 +634,39 @@ func (p *Instance) Promote(ctx context.Context) error {
 		return fmt.Errorf("postgresql is not running, cannot promote")
 	}
 
-	cmd := p.pgCmd(ctx, "pg_ctl",
-		"promote",
-		"-D", p.pgDataDir(),
-		"-w",
-		"-t", "60",
-	)
+	promoteCtx, cancel := context.WithTimeout(ctx, 75*time.Second)
+	defer cancel()
 
-	output, err := runStreamingCmd(ctx, cmd)
+	conn, err := p.localConnect(promoteCtx)
 	if err != nil {
-		return fmt.Errorf("pg_ctl promote failed: %w\n%s", err, string(output))
+		return fmt.Errorf("connect for promotion: %w", err)
+	}
+	defer conn.Close(promoteCtx)
+
+	var inRecovery bool
+	if err := conn.QueryRow(promoteCtx, "SELECT pg_is_in_recovery()").Scan(&inRecovery); err != nil {
+		return fmt.Errorf("check recovery state before promote: %w", redactPGError(err))
+	}
+	if !inRecovery {
+		p.log.Info("postgresql already writable, skipping promote", "data_dir", p.DataDir)
+		p.removeRecoveryMarkers()
+		return nil
+	}
+
+	var promoted bool
+	if err := conn.QueryRow(promoteCtx, "SELECT pg_promote(true, 60)").Scan(&promoted); err != nil {
+		return fmt.Errorf("sql promote failed: %w", redactPGError(err))
+	}
+	if !promoted {
+		return fmt.Errorf("sql promote did not complete within timeout")
 	}
 
 	p.log.Info("postgresql promoted to primary", "data_dir", p.DataDir)
+	p.removeRecoveryMarkers()
+	return nil
+}
 
+func (p *Instance) removeRecoveryMarkers() {
 	standbySignalPath := filepath.Join(p.DataDir, "standby.signal")
 	os.Remove(standbySignalPath)
 	os.Remove(standbySignalPath + ".backup")
@@ -655,8 +674,6 @@ func (p *Instance) Promote(ctx context.Context) error {
 	recoveryConf := filepath.Join(p.DataDir, "recovery.conf")
 	os.Remove(recoveryConf)
 	os.Remove(recoveryConf + ".backup")
-
-	return nil
 }
 
 func (p *Instance) Rewind(ctx context.Context, targetHost string, targetPort int, replUser, replPass string) error {
