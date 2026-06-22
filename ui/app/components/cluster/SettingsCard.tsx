@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import type { Cluster } from "~/hooks/useClusters";
 import { useClusterSettings, useUpdateClusterSettings } from "~/hooks/useClusterSettings";
+import { useToast } from "~/components/ui/toast";
 import { Button } from "~/components/ui/button";
 import { SettingInput, curatedSettings, validateSettingValue } from "~/components/SettingInput";
 import { FeatureNote } from "./ClusterHelpers";
@@ -16,6 +17,7 @@ type Submenu = "general" | "memory" | "connectivity";
 export function SettingsCard({ clusterId, cluster }: SettingsCardProps) {
   const { data, isLoading } = useClusterSettings(clusterId);
   const update = useUpdateClusterSettings();
+  const toast = useToast();
   const [values, setValues] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [saved, setSaved] = useState(false);
@@ -76,7 +78,11 @@ export function SettingsCard({ clusterId, cluster }: SettingsCardProps) {
       {
         onSuccess: () => {
           setSaved(true);
+          toast.success("Settings applied successfully", "Configuration changes have been queued for all nodes.");
           setTimeout(() => setSaved(false), 3000);
+        },
+        onError: (err) => {
+          toast.error("Failed to update settings", err instanceof Error ? err.message : "An error occurred");
         },
       },
     );

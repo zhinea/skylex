@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useCreateCluster } from "~/hooks/useClusters";
 import { useNodes } from "~/hooks/useNodes";
+import { useToast } from "~/components/ui/toast";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/Badge";
 import { PageSpinner } from "~/components/Spinner";
@@ -22,6 +23,7 @@ export default function CreateClusterPage() {
   const navigate = useNavigate();
   const createCluster = useCreateCluster();
   const { data: nodesData } = useNodes();
+  const toast = useToast();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -73,9 +75,12 @@ export default function CreateClusterPage() {
         },
         nodeIds: selectedNodeIds,
       });
+      toast.success("Cluster created successfully", `Provisioning for cluster '${name}' has started.`);
       navigate(`/clusters/${result.cluster.id}`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to create cluster");
+      const msg = err instanceof Error ? err.message : "Failed to create cluster";
+      setError(msg);
+      toast.error("Failed to create cluster", msg);
     }
   };
 

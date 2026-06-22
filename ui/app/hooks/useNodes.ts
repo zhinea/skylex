@@ -80,7 +80,7 @@ interface Pagination {
   total: number;
 }
 
-export function useNodes(clusterId?: string, page = 1, pageSize = 50) {
+export function useNodes(clusterId?: string, page = 1, pageSize = 50, enabled = true) {
   return useQuery({
     queryKey: ["nodes", clusterId, page, pageSize],
     queryFn: () =>
@@ -89,6 +89,7 @@ export function useNodes(clusterId?: string, page = 1, pageSize = 50) {
         { clusterId: clusterId || "", page, pageSize },
       ),
     refetchInterval: 5000,
+    enabled,
   });
 }
 

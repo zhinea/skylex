@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import { useAuth } from "~/lib/auth";
 import { Button } from "~/components/ui/button";
 import TopNavbar from "~/components/TopNavbar";
+import { useToast } from "~/components/ui/toast";
+import { useNodes } from "~/hooks/useNodes";
 import {
   LayoutDashboard,
   Server,
@@ -29,11 +31,42 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { data: nodesData } = useNodes(undefined, 1, 100, isAuthenticated);
+  const { success } = useToast();
+  const prevNodeIds = useRef<Set<string> | null>(null);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       navigate("/login", { replace: true });
     }
   }, [isLoading, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !nodesData?.nodes) return;
+    const currentNodes = nodesData.nodes;
+
+    if (prevNodeIds.current === null) {
+      prevNodeIds.current = new Set(currentNodes.map((n) => n.id));
+      return;
+    }
+
+    for (const node of currentNodes) {
+      if (!prevNodeIds.current.has(node.id)) {
+        success(
+          "New Node Registered",
+          `Node '${node.hostname}' (${node.address}:${node.port}) has registered successfully.`
+        );
+        prevNodeIds.current.add(node.id);
+      }
+    }
+
+    const currentIds = new Set(currentNodes.map((n) => n.id));
+    for (const id of prevNodeIds.current) {
+      if (!currentIds.has(id)) {
+        prevNodeIds.current.delete(id);
+      }
+    }
+  }, [nodesData, isAuthenticated, success]);
 
   if (isLoading || !isAuthenticated) {
     return null;

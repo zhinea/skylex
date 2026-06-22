@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router";
 import { useCluster, useDeleteCluster, usePauseCluster, useRestartCluster, useRestartNode } from "~/hooks/useClusters";
+import { useToast } from "~/components/ui/toast";
 import { useNodes, useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
 import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
 import { useConnectionProfile } from "~/hooks/useConnectionProfile";
@@ -57,6 +58,7 @@ export default function ClusterDetailPage() {
   const pauseCluster = usePauseCluster();
   const restartCluster = useRestartCluster();
   const deleteCluster = useDeleteCluster();
+  const toast = useToast();
   const restartNode = useRestartNode();
   const rejoinNode = useRejoinNode();
   const resolveConflict = useResolveInstallationConflict();
@@ -143,12 +145,16 @@ export default function ClusterDetailPage() {
     if (!id) return;
     setDeleteError(null);
     deleteCluster.mutate(id, {
-      onSuccess: () => setDeleteClusterOpen(false),
+      onSuccess: () => {
+        setDeleteClusterOpen(false);
+        toast.success("Cluster deleted successfully", "The cluster has been removed.");
+      },
       onError: (err) => {
         const message = err instanceof Error ? err.message : "Failed to delete cluster";
         setDeleteError(message.includes("running") || message.includes("pause") || message.includes("stop")
           ? `${message} Pause/stop the service first, wait for nodes to show stopped, then delete again.`
           : message);
+        toast.error("Failed to delete cluster", message);
       },
     });
   }

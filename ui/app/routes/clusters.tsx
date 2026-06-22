@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useClusters, useDeleteCluster, useFailoverCluster } from "~/hooks/useClusters";
+import { useToast } from "~/components/ui/toast";
 import { Badge } from "~/components/Badge";
 import { PageSpinner } from "~/components/Spinner";
 import { ConfirmDialog } from "~/components/ConfirmDialog";
@@ -21,6 +22,7 @@ export default function ClustersPage() {
   const { data, isLoading } = useClusters(page);
   const deleteCluster = useDeleteCluster();
   const failoverCluster = useFailoverCluster();
+  const toast = useToast();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [failoverId, setFailoverId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -153,12 +155,16 @@ export default function ClustersPage() {
           if (deleteId) {
             setDeleteError(null);
             deleteCluster.mutate(deleteId, {
-              onSuccess: () => setDeleteId(null),
+              onSuccess: () => {
+                setDeleteId(null);
+                toast.success("Cluster deleted successfully", "The cluster has been removed.");
+              },
               onError: (err) => {
                 const message = err instanceof Error ? err.message : "Failed to delete cluster";
                 setDeleteError(message.includes("running") || message.includes("pause") || message.includes("stop")
                   ? `${message} Pause/stop the service first, wait for nodes to show stopped, then delete again.`
                   : message);
+                toast.error("Failed to delete cluster", message);
               },
             });
           }

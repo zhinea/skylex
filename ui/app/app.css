@@ -180,3 +180,12 @@ body {
 .v-card:hover {
   border-color: var(--foreground);
 }
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

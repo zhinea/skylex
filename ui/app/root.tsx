@@ -10,6 +10,7 @@ import {
 
 import { AuthProvider } from "~/lib/auth";
 import { getQueryClient } from "~/lib/query-client";
+import { ToastProvider } from "~/components/ui/toast";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -52,7 +53,9 @@ export default function App() {
   return (
     <QueryClientProvider client={getQueryClient()}>
       <AuthProvider>
-        <Outlet />
+        <ToastProvider>
+          <Outlet />
+        </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
