@@ -185,6 +185,11 @@ enum ResolveInstallationConflictAction {
 message ResolveInstallationConflictRequest {
   string node_id = 1;
   ResolveInstallationConflictAction action = 2;
+  // postgres_admin_user is the existing PostgreSQL administrative role used
+  // only when adopting a native installation.
+  string postgres_admin_user = 3;
+  // postgres_admin_password is sent as a command secret for native adoption.
+  string postgres_admin_password = 4;
 }
 
 message ResolveInstallationConflictResponse {

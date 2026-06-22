@@ -337,7 +337,7 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 // isRoleManagementAction reports whether an action carries command secrets.
 func isSecretBearingAction(action string) bool {
 	switch action {
-	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role", "pg_apply_tls":
+	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role", "pg_apply_tls", "pg_adopt_native", "pg_create_repl_user":
 		return true
 	default:
 		return false

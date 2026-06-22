@@ -10,6 +10,7 @@ import (
 
 	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/id"
+	"github.com/zhinea/skylex/internal/models"
 )
 
 // AgentCommandSecret stores an encrypted secret keyed by (command_id, key).
@@ -57,6 +58,49 @@ func (r *AgentCommandSecretRepository) StoreSecret(ctx context.Context, commandI
 		return fmt.Errorf("insert command secret: %w", err)
 	}
 	return nil
+}
+
+// CreateCommandWithSecrets inserts the agent command and its encrypted secrets
+// in one transaction so an agent cannot fetch the command before its secrets exist.
+func (r *AgentCommandSecretRepository) CreateCommandWithSecrets(ctx context.Context, agentID, nodeID, action, payload string, secrets map[string]string, expiresAt *time.Time) (*AgentCommand, error) {
+	cmdID := id.New()
+	now := time.Now().UTC()
+
+	tx, err := r.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin command secret tx: %w", err)
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx,
+		Rebind(`INSERT INTO agent_commands (id, agent_id, node_id, action, payload, status, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?)`),
+		cmdID, agentID, nodeID, action, payload, models.CommandStatusPending, now); err != nil {
+		return nil, fmt.Errorf("insert agent command: %w", err)
+	}
+
+	for key, plaintext := range secrets {
+		ciphertext, err := crypto.EncryptAES256GCM([]byte(plaintext), r.encryptKey)
+		if err != nil {
+			return nil, fmt.Errorf("encrypt command secret %q: %w", key, err)
+		}
+		if err := insertCommandSecret(ctx, tx, cmdID, key, ciphertext, expiresAt, now); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit command secret tx: %w", err)
+	}
+	return &AgentCommand{
+		ID:        cmdID,
+		AgentID:   agentID,
+		NodeID:    nodeID,
+		Action:    action,
+		Payload:   payload,
+		Status:    models.CommandStatusPending,
+		CreatedAt: now,
+	}, nil
 }
 
 // ResolveSecret fetches and decrypts the secret for (commandID, key).

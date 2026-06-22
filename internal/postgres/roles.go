@@ -35,7 +35,7 @@ func (p *Instance) localConnect(ctx context.Context) (*pgx.Conn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse local postgres connection config: %w", err)
 	}
-	cfg.Password = p.ReplPass
+	cfg.Password = p.SuperuserPassword
 
 	conn, err := pgx.ConnectConfig(ctx, cfg)
 	if err != nil {

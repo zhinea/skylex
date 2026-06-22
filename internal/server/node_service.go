@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/db"
 	"github.com/zhinea/skylex/internal/models"
@@ -16,16 +19,26 @@ import (
 
 type NodeService struct {
 	skylexv1.UnimplementedNodeServiceServer
-	nodes       *db.NodeRepository
-	clusters    *db.ClusterRepository
-	commands    *db.AgentCommandRepository
-	commandLogs *db.CommandLogRepository
-	statusTTL   time.Duration
-	log         *slog.Logger
+	nodes          *db.NodeRepository
+	clusters       *db.ClusterRepository
+	commands       *db.AgentCommandRepository
+	commandSecrets *db.AgentCommandSecretRepository
+	commandLogs    *db.CommandLogRepository
+	statusTTL      time.Duration
+	validate       *validator.Validate
+	log            *slog.Logger
 }
 
 func NewNodeService(nodes *db.NodeRepository, clusters *db.ClusterRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, statusTTL time.Duration, log *slog.Logger) *NodeService {
-	return &NodeService{nodes: nodes, clusters: clusters, commands: commands, commandLogs: commandLogs, statusTTL: statusTTL, log: log}
+	validate := validator.New()
+	_ = validate.RegisterValidation("pgrole", func(fl validator.FieldLevel) bool {
+		return roleNamePattern.MatchString(fl.Field().String())
+	})
+	return &NodeService{nodes: nodes, clusters: clusters, commands: commands, commandLogs: commandLogs, statusTTL: statusTTL, validate: validate, log: log}
+}
+
+func (s *NodeService) SetCommandSecretRepository(repo *db.AgentCommandSecretRepository) {
+	s.commandSecrets = repo
 }
 
 func (s *NodeService) ListNodes(ctx context.Context, req *skylexv1.ListNodesRequest) (*skylexv1.ListNodesResponse, error) {
@@ -254,12 +267,18 @@ func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skyl
 		return nil, status.Errorf(codes.FailedPrecondition, "node %q has no agent_id assigned", node.ID)
 	}
 
+	var adoptCreds *nativeAdoptCredentials
 	switch req.GetAction() {
 	case skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT:
+		creds, err := s.nativeAdoptCredentials(req)
+		if err != nil {
+			return nil, err
+		}
+		adoptCreds = creds
 		if err := s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, ""); err != nil {
 			return nil, status.Errorf(codes.Internal, "update installation state: %v", err)
 		}
-		if err := s.queueAdoptCommands(ctx, node); err != nil {
+		if err := s.queueAdoptCommands(ctx, node, adoptCreds); err != nil {
 			return nil, status.Errorf(codes.Internal, "queue adopt commands: %v", err)
 		}
 	case skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_PURGE:
@@ -288,13 +307,44 @@ func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skyl
 	return &skylexv1.ResolveInstallationConflictResponse{Node: s.nodeToProto(updated)}, nil
 }
 
-func (s *NodeService) queueAdoptCommands(ctx context.Context, node *models.Node) error {
-	commands := []provisioningCommand{{"pg_adopt_native", ""}}
+type nativeAdoptCredentials struct {
+	AdminUser     string `validate:"required,pgrole"`
+	AdminPassword string `validate:"required"`
+}
+
+func (s *NodeService) nativeAdoptCredentials(req *skylexv1.ResolveInstallationConflictRequest) (*nativeAdoptCredentials, error) {
+	creds := &nativeAdoptCredentials{
+		AdminUser:     strings.TrimSpace(req.GetPostgresAdminUser()),
+		AdminPassword: req.GetPostgresAdminPassword(),
+	}
+	if err := s.validate.Struct(creds); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "postgres_admin_user and postgres_admin_password are required for ADOPT")
+	}
+	return creds, nil
+}
+
+func (s *NodeService) nativeAdoptCredentialPayload(creds *nativeAdoptCredentials) (string, error) {
+	payload, err := json.Marshal(map[string]string{
+		"postgres_admin_user": creds.AdminUser,
+		"password_secret_key": "postgres_admin_password",
+	})
+	if err != nil {
+		return "", fmt.Errorf("marshal adopt credentials payload: %w", err)
+	}
+	return string(payload), nil
+}
+
+func (s *NodeService) queueAdoptCommands(ctx context.Context, node *models.Node, creds *nativeAdoptCredentials) error {
+	payload, err := s.nativeAdoptCredentialPayload(creds)
+	if err != nil {
+		return err
+	}
+	commands := []provisioningCommand{{"pg_adopt_native", payload}}
 	if nativeConflictDataInitialized(node.ConflictDetails) {
 		if node.Role == models.NodeRolePrimary {
-			commands = append(commands, provisioningCommand{"pg_create_repl_user", ""})
+			commands = append(commands, provisioningCommand{"pg_create_repl_user", payload})
 		}
-		return s.queueNodeCommands(ctx, node, commands)
+		return s.queueNodeCommands(ctx, node, commands, creds)
 	}
 	if node.Role == models.NodeRolePrimary {
 		commands = append(commands, primaryCommands()...)
@@ -308,7 +358,7 @@ func (s *NodeService) queueAdoptCommands(ctx context.Context, node *models.Node)
 		}
 		commands = append(commands, replicaCommands(primary)...)
 	}
-	return s.queueNodeCommands(ctx, node, commands)
+	return s.queueNodeCommands(ctx, node, commands, creds)
 }
 
 func (s *NodeService) queuePurgeCommands(ctx context.Context, node *models.Node, version string) error {
@@ -328,11 +378,23 @@ func (s *NodeService) queuePurgeCommands(ctx context.Context, node *models.Node,
 		}
 		commands = append(commands, replicaCommands(primary)...)
 	}
-	return s.queueNodeCommands(ctx, node, commands)
+	return s.queueNodeCommands(ctx, node, commands, nil)
 }
 
-func (s *NodeService) queueNodeCommands(ctx context.Context, node *models.Node, commands []provisioningCommand) error {
+func (s *NodeService) queueNodeCommands(ctx context.Context, node *models.Node, commands []provisioningCommand, adoptCreds *nativeAdoptCredentials) error {
 	for _, c := range commands {
+		if adoptCreds != nil && (c.action == "pg_adopt_native" || c.action == "pg_create_repl_user") {
+			if s.commandSecrets == nil {
+				return fmt.Errorf("command secret repository is not configured")
+			}
+			secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
+			if _, err := s.commandSecrets.CreateCommandWithSecrets(ctx, node.AgentID, node.ID, c.action, c.payload, map[string]string{
+				"postgres_admin_password": adoptCreds.AdminPassword,
+			}, &secretExpiresAt); err != nil {
+				return fmt.Errorf("queue %s with credentials: %w", c.action, err)
+			}
+			continue
+		}
 		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, c.action, c.payload); err != nil {
 			return fmt.Errorf("queue %s: %w", c.action, err)
 		}

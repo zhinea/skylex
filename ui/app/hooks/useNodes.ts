@@ -141,10 +141,12 @@ export function useDeleteNode() {
 export function useResolveInstallationConflict() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ nodeId, action }: { nodeId: string; action: "ADOPT" | "PURGE" | "ABORT" }) =>
+    mutationFn: ({ nodeId, action, postgresAdminUser, postgresAdminPassword }: { nodeId: string; action: "ADOPT" | "PURGE" | "ABORT"; postgresAdminUser?: string; postgresAdminPassword?: string }) =>
       api.post<{ node: Node }>("/skylex.v1.NodeService/ResolveInstallationConflict", {
         nodeId,
         action: `RESOLVE_INSTALLATION_CONFLICT_ACTION_${action}`,
+        postgresAdminUser: postgresAdminUser || "",
+        postgresAdminPassword: postgresAdminPassword || "",
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["nodes"] });

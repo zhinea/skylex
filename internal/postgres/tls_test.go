@@ -81,3 +81,25 @@ func TestPGCmdDockerRunsInsideContainerWithPassword(t *testing.T) {
 		t.Fatalf("unexpected docker pg command args:\nwant %#v\n got %#v", want, cmd.Args)
 	}
 }
+
+func TestPGCmdUsesConfiguredSuperuserPassword(t *testing.T) {
+	p := New("/data", "/bin", "16", 5432, "postgres", "replicator", "repl-secret", nil)
+	p.SetSuperuserCredentials("admin", "admin-secret")
+
+	cmd := p.pgCmd(context.Background(), "psql", "-U", p.Superuser, "-c", "SELECT 1")
+	if !reflect.DeepEqual(cmd.Args, []string{"/bin/psql", "-U", "admin", "-c", "SELECT 1"}) {
+		t.Fatalf("unexpected native pg command args: %#v", cmd.Args)
+	}
+	found := false
+	for _, env := range cmd.Env {
+		if env == "PGPASSWORD=admin-secret" {
+			found = true
+		}
+		if env == "PGPASSWORD=repl-secret" {
+			t.Fatalf("expected admin password, found replication password in env: %#v", cmd.Env)
+		}
+	}
+	if !found {
+		t.Fatalf("expected admin password in env: %#v", cmd.Env)
+	}
+}

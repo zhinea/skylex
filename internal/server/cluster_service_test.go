@@ -146,9 +146,13 @@ func TestNodeService_ResolveInstallationConflictAdoptInitializedNativeSkipsInitA
 	}
 
 	nodeSvc := NewNodeService(svc.nodes, svc.clusters, svc.commands, db.NewCommandLogRepository(svc.conn, svc.log), 30*time.Second, svc.log)
+	secrets := db.NewAgentCommandSecretRepository(svc.conn, svc.log, []byte("12345678901234567890123456789012"))
+	nodeSvc.SetCommandSecretRepository(secrets)
 	_, err = nodeSvc.ResolveInstallationConflict(ctx, &skylexv1.ResolveInstallationConflictRequest{
-		NodeId: node.ID,
-		Action: skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT,
+		NodeId:                node.ID,
+		Action:                skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT,
+		PostgresAdminUser:     "postgres",
+		PostgresAdminPassword: "admin-secret",
 	})
 	if err != nil {
 		t.Fatalf("resolve conflict: %v", err)
@@ -158,6 +162,71 @@ func TestNodeService_ResolveInstallationConflictAdoptInitializedNativeSkipsInitA
 	want := []string{"pg_adopt_native", "pg_create_repl_user"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("adopt actions = %v, want %v", got, want)
+	}
+	pending, err := svc.commands.ListPending(ctx, "agent-native", node.ID)
+	if err != nil {
+		t.Fatalf("list pending commands: %v", err)
+	}
+	for _, cmd := range pending {
+		if cmd.Action != "pg_adopt_native" && cmd.Action != "pg_create_repl_user" {
+			continue
+		}
+		if cmd.Payload == "" {
+			t.Fatalf("expected credential payload for %s", cmd.Action)
+		}
+		var payload map[string]string
+		if err := json.Unmarshal([]byte(cmd.Payload), &payload); err != nil {
+			t.Fatalf("unmarshal %s payload: %v", cmd.Action, err)
+		}
+		if payload["postgres_admin_user"] != "postgres" || payload["password_secret_key"] != "postgres_admin_password" {
+			t.Fatalf("unexpected credential payload for %s: %#v", cmd.Action, payload)
+		}
+		secret, err := secrets.ResolveSecret(ctx, cmd.ID, "postgres_admin_password")
+		if err != nil {
+			t.Fatalf("resolve command secret for %s: %v", cmd.Action, err)
+		}
+		if secret != "admin-secret" {
+			t.Fatalf("unexpected command secret for %s: %q", cmd.Action, secret)
+		}
+	}
+}
+
+func TestNodeService_ResolveInstallationConflictAdoptRequiresCredentials(t *testing.T) {
+	_, svc := newClusterServiceTestDeps(t)
+	ctx := context.Background()
+	node, err := svc.nodes.Create(ctx, "", "native-node", "10.0.0.2", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := svc.nodes.UpdateAgentID(ctx, node.ID, "agent-native"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+	if _, err := svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
+		Name: "adopt-requires-creds",
+		Config: &skylexv1.ClusterConfig{
+			Engine:          skylexv1.Engine_ENGINE_POSTGRESQL,
+			Version:         "16",
+			ReplicationMode: skylexv1.ReplicationMode_REPLICATION_MODE_ASYNC,
+			ServiceLocation: skylexv1.ServiceLocation_SERVICE_LOCATION_NATIVE,
+		},
+		NodeIds: []string{node.ID},
+	}); err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+	if err := svc.commands.MarkPendingFailedByNodeIDs(ctx, []string{node.ID}, []string{"pg_preflight"}, "test setup"); err != nil {
+		t.Fatalf("clear pending preflight: %v", err)
+	}
+	if err := svc.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateConflict, "data_initialized=true"); err != nil {
+		t.Fatalf("mark conflict: %v", err)
+	}
+
+	nodeSvc := NewNodeService(svc.nodes, svc.clusters, svc.commands, db.NewCommandLogRepository(svc.conn, svc.log), 30*time.Second, svc.log)
+	_, err = nodeSvc.ResolveInstallationConflict(ctx, &skylexv1.ResolveInstallationConflictRequest{
+		NodeId: node.ID,
+		Action: skylexv1.ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT,
+	})
+	if err == nil {
+		t.Fatal("expected missing credential error")
 	}
 }
 

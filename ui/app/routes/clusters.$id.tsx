@@ -237,9 +237,9 @@ export default function ClusterDetailPage() {
                 <InstallationConflictCard
                   nodes={conflictNodes}
                   pending={resolveConflict.isPending}
-                  onResolve={(nodeId, action) => {
+                  onResolve={(nodeId, action, credentials) => {
                     if (action === "ADOPT") {
-                      resolveConflict.mutate({ nodeId, action });
+                      resolveConflict.mutate({ nodeId, action, ...credentials });
                     } else {
                       setConflictAction({ nodeId, action });
                     }

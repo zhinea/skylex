@@ -1643,11 +1643,16 @@ func (*DeleteNodeResponse) Descriptor() ([]byte, []int) {
 }
 
 type ResolveInstallationConflictRequest struct {
-	state         protoimpl.MessageState            `protogen:"open.v1"`
-	NodeId        string                            `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	Action        ResolveInstallationConflictAction `protobuf:"varint,2,opt,name=action,proto3,enum=skylex.v1.ResolveInstallationConflictAction" json:"action,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state  protoimpl.MessageState            `protogen:"open.v1"`
+	NodeId string                            `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Action ResolveInstallationConflictAction `protobuf:"varint,2,opt,name=action,proto3,enum=skylex.v1.ResolveInstallationConflictAction" json:"action,omitempty"`
+	// postgres_admin_user is the existing PostgreSQL administrative role used
+	// only when adopting a native installation.
+	PostgresAdminUser string `protobuf:"bytes,3,opt,name=postgres_admin_user,json=postgresAdminUser,proto3" json:"postgres_admin_user,omitempty"`
+	// postgres_admin_password is sent as a command secret for native adoption.
+	PostgresAdminPassword string `protobuf:"bytes,4,opt,name=postgres_admin_password,json=postgresAdminPassword,proto3" json:"postgres_admin_password,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ResolveInstallationConflictRequest) Reset() {
@@ -1692,6 +1697,20 @@ func (x *ResolveInstallationConflictRequest) GetAction() ResolveInstallationConf
 		return x.Action
 	}
 	return ResolveInstallationConflictAction_RESOLVE_INSTALLATION_CONFLICT_ACTION_UNSPECIFIED
+}
+
+func (x *ResolveInstallationConflictRequest) GetPostgresAdminUser() string {
+	if x != nil {
+		return x.PostgresAdminUser
+	}
+	return ""
+}
+
+func (x *ResolveInstallationConflictRequest) GetPostgresAdminPassword() string {
+	if x != nil {
+		return x.PostgresAdminPassword
+	}
+	return ""
 }
 
 type ResolveInstallationConflictResponse struct {
@@ -2277,10 +2296,12 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\x04node\x18\x01 \x01(\v2\x0f.skylex.v1.NodeR\x04node\",\n" +
 	"\x11DeleteNodeRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\"\x14\n" +
-	"\x12DeleteNodeResponse\"\x83\x01\n" +
+	"\x12DeleteNodeResponse\"\xeb\x01\n" +
 	"\"ResolveInstallationConflictRequest\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12D\n" +
-	"\x06action\x18\x02 \x01(\x0e2,.skylex.v1.ResolveInstallationConflictActionR\x06action\"J\n" +
+	"\x06action\x18\x02 \x01(\x0e2,.skylex.v1.ResolveInstallationConflictActionR\x06action\x12.\n" +
+	"\x13postgres_admin_user\x18\x03 \x01(\tR\x11postgresAdminUser\x126\n" +
+	"\x17postgres_admin_password\x18\x04 \x01(\tR\x15postgresAdminPassword\"J\n" +
 	"#ResolveInstallationConflictResponse\x12#\n" +
 	"\x04node\x18\x01 \x01(\v2\x0f.skylex.v1.NodeR\x04node\"\xa4\x01\n" +
 	"\x1aListNodeCommandLogsRequest\x12\x1d\n" +

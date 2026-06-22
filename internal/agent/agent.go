@@ -516,6 +516,10 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		return true, "Native PostgreSQL packages and configured data directory removed", ""
 
 	case "pg_adopt_native":
+		if err := a.applyPostgresAdminCredentials(cmd); err != nil {
+			a.setInstallationReport(skylexv1.InstallationState_INSTALLATION_STATE_FAILED, err.Error())
+			return false, "", fmt.Sprintf("pg_adopt_native: %v", err)
+		}
 		if installed, version := postgres.DetectInstallation(ctx); installed {
 			binDir := installer.DetectNativeBinDir(ctx, a.cfg.PGBinDir)
 			a.pg.UseNative(binDir, installer.DetectNativeVersion(ctx, version))
@@ -588,6 +592,9 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		return true, fmt.Sprintf("Replica repointed to follow primary at %s:%d", primaryHost, primaryPort), ""
 
 	case "pg_create_repl_user":
+		if err := a.applyPostgresAdminCredentials(cmd); err != nil {
+			return false, "", fmt.Sprintf("pg_create_repl_user: %v", err)
+		}
 		if err := a.pg.CreateReplicationUser(ctx); err != nil {
 			return false, "", a.enrichError("pg_create_repl_user", err)
 		}
@@ -665,6 +672,35 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())
 	}
+}
+
+type postgresAdminCredentialPayload struct {
+	PostgresAdminUser      string `json:"postgres_admin_user"`
+	PasswordSecretKey      string `json:"password_secret_key"`
+	PostgresAdminSecretKey string `json:"postgres_admin_secret_key"`
+}
+
+func (a *Agent) applyPostgresAdminCredentials(cmd *skylexv1.AgentCommand) error {
+	if cmd.GetPayload() == "" {
+		return nil
+	}
+	var payload postgresAdminCredentialPayload
+	if err := json.Unmarshal([]byte(cmd.GetPayload()), &payload); err != nil {
+		return fmt.Errorf("invalid credential payload: %w", err)
+	}
+	secretKey := payload.PasswordSecretKey
+	if secretKey == "" {
+		secretKey = payload.PostgresAdminSecretKey
+	}
+	if secretKey == "" {
+		secretKey = "postgres_admin_password"
+	}
+	password := cmd.GetSecrets()[secretKey]
+	if payload.PostgresAdminUser == "" || password == "" {
+		return fmt.Errorf("PostgreSQL admin credentials are required")
+	}
+	a.pg.SetSuperuserCredentials(payload.PostgresAdminUser, password)
+	return nil
 }
 
 func (a *Agent) installConfig() installer.InstallConfig {

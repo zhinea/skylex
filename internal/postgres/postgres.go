@@ -38,15 +38,16 @@ func logSinkFromContext(ctx context.Context) LogSink {
 }
 
 type Instance struct {
-	DataDir   string
-	BinDir    string
-	Version   string
-	Port      int
-	Superuser string
-	ReplUser  string
-	ReplPass  string
-	Docker    *DockerRuntime
-	log       *slog.Logger
+	DataDir           string
+	BinDir            string
+	Version           string
+	Port              int
+	Superuser         string
+	SuperuserPassword string
+	ReplUser          string
+	ReplPass          string
+	Docker            *DockerRuntime
+	log               *slog.Logger
 }
 
 type DockerRuntime struct {
@@ -58,15 +59,21 @@ type DockerRuntime struct {
 
 func New(dataDir, binDir, version string, port int, superuser, replUser, replPass string, log *slog.Logger) *Instance {
 	return &Instance{
-		DataDir:   dataDir,
-		BinDir:    binDir,
-		Version:   version,
-		Port:      port,
-		Superuser: superuser,
-		ReplUser:  replUser,
-		ReplPass:  replPass,
-		log:       log,
+		DataDir:           dataDir,
+		BinDir:            binDir,
+		Version:           version,
+		Port:              port,
+		Superuser:         superuser,
+		SuperuserPassword: replPass,
+		ReplUser:          replUser,
+		ReplPass:          replPass,
+		log:               log,
 	}
+}
+
+func (p *Instance) SetSuperuserCredentials(username, password string) {
+	p.Superuser = username
+	p.SuperuserPassword = password
 }
 
 func (p *Instance) UseDocker(image, containerName, composeFile, serviceName string) {
@@ -88,16 +95,20 @@ func (p *Instance) dockerEnabled() bool {
 }
 
 func (p *Instance) pgCmd(ctx context.Context, binary string, args ...string) *exec.Cmd {
+	return p.pgCmdWithPassword(ctx, p.SuperuserPassword, binary, args...)
+}
+
+func (p *Instance) pgCmdWithPassword(ctx context.Context, password string, binary string, args ...string) *exec.Cmd {
 	if !p.dockerEnabled() {
 		cmd := exec.CommandContext(ctx, filepath.Join(p.BinDir, binary), args...)
-		if p.ReplPass != "" {
-			cmd.Env = append(os.Environ(), fmt.Sprintf("PGPASSWORD=%s", p.ReplPass))
+		if password != "" {
+			cmd.Env = append(os.Environ(), fmt.Sprintf("PGPASSWORD=%s", password))
 		}
 		return cmd
 	}
 	dockerArgs := []string{"exec", "-u", "postgres", "-e", "PGDATA=/var/lib/postgresql/data"}
-	if p.ReplPass != "" {
-		dockerArgs = append(dockerArgs, "-e", fmt.Sprintf("PGPASSWORD=%s", p.ReplPass))
+	if password != "" {
+		dockerArgs = append(dockerArgs, "-e", fmt.Sprintf("PGPASSWORD=%s", password))
 	}
 	dockerArgs = append(dockerArgs, p.Docker.ContainerName, binary)
 	dockerArgs = append(dockerArgs, args...)
@@ -448,7 +459,7 @@ func (p *Instance) BaseBackup(ctx context.Context, primaryHost string, primaryPo
 		return fmt.Errorf("remove existing data dir: %w", err)
 	}
 
-	cmd := p.pgCmd(ctx, "pg_basebackup",
+	cmd := p.pgCmdWithPassword(ctx, replPass, "pg_basebackup",
 		"-h", primaryHost,
 		"-p", fmt.Sprintf("%d", primaryPort),
 		"-U", replUser,
