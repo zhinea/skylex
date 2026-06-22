@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -33,5 +34,21 @@ func TestWriteInitPasswordFileCreatesSecureTemporaryFile(t *testing.T) {
 	cleanup()
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		t.Fatalf("expected cleanup to remove password file, got %v", err)
+	}
+}
+
+func TestStartupLogSnippetIncludesRecentPgLog(t *testing.T) {
+	dir := t.TempDir()
+	logPath := dir + "/pg.log"
+	if err := os.WriteFile(logPath, []byte("old line\nFATAL: lock file \"postmaster.pid\" already exists\n"), 0600); err != nil {
+		t.Fatalf("write pg.log: %v", err)
+	}
+
+	snippet := startupLogSnippet(logPath)
+	if !strings.Contains(snippet, "startup log (") {
+		t.Fatalf("expected startup log header, got %q", snippet)
+	}
+	if !strings.Contains(snippet, "postmaster.pid") {
+		t.Fatalf("expected pg.log contents, got %q", snippet)
 	}
 }

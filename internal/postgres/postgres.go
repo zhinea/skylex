@@ -387,10 +387,11 @@ func (p *Instance) Start(ctx context.Context) error {
 		return nil
 	}
 
+	logPath := filepath.Join(p.DataDir, "pg.log")
 	cmd := p.pgCmd(ctx, "pg_ctl",
 		"start",
 		"-D", p.pgDataDir(),
-		"-l", filepath.Join(p.DataDir, "pg.log"),
+		"-l", logPath,
 		"-o", fmt.Sprintf("-p %d", p.Port),
 		"-w",
 		"-t", "60",
@@ -398,7 +399,7 @@ func (p *Instance) Start(ctx context.Context) error {
 
 	output, err := runStreamingCmd(ctx, cmd)
 	if err != nil {
-		return fmt.Errorf("pg_ctl start failed: %w\n%s", err, string(output))
+		return fmt.Errorf("pg_ctl start failed: %w\n%s%s", err, string(output), startupLogSnippet(logPath))
 	}
 
 	p.log.Info("postgresql started", "data_dir", p.DataDir, "port", p.Port)
@@ -406,6 +407,34 @@ func (p *Instance) Start(ctx context.Context) error {
 		return fmt.Errorf("refresh managed hba prefix after start: %w", err)
 	}
 	return nil
+}
+
+func startupLogSnippet(path string) string {
+	data, err := readLastBytes(path, maxStartupLogBytes)
+	if err != nil || len(data) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("\nstartup log (%s):\n%s", path, strings.TrimSpace(string(data)))
+}
+
+func readLastBytes(path string, limit int64) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	size := info.Size()
+	if size > limit {
+		if _, err := file.Seek(size-limit, io.SeekStart); err != nil {
+			return nil, err
+		}
+	}
+	return io.ReadAll(file)
 }
 
 func (p *Instance) Stop(ctx context.Context) error {
@@ -777,8 +806,9 @@ func (p *Instance) WaitForReady(ctx context.Context, timeout time.Duration) erro
 }
 
 const (
-	includeFileName  = "skylex.conf.include"
-	includeDirective = "include_if_exists = 'skylex.conf.include'"
+	includeFileName    = "skylex.conf.include"
+	includeDirective   = "include_if_exists = 'skylex.conf.include'"
+	maxStartupLogBytes = 16 * 1024
 )
 
 // reloadableSettings lists parameters in the curated set that can be changed
