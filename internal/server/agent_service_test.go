@@ -356,6 +356,56 @@ func TestAgentService_ReportCommandResultMarksPostgresRunningVisible(t *testing.
 	}
 }
 
+func TestAgentService_ReportCommandResultAdoptInitializedNativeMarksDataInitialized(t *testing.T) {
+	database, log := newTestDeps(t)
+	conn := database.Conn()
+	clusters := db.NewClusterRepository(conn, log)
+	nodes := db.NewNodeRepository(conn, log)
+	commands := db.NewAgentCommandRepository(conn, log)
+
+	cluster, err := clusters.Create(context.Background(), "native-cluster", "", "/var/lib/postgresql/data", models.EnginePostgreSQL, "16", models.ReplicationAsync, 0, false, nil)
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+	node, err := nodes.Create(context.Background(), cluster.ID, "native-node", "10.0.0.1", 5432, models.NodeRolePrimary, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create node: %v", err)
+	}
+	if err := nodes.UpdateAgentID(context.Background(), node.ID, "agent-1"); err != nil {
+		t.Fatalf("update agent id: %v", err)
+	}
+	conflictDetails := "existing PostgreSQL/data detected: version=PostgreSQL 16.14 data_dir=/var/lib/postgresql/data data_present=true data_initialized=true"
+	if err := nodes.UpdateInstallationState(context.Background(), node.ID, models.InstallationStateConflict, conflictDetails); err != nil {
+		t.Fatalf("update installation state: %v", err)
+	}
+	cmd, err := commands.Create(context.Background(), "agent-1", node.ID, "pg_adopt_native", "")
+	if err != nil {
+		t.Fatalf("create command: %v", err)
+	}
+
+	svc := NewAgentService(&Config{Agent: AgentConfig{}}, clusters, nodes, commands, db.NewCommandLogRepository(conn, log), db.NewAgentTokenRepository(conn, log), log)
+	_, err = svc.ReportCommandResult(context.Background(), &skylexv1.ReportCommandResultRequest{
+		AgentId:   "agent-1",
+		CommandId: cmd.ID,
+		Success:   true,
+		Output:    "Adopted existing PostgreSQL installation: PostgreSQL 16.14",
+	})
+	if err != nil {
+		t.Fatalf("report command result: %v", err)
+	}
+
+	updated, err := nodes.GetByID(context.Background(), node.ID)
+	if err != nil {
+		t.Fatalf("get node: %v", err)
+	}
+	if !updated.PostgresInstalled || !updated.PostgresDataInitialized {
+		t.Fatalf("expected adopted initialized postgres state, got installed=%v initialized=%v", updated.PostgresInstalled, updated.PostgresDataInitialized)
+	}
+	if updated.InstallationState != models.InstallationStateAdopted {
+		t.Fatalf("expected adopted state, got %q", updated.InstallationState)
+	}
+}
+
 func TestAgentService_ReportStatusStoresMetricHistory(t *testing.T) {
 	database, log := newTestDeps(t)
 	conn := database.Conn()

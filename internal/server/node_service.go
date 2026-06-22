@@ -290,6 +290,12 @@ func (s *NodeService) ResolveInstallationConflict(ctx context.Context, req *skyl
 
 func (s *NodeService) queueAdoptCommands(ctx context.Context, node *models.Node) error {
 	commands := []provisioningCommand{{"pg_adopt_native", ""}}
+	if nativeConflictDataInitialized(node.ConflictDetails) {
+		if node.Role == models.NodeRolePrimary {
+			commands = append(commands, provisioningCommand{"pg_create_repl_user", ""})
+		}
+		return s.queueNodeCommands(ctx, node, commands)
+	}
 	if node.Role == models.NodeRolePrimary {
 		commands = append(commands, primaryCommands()...)
 	} else {

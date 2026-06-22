@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
@@ -523,6 +524,10 @@ func (r preflightResult) details() string {
 	return fmt.Sprintf("existing PostgreSQL/data detected: version=%s data_dir=%s data_present=%v data_initialized=%v", version, r.DataDir, r.DataPresent, r.DataInitialized)
 }
 
+func nativeConflictDataInitialized(details string) bool {
+	return strings.Contains(details, "data_initialized=true")
+}
+
 func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, commandID string, success bool, output, errMsg string) error {
 	cmd, err := s.commands.GetByID(ctx, commandID)
 	if err != nil || cmd == nil || cmd.NodeID == "" {
@@ -603,7 +608,11 @@ func (s *AgentService) handleProvisioningCommandResult(ctx context.Context, comm
 	case "pg_purge_native":
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateInstalling, "")
 	case "pg_adopt_native":
-		if err := s.markPostgresInstalled(ctx, node); err != nil {
+		if nativeConflictDataInitialized(node.ConflictDetails) {
+			if err := s.markPostgresDataInitialized(ctx, node); err != nil {
+				return err
+			}
+		} else if err := s.markPostgresInstalled(ctx, node); err != nil {
 			return err
 		}
 		return s.nodes.UpdateInstallationState(ctx, node.ID, models.InstallationStateAdopted, "")
