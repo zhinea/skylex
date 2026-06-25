@@ -410,11 +410,48 @@ func (p *Instance) Start(ctx context.Context) error {
 }
 
 func startupLogSnippet(path string) string {
-	data, err := readLastBytes(path, maxStartupLogBytes)
-	if err != nil || len(data) == 0 {
+	var b strings.Builder
+	if data, err := readLastBytes(path, maxStartupLogBytes); err == nil && len(data) > 0 {
+		fmt.Fprintf(&b, "\nstartup log (%s):\n%s", path, strings.TrimSpace(string(data)))
+	}
+
+	// With logging_collector enabled the postmaster redirects its real startup
+	// error to a file under the pg_log directory, so the pg_ctl -l file only
+	// captures the "redirecting log output" notice. Surface the collector's
+	// most recent log so the actual failure reason is visible.
+	collectorDir := filepath.Join(filepath.Dir(path), "pg_log")
+	if collectorPath := latestLogFile(collectorDir); collectorPath != "" {
+		if data, err := readLastBytes(collectorPath, maxStartupLogBytes); err == nil && len(data) > 0 {
+			fmt.Fprintf(&b, "\ncollector log (%s):\n%s", collectorPath, strings.TrimSpace(string(data)))
+		}
+	}
+
+	return b.String()
+}
+
+// latestLogFile returns the most recently modified regular file in dir, or an
+// empty string if the directory is missing or empty.
+func latestLogFile(dir string) string {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("\nstartup log (%s):\n%s", path, strings.TrimSpace(string(data)))
+	var newest string
+	var newestMod time.Time
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		if newest == "" || info.ModTime().After(newestMod) {
+			newest = filepath.Join(dir, entry.Name())
+			newestMod = info.ModTime()
+		}
+	}
+	return newest
 }
 
 func readLastBytes(path string, limit int64) ([]byte, error) {
@@ -647,10 +684,21 @@ func (p *Instance) IsReplicating() bool {
 	return err == nil
 }
 
+// socketDir returns the directory PostgreSQL should use for its Unix domain
+// socket. Skylex connects exclusively over TCP (127.0.0.1), so the socket only
+// needs to live somewhere the agent user can write. The data directory is
+// always owned by that user, which avoids depending on the distro default
+// (/var/run/postgresql) that the agent typically cannot write to outside
+// systemd.
+func (p *Instance) socketDir() string {
+	return p.DataDir
+}
+
 func (p *Instance) writePostgresqlConf() error {
 	conf := fmt.Sprintf(`%s
 listen_addresses = '*'
 port = %d
+unix_socket_directories = '%s'
 max_connections = 200
 shared_buffers = 128MB
 wal_level = replica
@@ -664,7 +712,7 @@ log_truncate_on_rotation = on
 log_rotation_age = 1d
 log_rotation_size = 0
 logging_collector = on
-`, includeDirective+"\n", p.Port)
+`, includeDirective+"\n", p.Port, p.socketDir())
 
 	confPath := filepath.Join(p.DataDir, "postgresql.conf")
 	return os.WriteFile(confPath, []byte(conf), 0600)
@@ -674,6 +722,7 @@ func (p *Instance) WriteSyncReplicationConf() error {
 	conf := fmt.Sprintf(`%s
 listen_addresses = '*'
 port = %d
+unix_socket_directories = '%s'
 max_connections = 200
 shared_buffers = 128MB
 wal_level = replica
@@ -689,7 +738,7 @@ log_truncate_on_rotation = on
 log_rotation_age = 1d
 log_rotation_size = 0
 logging_collector = on
-`, includeDirective+"\n", p.Port)
+`, includeDirective+"\n", p.Port, p.socketDir())
 
 	confPath := filepath.Join(p.DataDir, "postgresql.conf")
 	return os.WriteFile(confPath, []byte(conf), 0600)

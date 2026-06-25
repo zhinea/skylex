@@ -52,3 +52,27 @@ func TestStartupLogSnippetIncludesRecentPgLog(t *testing.T) {
 		t.Fatalf("expected pg.log contents, got %q", snippet)
 	}
 }
+
+func TestStartupLogSnippetIncludesCollectorLog(t *testing.T) {
+	dir := t.TempDir()
+	logPath := dir + "/pg.log"
+	if err := os.WriteFile(logPath, []byte("redirecting log output to logging collector process\n"), 0600); err != nil {
+		t.Fatalf("write pg.log: %v", err)
+	}
+
+	collectorDir := dir + "/pg_log"
+	if err := os.MkdirAll(collectorDir, 0700); err != nil {
+		t.Fatalf("mkdir pg_log: %v", err)
+	}
+	if err := os.WriteFile(collectorDir+"/postgresql-Mon.log", []byte(`FATAL:  could not create lock file "/var/run/postgresql/.s.PGSQL.5432.lock": No such file or directory`+"\n"), 0600); err != nil {
+		t.Fatalf("write collector log: %v", err)
+	}
+
+	snippet := startupLogSnippet(logPath)
+	if !strings.Contains(snippet, "collector log (") {
+		t.Fatalf("expected collector log header, got %q", snippet)
+	}
+	if !strings.Contains(snippet, "could not create lock file") {
+		t.Fatalf("expected collector log contents to surface real error, got %q", snippet)
+	}
+}
