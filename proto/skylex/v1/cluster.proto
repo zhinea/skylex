@@ -8,6 +8,7 @@ import "google/protobuf/timestamp.proto";
 service ClusterService {
   rpc CreateCluster(CreateClusterRequest) returns (CreateClusterResponse);
   rpc GetCluster(GetClusterRequest) returns (GetClusterResponse);
+  rpc GetClusterHealth(GetClusterHealthRequest) returns (GetClusterHealthResponse);
   rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
   rpc UpdateCluster(UpdateClusterRequest) returns (UpdateClusterResponse);
   rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
@@ -37,6 +38,55 @@ message GetClusterRequest {
 
 message GetClusterResponse {
   Cluster cluster = 1;
+}
+
+message GetClusterHealthRequest {
+  string id = 1;
+}
+
+// NodeHealth is a compact, poll-friendly snapshot of a single node's
+// provisioning/runtime status. It intentionally excludes log lines and
+// raw metrics (those have dedicated endpoints).
+message NodeHealth {
+  string node_id = 1;
+  string hostname = 2;
+  NodeRole role = 3;
+  // status is the coarse node status (online/offline/...).
+  string status = 4;
+  // status_detail is the human-readable detail (healthy, syncing_replica, ...).
+  string status_detail = 5;
+  InstallationState installation_state = 6;
+  bool postgres_installed = 7;
+  bool postgres_data_initialized = 8;
+  bool agent_connected = 9;
+  // ready is true when the node has PostgreSQL installed, data initialized and
+  // an installed/adopted installation state (i.e. provisioning finished).
+  bool ready = 10;
+  string conflict_details = 11;
+}
+
+// ClusterActionProgress summarizes the in-flight action (creation/lifecycle)
+// derived from queued agent commands. It reports step counts, not log content.
+message ClusterActionProgress {
+  // operation is "create" while the cluster is provisioning, "lifecycle" for
+  // start/stop/restart work, or "" when nothing is in flight.
+  string operation = 1;
+  int32 total_steps = 2;
+  int32 completed_steps = 3;
+  int32 failed_steps = 4;
+  int32 pending_steps = 5;
+  // percent is completed_steps/total_steps * 100 (0 when total_steps == 0).
+  int32 percent = 6;
+  bool in_progress = 7;
+}
+
+message GetClusterHealthResponse {
+  string cluster_id = 1;
+  ClusterStatus status = 2;
+  repeated NodeHealth nodes = 3;
+  ClusterActionProgress progress = 4;
+  int32 ready_nodes = 5;
+  int32 total_nodes = 6;
 }
 
 message ListClustersRequest {

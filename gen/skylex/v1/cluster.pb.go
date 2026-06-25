@@ -266,6 +266,362 @@ func (x *GetClusterResponse) GetCluster() *Cluster {
 	return nil
 }
 
+type GetClusterHealthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClusterHealthRequest) Reset() {
+	*x = GetClusterHealthRequest{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterHealthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterHealthRequest) ProtoMessage() {}
+
+func (x *GetClusterHealthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClusterHealthRequest.ProtoReflect.Descriptor instead.
+func (*GetClusterHealthRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetClusterHealthRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+// NodeHealth is a compact, poll-friendly snapshot of a single node's
+// provisioning/runtime status. It intentionally excludes log lines and
+// raw metrics (those have dedicated endpoints).
+type NodeHealth struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	NodeId   string                 `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Hostname string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Role     NodeRole               `protobuf:"varint,3,opt,name=role,proto3,enum=skylex.v1.NodeRole" json:"role,omitempty"`
+	// status is the coarse node status (online/offline/...).
+	Status string `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// status_detail is the human-readable detail (healthy, syncing_replica, ...).
+	StatusDetail            string            `protobuf:"bytes,5,opt,name=status_detail,json=statusDetail,proto3" json:"status_detail,omitempty"`
+	InstallationState       InstallationState `protobuf:"varint,6,opt,name=installation_state,json=installationState,proto3,enum=skylex.v1.InstallationState" json:"installation_state,omitempty"`
+	PostgresInstalled       bool              `protobuf:"varint,7,opt,name=postgres_installed,json=postgresInstalled,proto3" json:"postgres_installed,omitempty"`
+	PostgresDataInitialized bool              `protobuf:"varint,8,opt,name=postgres_data_initialized,json=postgresDataInitialized,proto3" json:"postgres_data_initialized,omitempty"`
+	AgentConnected          bool              `protobuf:"varint,9,opt,name=agent_connected,json=agentConnected,proto3" json:"agent_connected,omitempty"`
+	// ready is true when the node has PostgreSQL installed, data initialized and
+	// an installed/adopted installation state (i.e. provisioning finished).
+	Ready           bool   `protobuf:"varint,10,opt,name=ready,proto3" json:"ready,omitempty"`
+	ConflictDetails string `protobuf:"bytes,11,opt,name=conflict_details,json=conflictDetails,proto3" json:"conflict_details,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *NodeHealth) Reset() {
+	*x = NodeHealth{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeHealth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeHealth) ProtoMessage() {}
+
+func (x *NodeHealth) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeHealth.ProtoReflect.Descriptor instead.
+func (*NodeHealth) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *NodeHealth) GetNodeId() string {
+	if x != nil {
+		return x.NodeId
+	}
+	return ""
+}
+
+func (x *NodeHealth) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *NodeHealth) GetRole() NodeRole {
+	if x != nil {
+		return x.Role
+	}
+	return NodeRole_NODE_ROLE_UNSPECIFIED
+}
+
+func (x *NodeHealth) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *NodeHealth) GetStatusDetail() string {
+	if x != nil {
+		return x.StatusDetail
+	}
+	return ""
+}
+
+func (x *NodeHealth) GetInstallationState() InstallationState {
+	if x != nil {
+		return x.InstallationState
+	}
+	return InstallationState_INSTALLATION_STATE_UNSPECIFIED
+}
+
+func (x *NodeHealth) GetPostgresInstalled() bool {
+	if x != nil {
+		return x.PostgresInstalled
+	}
+	return false
+}
+
+func (x *NodeHealth) GetPostgresDataInitialized() bool {
+	if x != nil {
+		return x.PostgresDataInitialized
+	}
+	return false
+}
+
+func (x *NodeHealth) GetAgentConnected() bool {
+	if x != nil {
+		return x.AgentConnected
+	}
+	return false
+}
+
+func (x *NodeHealth) GetReady() bool {
+	if x != nil {
+		return x.Ready
+	}
+	return false
+}
+
+func (x *NodeHealth) GetConflictDetails() string {
+	if x != nil {
+		return x.ConflictDetails
+	}
+	return ""
+}
+
+// ClusterActionProgress summarizes the in-flight action (creation/lifecycle)
+// derived from queued agent commands. It reports step counts, not log content.
+type ClusterActionProgress struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// operation is "create" while the cluster is provisioning, "lifecycle" for
+	// start/stop/restart work, or "" when nothing is in flight.
+	Operation      string `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
+	TotalSteps     int32  `protobuf:"varint,2,opt,name=total_steps,json=totalSteps,proto3" json:"total_steps,omitempty"`
+	CompletedSteps int32  `protobuf:"varint,3,opt,name=completed_steps,json=completedSteps,proto3" json:"completed_steps,omitempty"`
+	FailedSteps    int32  `protobuf:"varint,4,opt,name=failed_steps,json=failedSteps,proto3" json:"failed_steps,omitempty"`
+	PendingSteps   int32  `protobuf:"varint,5,opt,name=pending_steps,json=pendingSteps,proto3" json:"pending_steps,omitempty"`
+	// percent is completed_steps/total_steps * 100 (0 when total_steps == 0).
+	Percent       int32 `protobuf:"varint,6,opt,name=percent,proto3" json:"percent,omitempty"`
+	InProgress    bool  `protobuf:"varint,7,opt,name=in_progress,json=inProgress,proto3" json:"in_progress,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClusterActionProgress) Reset() {
+	*x = ClusterActionProgress{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClusterActionProgress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClusterActionProgress) ProtoMessage() {}
+
+func (x *ClusterActionProgress) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClusterActionProgress.ProtoReflect.Descriptor instead.
+func (*ClusterActionProgress) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ClusterActionProgress) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *ClusterActionProgress) GetTotalSteps() int32 {
+	if x != nil {
+		return x.TotalSteps
+	}
+	return 0
+}
+
+func (x *ClusterActionProgress) GetCompletedSteps() int32 {
+	if x != nil {
+		return x.CompletedSteps
+	}
+	return 0
+}
+
+func (x *ClusterActionProgress) GetFailedSteps() int32 {
+	if x != nil {
+		return x.FailedSteps
+	}
+	return 0
+}
+
+func (x *ClusterActionProgress) GetPendingSteps() int32 {
+	if x != nil {
+		return x.PendingSteps
+	}
+	return 0
+}
+
+func (x *ClusterActionProgress) GetPercent() int32 {
+	if x != nil {
+		return x.Percent
+	}
+	return 0
+}
+
+func (x *ClusterActionProgress) GetInProgress() bool {
+	if x != nil {
+		return x.InProgress
+	}
+	return false
+}
+
+type GetClusterHealthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	Status        ClusterStatus          `protobuf:"varint,2,opt,name=status,proto3,enum=skylex.v1.ClusterStatus" json:"status,omitempty"`
+	Nodes         []*NodeHealth          `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	Progress      *ClusterActionProgress `protobuf:"bytes,4,opt,name=progress,proto3" json:"progress,omitempty"`
+	ReadyNodes    int32                  `protobuf:"varint,5,opt,name=ready_nodes,json=readyNodes,proto3" json:"ready_nodes,omitempty"`
+	TotalNodes    int32                  `protobuf:"varint,6,opt,name=total_nodes,json=totalNodes,proto3" json:"total_nodes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetClusterHealthResponse) Reset() {
+	*x = GetClusterHealthResponse{}
+	mi := &file_skylex_v1_cluster_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterHealthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterHealthResponse) ProtoMessage() {}
+
+func (x *GetClusterHealthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_cluster_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetClusterHealthResponse.ProtoReflect.Descriptor instead.
+func (*GetClusterHealthResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetClusterHealthResponse) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+func (x *GetClusterHealthResponse) GetStatus() ClusterStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ClusterStatus_CLUSTER_STATUS_UNSPECIFIED
+}
+
+func (x *GetClusterHealthResponse) GetNodes() []*NodeHealth {
+	if x != nil {
+		return x.Nodes
+	}
+	return nil
+}
+
+func (x *GetClusterHealthResponse) GetProgress() *ClusterActionProgress {
+	if x != nil {
+		return x.Progress
+	}
+	return nil
+}
+
+func (x *GetClusterHealthResponse) GetReadyNodes() int32 {
+	if x != nil {
+		return x.ReadyNodes
+	}
+	return 0
+}
+
+func (x *GetClusterHealthResponse) GetTotalNodes() int32 {
+	if x != nil {
+		return x.TotalNodes
+	}
+	return 0
+}
+
 type ListClustersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -276,7 +632,7 @@ type ListClustersRequest struct {
 
 func (x *ListClustersRequest) Reset() {
 	*x = ListClustersRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[4]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -288,7 +644,7 @@ func (x *ListClustersRequest) String() string {
 func (*ListClustersRequest) ProtoMessage() {}
 
 func (x *ListClustersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[4]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -301,7 +657,7 @@ func (x *ListClustersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListClustersRequest.ProtoReflect.Descriptor instead.
 func (*ListClustersRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{4}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListClustersRequest) GetPage() int32 {
@@ -328,7 +684,7 @@ type ListClustersResponse struct {
 
 func (x *ListClustersResponse) Reset() {
 	*x = ListClustersResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[5]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -340,7 +696,7 @@ func (x *ListClustersResponse) String() string {
 func (*ListClustersResponse) ProtoMessage() {}
 
 func (x *ListClustersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[5]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -353,7 +709,7 @@ func (x *ListClustersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListClustersResponse.ProtoReflect.Descriptor instead.
 func (*ListClustersResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{5}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListClustersResponse) GetClusters() []*Cluster {
@@ -380,7 +736,7 @@ type UpdateClusterRequest struct {
 
 func (x *UpdateClusterRequest) Reset() {
 	*x = UpdateClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[6]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -392,7 +748,7 @@ func (x *UpdateClusterRequest) String() string {
 func (*UpdateClusterRequest) ProtoMessage() {}
 
 func (x *UpdateClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[6]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -405,7 +761,7 @@ func (x *UpdateClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateClusterRequest.ProtoReflect.Descriptor instead.
 func (*UpdateClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{6}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateClusterRequest) GetId() string {
@@ -431,7 +787,7 @@ type UpdateClusterResponse struct {
 
 func (x *UpdateClusterResponse) Reset() {
 	*x = UpdateClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[7]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -443,7 +799,7 @@ func (x *UpdateClusterResponse) String() string {
 func (*UpdateClusterResponse) ProtoMessage() {}
 
 func (x *UpdateClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[7]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -456,7 +812,7 @@ func (x *UpdateClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateClusterResponse.ProtoReflect.Descriptor instead.
 func (*UpdateClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{7}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateClusterResponse) GetCluster() *Cluster {
@@ -475,7 +831,7 @@ type DeleteClusterRequest struct {
 
 func (x *DeleteClusterRequest) Reset() {
 	*x = DeleteClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[8]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -487,7 +843,7 @@ func (x *DeleteClusterRequest) String() string {
 func (*DeleteClusterRequest) ProtoMessage() {}
 
 func (x *DeleteClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[8]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -500,7 +856,7 @@ func (x *DeleteClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteClusterRequest.ProtoReflect.Descriptor instead.
 func (*DeleteClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{8}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *DeleteClusterRequest) GetId() string {
@@ -518,7 +874,7 @@ type DeleteClusterResponse struct {
 
 func (x *DeleteClusterResponse) Reset() {
 	*x = DeleteClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[9]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -530,7 +886,7 @@ func (x *DeleteClusterResponse) String() string {
 func (*DeleteClusterResponse) ProtoMessage() {}
 
 func (x *DeleteClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[9]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -543,7 +899,7 @@ func (x *DeleteClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteClusterResponse.ProtoReflect.Descriptor instead.
 func (*DeleteClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{9}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{13}
 }
 
 type StartClusterRequest struct {
@@ -555,7 +911,7 @@ type StartClusterRequest struct {
 
 func (x *StartClusterRequest) Reset() {
 	*x = StartClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[10]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -567,7 +923,7 @@ func (x *StartClusterRequest) String() string {
 func (*StartClusterRequest) ProtoMessage() {}
 
 func (x *StartClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[10]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -580,7 +936,7 @@ func (x *StartClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartClusterRequest.ProtoReflect.Descriptor instead.
 func (*StartClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{10}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *StartClusterRequest) GetClusterId() string {
@@ -599,7 +955,7 @@ type StartClusterResponse struct {
 
 func (x *StartClusterResponse) Reset() {
 	*x = StartClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[11]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -611,7 +967,7 @@ func (x *StartClusterResponse) String() string {
 func (*StartClusterResponse) ProtoMessage() {}
 
 func (x *StartClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[11]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -624,7 +980,7 @@ func (x *StartClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartClusterResponse.ProtoReflect.Descriptor instead.
 func (*StartClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{11}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *StartClusterResponse) GetCluster() *Cluster {
@@ -643,7 +999,7 @@ type PauseClusterRequest struct {
 
 func (x *PauseClusterRequest) Reset() {
 	*x = PauseClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[12]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -655,7 +1011,7 @@ func (x *PauseClusterRequest) String() string {
 func (*PauseClusterRequest) ProtoMessage() {}
 
 func (x *PauseClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[12]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -668,7 +1024,7 @@ func (x *PauseClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseClusterRequest.ProtoReflect.Descriptor instead.
 func (*PauseClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{12}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PauseClusterRequest) GetClusterId() string {
@@ -687,7 +1043,7 @@ type PauseClusterResponse struct {
 
 func (x *PauseClusterResponse) Reset() {
 	*x = PauseClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[13]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -699,7 +1055,7 @@ func (x *PauseClusterResponse) String() string {
 func (*PauseClusterResponse) ProtoMessage() {}
 
 func (x *PauseClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[13]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -712,7 +1068,7 @@ func (x *PauseClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseClusterResponse.ProtoReflect.Descriptor instead.
 func (*PauseClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{13}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *PauseClusterResponse) GetCluster() *Cluster {
@@ -731,7 +1087,7 @@ type RestartClusterRequest struct {
 
 func (x *RestartClusterRequest) Reset() {
 	*x = RestartClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[14]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -743,7 +1099,7 @@ func (x *RestartClusterRequest) String() string {
 func (*RestartClusterRequest) ProtoMessage() {}
 
 func (x *RestartClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[14]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -756,7 +1112,7 @@ func (x *RestartClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartClusterRequest.ProtoReflect.Descriptor instead.
 func (*RestartClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{14}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RestartClusterRequest) GetClusterId() string {
@@ -775,7 +1131,7 @@ type RestartClusterResponse struct {
 
 func (x *RestartClusterResponse) Reset() {
 	*x = RestartClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[15]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -787,7 +1143,7 @@ func (x *RestartClusterResponse) String() string {
 func (*RestartClusterResponse) ProtoMessage() {}
 
 func (x *RestartClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[15]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -800,7 +1156,7 @@ func (x *RestartClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartClusterResponse.ProtoReflect.Descriptor instead.
 func (*RestartClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{15}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RestartClusterResponse) GetCluster() *Cluster {
@@ -819,7 +1175,7 @@ type FailoverClusterRequest struct {
 
 func (x *FailoverClusterRequest) Reset() {
 	*x = FailoverClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[16]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -831,7 +1187,7 @@ func (x *FailoverClusterRequest) String() string {
 func (*FailoverClusterRequest) ProtoMessage() {}
 
 func (x *FailoverClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[16]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -844,7 +1200,7 @@ func (x *FailoverClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FailoverClusterRequest.ProtoReflect.Descriptor instead.
 func (*FailoverClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{16}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *FailoverClusterRequest) GetClusterId() string {
@@ -863,7 +1219,7 @@ type FailoverClusterResponse struct {
 
 func (x *FailoverClusterResponse) Reset() {
 	*x = FailoverClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[17]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -875,7 +1231,7 @@ func (x *FailoverClusterResponse) String() string {
 func (*FailoverClusterResponse) ProtoMessage() {}
 
 func (x *FailoverClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[17]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -888,7 +1244,7 @@ func (x *FailoverClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FailoverClusterResponse.ProtoReflect.Descriptor instead.
 func (*FailoverClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{17}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *FailoverClusterResponse) GetCluster() *Cluster {
@@ -907,7 +1263,7 @@ type RestartNodeRequest struct {
 
 func (x *RestartNodeRequest) Reset() {
 	*x = RestartNodeRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[18]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -919,7 +1275,7 @@ func (x *RestartNodeRequest) String() string {
 func (*RestartNodeRequest) ProtoMessage() {}
 
 func (x *RestartNodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[18]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -932,7 +1288,7 @@ func (x *RestartNodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartNodeRequest.ProtoReflect.Descriptor instead.
 func (*RestartNodeRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{18}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *RestartNodeRequest) GetNodeId() string {
@@ -951,7 +1307,7 @@ type RestartNodeResponse struct {
 
 func (x *RestartNodeResponse) Reset() {
 	*x = RestartNodeResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[19]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +1319,7 @@ func (x *RestartNodeResponse) String() string {
 func (*RestartNodeResponse) ProtoMessage() {}
 
 func (x *RestartNodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[19]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1332,7 @@ func (x *RestartNodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestartNodeResponse.ProtoReflect.Descriptor instead.
 func (*RestartNodeResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{19}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *RestartNodeResponse) GetNode() *Node {
@@ -996,7 +1352,7 @@ type ScaleClusterRequest struct {
 
 func (x *ScaleClusterRequest) Reset() {
 	*x = ScaleClusterRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[20]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1008,7 +1364,7 @@ func (x *ScaleClusterRequest) String() string {
 func (*ScaleClusterRequest) ProtoMessage() {}
 
 func (x *ScaleClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[20]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,7 +1377,7 @@ func (x *ScaleClusterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScaleClusterRequest.ProtoReflect.Descriptor instead.
 func (*ScaleClusterRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{20}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ScaleClusterRequest) GetClusterId() string {
@@ -1047,7 +1403,7 @@ type ScaleClusterResponse struct {
 
 func (x *ScaleClusterResponse) Reset() {
 	*x = ScaleClusterResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[21]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1059,7 +1415,7 @@ func (x *ScaleClusterResponse) String() string {
 func (*ScaleClusterResponse) ProtoMessage() {}
 
 func (x *ScaleClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[21]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1072,7 +1428,7 @@ func (x *ScaleClusterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScaleClusterResponse.ProtoReflect.Descriptor instead.
 func (*ScaleClusterResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{21}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ScaleClusterResponse) GetCluster() *Cluster {
@@ -1093,7 +1449,7 @@ type ListNodesRequest struct {
 
 func (x *ListNodesRequest) Reset() {
 	*x = ListNodesRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[22]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1105,7 +1461,7 @@ func (x *ListNodesRequest) String() string {
 func (*ListNodesRequest) ProtoMessage() {}
 
 func (x *ListNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[22]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1118,7 +1474,7 @@ func (x *ListNodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodesRequest.ProtoReflect.Descriptor instead.
 func (*ListNodesRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{22}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListNodesRequest) GetClusterId() string {
@@ -1152,7 +1508,7 @@ type ListNodesResponse struct {
 
 func (x *ListNodesResponse) Reset() {
 	*x = ListNodesResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[23]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1164,7 +1520,7 @@ func (x *ListNodesResponse) String() string {
 func (*ListNodesResponse) ProtoMessage() {}
 
 func (x *ListNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[23]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +1533,7 @@ func (x *ListNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodesResponse.ProtoReflect.Descriptor instead.
 func (*ListNodesResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{23}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListNodesResponse) GetNodes() []*Node {
@@ -1203,7 +1559,7 @@ type GetNodeRequest struct {
 
 func (x *GetNodeRequest) Reset() {
 	*x = GetNodeRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[24]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1215,7 +1571,7 @@ func (x *GetNodeRequest) String() string {
 func (*GetNodeRequest) ProtoMessage() {}
 
 func (x *GetNodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[24]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1228,7 +1584,7 @@ func (x *GetNodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNodeRequest.ProtoReflect.Descriptor instead.
 func (*GetNodeRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{24}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetNodeRequest) GetId() string {
@@ -1247,7 +1603,7 @@ type GetNodeResponse struct {
 
 func (x *GetNodeResponse) Reset() {
 	*x = GetNodeResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[25]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1259,7 +1615,7 @@ func (x *GetNodeResponse) String() string {
 func (*GetNodeResponse) ProtoMessage() {}
 
 func (x *GetNodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[25]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1272,7 +1628,7 @@ func (x *GetNodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNodeResponse.ProtoReflect.Descriptor instead.
 func (*GetNodeResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{25}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetNodeResponse) GetNode() *Node {
@@ -1293,7 +1649,7 @@ type ListNodeMetricsRequest struct {
 
 func (x *ListNodeMetricsRequest) Reset() {
 	*x = ListNodeMetricsRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[26]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1305,7 +1661,7 @@ func (x *ListNodeMetricsRequest) String() string {
 func (*ListNodeMetricsRequest) ProtoMessage() {}
 
 func (x *ListNodeMetricsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[26]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1318,7 +1674,7 @@ func (x *ListNodeMetricsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodeMetricsRequest.ProtoReflect.Descriptor instead.
 func (*ListNodeMetricsRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{26}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListNodeMetricsRequest) GetNodeId() string {
@@ -1351,7 +1707,7 @@ type ListNodeMetricsResponse struct {
 
 func (x *ListNodeMetricsResponse) Reset() {
 	*x = ListNodeMetricsResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[27]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1363,7 +1719,7 @@ func (x *ListNodeMetricsResponse) String() string {
 func (*ListNodeMetricsResponse) ProtoMessage() {}
 
 func (x *ListNodeMetricsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[27]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1376,7 +1732,7 @@ func (x *ListNodeMetricsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodeMetricsResponse.ProtoReflect.Descriptor instead.
 func (*ListNodeMetricsResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{27}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListNodeMetricsResponse) GetMetrics() []*NodeMetric {
@@ -1395,7 +1751,7 @@ type DrainNodeRequest struct {
 
 func (x *DrainNodeRequest) Reset() {
 	*x = DrainNodeRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[28]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1407,7 +1763,7 @@ func (x *DrainNodeRequest) String() string {
 func (*DrainNodeRequest) ProtoMessage() {}
 
 func (x *DrainNodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[28]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1420,7 +1776,7 @@ func (x *DrainNodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DrainNodeRequest.ProtoReflect.Descriptor instead.
 func (*DrainNodeRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{28}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *DrainNodeRequest) GetNodeId() string {
@@ -1439,7 +1795,7 @@ type DrainNodeResponse struct {
 
 func (x *DrainNodeResponse) Reset() {
 	*x = DrainNodeResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[29]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1451,7 +1807,7 @@ func (x *DrainNodeResponse) String() string {
 func (*DrainNodeResponse) ProtoMessage() {}
 
 func (x *DrainNodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[29]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1464,7 +1820,7 @@ func (x *DrainNodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DrainNodeResponse.ProtoReflect.Descriptor instead.
 func (*DrainNodeResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{29}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DrainNodeResponse) GetNode() *Node {
@@ -1483,7 +1839,7 @@ type RejoinNodeRequest struct {
 
 func (x *RejoinNodeRequest) Reset() {
 	*x = RejoinNodeRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[30]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1495,7 +1851,7 @@ func (x *RejoinNodeRequest) String() string {
 func (*RejoinNodeRequest) ProtoMessage() {}
 
 func (x *RejoinNodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[30]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1508,7 +1864,7 @@ func (x *RejoinNodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejoinNodeRequest.ProtoReflect.Descriptor instead.
 func (*RejoinNodeRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{30}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *RejoinNodeRequest) GetNodeId() string {
@@ -1527,7 +1883,7 @@ type RejoinNodeResponse struct {
 
 func (x *RejoinNodeResponse) Reset() {
 	*x = RejoinNodeResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[31]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1539,7 +1895,7 @@ func (x *RejoinNodeResponse) String() string {
 func (*RejoinNodeResponse) ProtoMessage() {}
 
 func (x *RejoinNodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[31]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1552,7 +1908,7 @@ func (x *RejoinNodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejoinNodeResponse.ProtoReflect.Descriptor instead.
 func (*RejoinNodeResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{31}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *RejoinNodeResponse) GetNode() *Node {
@@ -1571,7 +1927,7 @@ type DeleteNodeRequest struct {
 
 func (x *DeleteNodeRequest) Reset() {
 	*x = DeleteNodeRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[32]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1583,7 +1939,7 @@ func (x *DeleteNodeRequest) String() string {
 func (*DeleteNodeRequest) ProtoMessage() {}
 
 func (x *DeleteNodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[32]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1596,7 +1952,7 @@ func (x *DeleteNodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNodeRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNodeRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{32}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DeleteNodeRequest) GetNodeId() string {
@@ -1614,7 +1970,7 @@ type DeleteNodeResponse struct {
 
 func (x *DeleteNodeResponse) Reset() {
 	*x = DeleteNodeResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[33]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1626,7 +1982,7 @@ func (x *DeleteNodeResponse) String() string {
 func (*DeleteNodeResponse) ProtoMessage() {}
 
 func (x *DeleteNodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[33]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1639,7 +1995,7 @@ func (x *DeleteNodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNodeResponse.ProtoReflect.Descriptor instead.
 func (*DeleteNodeResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{33}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{37}
 }
 
 type ResolveInstallationConflictRequest struct {
@@ -1657,7 +2013,7 @@ type ResolveInstallationConflictRequest struct {
 
 func (x *ResolveInstallationConflictRequest) Reset() {
 	*x = ResolveInstallationConflictRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[34]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1669,7 +2025,7 @@ func (x *ResolveInstallationConflictRequest) String() string {
 func (*ResolveInstallationConflictRequest) ProtoMessage() {}
 
 func (x *ResolveInstallationConflictRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[34]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1682,7 +2038,7 @@ func (x *ResolveInstallationConflictRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ResolveInstallationConflictRequest.ProtoReflect.Descriptor instead.
 func (*ResolveInstallationConflictRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{34}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ResolveInstallationConflictRequest) GetNodeId() string {
@@ -1722,7 +2078,7 @@ type ResolveInstallationConflictResponse struct {
 
 func (x *ResolveInstallationConflictResponse) Reset() {
 	*x = ResolveInstallationConflictResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[35]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1734,7 +2090,7 @@ func (x *ResolveInstallationConflictResponse) String() string {
 func (*ResolveInstallationConflictResponse) ProtoMessage() {}
 
 func (x *ResolveInstallationConflictResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[35]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1747,7 +2103,7 @@ func (x *ResolveInstallationConflictResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ResolveInstallationConflictResponse.ProtoReflect.Descriptor instead.
 func (*ResolveInstallationConflictResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{35}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ResolveInstallationConflictResponse) GetNode() *Node {
@@ -1775,7 +2131,7 @@ type ListNodeCommandLogsRequest struct {
 
 func (x *ListNodeCommandLogsRequest) Reset() {
 	*x = ListNodeCommandLogsRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[36]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1787,7 +2143,7 @@ func (x *ListNodeCommandLogsRequest) String() string {
 func (*ListNodeCommandLogsRequest) ProtoMessage() {}
 
 func (x *ListNodeCommandLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[36]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1800,7 +2156,7 @@ func (x *ListNodeCommandLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodeCommandLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListNodeCommandLogsRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{36}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListNodeCommandLogsRequest) GetClusterId() string {
@@ -1874,7 +2230,7 @@ type CommandLog struct {
 
 func (x *CommandLog) Reset() {
 	*x = CommandLog{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[37]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1886,7 +2242,7 @@ func (x *CommandLog) String() string {
 func (*CommandLog) ProtoMessage() {}
 
 func (x *CommandLog) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[37]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1899,7 +2255,7 @@ func (x *CommandLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommandLog.ProtoReflect.Descriptor instead.
 func (*CommandLog) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{37}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *CommandLog) GetId() string {
@@ -1961,7 +2317,7 @@ type ListNodeCommandLogsResponse struct {
 
 func (x *ListNodeCommandLogsResponse) Reset() {
 	*x = ListNodeCommandLogsResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[38]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1973,7 +2329,7 @@ func (x *ListNodeCommandLogsResponse) String() string {
 func (*ListNodeCommandLogsResponse) ProtoMessage() {}
 
 func (x *ListNodeCommandLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[38]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1986,7 +2342,7 @@ func (x *ListNodeCommandLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNodeCommandLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListNodeCommandLogsResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{38}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListNodeCommandLogsResponse) GetLogs() []*CommandLog {
@@ -2012,7 +2368,7 @@ type ClusterSettings struct {
 
 func (x *ClusterSettings) Reset() {
 	*x = ClusterSettings{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[39]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2024,7 +2380,7 @@ func (x *ClusterSettings) String() string {
 func (*ClusterSettings) ProtoMessage() {}
 
 func (x *ClusterSettings) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[39]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2037,7 +2393,7 @@ func (x *ClusterSettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClusterSettings.ProtoReflect.Descriptor instead.
 func (*ClusterSettings) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{39}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ClusterSettings) GetParameters() map[string]string {
@@ -2056,7 +2412,7 @@ type GetClusterSettingsRequest struct {
 
 func (x *GetClusterSettingsRequest) Reset() {
 	*x = GetClusterSettingsRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[40]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2068,7 +2424,7 @@ func (x *GetClusterSettingsRequest) String() string {
 func (*GetClusterSettingsRequest) ProtoMessage() {}
 
 func (x *GetClusterSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[40]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2081,7 +2437,7 @@ func (x *GetClusterSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetClusterSettingsRequest.ProtoReflect.Descriptor instead.
 func (*GetClusterSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{40}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetClusterSettingsRequest) GetClusterId() string {
@@ -2100,7 +2456,7 @@ type GetClusterSettingsResponse struct {
 
 func (x *GetClusterSettingsResponse) Reset() {
 	*x = GetClusterSettingsResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[41]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2112,7 +2468,7 @@ func (x *GetClusterSettingsResponse) String() string {
 func (*GetClusterSettingsResponse) ProtoMessage() {}
 
 func (x *GetClusterSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[41]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2125,7 +2481,7 @@ func (x *GetClusterSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetClusterSettingsResponse.ProtoReflect.Descriptor instead.
 func (*GetClusterSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{41}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetClusterSettingsResponse) GetSettings() *ClusterSettings {
@@ -2145,7 +2501,7 @@ type UpdateClusterSettingsRequest struct {
 
 func (x *UpdateClusterSettingsRequest) Reset() {
 	*x = UpdateClusterSettingsRequest{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[42]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2157,7 +2513,7 @@ func (x *UpdateClusterSettingsRequest) String() string {
 func (*UpdateClusterSettingsRequest) ProtoMessage() {}
 
 func (x *UpdateClusterSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[42]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2170,7 +2526,7 @@ func (x *UpdateClusterSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateClusterSettingsRequest.ProtoReflect.Descriptor instead.
 func (*UpdateClusterSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{42}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *UpdateClusterSettingsRequest) GetClusterId() string {
@@ -2196,7 +2552,7 @@ type UpdateClusterSettingsResponse struct {
 
 func (x *UpdateClusterSettingsResponse) Reset() {
 	*x = UpdateClusterSettingsResponse{}
-	mi := &file_skylex_v1_cluster_proto_msgTypes[43]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2208,7 +2564,7 @@ func (x *UpdateClusterSettingsResponse) String() string {
 func (*UpdateClusterSettingsResponse) ProtoMessage() {}
 
 func (x *UpdateClusterSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_skylex_v1_cluster_proto_msgTypes[43]
+	mi := &file_skylex_v1_cluster_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2221,7 +2577,7 @@ func (x *UpdateClusterSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateClusterSettingsResponse.ProtoReflect.Descriptor instead.
 func (*UpdateClusterSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{43}
+	return file_skylex_v1_cluster_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *UpdateClusterSettingsResponse) GetCluster() *Cluster {
@@ -2245,7 +2601,43 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\x11GetClusterRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"B\n" +
 	"\x12GetClusterResponse\x12,\n" +
-	"\acluster\x18\x01 \x01(\v2\x12.skylex.v1.ClusterR\acluster\"F\n" +
+	"\acluster\x18\x01 \x01(\v2\x12.skylex.v1.ClusterR\acluster\")\n" +
+	"\x17GetClusterHealthRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xc9\x03\n" +
+	"\n" +
+	"NodeHealth\x12\x17\n" +
+	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12\x1a\n" +
+	"\bhostname\x18\x02 \x01(\tR\bhostname\x12'\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x13.skylex.v1.NodeRoleR\x04role\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12#\n" +
+	"\rstatus_detail\x18\x05 \x01(\tR\fstatusDetail\x12K\n" +
+	"\x12installation_state\x18\x06 \x01(\x0e2\x1c.skylex.v1.InstallationStateR\x11installationState\x12-\n" +
+	"\x12postgres_installed\x18\a \x01(\bR\x11postgresInstalled\x12:\n" +
+	"\x19postgres_data_initialized\x18\b \x01(\bR\x17postgresDataInitialized\x12'\n" +
+	"\x0fagent_connected\x18\t \x01(\bR\x0eagentConnected\x12\x14\n" +
+	"\x05ready\x18\n" +
+	" \x01(\bR\x05ready\x12)\n" +
+	"\x10conflict_details\x18\v \x01(\tR\x0fconflictDetails\"\x82\x02\n" +
+	"\x15ClusterActionProgress\x12\x1c\n" +
+	"\toperation\x18\x01 \x01(\tR\toperation\x12\x1f\n" +
+	"\vtotal_steps\x18\x02 \x01(\x05R\n" +
+	"totalSteps\x12'\n" +
+	"\x0fcompleted_steps\x18\x03 \x01(\x05R\x0ecompletedSteps\x12!\n" +
+	"\ffailed_steps\x18\x04 \x01(\x05R\vfailedSteps\x12#\n" +
+	"\rpending_steps\x18\x05 \x01(\x05R\fpendingSteps\x12\x18\n" +
+	"\apercent\x18\x06 \x01(\x05R\apercent\x12\x1f\n" +
+	"\vin_progress\x18\a \x01(\bR\n" +
+	"inProgress\"\x98\x02\n" +
+	"\x18GetClusterHealthResponse\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\x120\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x18.skylex.v1.ClusterStatusR\x06status\x12+\n" +
+	"\x05nodes\x18\x03 \x03(\v2\x15.skylex.v1.NodeHealthR\x05nodes\x12<\n" +
+	"\bprogress\x18\x04 \x01(\v2 .skylex.v1.ClusterActionProgressR\bprogress\x12\x1f\n" +
+	"\vready_nodes\x18\x05 \x01(\x05R\n" +
+	"readyNodes\x12\x1f\n" +
+	"\vtotal_nodes\x18\x06 \x01(\x05R\n" +
+	"totalNodes\"F\n" +
 	"\x13ListClustersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"}\n" +
@@ -2378,11 +2770,12 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"0RESOLVE_INSTALLATION_CONFLICT_ACTION_UNSPECIFIED\x10\x00\x12.\n" +
 	"*RESOLVE_INSTALLATION_CONFLICT_ACTION_ADOPT\x10\x01\x12.\n" +
 	"*RESOLVE_INSTALLATION_CONFLICT_ACTION_PURGE\x10\x02\x12.\n" +
-	"*RESOLVE_INSTALLATION_CONFLICT_ACTION_ABORT\x10\x032\xe9\b\n" +
+	"*RESOLVE_INSTALLATION_CONFLICT_ACTION_ABORT\x10\x032\xc6\t\n" +
 	"\x0eClusterService\x12R\n" +
 	"\rCreateCluster\x12\x1f.skylex.v1.CreateClusterRequest\x1a .skylex.v1.CreateClusterResponse\x12I\n" +
 	"\n" +
-	"GetCluster\x12\x1c.skylex.v1.GetClusterRequest\x1a\x1d.skylex.v1.GetClusterResponse\x12O\n" +
+	"GetCluster\x12\x1c.skylex.v1.GetClusterRequest\x1a\x1d.skylex.v1.GetClusterResponse\x12[\n" +
+	"\x10GetClusterHealth\x12\".skylex.v1.GetClusterHealthRequest\x1a#.skylex.v1.GetClusterHealthResponse\x12O\n" +
 	"\fListClusters\x12\x1e.skylex.v1.ListClustersRequest\x1a\x1f.skylex.v1.ListClustersResponse\x12R\n" +
 	"\rUpdateCluster\x12\x1f.skylex.v1.UpdateClusterRequest\x1a .skylex.v1.UpdateClusterResponse\x12R\n" +
 	"\rDeleteCluster\x12\x1f.skylex.v1.DeleteClusterRequest\x1a .skylex.v1.DeleteClusterResponse\x12O\n" +
@@ -2421,137 +2814,151 @@ func file_skylex_v1_cluster_proto_rawDescGZIP() []byte {
 }
 
 var file_skylex_v1_cluster_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skylex_v1_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_skylex_v1_cluster_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
 var file_skylex_v1_cluster_proto_goTypes = []any{
 	(ResolveInstallationConflictAction)(0),      // 0: skylex.v1.ResolveInstallationConflictAction
 	(*CreateClusterRequest)(nil),                // 1: skylex.v1.CreateClusterRequest
 	(*CreateClusterResponse)(nil),               // 2: skylex.v1.CreateClusterResponse
 	(*GetClusterRequest)(nil),                   // 3: skylex.v1.GetClusterRequest
 	(*GetClusterResponse)(nil),                  // 4: skylex.v1.GetClusterResponse
-	(*ListClustersRequest)(nil),                 // 5: skylex.v1.ListClustersRequest
-	(*ListClustersResponse)(nil),                // 6: skylex.v1.ListClustersResponse
-	(*UpdateClusterRequest)(nil),                // 7: skylex.v1.UpdateClusterRequest
-	(*UpdateClusterResponse)(nil),               // 8: skylex.v1.UpdateClusterResponse
-	(*DeleteClusterRequest)(nil),                // 9: skylex.v1.DeleteClusterRequest
-	(*DeleteClusterResponse)(nil),               // 10: skylex.v1.DeleteClusterResponse
-	(*StartClusterRequest)(nil),                 // 11: skylex.v1.StartClusterRequest
-	(*StartClusterResponse)(nil),                // 12: skylex.v1.StartClusterResponse
-	(*PauseClusterRequest)(nil),                 // 13: skylex.v1.PauseClusterRequest
-	(*PauseClusterResponse)(nil),                // 14: skylex.v1.PauseClusterResponse
-	(*RestartClusterRequest)(nil),               // 15: skylex.v1.RestartClusterRequest
-	(*RestartClusterResponse)(nil),              // 16: skylex.v1.RestartClusterResponse
-	(*FailoverClusterRequest)(nil),              // 17: skylex.v1.FailoverClusterRequest
-	(*FailoverClusterResponse)(nil),             // 18: skylex.v1.FailoverClusterResponse
-	(*RestartNodeRequest)(nil),                  // 19: skylex.v1.RestartNodeRequest
-	(*RestartNodeResponse)(nil),                 // 20: skylex.v1.RestartNodeResponse
-	(*ScaleClusterRequest)(nil),                 // 21: skylex.v1.ScaleClusterRequest
-	(*ScaleClusterResponse)(nil),                // 22: skylex.v1.ScaleClusterResponse
-	(*ListNodesRequest)(nil),                    // 23: skylex.v1.ListNodesRequest
-	(*ListNodesResponse)(nil),                   // 24: skylex.v1.ListNodesResponse
-	(*GetNodeRequest)(nil),                      // 25: skylex.v1.GetNodeRequest
-	(*GetNodeResponse)(nil),                     // 26: skylex.v1.GetNodeResponse
-	(*ListNodeMetricsRequest)(nil),              // 27: skylex.v1.ListNodeMetricsRequest
-	(*ListNodeMetricsResponse)(nil),             // 28: skylex.v1.ListNodeMetricsResponse
-	(*DrainNodeRequest)(nil),                    // 29: skylex.v1.DrainNodeRequest
-	(*DrainNodeResponse)(nil),                   // 30: skylex.v1.DrainNodeResponse
-	(*RejoinNodeRequest)(nil),                   // 31: skylex.v1.RejoinNodeRequest
-	(*RejoinNodeResponse)(nil),                  // 32: skylex.v1.RejoinNodeResponse
-	(*DeleteNodeRequest)(nil),                   // 33: skylex.v1.DeleteNodeRequest
-	(*DeleteNodeResponse)(nil),                  // 34: skylex.v1.DeleteNodeResponse
-	(*ResolveInstallationConflictRequest)(nil),  // 35: skylex.v1.ResolveInstallationConflictRequest
-	(*ResolveInstallationConflictResponse)(nil), // 36: skylex.v1.ResolveInstallationConflictResponse
-	(*ListNodeCommandLogsRequest)(nil),          // 37: skylex.v1.ListNodeCommandLogsRequest
-	(*CommandLog)(nil),                          // 38: skylex.v1.CommandLog
-	(*ListNodeCommandLogsResponse)(nil),         // 39: skylex.v1.ListNodeCommandLogsResponse
-	(*ClusterSettings)(nil),                     // 40: skylex.v1.ClusterSettings
-	(*GetClusterSettingsRequest)(nil),           // 41: skylex.v1.GetClusterSettingsRequest
-	(*GetClusterSettingsResponse)(nil),          // 42: skylex.v1.GetClusterSettingsResponse
-	(*UpdateClusterSettingsRequest)(nil),        // 43: skylex.v1.UpdateClusterSettingsRequest
-	(*UpdateClusterSettingsResponse)(nil),       // 44: skylex.v1.UpdateClusterSettingsResponse
-	nil,                                         // 45: skylex.v1.ClusterSettings.ParametersEntry
-	(*ClusterConfig)(nil),                       // 46: skylex.v1.ClusterConfig
-	(*Cluster)(nil),                             // 47: skylex.v1.Cluster
-	(*Pagination)(nil),                          // 48: skylex.v1.Pagination
-	(*Node)(nil),                                // 49: skylex.v1.Node
-	(*timestamppb.Timestamp)(nil),               // 50: google.protobuf.Timestamp
-	(*NodeMetric)(nil),                          // 51: skylex.v1.NodeMetric
+	(*GetClusterHealthRequest)(nil),             // 5: skylex.v1.GetClusterHealthRequest
+	(*NodeHealth)(nil),                          // 6: skylex.v1.NodeHealth
+	(*ClusterActionProgress)(nil),               // 7: skylex.v1.ClusterActionProgress
+	(*GetClusterHealthResponse)(nil),            // 8: skylex.v1.GetClusterHealthResponse
+	(*ListClustersRequest)(nil),                 // 9: skylex.v1.ListClustersRequest
+	(*ListClustersResponse)(nil),                // 10: skylex.v1.ListClustersResponse
+	(*UpdateClusterRequest)(nil),                // 11: skylex.v1.UpdateClusterRequest
+	(*UpdateClusterResponse)(nil),               // 12: skylex.v1.UpdateClusterResponse
+	(*DeleteClusterRequest)(nil),                // 13: skylex.v1.DeleteClusterRequest
+	(*DeleteClusterResponse)(nil),               // 14: skylex.v1.DeleteClusterResponse
+	(*StartClusterRequest)(nil),                 // 15: skylex.v1.StartClusterRequest
+	(*StartClusterResponse)(nil),                // 16: skylex.v1.StartClusterResponse
+	(*PauseClusterRequest)(nil),                 // 17: skylex.v1.PauseClusterRequest
+	(*PauseClusterResponse)(nil),                // 18: skylex.v1.PauseClusterResponse
+	(*RestartClusterRequest)(nil),               // 19: skylex.v1.RestartClusterRequest
+	(*RestartClusterResponse)(nil),              // 20: skylex.v1.RestartClusterResponse
+	(*FailoverClusterRequest)(nil),              // 21: skylex.v1.FailoverClusterRequest
+	(*FailoverClusterResponse)(nil),             // 22: skylex.v1.FailoverClusterResponse
+	(*RestartNodeRequest)(nil),                  // 23: skylex.v1.RestartNodeRequest
+	(*RestartNodeResponse)(nil),                 // 24: skylex.v1.RestartNodeResponse
+	(*ScaleClusterRequest)(nil),                 // 25: skylex.v1.ScaleClusterRequest
+	(*ScaleClusterResponse)(nil),                // 26: skylex.v1.ScaleClusterResponse
+	(*ListNodesRequest)(nil),                    // 27: skylex.v1.ListNodesRequest
+	(*ListNodesResponse)(nil),                   // 28: skylex.v1.ListNodesResponse
+	(*GetNodeRequest)(nil),                      // 29: skylex.v1.GetNodeRequest
+	(*GetNodeResponse)(nil),                     // 30: skylex.v1.GetNodeResponse
+	(*ListNodeMetricsRequest)(nil),              // 31: skylex.v1.ListNodeMetricsRequest
+	(*ListNodeMetricsResponse)(nil),             // 32: skylex.v1.ListNodeMetricsResponse
+	(*DrainNodeRequest)(nil),                    // 33: skylex.v1.DrainNodeRequest
+	(*DrainNodeResponse)(nil),                   // 34: skylex.v1.DrainNodeResponse
+	(*RejoinNodeRequest)(nil),                   // 35: skylex.v1.RejoinNodeRequest
+	(*RejoinNodeResponse)(nil),                  // 36: skylex.v1.RejoinNodeResponse
+	(*DeleteNodeRequest)(nil),                   // 37: skylex.v1.DeleteNodeRequest
+	(*DeleteNodeResponse)(nil),                  // 38: skylex.v1.DeleteNodeResponse
+	(*ResolveInstallationConflictRequest)(nil),  // 39: skylex.v1.ResolveInstallationConflictRequest
+	(*ResolveInstallationConflictResponse)(nil), // 40: skylex.v1.ResolveInstallationConflictResponse
+	(*ListNodeCommandLogsRequest)(nil),          // 41: skylex.v1.ListNodeCommandLogsRequest
+	(*CommandLog)(nil),                          // 42: skylex.v1.CommandLog
+	(*ListNodeCommandLogsResponse)(nil),         // 43: skylex.v1.ListNodeCommandLogsResponse
+	(*ClusterSettings)(nil),                     // 44: skylex.v1.ClusterSettings
+	(*GetClusterSettingsRequest)(nil),           // 45: skylex.v1.GetClusterSettingsRequest
+	(*GetClusterSettingsResponse)(nil),          // 46: skylex.v1.GetClusterSettingsResponse
+	(*UpdateClusterSettingsRequest)(nil),        // 47: skylex.v1.UpdateClusterSettingsRequest
+	(*UpdateClusterSettingsResponse)(nil),       // 48: skylex.v1.UpdateClusterSettingsResponse
+	nil,                                         // 49: skylex.v1.ClusterSettings.ParametersEntry
+	(*ClusterConfig)(nil),                       // 50: skylex.v1.ClusterConfig
+	(*Cluster)(nil),                             // 51: skylex.v1.Cluster
+	(NodeRole)(0),                               // 52: skylex.v1.NodeRole
+	(InstallationState)(0),                      // 53: skylex.v1.InstallationState
+	(ClusterStatus)(0),                          // 54: skylex.v1.ClusterStatus
+	(*Pagination)(nil),                          // 55: skylex.v1.Pagination
+	(*Node)(nil),                                // 56: skylex.v1.Node
+	(*timestamppb.Timestamp)(nil),               // 57: google.protobuf.Timestamp
+	(*NodeMetric)(nil),                          // 58: skylex.v1.NodeMetric
 }
 var file_skylex_v1_cluster_proto_depIdxs = []int32{
-	46, // 0: skylex.v1.CreateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
-	47, // 1: skylex.v1.CreateClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	47, // 2: skylex.v1.GetClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	47, // 3: skylex.v1.ListClustersResponse.clusters:type_name -> skylex.v1.Cluster
-	48, // 4: skylex.v1.ListClustersResponse.pagination:type_name -> skylex.v1.Pagination
-	46, // 5: skylex.v1.UpdateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
-	47, // 6: skylex.v1.UpdateClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	47, // 7: skylex.v1.StartClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	47, // 8: skylex.v1.PauseClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	47, // 9: skylex.v1.RestartClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	47, // 10: skylex.v1.FailoverClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	49, // 11: skylex.v1.RestartNodeResponse.node:type_name -> skylex.v1.Node
-	47, // 12: skylex.v1.ScaleClusterResponse.cluster:type_name -> skylex.v1.Cluster
-	49, // 13: skylex.v1.ListNodesResponse.nodes:type_name -> skylex.v1.Node
-	48, // 14: skylex.v1.ListNodesResponse.pagination:type_name -> skylex.v1.Pagination
-	49, // 15: skylex.v1.GetNodeResponse.node:type_name -> skylex.v1.Node
-	50, // 16: skylex.v1.ListNodeMetricsRequest.since:type_name -> google.protobuf.Timestamp
-	51, // 17: skylex.v1.ListNodeMetricsResponse.metrics:type_name -> skylex.v1.NodeMetric
-	49, // 18: skylex.v1.DrainNodeResponse.node:type_name -> skylex.v1.Node
-	49, // 19: skylex.v1.RejoinNodeResponse.node:type_name -> skylex.v1.Node
-	0,  // 20: skylex.v1.ResolveInstallationConflictRequest.action:type_name -> skylex.v1.ResolveInstallationConflictAction
-	49, // 21: skylex.v1.ResolveInstallationConflictResponse.node:type_name -> skylex.v1.Node
-	38, // 22: skylex.v1.ListNodeCommandLogsResponse.logs:type_name -> skylex.v1.CommandLog
-	48, // 23: skylex.v1.ListNodeCommandLogsResponse.pagination:type_name -> skylex.v1.Pagination
-	45, // 24: skylex.v1.ClusterSettings.parameters:type_name -> skylex.v1.ClusterSettings.ParametersEntry
-	40, // 25: skylex.v1.GetClusterSettingsResponse.settings:type_name -> skylex.v1.ClusterSettings
-	40, // 26: skylex.v1.UpdateClusterSettingsRequest.settings:type_name -> skylex.v1.ClusterSettings
-	47, // 27: skylex.v1.UpdateClusterSettingsResponse.cluster:type_name -> skylex.v1.Cluster
-	1,  // 28: skylex.v1.ClusterService.CreateCluster:input_type -> skylex.v1.CreateClusterRequest
-	3,  // 29: skylex.v1.ClusterService.GetCluster:input_type -> skylex.v1.GetClusterRequest
-	5,  // 30: skylex.v1.ClusterService.ListClusters:input_type -> skylex.v1.ListClustersRequest
-	7,  // 31: skylex.v1.ClusterService.UpdateCluster:input_type -> skylex.v1.UpdateClusterRequest
-	9,  // 32: skylex.v1.ClusterService.DeleteCluster:input_type -> skylex.v1.DeleteClusterRequest
-	11, // 33: skylex.v1.ClusterService.StartCluster:input_type -> skylex.v1.StartClusterRequest
-	13, // 34: skylex.v1.ClusterService.PauseCluster:input_type -> skylex.v1.PauseClusterRequest
-	15, // 35: skylex.v1.ClusterService.RestartCluster:input_type -> skylex.v1.RestartClusterRequest
-	17, // 36: skylex.v1.ClusterService.FailoverCluster:input_type -> skylex.v1.FailoverClusterRequest
-	19, // 37: skylex.v1.ClusterService.RestartNode:input_type -> skylex.v1.RestartNodeRequest
-	21, // 38: skylex.v1.ClusterService.ScaleCluster:input_type -> skylex.v1.ScaleClusterRequest
-	41, // 39: skylex.v1.ClusterService.GetClusterSettings:input_type -> skylex.v1.GetClusterSettingsRequest
-	43, // 40: skylex.v1.ClusterService.UpdateClusterSettings:input_type -> skylex.v1.UpdateClusterSettingsRequest
-	23, // 41: skylex.v1.NodeService.ListNodes:input_type -> skylex.v1.ListNodesRequest
-	25, // 42: skylex.v1.NodeService.GetNode:input_type -> skylex.v1.GetNodeRequest
-	27, // 43: skylex.v1.NodeService.ListNodeMetrics:input_type -> skylex.v1.ListNodeMetricsRequest
-	29, // 44: skylex.v1.NodeService.DrainNode:input_type -> skylex.v1.DrainNodeRequest
-	31, // 45: skylex.v1.NodeService.RejoinNode:input_type -> skylex.v1.RejoinNodeRequest
-	33, // 46: skylex.v1.NodeService.DeleteNode:input_type -> skylex.v1.DeleteNodeRequest
-	35, // 47: skylex.v1.NodeService.ResolveInstallationConflict:input_type -> skylex.v1.ResolveInstallationConflictRequest
-	37, // 48: skylex.v1.NodeService.ListNodeCommandLogs:input_type -> skylex.v1.ListNodeCommandLogsRequest
-	2,  // 49: skylex.v1.ClusterService.CreateCluster:output_type -> skylex.v1.CreateClusterResponse
-	4,  // 50: skylex.v1.ClusterService.GetCluster:output_type -> skylex.v1.GetClusterResponse
-	6,  // 51: skylex.v1.ClusterService.ListClusters:output_type -> skylex.v1.ListClustersResponse
-	8,  // 52: skylex.v1.ClusterService.UpdateCluster:output_type -> skylex.v1.UpdateClusterResponse
-	10, // 53: skylex.v1.ClusterService.DeleteCluster:output_type -> skylex.v1.DeleteClusterResponse
-	12, // 54: skylex.v1.ClusterService.StartCluster:output_type -> skylex.v1.StartClusterResponse
-	14, // 55: skylex.v1.ClusterService.PauseCluster:output_type -> skylex.v1.PauseClusterResponse
-	16, // 56: skylex.v1.ClusterService.RestartCluster:output_type -> skylex.v1.RestartClusterResponse
-	18, // 57: skylex.v1.ClusterService.FailoverCluster:output_type -> skylex.v1.FailoverClusterResponse
-	20, // 58: skylex.v1.ClusterService.RestartNode:output_type -> skylex.v1.RestartNodeResponse
-	22, // 59: skylex.v1.ClusterService.ScaleCluster:output_type -> skylex.v1.ScaleClusterResponse
-	42, // 60: skylex.v1.ClusterService.GetClusterSettings:output_type -> skylex.v1.GetClusterSettingsResponse
-	44, // 61: skylex.v1.ClusterService.UpdateClusterSettings:output_type -> skylex.v1.UpdateClusterSettingsResponse
-	24, // 62: skylex.v1.NodeService.ListNodes:output_type -> skylex.v1.ListNodesResponse
-	26, // 63: skylex.v1.NodeService.GetNode:output_type -> skylex.v1.GetNodeResponse
-	28, // 64: skylex.v1.NodeService.ListNodeMetrics:output_type -> skylex.v1.ListNodeMetricsResponse
-	30, // 65: skylex.v1.NodeService.DrainNode:output_type -> skylex.v1.DrainNodeResponse
-	32, // 66: skylex.v1.NodeService.RejoinNode:output_type -> skylex.v1.RejoinNodeResponse
-	34, // 67: skylex.v1.NodeService.DeleteNode:output_type -> skylex.v1.DeleteNodeResponse
-	36, // 68: skylex.v1.NodeService.ResolveInstallationConflict:output_type -> skylex.v1.ResolveInstallationConflictResponse
-	39, // 69: skylex.v1.NodeService.ListNodeCommandLogs:output_type -> skylex.v1.ListNodeCommandLogsResponse
-	49, // [49:70] is the sub-list for method output_type
-	28, // [28:49] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	50, // 0: skylex.v1.CreateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
+	51, // 1: skylex.v1.CreateClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	51, // 2: skylex.v1.GetClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	52, // 3: skylex.v1.NodeHealth.role:type_name -> skylex.v1.NodeRole
+	53, // 4: skylex.v1.NodeHealth.installation_state:type_name -> skylex.v1.InstallationState
+	54, // 5: skylex.v1.GetClusterHealthResponse.status:type_name -> skylex.v1.ClusterStatus
+	6,  // 6: skylex.v1.GetClusterHealthResponse.nodes:type_name -> skylex.v1.NodeHealth
+	7,  // 7: skylex.v1.GetClusterHealthResponse.progress:type_name -> skylex.v1.ClusterActionProgress
+	51, // 8: skylex.v1.ListClustersResponse.clusters:type_name -> skylex.v1.Cluster
+	55, // 9: skylex.v1.ListClustersResponse.pagination:type_name -> skylex.v1.Pagination
+	50, // 10: skylex.v1.UpdateClusterRequest.config:type_name -> skylex.v1.ClusterConfig
+	51, // 11: skylex.v1.UpdateClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	51, // 12: skylex.v1.StartClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	51, // 13: skylex.v1.PauseClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	51, // 14: skylex.v1.RestartClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	51, // 15: skylex.v1.FailoverClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	56, // 16: skylex.v1.RestartNodeResponse.node:type_name -> skylex.v1.Node
+	51, // 17: skylex.v1.ScaleClusterResponse.cluster:type_name -> skylex.v1.Cluster
+	56, // 18: skylex.v1.ListNodesResponse.nodes:type_name -> skylex.v1.Node
+	55, // 19: skylex.v1.ListNodesResponse.pagination:type_name -> skylex.v1.Pagination
+	56, // 20: skylex.v1.GetNodeResponse.node:type_name -> skylex.v1.Node
+	57, // 21: skylex.v1.ListNodeMetricsRequest.since:type_name -> google.protobuf.Timestamp
+	58, // 22: skylex.v1.ListNodeMetricsResponse.metrics:type_name -> skylex.v1.NodeMetric
+	56, // 23: skylex.v1.DrainNodeResponse.node:type_name -> skylex.v1.Node
+	56, // 24: skylex.v1.RejoinNodeResponse.node:type_name -> skylex.v1.Node
+	0,  // 25: skylex.v1.ResolveInstallationConflictRequest.action:type_name -> skylex.v1.ResolveInstallationConflictAction
+	56, // 26: skylex.v1.ResolveInstallationConflictResponse.node:type_name -> skylex.v1.Node
+	42, // 27: skylex.v1.ListNodeCommandLogsResponse.logs:type_name -> skylex.v1.CommandLog
+	55, // 28: skylex.v1.ListNodeCommandLogsResponse.pagination:type_name -> skylex.v1.Pagination
+	49, // 29: skylex.v1.ClusterSettings.parameters:type_name -> skylex.v1.ClusterSettings.ParametersEntry
+	44, // 30: skylex.v1.GetClusterSettingsResponse.settings:type_name -> skylex.v1.ClusterSettings
+	44, // 31: skylex.v1.UpdateClusterSettingsRequest.settings:type_name -> skylex.v1.ClusterSettings
+	51, // 32: skylex.v1.UpdateClusterSettingsResponse.cluster:type_name -> skylex.v1.Cluster
+	1,  // 33: skylex.v1.ClusterService.CreateCluster:input_type -> skylex.v1.CreateClusterRequest
+	3,  // 34: skylex.v1.ClusterService.GetCluster:input_type -> skylex.v1.GetClusterRequest
+	5,  // 35: skylex.v1.ClusterService.GetClusterHealth:input_type -> skylex.v1.GetClusterHealthRequest
+	9,  // 36: skylex.v1.ClusterService.ListClusters:input_type -> skylex.v1.ListClustersRequest
+	11, // 37: skylex.v1.ClusterService.UpdateCluster:input_type -> skylex.v1.UpdateClusterRequest
+	13, // 38: skylex.v1.ClusterService.DeleteCluster:input_type -> skylex.v1.DeleteClusterRequest
+	15, // 39: skylex.v1.ClusterService.StartCluster:input_type -> skylex.v1.StartClusterRequest
+	17, // 40: skylex.v1.ClusterService.PauseCluster:input_type -> skylex.v1.PauseClusterRequest
+	19, // 41: skylex.v1.ClusterService.RestartCluster:input_type -> skylex.v1.RestartClusterRequest
+	21, // 42: skylex.v1.ClusterService.FailoverCluster:input_type -> skylex.v1.FailoverClusterRequest
+	23, // 43: skylex.v1.ClusterService.RestartNode:input_type -> skylex.v1.RestartNodeRequest
+	25, // 44: skylex.v1.ClusterService.ScaleCluster:input_type -> skylex.v1.ScaleClusterRequest
+	45, // 45: skylex.v1.ClusterService.GetClusterSettings:input_type -> skylex.v1.GetClusterSettingsRequest
+	47, // 46: skylex.v1.ClusterService.UpdateClusterSettings:input_type -> skylex.v1.UpdateClusterSettingsRequest
+	27, // 47: skylex.v1.NodeService.ListNodes:input_type -> skylex.v1.ListNodesRequest
+	29, // 48: skylex.v1.NodeService.GetNode:input_type -> skylex.v1.GetNodeRequest
+	31, // 49: skylex.v1.NodeService.ListNodeMetrics:input_type -> skylex.v1.ListNodeMetricsRequest
+	33, // 50: skylex.v1.NodeService.DrainNode:input_type -> skylex.v1.DrainNodeRequest
+	35, // 51: skylex.v1.NodeService.RejoinNode:input_type -> skylex.v1.RejoinNodeRequest
+	37, // 52: skylex.v1.NodeService.DeleteNode:input_type -> skylex.v1.DeleteNodeRequest
+	39, // 53: skylex.v1.NodeService.ResolveInstallationConflict:input_type -> skylex.v1.ResolveInstallationConflictRequest
+	41, // 54: skylex.v1.NodeService.ListNodeCommandLogs:input_type -> skylex.v1.ListNodeCommandLogsRequest
+	2,  // 55: skylex.v1.ClusterService.CreateCluster:output_type -> skylex.v1.CreateClusterResponse
+	4,  // 56: skylex.v1.ClusterService.GetCluster:output_type -> skylex.v1.GetClusterResponse
+	8,  // 57: skylex.v1.ClusterService.GetClusterHealth:output_type -> skylex.v1.GetClusterHealthResponse
+	10, // 58: skylex.v1.ClusterService.ListClusters:output_type -> skylex.v1.ListClustersResponse
+	12, // 59: skylex.v1.ClusterService.UpdateCluster:output_type -> skylex.v1.UpdateClusterResponse
+	14, // 60: skylex.v1.ClusterService.DeleteCluster:output_type -> skylex.v1.DeleteClusterResponse
+	16, // 61: skylex.v1.ClusterService.StartCluster:output_type -> skylex.v1.StartClusterResponse
+	18, // 62: skylex.v1.ClusterService.PauseCluster:output_type -> skylex.v1.PauseClusterResponse
+	20, // 63: skylex.v1.ClusterService.RestartCluster:output_type -> skylex.v1.RestartClusterResponse
+	22, // 64: skylex.v1.ClusterService.FailoverCluster:output_type -> skylex.v1.FailoverClusterResponse
+	24, // 65: skylex.v1.ClusterService.RestartNode:output_type -> skylex.v1.RestartNodeResponse
+	26, // 66: skylex.v1.ClusterService.ScaleCluster:output_type -> skylex.v1.ScaleClusterResponse
+	46, // 67: skylex.v1.ClusterService.GetClusterSettings:output_type -> skylex.v1.GetClusterSettingsResponse
+	48, // 68: skylex.v1.ClusterService.UpdateClusterSettings:output_type -> skylex.v1.UpdateClusterSettingsResponse
+	28, // 69: skylex.v1.NodeService.ListNodes:output_type -> skylex.v1.ListNodesResponse
+	30, // 70: skylex.v1.NodeService.GetNode:output_type -> skylex.v1.GetNodeResponse
+	32, // 71: skylex.v1.NodeService.ListNodeMetrics:output_type -> skylex.v1.ListNodeMetricsResponse
+	34, // 72: skylex.v1.NodeService.DrainNode:output_type -> skylex.v1.DrainNodeResponse
+	36, // 73: skylex.v1.NodeService.RejoinNode:output_type -> skylex.v1.RejoinNodeResponse
+	38, // 74: skylex.v1.NodeService.DeleteNode:output_type -> skylex.v1.DeleteNodeResponse
+	40, // 75: skylex.v1.NodeService.ResolveInstallationConflict:output_type -> skylex.v1.ResolveInstallationConflictResponse
+	43, // 76: skylex.v1.NodeService.ListNodeCommandLogs:output_type -> skylex.v1.ListNodeCommandLogsResponse
+	55, // [55:77] is the sub-list for method output_type
+	33, // [33:55] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_cluster_proto_init() }
@@ -2566,7 +2973,7 @@ func file_skylex_v1_cluster_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_cluster_proto_rawDesc), len(file_skylex_v1_cluster_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   45,
+			NumMessages:   49,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

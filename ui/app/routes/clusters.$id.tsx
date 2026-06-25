@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { useCluster, useDeleteCluster, usePauseCluster, useRestartCluster, useRestartNode } from "~/hooks/useClusters";
+import { useCluster, useDeleteCluster, usePauseCluster, useRestartCluster, useRestartNode, useClusterHealth } from "~/hooks/useClusters";
 import { useToast } from "~/components/ui/toast";
 import { useNodes, useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
 import { type CommandLog } from "~/hooks/useCommandLogs";
@@ -103,6 +103,7 @@ export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
+  const { data: healthData } = useClusterHealth(id || "");
   const { data: nodesData } = useNodes(id || "");
   const [logLevel, setLogLevel] = useState<string>("");
   const [logRange, setLogRange] = useState<LogRange>("1h");
@@ -148,6 +149,10 @@ export default function ClusterDetailPage() {
   }
 
   const nodes = nodesData?.nodes || [];
+  const health = healthData;
+  // Prefer the live health snapshot for status so the badge flips from
+  // "creating" to "online" without a manual refresh once provisioning settles.
+  const liveStatus = health?.status ?? cluster.status;
   const conflictNodes = nodes.filter((n) => n.installationState === "INSTALLATION_STATE_CONFLICT");
   const onlineNodes = nodes.filter((n) => n.postgresInstalled && n.postgresDataInitialized);
   const totalNodes = nodes.length;
@@ -229,10 +234,10 @@ export default function ClusterDetailPage() {
           </Link>
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-foreground truncate max-w-[10rem]" title={cluster.name}>
+                <h2 className="text-sm font-semibold text-foreground truncate max-w-[10rem]" title={cluster.name}>
                 {cluster.name}
               </h2>
-              <Badge label={cluster.status} />
+              <Badge label={liveStatus} />
             </div>
             <span className="text-[10px] font-mono text-muted-foreground">
               PostgreSQL {cluster.config?.version || "16"} • {cluster.serviceLocation === "SERVICE_LOCATION_DOCKER" || cluster.config?.serviceLocation === "SERVICE_LOCATION_DOCKER" ? "Docker" : "Native"}
@@ -305,8 +310,8 @@ export default function ClusterDetailPage() {
               {/* Redesigned Stats Grid */}
               <ClusterStatsGrid cluster={cluster} nodes={nodes} />
 
-              {/* Show installation progress if not fully healthy or in CREATING status */}
-              {(cluster.status === "CREATING" || cluster.status === "CLUSTER_STATUS_CREATING" || progressPct < 100) && (
+              {/* Show installation progress while creating or until every node is ready */}
+              {(liveStatus === "CREATING" || liveStatus === "CLUSTER_STATUS_CREATING" || progressPct < 100) && (
                 <InstallationProgressCard nodes={nodes} logs={logs} />
               )}
 

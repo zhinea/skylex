@@ -41,6 +41,9 @@ const (
 	// ClusterServiceGetClusterProcedure is the fully-qualified name of the ClusterService's GetCluster
 	// RPC.
 	ClusterServiceGetClusterProcedure = "/skylex.v1.ClusterService/GetCluster"
+	// ClusterServiceGetClusterHealthProcedure is the fully-qualified name of the ClusterService's
+	// GetClusterHealth RPC.
+	ClusterServiceGetClusterHealthProcedure = "/skylex.v1.ClusterService/GetClusterHealth"
 	// ClusterServiceListClustersProcedure is the fully-qualified name of the ClusterService's
 	// ListClusters RPC.
 	ClusterServiceListClustersProcedure = "/skylex.v1.ClusterService/ListClusters"
@@ -99,6 +102,7 @@ const (
 type ClusterServiceClient interface {
 	CreateCluster(context.Context, *connect.Request[v1.CreateClusterRequest]) (*connect.Response[v1.CreateClusterResponse], error)
 	GetCluster(context.Context, *connect.Request[v1.GetClusterRequest]) (*connect.Response[v1.GetClusterResponse], error)
+	GetClusterHealth(context.Context, *connect.Request[v1.GetClusterHealthRequest]) (*connect.Response[v1.GetClusterHealthResponse], error)
 	ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error)
 	UpdateCluster(context.Context, *connect.Request[v1.UpdateClusterRequest]) (*connect.Response[v1.UpdateClusterResponse], error)
 	DeleteCluster(context.Context, *connect.Request[v1.DeleteClusterRequest]) (*connect.Response[v1.DeleteClusterResponse], error)
@@ -133,6 +137,12 @@ func NewClusterServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			httpClient,
 			baseURL+ClusterServiceGetClusterProcedure,
 			connect.WithSchema(clusterServiceMethods.ByName("GetCluster")),
+			connect.WithClientOptions(opts...),
+		),
+		getClusterHealth: connect.NewClient[v1.GetClusterHealthRequest, v1.GetClusterHealthResponse](
+			httpClient,
+			baseURL+ClusterServiceGetClusterHealthProcedure,
+			connect.WithSchema(clusterServiceMethods.ByName("GetClusterHealth")),
 			connect.WithClientOptions(opts...),
 		),
 		listClusters: connect.NewClient[v1.ListClustersRequest, v1.ListClustersResponse](
@@ -208,6 +218,7 @@ func NewClusterServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 type clusterServiceClient struct {
 	createCluster         *connect.Client[v1.CreateClusterRequest, v1.CreateClusterResponse]
 	getCluster            *connect.Client[v1.GetClusterRequest, v1.GetClusterResponse]
+	getClusterHealth      *connect.Client[v1.GetClusterHealthRequest, v1.GetClusterHealthResponse]
 	listClusters          *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
 	updateCluster         *connect.Client[v1.UpdateClusterRequest, v1.UpdateClusterResponse]
 	deleteCluster         *connect.Client[v1.DeleteClusterRequest, v1.DeleteClusterResponse]
@@ -229,6 +240,11 @@ func (c *clusterServiceClient) CreateCluster(ctx context.Context, req *connect.R
 // GetCluster calls skylex.v1.ClusterService.GetCluster.
 func (c *clusterServiceClient) GetCluster(ctx context.Context, req *connect.Request[v1.GetClusterRequest]) (*connect.Response[v1.GetClusterResponse], error) {
 	return c.getCluster.CallUnary(ctx, req)
+}
+
+// GetClusterHealth calls skylex.v1.ClusterService.GetClusterHealth.
+func (c *clusterServiceClient) GetClusterHealth(ctx context.Context, req *connect.Request[v1.GetClusterHealthRequest]) (*connect.Response[v1.GetClusterHealthResponse], error) {
+	return c.getClusterHealth.CallUnary(ctx, req)
 }
 
 // ListClusters calls skylex.v1.ClusterService.ListClusters.
@@ -290,6 +306,7 @@ func (c *clusterServiceClient) UpdateClusterSettings(ctx context.Context, req *c
 type ClusterServiceHandler interface {
 	CreateCluster(context.Context, *connect.Request[v1.CreateClusterRequest]) (*connect.Response[v1.CreateClusterResponse], error)
 	GetCluster(context.Context, *connect.Request[v1.GetClusterRequest]) (*connect.Response[v1.GetClusterResponse], error)
+	GetClusterHealth(context.Context, *connect.Request[v1.GetClusterHealthRequest]) (*connect.Response[v1.GetClusterHealthResponse], error)
 	ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error)
 	UpdateCluster(context.Context, *connect.Request[v1.UpdateClusterRequest]) (*connect.Response[v1.UpdateClusterResponse], error)
 	DeleteCluster(context.Context, *connect.Request[v1.DeleteClusterRequest]) (*connect.Response[v1.DeleteClusterResponse], error)
@@ -320,6 +337,12 @@ func NewClusterServiceHandler(svc ClusterServiceHandler, opts ...connect.Handler
 		ClusterServiceGetClusterProcedure,
 		svc.GetCluster,
 		connect.WithSchema(clusterServiceMethods.ByName("GetCluster")),
+		connect.WithHandlerOptions(opts...),
+	)
+	clusterServiceGetClusterHealthHandler := connect.NewUnaryHandler(
+		ClusterServiceGetClusterHealthProcedure,
+		svc.GetClusterHealth,
+		connect.WithSchema(clusterServiceMethods.ByName("GetClusterHealth")),
 		connect.WithHandlerOptions(opts...),
 	)
 	clusterServiceListClustersHandler := connect.NewUnaryHandler(
@@ -394,6 +417,8 @@ func NewClusterServiceHandler(svc ClusterServiceHandler, opts ...connect.Handler
 			clusterServiceCreateClusterHandler.ServeHTTP(w, r)
 		case ClusterServiceGetClusterProcedure:
 			clusterServiceGetClusterHandler.ServeHTTP(w, r)
+		case ClusterServiceGetClusterHealthProcedure:
+			clusterServiceGetClusterHealthHandler.ServeHTTP(w, r)
 		case ClusterServiceListClustersProcedure:
 			clusterServiceListClustersHandler.ServeHTTP(w, r)
 		case ClusterServiceUpdateClusterProcedure:
@@ -431,6 +456,10 @@ func (UnimplementedClusterServiceHandler) CreateCluster(context.Context, *connec
 
 func (UnimplementedClusterServiceHandler) GetCluster(context.Context, *connect.Request[v1.GetClusterRequest]) (*connect.Response[v1.GetClusterResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.GetCluster is not implemented"))
+}
+
+func (UnimplementedClusterServiceHandler) GetClusterHealth(context.Context, *connect.Request[v1.GetClusterHealthRequest]) (*connect.Response[v1.GetClusterHealthResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.ClusterService.GetClusterHealth is not implemented"))
 }
 
 func (UnimplementedClusterServiceHandler) ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error) {

@@ -301,6 +301,14 @@ func (c *connectClusterService) GetCluster(ctx context.Context, req *connect.Req
 	return connect.NewResponse(resp), nil
 }
 
+func (c *connectClusterService) GetClusterHealth(ctx context.Context, req *connect.Request[skylexv1.GetClusterHealthRequest]) (*connect.Response[skylexv1.GetClusterHealthResponse], error) {
+	resp, err := c.svc.GetClusterHealth(ctx, req.Msg)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(resp), nil
+}
+
 func (c *connectClusterService) ListClusters(ctx context.Context, req *connect.Request[skylexv1.ListClustersRequest]) (*connect.Response[skylexv1.ListClustersResponse], error) {
 	resp, err := c.svc.ListClusters(ctx, req.Msg)
 	if err != nil {

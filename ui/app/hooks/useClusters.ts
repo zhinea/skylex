@@ -50,6 +50,61 @@ export function useCluster(id: string) {
   });
 }
 
+interface NodeHealth {
+  nodeId: string;
+  hostname: string;
+  role: string;
+  status: string;
+  statusDetail: string;
+  installationState: string;
+  postgresInstalled: boolean;
+  postgresDataInitialized: boolean;
+  agentConnected: boolean;
+  ready: boolean;
+  conflictDetails: string;
+}
+
+interface ClusterActionProgress {
+  operation: string;
+  totalSteps: number;
+  completedSteps: number;
+  failedSteps: number;
+  pendingSteps: number;
+  percent: number;
+  inProgress: boolean;
+}
+
+interface ClusterHealth {
+  clusterId: string;
+  status: string;
+  nodes: NodeHealth[];
+  progress: ClusterActionProgress;
+  readyNodes: number;
+  totalNodes: number;
+}
+
+// useClusterHealth polls the dedicated health endpoint while a cluster is in a
+// transitional state (creating, deleting, or an action in progress) so the
+// status badge and progress card update without a manual page refresh. Once the
+// cluster settles into a stable state it backs off to a slow refresh.
+export function useClusterHealth(id: string, enabled = true) {
+  return useQuery({
+    queryKey: ["clusterHealth", id],
+    queryFn: () =>
+      api.post<ClusterHealth>("/skylex.v1.ClusterService/GetClusterHealth", { id }),
+    enabled: !!id && enabled,
+    refetchInterval: (query) => {
+      const data = query.state.data as ClusterHealth | undefined;
+      if (!data) return 3000;
+      const transitional =
+        data.status === "CLUSTER_STATUS_CREATING" ||
+        data.status === "CLUSTER_STATUS_DELETING" ||
+        data.progress?.inProgress;
+      return transitional ? 3000 : 15000;
+    },
+  });
+}
+
 export function useCreateCluster() {
   const qc = useQueryClient();
   return useMutation({
