@@ -18,6 +18,7 @@ import (
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
+	"github.com/zhinea/skylex/internal/engine"
 	"github.com/zhinea/skylex/internal/id"
 	"github.com/zhinea/skylex/internal/models"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -1186,7 +1187,11 @@ func (s *PostgresManagementService) CreateRole(
 	if roleKind == "" {
 		roleKind = "custom"
 	}
-	if err := s.validate.Struct(createRoleInput{ClusterID: clusterID, RoleName: roleName, RoleKind: roleKind}); err != nil {
+	provider, err := s.requireModule(ctx, clusterID, engine.ModuleRoles)
+	if err != nil {
+		return nil, err
+	}
+	if err := provider.ValidateRoleName(roleName); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid create role request: %w", err))
 	}
 	if !validRoleKinds[roleKind] {
@@ -1259,6 +1264,7 @@ func (s *PostgresManagementService) CreateRole(
 	}
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 
+	ensureRoleAction, _ := provider.Action(engine.OpEnsureRole)
 	createInput := db.CreateRoleTxInput{
 		RoleID:                 retryRoleID,
 		OperationID:            opID,
@@ -1274,6 +1280,7 @@ func (s *PostgresManagementService) CreateRole(
 		EncryptedCommandSecret: commandSecret,
 		SecretExpiresAt:        &secretExpiresAt,
 		ExpiresAt:              expiresAt,
+		EnsureAction:           ensureRoleAction,
 	}
 	var txResult *db.PostgresRoleTx
 	if existing != nil {
@@ -1360,6 +1367,11 @@ func (s *PostgresManagementService) RotateRolePassword(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal role payload: %w", err))
 	}
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
+	provider, err := s.requireModule(ctx, role.ClusterID, engine.ModuleRoles)
+	if err != nil {
+		return nil, err
+	}
+	rotateRoleAction, _ := provider.Action(engine.OpRotateRolePassword)
 	txResult, err := s.roles.RotateWithCommand(ctx, db.RotateRoleTxInput{
 		RoleID:                 role.ID,
 		OperationID:            opID,
@@ -1371,6 +1383,7 @@ func (s *PostgresManagementService) RotateRolePassword(
 		BeforeAction:           managementBeforeAction(allowPromote),
 		EncryptedCommandSecret: commandSecret,
 		SecretExpiresAt:        &secretExpiresAt,
+		RotateAction:           rotateRoleAction,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("rotate password and queue command: %w", err))
@@ -1444,6 +1457,12 @@ func (s *PostgresManagementService) DeleteRole(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal role payload: %w", err))
 	}
 
+	dropRoleAction := ""
+	if provider, err := s.requireModule(ctx, role.ClusterID, engine.ModuleRoles); err != nil {
+		return nil, err
+	} else {
+		dropRoleAction, _ = provider.Action(engine.OpDropRole)
+	}
 	txResult, err := s.roles.DeleteWithCommand(ctx, db.DeleteRoleTxInput{
 		RoleID:       role.ID,
 		OperationID:  opID,
@@ -1452,6 +1471,7 @@ func (s *PostgresManagementService) DeleteRole(
 		AgentID:      primary.AgentID,
 		Payload:      string(payload),
 		BeforeAction: managementBeforeAction(allowPromote),
+		DropAction:   dropRoleAction,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("mark role deleting and queue command: %w", err))
@@ -1517,14 +1537,18 @@ func (s *PostgresManagementService) CreateDatabase(
 	clusterID := req.Msg.GetClusterId()
 	databaseName := strings.TrimSpace(req.Msg.GetDatabaseName())
 	ownerRoleID := strings.TrimSpace(req.Msg.GetOwnerRoleId())
-	if err := s.validate.Struct(createDatabaseInput{ClusterID: clusterID, DatabaseName: databaseName, OwnerRoleID: ownerRoleID}); err != nil {
+	if clusterID == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("cluster_id is required"))
+	}
+	provider, err := s.requireModule(ctx, clusterID, engine.ModuleDatabases)
+	if err != nil {
+		return nil, err
+	}
+	if err := provider.ValidateDatabaseName(databaseName); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("invalid create database request: %w", err))
 	}
 	if isReservedDatabaseName(databaseName) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("database %q is reserved", databaseName))
-	}
-	if err := s.requireCluster(ctx, clusterID); err != nil {
-		return nil, err
 	}
 
 	var ownerRole *db.PostgresRole
@@ -1587,6 +1611,7 @@ func (s *PostgresManagementService) CreateDatabase(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal database payload: %w", err))
 	}
 
+	ensureDatabaseAction, _ := provider.Action(engine.OpEnsureDatabase)
 	txResult, err := s.databases.CreateWithCommand(ctx, db.CreateDatabaseTxInput{
 		DatabaseID:   databaseID,
 		OperationID:  opID,
@@ -1598,6 +1623,7 @@ func (s *PostgresManagementService) CreateDatabase(
 		OwnerRoleID:  ownerRoleID,
 		Payload:      string(payload),
 		BeforeAction: managementBeforeAction(allowPromote),
+		EnsureAction: ensureDatabaseAction,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("create database and queue command: %w", err))
@@ -1663,6 +1689,12 @@ func (s *PostgresManagementService) DeleteDatabase(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal database delete payload: %w", err))
 	}
 
+	dropDatabaseAction := ""
+	if provider, err := s.requireModule(ctx, database.ClusterID, engine.ModuleDatabases); err != nil {
+		return nil, err
+	} else {
+		dropDatabaseAction, _ = provider.Action(engine.OpDropDatabase)
+	}
 	txResult, err := s.databases.DeleteWithCommand(ctx, db.DeleteDatabaseTxInput{
 		DatabaseID:   database.ID,
 		OperationID:  opID,
@@ -1671,6 +1703,7 @@ func (s *PostgresManagementService) DeleteDatabase(
 		AgentID:      primary.AgentID,
 		Payload:      string(payload),
 		BeforeAction: managementBeforeAction(allowPromote),
+		DropAction:   dropDatabaseAction,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("mark database deleting and queue command: %w", err))
@@ -1724,6 +1757,39 @@ func (s *PostgresManagementService) requireCluster(ctx context.Context, clusterI
 		return connect.NewError(connect.CodeNotFound, fmt.Errorf("cluster %q not found", clusterID))
 	}
 	return nil
+}
+
+// providerForCluster resolves the engine.Provider for a cluster, returning a
+// connect error if the cluster is missing or its engine has no provider.
+func (s *PostgresManagementService) providerForCluster(ctx context.Context, clusterID string) (engine.Provider, error) {
+	cluster, err := s.clusters.GetByID(ctx, clusterID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("get cluster: %w", err))
+	}
+	if cluster == nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("cluster %q not found", clusterID))
+	}
+	provider, err := engine.For(cluster.Engine)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+	}
+	return provider, nil
+}
+
+// requireModule returns a connect error when the cluster's engine does not
+// expose the given management module. This is the API boundary check that keeps
+// engine-specific features (e.g. extensions) from being invoked on engines that
+// do not support them.
+func (s *PostgresManagementService) requireModule(ctx context.Context, clusterID string, module engine.ModuleID) (engine.Provider, error) {
+	provider, err := s.providerForCluster(ctx, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	if !provider.Supports(module) {
+		return nil, connect.NewError(connect.CodeFailedPrecondition,
+			fmt.Errorf("engine %q does not support the %q module", provider.Engine(), module))
+	}
+	return provider, nil
 }
 
 // roleToProto converts a db.PostgresRole to the proto message.

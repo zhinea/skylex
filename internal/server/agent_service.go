@@ -14,6 +14,7 @@ import (
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
+	"github.com/zhinea/skylex/internal/engine"
 	"github.com/zhinea/skylex/internal/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -401,10 +402,21 @@ func (s *AgentService) handleDatabaseManagementCommandResult(ctx context.Context
 		}
 		return true, fmt.Errorf("marshal grant payload: %w", err)
 	}
+	grantAction := "pg_grant_database_privileges"
+	if s.clusters != nil {
+		if cluster, cErr := s.clusters.GetByID(ctx, grant.ClusterID); cErr == nil && cluster != nil {
+			if provider, pErr := engine.For(cluster.Engine); pErr == nil {
+				if action, ok := provider.Action(engine.OpGrantDatabasePrivileges); ok {
+					grantAction = action
+				}
+			}
+		}
+	}
 	cmd, err := s.postgresDBs.QueueGrantCommand(ctx, db.GrantDatabaseTxInput{
-		NodeID:  primary.ID,
-		AgentID: primary.AgentID,
-		Payload: string(payload),
+		NodeID:      primary.ID,
+		AgentID:     primary.AgentID,
+		Payload:     string(payload),
+		GrantAction: grantAction,
 	})
 	if err != nil {
 		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, err.Error()); markErr != nil {

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/zhinea/skylex/internal/engine"
 	"github.com/zhinea/skylex/internal/id"
 )
 
@@ -44,7 +45,7 @@ func NewPostgresAccessRepository(conn *sql.DB, log *slog.Logger) *PostgresAccess
 func (r *PostgresAccessRepository) ListHBAStatusByCluster(ctx context.Context, clusterID string) ([]*PostgresHBAApplyStatus, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT cluster_id, node_id, command_id, status, error, applied_at, updated_at
-		 FROM postgres_hba_apply_status WHERE cluster_id = ? ORDER BY updated_at DESC`), clusterID)
+		 FROM node_feature_apply_status WHERE cluster_id = ? AND feature = 'hba' ORDER BY updated_at DESC`), clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("list hba apply status: %w", err)
 	}
@@ -83,15 +84,15 @@ func (r *PostgresAccessRepository) QueueApplyHBACommands(ctx context.Context, cl
 			return nil, err
 		}
 		if _, err := tx.ExecContext(ctx,
-			Rebind(`DELETE FROM postgres_hba_apply_status WHERE cluster_id = ? AND node_id = ?`),
+			Rebind(`DELETE FROM node_feature_apply_status WHERE cluster_id = ? AND node_id = ? AND feature = 'hba'`),
 			clusterID, cmd.NodeID,
 		); err != nil {
 			return nil, fmt.Errorf("delete old hba apply status: %w", err)
 		}
 		if _, err := tx.ExecContext(ctx,
-			Rebind(`INSERT INTO postgres_hba_apply_status
-			 (cluster_id, node_id, command_id, status, error, applied_at, updated_at)
-			 VALUES (?, ?, ?, 'pending', '', NULL, ?)`),
+			Rebind(`INSERT INTO node_feature_apply_status
+			 (cluster_id, node_id, feature, command_id, status, error, detail, applied_at, updated_at)
+			 VALUES (?, ?, 'hba', ?, 'pending', '', '{}', NULL, ?)`),
 			clusterID, cmd.NodeID, commandID, now,
 		); err != nil {
 			return nil, fmt.Errorf("insert hba apply status: %w", err)
@@ -127,7 +128,7 @@ func (r *PostgresAccessRepository) HandleHBACommandResult(ctx context.Context, c
 		}
 		return false, fmt.Errorf("get command for hba result: %w", err)
 	}
-	if action != "pg_apply_hba" {
+	if op, ok := engine.LogicalOpForAction(action); !ok || op != engine.OpApplyHBA {
 		return false, nil
 	}
 
@@ -150,9 +151,9 @@ func (r *PostgresAccessRepository) HandleHBACommandResult(ctx context.Context, c
 		appliedAt = nil
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_hba_apply_status
+		Rebind(`UPDATE node_feature_apply_status
 		 SET status = ?, error = ?, applied_at = ?, updated_at = ?
-		 WHERE cluster_id = ? AND node_id = ? AND command_id = ?`),
+		 WHERE cluster_id = ? AND node_id = ? AND command_id = ? AND feature = 'hba'`),
 		status, RedactStoredError(errMsg), appliedAt, now, p.ClusterID, p.NodeID, commandID,
 	); err != nil {
 		return true, fmt.Errorf("update hba apply status: %w", err)

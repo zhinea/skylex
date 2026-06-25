@@ -16,6 +16,7 @@ import (
 	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
 	"github.com/zhinea/skylex/internal/dcs"
+	_ "github.com/zhinea/skylex/internal/engine/postgres" // register the PostgreSQL engine provider
 	"github.com/zhinea/skylex/internal/id"
 	"github.com/zhinea/skylex/internal/models"
 	"github.com/zhinea/skylex/internal/pgbackrest"

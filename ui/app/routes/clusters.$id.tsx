@@ -36,8 +36,12 @@ import { ManagedDatabasesCard } from "~/components/cluster/ManagedDatabasesCard"
 import { TLSConfigCard } from "~/components/cluster/TLSConfigCard";
 import { NetworkAccessCard } from "~/components/cluster/NetworkAccessCard";
 
-type ActiveMenu = "overview" | "connection" | "databases" | "roles" | "network" | "tls" | "settings" | "diagnostics";
+type ActiveMenu = "overview" | "connection" | "databases" | "roles" | "network" | "tls" | "extensions" | "settings" | "diagnostics";
 
+// menuItems is the built-in fallback used only when the backend does not return
+// an engine module list (older server / unknown engine). Normally the sidebar is
+// driven by the engine modules in the GetCluster response so engine-specific
+// modules (e.g. "extensions") appear only for engines that support them.
 const menuItems = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "connection", label: "Connection", icon: Link2 },
@@ -150,6 +154,13 @@ export default function ClusterDetailPage() {
 
   const nodes = nodesData?.nodes || [];
   const health = healthData;
+  // Build the sidebar from the engine modules returned by GetCluster so
+  // engine-specific modules (e.g. extensions) only show for engines that
+  // support them. Fall back to the built-in list when modules are absent.
+  const sidebarItems =
+    clusterData?.modules && clusterData.modules.length > 0
+      ? clusterData.modules.map((m) => ({ id: m.id, label: m.label }))
+      : menuItems.map((m) => ({ id: m.id as string, label: m.label }));
   // Prefer the live health snapshot for status so the badge flips from
   // "creating" to "online" without a manual refresh once provisioning settles.
   const liveStatus = health?.status ?? cluster.status;
@@ -245,7 +256,7 @@ export default function ClusterDetailPage() {
           </div>
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto no-scrollbar">
-          {menuItems.map((item) => {
+          {sidebarItems.map((item) => {
             const isActive = activeMenu === item.id;
             const iconName = (() => {
               switch (item.id) {
@@ -255,6 +266,7 @@ export default function ClusterDetailPage() {
                 case "roles": return "group";
                 case "network": return "security";
                 case "tls": return "lock";
+                case "extensions": return "extension";
                 case "settings": return "settings";
                 case "diagnostics": return "info";
                 default: return "help";
@@ -263,7 +275,7 @@ export default function ClusterDetailPage() {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveMenu(item.id)}
+                onClick={() => setActiveMenu(item.id as ActiveMenu)}
                 className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors cursor-pointer text-left ${
                   isActive
                     ? "bg-neutral-100 dark:bg-neutral-900 text-foreground font-medium"

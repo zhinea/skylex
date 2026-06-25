@@ -14,6 +14,7 @@ import (
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/db"
+	"github.com/zhinea/skylex/internal/engine"
 	"github.com/zhinea/skylex/internal/id"
 	"github.com/zhinea/skylex/internal/models"
 	"google.golang.org/grpc/codes"
@@ -328,7 +329,24 @@ func (s *ClusterService) GetCluster(ctx context.Context, req *skylexv1.GetCluste
 
 	return &skylexv1.GetClusterResponse{
 		Cluster: clusterToProto(cluster),
+		Modules: engineModulesProto(cluster.Engine),
 	}, nil
+}
+
+// engineModulesProto returns the UI module list advertised by the cluster's
+// engine provider. It returns nil when no provider is registered for the engine
+// (the UI then falls back to its built-in defaults).
+func engineModulesProto(e models.EngineType) []*skylexv1.EngineModule {
+	provider, err := engine.For(e)
+	if err != nil {
+		return nil
+	}
+	modules := provider.Modules()
+	out := make([]*skylexv1.EngineModule, 0, len(modules))
+	for _, m := range modules {
+		out = append(out, &skylexv1.EngineModule{Id: string(m.ID), Label: m.Label})
+	}
+	return out
 }
 
 func (s *ClusterService) ListClusters(ctx context.Context, req *skylexv1.ListClustersRequest) (*skylexv1.ListClustersResponse, error) {

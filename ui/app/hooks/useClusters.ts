@@ -30,6 +30,14 @@ interface Pagination {
   total: number;
 }
 
+// EngineModule is a UI-visible management capability advertised by the cluster's
+// engine. The detail page builds its sidebar from this list so engine-specific
+// modules (e.g. "extensions") only appear for engines that support them.
+export interface EngineModule {
+  id: string;
+  label: string;
+}
+
 export function useClusters(page = 1, pageSize = 20) {
   return useQuery({
     queryKey: ["clusters", page, pageSize],
@@ -45,7 +53,7 @@ export function useCluster(id: string) {
   return useQuery({
     queryKey: ["clusters", id],
     queryFn: () =>
-      api.post<{ cluster: Cluster }>("/skylex.v1.ClusterService/GetCluster", { id }),
+      api.post<{ cluster: Cluster; modules?: EngineModule[] }>("/skylex.v1.ClusterService/GetCluster", { id }),
     enabled: !!id,
   });
 }

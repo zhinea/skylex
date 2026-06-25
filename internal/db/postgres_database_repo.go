@@ -22,7 +22,7 @@ type PostgresDatabase struct {
 	UpdatedAt    time.Time
 }
 
-// PostgresDatabaseRepository manages postgres_databases rows and their queued commands.
+// PostgresDatabaseRepository manages managed_databases rows and their queued commands.
 type PostgresDatabaseRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
@@ -51,21 +51,21 @@ func NewPostgresDatabaseRepository(conn *sql.DB, log *slog.Logger) *PostgresData
 func (r *PostgresDatabaseRepository) GetByID(ctx context.Context, databaseID string) (*PostgresDatabase, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
-		 FROM postgres_databases WHERE id = ?`), databaseID)
+		 FROM managed_databases WHERE id = ?`), databaseID)
 	return scanPostgresDatabase(row)
 }
 
 func (r *PostgresDatabaseRepository) GetByClusterAndName(ctx context.Context, clusterID, databaseName string) (*PostgresDatabase, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
-		 FROM postgres_databases WHERE cluster_id = ? AND database_name = ?`), clusterID, databaseName)
+		 FROM managed_databases WHERE cluster_id = ? AND database_name = ?`), clusterID, databaseName)
 	return scanPostgresDatabase(row)
 }
 
 func (r *PostgresDatabaseRepository) ListByCluster(ctx context.Context, clusterID string) ([]*PostgresDatabase, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
-		 FROM postgres_databases WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
+		 FROM managed_databases WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("list postgres databases: %w", err)
 	}
@@ -85,7 +85,7 @@ func (r *PostgresDatabaseRepository) ListByCluster(ctx context.Context, clusterI
 func (r *PostgresDatabaseRepository) HasByOwnerRole(ctx context.Context, roleID string) (bool, error) {
 	var exists bool
 	if err := r.conn.QueryRowContext(ctx,
-		Rebind(`SELECT EXISTS(SELECT 1 FROM postgres_databases WHERE owner_role_id = ? AND status != 'deleting')`), roleID,
+		Rebind(`SELECT EXISTS(SELECT 1 FROM managed_databases WHERE owner_role_id = ? AND status != 'deleting')`), roleID,
 	).Scan(&exists); err != nil {
 		return false, fmt.Errorf("check databases by owner role: %w", err)
 	}
@@ -111,7 +111,7 @@ func (r *PostgresDatabaseRepository) CreateWithCommand(ctx context.Context, inpu
 	}
 
 	_, err = tx.ExecContext(ctx,
-		Rebind(`INSERT INTO postgres_databases
+		Rebind(`INSERT INTO managed_databases
 		 (id, cluster_id, database_name, owner_role_id, status, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, 'pending', ?, ?)`),
 		databaseID, input.ClusterID, input.DatabaseName, ownerRoleIDArg, now, now,
@@ -129,12 +129,12 @@ func (r *PostgresDatabaseRepository) CreateWithCommand(ctx context.Context, inpu
 			return nil, err
 		}
 	}
-	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_ensure_database", input.Payload, now)
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.EnsureAction, input.Payload, now)
 	if err != nil {
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
 	}
 	op.Status = "running"
@@ -168,7 +168,7 @@ func (r *PostgresDatabaseRepository) DeleteWithCommand(ctx context.Context, inpu
 	var ownerRoleID sql.NullString
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
-		 FROM postgres_databases WHERE id = ?`), input.DatabaseID,
+		 FROM managed_databases WHERE id = ?`), input.DatabaseID,
 	).Scan(&database.ID, &database.ClusterID, &database.DatabaseName, &ownerRoleID, &database.Status, &database.CreatedAt, &database.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("database %q not found", input.DatabaseID)
@@ -182,7 +182,7 @@ func (r *PostgresDatabaseRepository) DeleteWithCommand(ctx context.Context, inpu
 
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_databases SET status = 'deleting', updated_at = ? WHERE id = ?`), now, input.DatabaseID); err != nil {
+		Rebind(`UPDATE managed_databases SET status = 'deleting', updated_at = ? WHERE id = ?`), now, input.DatabaseID); err != nil {
 		return nil, fmt.Errorf("mark database deleting: %w", err)
 	}
 	database.Status = "deleting"
@@ -197,12 +197,12 @@ func (r *PostgresDatabaseRepository) DeleteWithCommand(ctx context.Context, inpu
 			return nil, err
 		}
 	}
-	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_drop_database", input.Payload, now)
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.DropAction, input.Payload, now)
 	if err != nil {
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
 	}
 	op.Status = "running"
@@ -221,13 +221,13 @@ func (r *PostgresDatabaseRepository) QueueGrantCommand(ctx context.Context, inpu
 	}
 	_, err := r.conn.ExecContext(ctx,
 		Rebind(`INSERT INTO agent_commands (id, agent_id, node_id, action, payload, status, created_at)
-		 VALUES (?, ?, ?, 'pg_grant_database_privileges', ?, 'pending', ?)`),
-		commandID, input.AgentID, input.NodeID, input.Payload, now,
+		 VALUES (?, ?, ?, ?, ?, 'pending', ?)`),
+		commandID, input.AgentID, input.NodeID, input.GrantAction, input.Payload, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert grant database command: %w", err)
 	}
-	return &AgentCommand{ID: commandID, AgentID: input.AgentID, NodeID: input.NodeID, Action: "pg_grant_database_privileges", Payload: input.Payload, Status: "pending", CreatedAt: now}, nil
+	return &AgentCommand{ID: commandID, AgentID: input.AgentID, NodeID: input.NodeID, Action: input.GrantAction, Payload: input.Payload, Status: "pending", CreatedAt: now}, nil
 }
 
 func (r *PostgresDatabaseRepository) MarkCreateFailed(ctx context.Context, databaseID, operationID, errMsg string) error {
@@ -339,7 +339,7 @@ func (r *PostgresDatabaseRepository) HandleCommandResult(ctx context.Context, co
 		}
 	case "pg_drop_database":
 		if success {
-			if _, err := tx.ExecContext(ctx, Rebind(`DELETE FROM postgres_databases WHERE id = ?`), p.DatabaseID); err != nil {
+			if _, err := tx.ExecContext(ctx, Rebind(`DELETE FROM managed_databases WHERE id = ?`), p.DatabaseID); err != nil {
 				return true, nil, fmt.Errorf("delete database after drop: %w", err)
 			}
 			if err := markDatabaseOperation(ctx, tx, p.OperationID, operationType, "succeeded", "", now); err != nil {
@@ -373,6 +373,10 @@ type CreateDatabaseTxInput struct {
 	Payload       string
 	BeforeAction  string
 	BeforePayload string
+	// EnsureAction is the engine-specific agent command action for ensuring a
+	// database (e.g. "pg_ensure_database"). Resolved by the caller from the
+	// engine provider.
+	EnsureAction string
 }
 
 type DeleteDatabaseTxInput struct {
@@ -384,6 +388,9 @@ type DeleteDatabaseTxInput struct {
 	Payload       string
 	BeforeAction  string
 	BeforePayload string
+	// DropAction is the engine-specific agent command action for dropping a
+	// database (e.g. "pg_drop_database").
+	DropAction string
 }
 
 type GrantDatabaseTxInput struct {
@@ -391,6 +398,9 @@ type GrantDatabaseTxInput struct {
 	NodeID    string
 	AgentID   string
 	Payload   string
+	// GrantAction is the engine-specific agent command action for granting
+	// database privileges (e.g. "pg_grant_database_privileges").
+	GrantAction string
 }
 
 type databaseCommandPayload struct {
@@ -417,7 +427,7 @@ func operationTypeForDatabaseAction(action string) string {
 func clusterIDForDatabase(ctx context.Context, tx *sql.Tx, databaseID string) (string, error) {
 	var clusterID string
 	if err := tx.QueryRowContext(ctx,
-		Rebind(`SELECT cluster_id FROM postgres_databases WHERE id = ?`), databaseID,
+		Rebind(`SELECT cluster_id FROM managed_databases WHERE id = ?`), databaseID,
 	).Scan(&clusterID); err != nil {
 		return "", fmt.Errorf("get database cluster: %w", err)
 	}
@@ -426,7 +436,7 @@ func clusterIDForDatabase(ctx context.Context, tx *sql.Tx, databaseID string) (s
 
 func markDatabaseStatus(ctx context.Context, tx *sql.Tx, databaseID, status string, now time.Time) error {
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_databases SET status = ?, updated_at = ? WHERE id = ?`), status, now, databaseID,
+		Rebind(`UPDATE managed_databases SET status = ?, updated_at = ? WHERE id = ?`), status, now, databaseID,
 	); err != nil {
 		return fmt.Errorf("mark database %s: %w", status, err)
 	}
@@ -439,7 +449,7 @@ func markDatabaseOperation(ctx context.Context, tx *sql.Tx, operationID, operati
 		completedAt = now
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = ?, error = ?, updated_at = ?, completed_at = ? WHERE id = ? AND operation_type = ?`),
+		Rebind(`UPDATE service_operations SET status = ?, error = ?, updated_at = ?, completed_at = ? WHERE id = ? AND operation_type = ?`),
 		status, errMsg, now, completedAt, operationID, operationType,
 	); err != nil {
 		return fmt.Errorf("update database operation: %w", err)

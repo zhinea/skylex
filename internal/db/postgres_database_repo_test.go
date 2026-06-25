@@ -14,9 +14,9 @@ func TestMigrations_SQLite_PostgresDatabasesTable(t *testing.T) {
 
 	_, err := database.Conn().ExecContext(ctx,
 		`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
-		 FROM postgres_databases LIMIT 0`)
+		 FROM managed_databases LIMIT 0`)
 	if err != nil {
-		t.Fatalf("postgres_databases table missing expected columns: %v", err)
+		t.Fatalf("managed_databases table missing expected columns: %v", err)
 	}
 }
 
@@ -39,6 +39,7 @@ func TestPostgresDatabaseRepository_CreateListAndUniqueName(t *testing.T) {
 		AgentID:      "agent-1",
 		DatabaseName: "app_db",
 		Payload:      string(payload),
+		EnsureAction: "pg_ensure_database",
 	})
 	if err != nil {
 		t.Fatalf("create database with command: %v", err)
@@ -77,7 +78,7 @@ func TestPostgresDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
 
 	roleID := id.New()
 	if _, err := database.Conn().ExecContext(ctx,
-		Rebind(`INSERT INTO postgres_roles
+		Rebind(`INSERT INTO managed_roles
 		 (id, cluster_id, role_name, role_kind, encrypted_password, password_version, status, created_at, updated_at)
 		 VALUES (?, ?, 'app_user', 'read_write', 'ciphertext', 1, 'ready', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`),
 		roleID, clusterID,
@@ -101,6 +102,7 @@ func TestPostgresDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
 		DatabaseName: "app_db",
 		OwnerRoleID:  roleID,
 		Payload:      string(ensurePayload),
+		EnsureAction: "pg_ensure_database",
 	}); err != nil {
 		t.Fatalf("create database: %v", err)
 	}
@@ -120,7 +122,7 @@ func TestPostgresDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
 		"grant_role_name": grant.GrantRoleName,
 		"grant_role_kind": grant.GrantRoleKind,
 	})
-	cmd, err := repo.QueueGrantCommand(ctx, GrantDatabaseTxInput{CommandID: "cmd-grant", AgentID: "agent-1", Payload: string(grantPayload)})
+	cmd, err := repo.QueueGrantCommand(ctx, GrantDatabaseTxInput{CommandID: "cmd-grant", AgentID: "agent-1", Payload: string(grantPayload), GrantAction: "pg_grant_database_privileges"})
 	if err != nil {
 		t.Fatalf("queue grant command: %v", err)
 	}
@@ -139,7 +141,7 @@ func TestPostgresDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
 		t.Fatalf("expected ready database, got %q", managedDB.Status)
 	}
 	var opStatus string
-	if err := database.Conn().QueryRowContext(ctx, Rebind(`SELECT status FROM postgres_operations WHERE id = ?`), "op-grant").Scan(&opStatus); err != nil {
+	if err := database.Conn().QueryRowContext(ctx, Rebind(`SELECT status FROM service_operations WHERE id = ?`), "op-grant").Scan(&opStatus); err != nil {
 		t.Fatalf("get operation status: %v", err)
 	}
 	if opStatus != "succeeded" {
@@ -166,6 +168,7 @@ func TestPostgresDatabaseRepository_DeleteWithCommandAndDropResult(t *testing.T)
 		AgentID:      "agent-1",
 		DatabaseName: "delete_me",
 		Payload:      string(createPayload),
+		EnsureAction: "pg_ensure_database",
 	}); err != nil {
 		t.Fatalf("create database: %v", err)
 	}
@@ -181,6 +184,7 @@ func TestPostgresDatabaseRepository_DeleteWithCommandAndDropResult(t *testing.T)
 		CommandID:   "cmd-drop",
 		AgentID:     "agent-1",
 		Payload:     string(dropPayload),
+		DropAction:  "pg_drop_database",
 	}); err != nil {
 		t.Fatalf("delete database with command: %v", err)
 	}

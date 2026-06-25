@@ -38,6 +38,18 @@ message GetClusterRequest {
 
 message GetClusterResponse {
   Cluster cluster = 1;
+  // modules is the ordered set of management capabilities the cluster's engine
+  // exposes. The UI builds its detail sidebar directly from this list so it
+  // needs no engine-specific branching (e.g. "extensions" is present for
+  // PostgreSQL but absent for MariaDB/MySQL).
+  repeated EngineModule modules = 2;
+}
+
+// EngineModule is a single UI-visible management capability advertised by a
+// database engine provider.
+message EngineModule {
+  string id = 1;     // "overview" | "connection" | "databases" | "roles" | "network" | "tls" | "extensions" | "settings" | "diagnostics"
+  string label = 2;  // human-readable label, e.g. "Databases"
 }
 
 message GetClusterHealthRequest {

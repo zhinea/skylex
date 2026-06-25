@@ -23,7 +23,7 @@ type PostgresOperation struct {
 	CompletedAt   *time.Time
 }
 
-// PostgresOperationRepository manages postgres_operations rows.
+// PostgresOperationRepository manages service_operations rows.
 type PostgresOperationRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
@@ -43,7 +43,7 @@ func (r *PostgresOperationRepository) Create(ctx context.Context, clusterID, nod
 	}
 
 	_, err := r.conn.ExecContext(ctx,
-		Rebind(`INSERT INTO postgres_operations
+		Rebind(`INSERT INTO service_operations
 		 (id, cluster_id, node_id, operation_type, status, error, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, 'pending', '', ?, ?)`),
 		opID, clusterID, nodeIDArg, operationType, now, now,
@@ -71,7 +71,7 @@ func (r *PostgresOperationRepository) UpdateStatus(ctx context.Context, opID, st
 	}
 
 	_, err := r.conn.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = ?, error = ?, updated_at = ?, completed_at = ? WHERE id = ?`),
+		Rebind(`UPDATE service_operations SET status = ?, error = ?, updated_at = ?, completed_at = ? WHERE id = ?`),
 		status, errMsg, now, completedAt, opID,
 	)
 	if err != nil {
@@ -86,7 +86,7 @@ func (r *PostgresOperationRepository) ListByCluster(ctx context.Context, cluster
 	}
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT id, cluster_id, node_id, operation_type, status, error, created_at, updated_at, completed_at
-		 FROM postgres_operations WHERE cluster_id = ? ORDER BY created_at DESC LIMIT ?`), clusterID, limit)
+		 FROM service_operations WHERE cluster_id = ? ORDER BY created_at DESC LIMIT ?`), clusterID, limit)
 	if err != nil {
 		return nil, fmt.Errorf("list postgres operations: %w", err)
 	}

@@ -27,7 +27,7 @@ type PostgresRole struct {
 	UpdatedAt         time.Time
 }
 
-// PostgresRoleRepository manages postgres_roles rows.
+// PostgresRoleRepository manages managed_roles rows.
 type PostgresRoleRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
@@ -62,7 +62,7 @@ func (r *PostgresRoleRepository) Create(ctx context.Context, clusterID, roleName
 	now := time.Now().UTC()
 
 	_, err := r.conn.ExecContext(ctx,
-		Rebind(`INSERT INTO postgres_roles
+		Rebind(`INSERT INTO managed_roles
 		 (id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, 1, ?, 'pending', ?, ?)`),
 		roleID, clusterID, roleName, roleKind, encryptedPassword, expiresAt, now, now,
@@ -88,21 +88,21 @@ func (r *PostgresRoleRepository) Create(ctx context.Context, clusterID, roleName
 func (r *PostgresRoleRepository) GetByID(ctx context.Context, roleID string) (*PostgresRole, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
-		 FROM postgres_roles WHERE id = ?`), roleID)
+		 FROM managed_roles WHERE id = ?`), roleID)
 	return scanPostgresRole(row)
 }
 
 func (r *PostgresRoleRepository) GetByClusterAndName(ctx context.Context, clusterID, roleName string) (*PostgresRole, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
-		 FROM postgres_roles WHERE cluster_id = ? AND role_name = ?`), clusterID, roleName)
+		 FROM managed_roles WHERE cluster_id = ? AND role_name = ?`), clusterID, roleName)
 	return scanPostgresRole(row)
 }
 
 func (r *PostgresRoleRepository) ListByCluster(ctx context.Context, clusterID string) ([]*PostgresRole, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
-		 FROM postgres_roles WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
+		 FROM managed_roles WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("list postgres roles: %w", err)
 	}
@@ -122,7 +122,7 @@ func (r *PostgresRoleRepository) ListByCluster(ctx context.Context, clusterID st
 func (r *PostgresRoleRepository) UpdateStatus(ctx context.Context, roleID, status string) error {
 	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
-		Rebind(`UPDATE postgres_roles SET status = ?, updated_at = ? WHERE id = ?`),
+		Rebind(`UPDATE managed_roles SET status = ?, updated_at = ? WHERE id = ?`),
 		status, now, roleID)
 	if err != nil {
 		return fmt.Errorf("update postgres role status: %w", err)
@@ -142,7 +142,7 @@ func (r *PostgresRoleRepository) RotatePassword(ctx context.Context, roleID, enc
 
 	var currentVersion int
 	if err := tx.QueryRowContext(ctx,
-		Rebind(`SELECT password_version FROM postgres_roles WHERE id = ?`), roleID,
+		Rebind(`SELECT password_version FROM managed_roles WHERE id = ?`), roleID,
 	).Scan(&currentVersion); err != nil {
 		if err == sql.ErrNoRows {
 			return 0, fmt.Errorf("role %q not found", roleID)
@@ -152,7 +152,7 @@ func (r *PostgresRoleRepository) RotatePassword(ctx context.Context, roleID, enc
 
 	newVersion := currentVersion + 1
 	_, err = tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_roles SET encrypted_password = ?, password_version = ?, status = 'pending', updated_at = ? WHERE id = ?`),
+		Rebind(`UPDATE managed_roles SET encrypted_password = ?, password_version = ?, status = 'pending', updated_at = ? WHERE id = ?`),
 		encryptedPassword, newVersion, now, roleID,
 	)
 	if err != nil {
@@ -166,7 +166,7 @@ func (r *PostgresRoleRepository) RotatePassword(ctx context.Context, roleID, enc
 }
 
 func (r *PostgresRoleRepository) Delete(ctx context.Context, roleID string) error {
-	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM postgres_roles WHERE id = ?`), roleID)
+	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM managed_roles WHERE id = ?`), roleID)
 	if err != nil {
 		return fmt.Errorf("delete postgres role: %w", err)
 	}
@@ -187,7 +187,7 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 		roleID = id.New()
 	}
 	_, err = tx.ExecContext(ctx,
-		Rebind(`INSERT INTO postgres_roles
+		Rebind(`INSERT INTO managed_roles
 		 (id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, 1, ?, 'pending', ?, ?)`),
 		roleID, input.ClusterID, input.RoleName, input.RoleKind, input.EncryptedPassword, input.ExpiresAt, now, now,
@@ -205,7 +205,7 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 			return nil, err
 		}
 	}
-	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_ensure_role", input.Payload, now)
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.EnsureAction, input.Payload, now)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
 	}
 	op.Status = "running"
@@ -249,7 +249,7 @@ func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, inp
 	var expiresAt sql.NullTime
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
-		 FROM postgres_roles WHERE id = ?`), input.RoleID,
+		 FROM managed_roles WHERE id = ?`), input.RoleID,
 	).Scan(&role.ID, &role.ClusterID, &role.RoleName, &role.RoleKind, &role.EncryptedPassword, &role.PasswordVersion, &expiresAt, &role.Status, &role.CreatedAt, &role.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("role %q not found", input.RoleID)
@@ -276,7 +276,7 @@ func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, inp
 	role.UpdatedAt = now
 
 	_, err = tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_roles
+		Rebind(`UPDATE managed_roles
 		 SET role_kind = ?, encrypted_password = ?, password_version = ?, expires_at = ?, status = 'pending', updated_at = ?
 		 WHERE id = ?`),
 		role.RoleKind, role.EncryptedPassword, role.PasswordVersion, role.ExpiresAt, now, role.ID,
@@ -294,7 +294,7 @@ func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, inp
 			return nil, err
 		}
 	}
-	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_ensure_role", input.Payload, now)
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.EnsureAction, input.Payload, now)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +302,7 @@ func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, inp
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark retry operation running: %w", err)
 	}
 	op.Status = "running"
@@ -325,7 +325,7 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 	var expiresAt sql.NullTime
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
-		 FROM postgres_roles WHERE id = ?`), input.RoleID,
+		 FROM managed_roles WHERE id = ?`), input.RoleID,
 	).Scan(&role.ID, &role.ClusterID, &role.RoleName, &role.RoleKind, &role.EncryptedPassword, &role.PasswordVersion, &expiresAt, &role.Status, &role.CreatedAt, &role.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("role %q not found", input.RoleID)
@@ -347,7 +347,7 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 	role.UpdatedAt = now
 
 	_, err = tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_roles SET encrypted_password = ?, password_version = ?, status = 'pending', updated_at = ? WHERE id = ?`),
+		Rebind(`UPDATE managed_roles SET encrypted_password = ?, password_version = ?, status = 'pending', updated_at = ? WHERE id = ?`),
 		input.EncryptedPassword, role.PasswordVersion, now, input.RoleID,
 	)
 	if err != nil {
@@ -363,7 +363,7 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 			return nil, err
 		}
 	}
-	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_rotate_role_password", input.Payload, now)
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.RotateAction, input.Payload, now)
 	if err != nil {
 		return nil, err
 	}
@@ -371,7 +371,7 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
 	}
 	op.Status = "running"
@@ -394,7 +394,7 @@ func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input De
 	var expiresAt sql.NullTime
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
-		 FROM postgres_roles WHERE id = ?`), input.RoleID,
+		 FROM managed_roles WHERE id = ?`), input.RoleID,
 	).Scan(&role.ID, &role.ClusterID, &role.RoleName, &role.RoleKind, &role.EncryptedPassword, &role.PasswordVersion, &expiresAt, &role.Status, &role.CreatedAt, &role.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("role %q not found", input.RoleID)
@@ -408,7 +408,7 @@ func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input De
 
 	now := time.Now().UTC()
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_roles SET status = 'deleting', updated_at = ? WHERE id = ?`), now, input.RoleID); err != nil {
+		Rebind(`UPDATE managed_roles SET status = 'deleting', updated_at = ? WHERE id = ?`), now, input.RoleID); err != nil {
 		return nil, fmt.Errorf("mark role deleting: %w", err)
 	}
 	role.Status = "deleting"
@@ -423,12 +423,12 @@ func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input De
 			return nil, err
 		}
 	}
-	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, "pg_drop_role", input.Payload, now)
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.DropAction, input.Payload, now)
 	if err != nil {
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
+		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
 	}
 	op.Status = "running"
@@ -478,16 +478,16 @@ func (r *PostgresRoleRepository) HandleCommandResult(ctx context.Context, comman
 	if success {
 		switch action {
 		case "pg_drop_role":
-			if _, err := tx.ExecContext(ctx, Rebind(`DELETE FROM postgres_roles WHERE id = ?`), rolePayload.RoleID); err != nil {
+			if _, err := tx.ExecContext(ctx, Rebind(`DELETE FROM managed_roles WHERE id = ?`), rolePayload.RoleID); err != nil {
 				return true, fmt.Errorf("delete role after drop: %w", err)
 			}
 		default:
-			if _, err := tx.ExecContext(ctx, Rebind(`UPDATE postgres_roles SET status = 'ready', updated_at = ? WHERE id = ?`), now, rolePayload.RoleID); err != nil {
+			if _, err := tx.ExecContext(ctx, Rebind(`UPDATE managed_roles SET status = 'ready', updated_at = ? WHERE id = ?`), now, rolePayload.RoleID); err != nil {
 				return true, fmt.Errorf("mark role ready: %w", err)
 			}
 		}
 	} else {
-		if _, err := tx.ExecContext(ctx, Rebind(`UPDATE postgres_roles SET status = 'failed', updated_at = ? WHERE id = ?`), now, rolePayload.RoleID); err != nil {
+		if _, err := tx.ExecContext(ctx, Rebind(`UPDATE managed_roles SET status = 'failed', updated_at = ? WHERE id = ?`), now, rolePayload.RoleID); err != nil {
 			return true, fmt.Errorf("mark role failed: %w", err)
 		}
 	}
@@ -500,7 +500,7 @@ func (r *PostgresRoleRepository) HandleCommandResult(ctx context.Context, comman
 		return true, fmt.Errorf("role command payload missing operation_id")
 	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_operations SET status = ?, error = ?, updated_at = ?, completed_at = ? WHERE id = ? AND operation_type = ?`),
+		Rebind(`UPDATE service_operations SET status = ?, error = ?, updated_at = ?, completed_at = ? WHERE id = ? AND operation_type = ?`),
 		opStatus, errMsg, now, now, rolePayload.OperationID, operationType,
 	); err != nil {
 		return true, fmt.Errorf("update role operation: %w", err)
@@ -532,6 +532,9 @@ type CreateRoleTxInput struct {
 	EncryptedCommandSecret []byte
 	SecretExpiresAt        *time.Time
 	ExpiresAt              *time.Time
+	// EnsureAction is the engine-specific agent command action for ensuring a
+	// role (e.g. "pg_ensure_role"). Resolved by the caller from the provider.
+	EnsureAction string
 }
 
 type RotateRoleTxInput struct {
@@ -546,6 +549,9 @@ type RotateRoleTxInput struct {
 	BeforePayload          string
 	EncryptedCommandSecret []byte
 	SecretExpiresAt        *time.Time
+	// RotateAction is the engine-specific agent command action for rotating a
+	// role password (e.g. "pg_rotate_role_password").
+	RotateAction string
 }
 
 type DeleteRoleTxInput struct {
@@ -557,6 +563,9 @@ type DeleteRoleTxInput struct {
 	Payload       string
 	BeforeAction  string
 	BeforePayload string
+	// DropAction is the engine-specific agent command action for dropping a
+	// role (e.g. "pg_drop_role").
+	DropAction string
 }
 
 func insertPostgresOperation(ctx context.Context, tx *sql.Tx, opID, clusterID, nodeID, operationType string, now time.Time) (*PostgresOperation, error) {
@@ -568,7 +577,7 @@ func insertPostgresOperation(ctx context.Context, tx *sql.Tx, opID, clusterID, n
 		nodeIDArg = nodeID
 	}
 	_, err := tx.ExecContext(ctx,
-		Rebind(`INSERT INTO postgres_operations
+		Rebind(`INSERT INTO service_operations
 		 (id, cluster_id, node_id, operation_type, status, error, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, 'pending', '', ?, ?)`),
 		opID, clusterID, nodeIDArg, operationType, now, now,

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/zhinea/skylex/internal/crypto"
+	"github.com/zhinea/skylex/internal/engine"
 	"github.com/zhinea/skylex/internal/id"
 )
 
@@ -44,10 +45,17 @@ func NewPostgresTLSRepository(conn *sql.DB, log *slog.Logger, encryptKey []byte)
 	return &PostgresTLSRepository{conn: conn, log: log, encryptKey: encryptKey}
 }
 
+// tlsApplyDetail holds the TLS-specific fields stored in the shared
+// node_feature_apply_status.detail JSON column.
+type tlsApplyDetail struct {
+	RequestedTLSMode string `json:"requested_tls_mode"`
+	TLSActive        bool   `json:"tls_active"`
+}
+
 func (r *PostgresTLSRepository) ListStatusByCluster(ctx context.Context, clusterID string) ([]*PostgresTLSApplyStatus, error) {
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT cluster_id, node_id, command_id, requested_tls_mode, status, error, tls_active, applied_at, updated_at
-		 FROM postgres_tls_apply_status WHERE cluster_id = ? ORDER BY updated_at DESC`), clusterID)
+		Rebind(`SELECT cluster_id, node_id, command_id, status, error, detail, applied_at, updated_at
+		 FROM node_feature_apply_status WHERE cluster_id = ? AND feature = 'tls' ORDER BY updated_at DESC`), clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("list tls apply status: %w", err)
 	}
@@ -96,16 +104,20 @@ func (r *PostgresTLSRepository) QueueApplyTLSCommands(ctx context.Context, clust
 			}
 		}
 		if _, err := tx.ExecContext(ctx,
-			Rebind(`DELETE FROM postgres_tls_apply_status WHERE cluster_id = ? AND node_id = ?`),
+			Rebind(`DELETE FROM node_feature_apply_status WHERE cluster_id = ? AND node_id = ? AND feature = 'tls'`),
 			clusterID, cmd.NodeID,
 		); err != nil {
 			return nil, fmt.Errorf("delete old tls apply status: %w", err)
 		}
+		detailJSON, err := json.Marshal(tlsApplyDetail{RequestedTLSMode: requestedTLSMode, TLSActive: false})
+		if err != nil {
+			return nil, fmt.Errorf("marshal tls apply detail: %w", err)
+		}
 		if _, err := tx.ExecContext(ctx,
-			Rebind(`INSERT INTO postgres_tls_apply_status
-			 (cluster_id, node_id, command_id, requested_tls_mode, status, error, tls_active, applied_at, updated_at)
-			 VALUES (?, ?, ?, ?, 'pending', '', FALSE, NULL, ?)`),
-			clusterID, cmd.NodeID, commandID, requestedTLSMode, now,
+			Rebind(`INSERT INTO node_feature_apply_status
+			 (cluster_id, node_id, feature, command_id, status, error, detail, applied_at, updated_at)
+			 VALUES (?, ?, 'tls', ?, 'pending', '', ?, NULL, ?)`),
+			clusterID, cmd.NodeID, commandID, string(detailJSON), now,
 		); err != nil {
 			return nil, fmt.Errorf("insert tls apply status: %w", err)
 		}
@@ -141,7 +153,7 @@ func (r *PostgresTLSRepository) HandleCommandResult(ctx context.Context, command
 		}
 		return false, fmt.Errorf("get command for tls result: %w", err)
 	}
-	if action != "pg_apply_tls" {
+	if op, ok := engine.LogicalOpForAction(action); !ok || op != engine.OpApplyTLS {
 		return false, nil
 	}
 
@@ -165,11 +177,15 @@ func (r *PostgresTLSRepository) HandleCommandResult(ctx context.Context, command
 		appliedAt = nil
 	}
 	tlsActive := success && p.TLSMode != "disabled"
+	detailJSON, err := json.Marshal(tlsApplyDetail{RequestedTLSMode: p.TLSMode, TLSActive: tlsActive})
+	if err != nil {
+		return true, fmt.Errorf("marshal tls apply detail: %w", err)
+	}
 	if _, err := tx.ExecContext(ctx,
-		Rebind(`UPDATE postgres_tls_apply_status
-		 SET status = ?, error = ?, tls_active = ?, applied_at = ?, updated_at = ?
-		 WHERE cluster_id = ? AND node_id = ? AND command_id = ?`),
-		status, RedactStoredError(errMsg), tlsActive, appliedAt, now, p.ClusterID, p.NodeID, commandID,
+		Rebind(`UPDATE node_feature_apply_status
+		 SET status = ?, error = ?, detail = ?, applied_at = ?, updated_at = ?
+		 WHERE cluster_id = ? AND node_id = ? AND command_id = ? AND feature = 'tls'`),
+		status, RedactStoredError(errMsg), string(detailJSON), appliedAt, now, p.ClusterID, p.NodeID, commandID,
 	); err != nil {
 		return true, fmt.Errorf("update tls apply status: %w", err)
 	}
@@ -184,8 +200,17 @@ func scanPostgresTLSApplyStatus(rows *sql.Rows) (*PostgresTLSApplyStatus, error)
 	var status PostgresTLSApplyStatus
 	var commandID sql.NullString
 	var appliedAt sql.NullTime
-	if err := rows.Scan(&status.ClusterID, &status.NodeID, &commandID, &status.RequestedTLSMode, &status.Status, &status.Error, &status.TLSActive, &appliedAt, &status.UpdatedAt); err != nil {
+	var detailJSON string
+	if err := rows.Scan(&status.ClusterID, &status.NodeID, &commandID, &status.Status, &status.Error, &detailJSON, &appliedAt, &status.UpdatedAt); err != nil {
 		return nil, fmt.Errorf("scan tls apply status: %w", err)
+	}
+	if detailJSON != "" {
+		var detail tlsApplyDetail
+		if err := json.Unmarshal([]byte(detailJSON), &detail); err != nil {
+			return nil, fmt.Errorf("parse tls apply detail: %w", err)
+		}
+		status.RequestedTLSMode = detail.RequestedTLSMode
+		status.TLSActive = detail.TLSActive
 	}
 	if commandID.Valid {
 		status.CommandID = commandID.String
