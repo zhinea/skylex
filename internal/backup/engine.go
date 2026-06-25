@@ -8,16 +8,17 @@ import (
 
 	"github.com/zhinea/skylex/internal/db"
 	"github.com/zhinea/skylex/internal/models"
+	"github.com/zhinea/skylex/internal/pgbackrest"
 )
 
 type Engine struct {
 	backups       *db.BackupRepository
 	storageConfig *db.StorageConfigRepository
-	pgBackRest    *PgBackRest
+	pgBackRest    *pgbackrest.PgBackRest
 	log           *slog.Logger
 }
 
-func NewEngine(backups *db.BackupRepository, storageConfig *db.StorageConfigRepository, pgBackRest *PgBackRest, log *slog.Logger) *Engine {
+func NewEngine(backups *db.BackupRepository, storageConfig *db.StorageConfigRepository, pgBackRest *pgbackrest.PgBackRest, log *slog.Logger) *Engine {
 	return &Engine{
 		backups:       backups,
 		storageConfig: storageConfig,

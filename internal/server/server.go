@@ -18,6 +18,7 @@ import (
 	"github.com/zhinea/skylex/internal/dcs"
 	"github.com/zhinea/skylex/internal/id"
 	"github.com/zhinea/skylex/internal/models"
+	"github.com/zhinea/skylex/internal/pgbackrest"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -146,7 +147,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.metadataBackup = NewMetadataBackup(database, s.cfg.Database.DSN, "backups/metadata", s.log)
 
-	pgBackRest := backup.NewPgBackRest(s.cfg.Backup.PgBackRestPath, s.log)
+	pgBackRest := pgbackrest.NewPgBackRest(s.cfg.Backup.PgBackRestPath, s.log)
 	backupEngine := backup.NewEngine(backupRepo, storageConfigRepo, pgBackRest, s.log)
 	backupWorker := backup.NewWorker(backupEngine, backupRepo, clusterRepo, s.log)
 

@@ -22,7 +22,7 @@ import (
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/agent/installer"
-	"github.com/zhinea/skylex/internal/backup"
+	"github.com/zhinea/skylex/internal/pgbackrest"
 	"github.com/zhinea/skylex/internal/postgres"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -38,7 +38,7 @@ type Agent struct {
 	client     skylexv1.AgentServiceClient
 	conn       *grpc.ClientConn
 	pg         *postgres.Instance
-	pgBackRest *backup.PgBackRest
+	pgBackRest *pgbackrest.PgBackRest
 	native     installer.NativeInstaller
 	docker     installer.DockerInstaller
 	shutdown   context.CancelFunc
@@ -97,7 +97,7 @@ func New(cfg Config) (*Agent, error) {
 		log,
 	)
 
-	pgBackRest := backup.NewPgBackRest(cfg.PGBackRestPath, log)
+	pgBackRest := pgbackrest.NewPgBackRest(cfg.PGBackRestPath, log)
 
 	return &Agent{
 		cfg:               cfg,

@@ -1,4 +1,8 @@
-package backup
+// Package pgbackrest wraps the external `pgbackrest` CLI. It deliberately
+// depends only on the standard library (os/exec) so that callers which only
+// need backup orchestration — notably the agent — do not transitively link the
+// server-only backup engine dependencies (minio S3 client, SQLite, cron).
+package pgbackrest
 
 import (
 	"context"
