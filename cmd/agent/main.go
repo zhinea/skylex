@@ -27,6 +27,7 @@ func main() {
 		dataDir    = flag.String("data-dir", "", "PostgreSQL data directory")
 		logLevel   = flag.String("log-level", "", "log level: debug, info, warn, error")
 		logFormat  = flag.String("log-format", "", "log format: json, text")
+		logFile    = flag.String("log-file", "", "path to append agent logs; empty disables file logging")
 	)
 	flag.Parse()
 
@@ -75,6 +76,9 @@ func main() {
 	}
 	if *logFormat != "" {
 		cfg.LogFormat = *logFormat
+	}
+	if *logFile != "" {
+		cfg.LogFile = *logFile
 	}
 
 	if cfg.Hostname == "" {
@@ -152,6 +156,9 @@ func applyEnv(cfg agent.Config) agent.Config {
 	}
 	if v := os.Getenv("SKYLEX_PG_DATA_DIR"); v != "" {
 		cfg.PGDataDir = v
+	}
+	if v := os.Getenv("SKYLEX_AGENT_LOG_FILE"); v != "" {
+		cfg.LogFile = v
 	}
 	return cfg
 }

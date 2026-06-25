@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -20,6 +21,7 @@ type Config struct {
 	HeartbeatInterval time.Duration     `mapstructure:"heartbeat_interval" yaml:"heartbeat_interval"`
 	LogLevel          string            `mapstructure:"log_level" yaml:"log_level"`
 	LogFormat         string            `mapstructure:"log_format" yaml:"log_format"`
+	LogFile           string            `mapstructure:"log_file" yaml:"log_file"`
 	PGDataDir         string            `mapstructure:"pg_data_dir" yaml:"pg_data_dir"`
 	PGBinDir          string            `mapstructure:"pg_bin_dir" yaml:"pg_bin_dir"`
 	PGVersion         string            `mapstructure:"pg_version" yaml:"pg_version"`
@@ -83,7 +85,7 @@ func deactivationMarkerPaths(cfg Config) []string {
 	return paths
 }
 
-func NewLogger(level, format string) *slog.Logger {
+func NewLogger(level, format string, outputs ...io.Writer) *slog.Logger {
 	var logLevel slog.Level
 	switch strings.ToLower(level) {
 	case "debug":
@@ -97,15 +99,54 @@ func NewLogger(level, format string) *slog.Logger {
 	}
 
 	opts := &slog.HandlerOptions{
-		Level: logLevel,
+		Level:       logLevel,
+		ReplaceAttr: redactLogAttr,
+	}
+
+	writers := make([]io.Writer, 0, len(outputs))
+	for _, output := range outputs {
+		if output != nil {
+			writers = append(writers, output)
+		}
+	}
+	if len(writers) == 0 {
+		writers = append(writers, os.Stderr)
+	}
+
+	output := writers[0]
+	if len(writers) > 1 {
+		output = io.MultiWriter(writers...)
 	}
 
 	var handler slog.Handler
 	if format == "json" {
-		handler = slog.NewJSONHandler(os.Stderr, opts)
+		handler = slog.NewJSONHandler(output, opts)
 	} else {
-		handler = slog.NewTextHandler(os.Stderr, opts)
+		handler = slog.NewTextHandler(output, opts)
 	}
 
 	return slog.New(handler)
+}
+
+func redactLogAttr(_ []string, attr slog.Attr) slog.Attr {
+	attr.Value = redactLogValue(attr.Value)
+	return attr
+}
+
+func redactLogValue(value slog.Value) slog.Value {
+	switch value.Kind() {
+	case slog.KindString:
+		return slog.StringValue(RedactSecrets(value.String()))
+	case slog.KindAny:
+		if err, ok := value.Any().(error); ok {
+			return slog.StringValue(RedactSecrets(err.Error()))
+		}
+	case slog.KindGroup:
+		attrs := value.Group()
+		for i := range attrs {
+			attrs[i] = redactLogAttr(nil, attrs[i])
+		}
+		return slog.GroupValue(attrs...)
+	}
+	return value
 }

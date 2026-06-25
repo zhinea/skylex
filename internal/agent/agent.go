@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"math"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -30,6 +32,7 @@ import (
 type Agent struct {
 	cfg        Config
 	log        *slog.Logger
+	logFile    *os.File
 	agentID    string
 	nodeID     string
 	client     skylexv1.AgentServiceClient
@@ -47,8 +50,6 @@ type Agent struct {
 }
 
 func New(cfg Config) (*Agent, error) {
-	log := NewLogger(cfg.LogLevel, cfg.LogFormat)
-
 	if cfg.Hostname == "" {
 		hostname, err := os.Hostname()
 		if err != nil {
@@ -56,6 +57,23 @@ func New(cfg Config) (*Agent, error) {
 		}
 		cfg.Hostname = hostname
 	}
+
+	var logFile *os.File
+	logOutputs := []io.Writer{os.Stderr}
+	if logPath := strings.TrimSpace(cfg.LogFile); logPath != "" {
+		cleanPath := filepath.Clean(logPath)
+		if err := os.MkdirAll(filepath.Dir(cleanPath), 0750); err != nil {
+			return nil, fmt.Errorf("create log directory: %w", err)
+		}
+		file, err := os.OpenFile(cleanPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)
+		if err != nil {
+			return nil, fmt.Errorf("open log file: %w", err)
+		}
+		logFile = file
+		logOutputs = append(logOutputs, file)
+	}
+
+	log := NewLogger(cfg.LogLevel, cfg.LogFormat, logOutputs...)
 
 	pg := postgres.New(
 		cfg.PGDataDir,
@@ -73,6 +91,7 @@ func New(cfg Config) (*Agent, error) {
 	return &Agent{
 		cfg:               cfg,
 		log:               log,
+		logFile:           logFile,
 		pg:                pg,
 		pgBackRest:        pgBackRest,
 		native:            installer.NativeInstaller{},
@@ -82,6 +101,8 @@ func New(cfg Config) (*Agent, error) {
 }
 
 func (a *Agent) Run(ctx context.Context) error {
+	defer a.Close()
+
 	a.log.Info("starting skylex agent",
 		"version", Version,
 		"hostname", a.cfg.Hostname,
@@ -129,6 +150,15 @@ func (a *Agent) Run(ctx context.Context) error {
 	}
 
 	return g.Wait()
+}
+
+func (a *Agent) Close() error {
+	if a.logFile == nil {
+		return nil
+	}
+	err := a.logFile.Close()
+	a.logFile = nil
+	return err
 }
 
 func (a *Agent) register(ctx context.Context) error {
@@ -408,7 +438,7 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 
 	for _, cmd := range resp.GetCommands() {
 		a.log.Info("executing command", "command_id", cmd.GetId(), "action", cmd.GetAction())
-		logger := newCommandLogger(a.agentID, cmd.GetId(), a.client)
+		logger := newCommandLogger(a.agentID, cmd.GetId(), a.client, a.log.With("command_id", cmd.GetId(), "action", cmd.GetAction()))
 		logger.Info(fmt.Sprintf("executing command: %s", cmd.GetAction()))
 		cmdCtx := postgres.WithLogSink(ctx, logger)
 		success, output, errMsg := a.executeCommand(cmdCtx, cmd, logger)

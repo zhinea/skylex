@@ -31,6 +31,7 @@ TOKEN=""
 HOSTNAME=""
 PORT="5432"
 DATA_DIR="/var/lib/postgresql/data"
+LOG_FILE="/var/log/skylex/agent.log"
 VERSION="@@VERSION@@"
 USER="skylex"
 SKIP_USER=false
@@ -53,6 +54,7 @@ Optional:
   --hostname NAME     hostname reported to the control plane (default: current hostname)
   --port PORT         PostgreSQL port on this machine (default: 5432)
   --data-dir PATH     PostgreSQL data directory (default: /var/lib/postgresql/data)
+  --log-file PATH     append agent logs to PATH (default: /var/log/skylex/agent.log)
   --version VERSION   release version to install (default: @@VERSION@@)
   --user USER         system user to create for the agent (default: skylex)
   --no-user           do not create a dedicated system user
@@ -69,6 +71,7 @@ while [[ $# -gt 0 ]]; do
     --hostname) HOSTNAME="$2"; shift 2 ;;
     --port) PORT="$2"; shift 2 ;;
     --data-dir) DATA_DIR="$2"; shift 2 ;;
+    --log-file) LOG_FILE="$2"; shift 2 ;;
     --version) VERSION="$2"; shift 2 ;;
     --user) USER="$2"; shift 2 ;;
     --no-user) SKIP_USER=true; shift ;;
@@ -89,6 +92,7 @@ if [[ -z "$TOKEN" ]]; then fail "--token is required"; fi
 if [[ "$HOSTNAME" == "" ]]; then
   HOSTNAME="$(hostname -s 2>/dev/null || hostname)"
 fi
+LOG_DIR="$(dirname "$LOG_FILE")"
 
 if [[ "$VERSION" == @@*@@ ]]; then
   fail "version is not set; pass --VERSION or use the install script served by skylex-server"
@@ -218,6 +222,7 @@ if $DOCKER; then
   fi
 
   IMAGE="${REGISTRY_BASE}/skylex-agent:${VERSION}"
+  mkdir -p "$LOG_DIR"
 
   docker rm -f skylex-agent >/dev/null 2>&1 || true
   docker run -d \
@@ -229,7 +234,9 @@ if $DOCKER; then
     -e SKYLEX_HOSTNAME="$HOSTNAME" \
     -e SKYLEX_PORT="$PORT" \
     -e SKYLEX_PG_DATA_DIR="$DATA_DIR" \
+    -e SKYLEX_AGENT_LOG_FILE="$LOG_FILE" \
     -v "$DATA_DIR:$DATA_DIR" \
+    -v "$LOG_DIR:$LOG_DIR" \
     "$IMAGE"
 
   log "agent container started: skylex-agent"
@@ -262,13 +269,14 @@ cp "$BINARY" /usr/local/bin/skylex-agent
 chmod 0755 /usr/local/bin/skylex-agent
 log "installed binary to /usr/local/bin/skylex-agent"
 
-mkdir -p "$DATA_DIR" /etc/skylex
+mkdir -p "$DATA_DIR" "$LOG_DIR" /etc/skylex
 cat > /etc/skylex/agent.yaml <<EOF
 server_addr: "${SERVER_ADDR}"
 agent_token: "${TOKEN}"
 hostname: "${HOSTNAME}"
 port: ${PORT}
 pg_data_dir: "${DATA_DIR}"
+log_file: "${LOG_FILE}"
 EOF
 chmod 0600 /etc/skylex/agent.yaml
 log "wrote /etc/skylex/agent.yaml"
@@ -279,7 +287,10 @@ if ! $SKIP_USER; then
       useradd --system --home-dir /var/lib/skylex --shell /usr/sbin/nologin "$USER"
     log "created system user: ${USER}"
   fi
+  touch "$LOG_FILE"
+  chmod 0640 "$LOG_FILE"
   chown -R "${USER}:${USER}" /etc/skylex
+  chown "${USER}:${USER}" "$LOG_FILE"
 fi
 
 # Install Docker Engine and/or add the agent user to the docker group so that
@@ -299,6 +310,7 @@ Restart=always
 RestartSec=5
 User=${USER}
 Group=${USER}
+LogsDirectory=skylex
 
 [Install]
 WantedBy=multi-user.target

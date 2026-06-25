@@ -8,6 +8,7 @@ Wants=network-online.target
 Type=simple
 User=skylex
 Group=skylex
+LogsDirectory=skylex
 ExecStart=/usr/local/bin/skylex-agent
 Restart=always
 RestartSec=5

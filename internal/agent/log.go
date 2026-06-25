@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"log/slog"
 	"regexp"
 	"strings"
 	"sync"
@@ -15,8 +16,9 @@ import (
 var (
 	// redactPasswordEnv matches PGPASSWORD=value (with or without quotes).
 	redactPasswordEnv = regexp.MustCompile(`(?i)PGPASSWORD\s*=\s*\S+`)
-	// redactPasswordClause matches password=... in connection strings.
-	redactPasswordClause = regexp.MustCompile(`(?i)password\s*=\s*\S+`)
+	// redactPasswordClause matches password=... in connection strings without
+	// rewriting variable names such as PGPASSWORD.
+	redactPasswordClause = regexp.MustCompile(`(?i)\bpassword\s*=\s*\S+`)
 	// redactEncryptedPassword matches ENCRYPTED PASSWORD '...'.
 	redactEncryptedPassword = regexp.MustCompile(`(?i)ENCRYPTED\s+PASSWORD\s+'[^']*'`)
 	// redactPostgresPasswordEnv matches POSTGRES_PASSWORD=value used by Docker provisioning.
@@ -67,6 +69,7 @@ type commandLogger struct {
 	agentID   string
 	commandID string
 	client    skylexv1.AgentServiceClient
+	localLog  *slog.Logger
 
 	mu      sync.Mutex
 	entries []*skylexv1.CommandLogEntry
@@ -74,38 +77,57 @@ type commandLogger struct {
 	closed  bool
 }
 
-func newCommandLogger(agentID, commandID string, client skylexv1.AgentServiceClient) *commandLogger {
+func newCommandLogger(agentID, commandID string, client skylexv1.AgentServiceClient, localLogs ...*slog.Logger) *commandLogger {
+	var localLog *slog.Logger
+	if len(localLogs) > 0 {
+		localLog = localLogs[0]
+	}
 	return &commandLogger{
 		agentID:   agentID,
 		commandID: commandID,
 		client:    client,
+		localLog:  localLog,
 	}
 }
 
 func (l *commandLogger) Log(level, message string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
+	redacted := RedactSecrets(message)
 
+	l.mu.Lock()
 	if l.closed {
+		l.mu.Unlock()
 		return
 	}
 
 	l.entries = append(l.entries, &skylexv1.CommandLogEntry{
 		CommandId:   l.commandID,
 		Level:       level,
-		Message:     RedactSecrets(message),
+		Message:     redacted,
 		TimestampMs: time.Now().UTC().UnixMilli(),
 	})
 
 	if len(l.entries) >= 50 {
 		l.flushLocked()
-		return
-	}
-
-	if l.timer == nil {
+	} else if l.timer == nil {
 		l.timer = time.AfterFunc(250*time.Millisecond, func() {
 			l.Flush()
 		})
+	}
+	localLog := l.localLog
+	l.mu.Unlock()
+
+	if localLog == nil {
+		return
+	}
+	switch strings.ToLower(level) {
+	case "error":
+		localLog.Error(redacted)
+	case "warn", "warning":
+		localLog.Warn(redacted)
+	case "debug":
+		localLog.Debug(redacted)
+	default:
+		localLog.Info(redacted)
 	}
 }
 
