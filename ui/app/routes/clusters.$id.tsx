@@ -233,14 +233,7 @@ export default function ClusterDetailPage() {
         <div className="max-w-5xl mx-auto space-y-6">
           {activeMenu === "overview" && (
             <div className="space-y-6">
-              {/* Redesigned Stats Grid */}
-              <ClusterStatsGrid cluster={cluster} nodes={nodes} />
-
-              {/* Show installation progress if not fully healthy or in CREATING status */}
-              {(cluster.status === "CREATING" || cluster.status === "CLUSTER_STATUS_CREATING" || progressPct < 100) && (
-                <InstallationProgressCard nodes={nodes} logs={logs} />
-              )}
-
+              {/* Conflict resolution surfaced first — requires user action and is easy to miss at the bottom */}
               {conflictNodes.length > 0 && (
                 <InstallationConflictCard
                   nodes={conflictNodes}
@@ -253,6 +246,14 @@ export default function ClusterDetailPage() {
                     }
                   }}
                 />
+              )}
+
+              {/* Redesigned Stats Grid */}
+              <ClusterStatsGrid cluster={cluster} nodes={nodes} />
+
+              {/* Show installation progress if not fully healthy or in CREATING status */}
+              {(cluster.status === "CREATING" || cluster.status === "CLUSTER_STATUS_CREATING" || progressPct < 100) && (
+                <InstallationProgressCard nodes={nodes} logs={logs} />
               )}
 
               <LifecycleCard

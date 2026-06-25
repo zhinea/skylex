@@ -126,21 +126,12 @@ func (s *NodeService) DrainNode(ctx context.Context, req *skylexv1.DrainNodeRequ
 		return nil, status.Errorf(codes.NotFound, "node %q not found", req.GetNodeId())
 	}
 
-	// Unassigned agents are removed from the UI completely. Cluster members
-	// are only marked offline so the cluster topology stays intact.
-	if node.ClusterID == "" {
-		if node.AgentID != "" {
-			if _, err := s.commands.Create(ctx, node.AgentID, node.ID, "pg_stop", ""); err != nil {
-				s.log.Warn("queue stop command for drain", "error", err)
-			}
-		}
-		if err := s.nodes.Delete(ctx, node.ID); err != nil {
-			return nil, status.Errorf(codes.Internal, "delete node: %v", err)
-		}
-		s.log.Info("unassigned node drained and removed", "node_id", node.ID)
-		return &skylexv1.DrainNodeResponse{}, nil
-	}
-
+	// Drain stops the PostgreSQL workload and marks the node drained, but
+	// always keeps the node registered. Deletion is a separate, explicit
+	// action (DeleteNode), so the agent keeps a valid identity and does not
+	// fall into an "unknown agent" retry loop. This is uniform for both
+	// unassigned nodes and cluster members; the latter keeps cluster topology
+	// intact.
 	if err := s.nodes.UpdateStatus(ctx, node.ID, models.NodeStatusDrained); err != nil {
 		return nil, status.Errorf(codes.Internal, "update node status: %v", err)
 	}
