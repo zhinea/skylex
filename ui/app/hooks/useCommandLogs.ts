@@ -55,19 +55,33 @@ export function useCommandLogs(
       // Materialize the relative window to an absolute lower bound HERE (per
       // fetch), so the query key above never contains a live timestamp.
       const effectiveSince = windowMs > 0 ? Date.now() - windowMs : sinceMs;
-      return api.post<{ logs: CommandLog[]; pagination: Pagination }>(
-        "/skylex.v1.NodeService/ListNodeCommandLogs",
-        {
-          clusterId: clusterId || "",
-          nodeId: nodeId || "",
-          commandId: commandId || "",
-          level,
-          sinceMs: effectiveSince,
-          untilMs,
-          page,
-          pageSize,
-        },
-      );
+      return api
+        .post<{ logs: CommandLog[]; pagination: Pagination }>(
+          "/skylex.v1.NodeService/ListNodeCommandLogs",
+          {
+            clusterId: clusterId || "",
+            nodeId: nodeId || "",
+            commandId: commandId || "",
+            level,
+            sinceMs: effectiveSince,
+            untilMs,
+            page,
+            pageSize,
+          },
+        )
+        .then((res) => ({
+          ...res,
+          // Connect/protobuf JSON omits empty default values, so an entry with
+          // an empty message/level/hostname arrives without those keys. Backfill
+          // defaults so consumers can safely call .toLowerCase()/.includes().
+          logs: (res.logs ?? []).map((l) => ({
+            ...l,
+            message: l.message ?? "",
+            level: l.level ?? "info",
+            hostname: l.hostname ?? "",
+            nodeId: l.nodeId ?? "",
+          })),
+        }));
     },
     enabled: !!(clusterId || nodeId || commandId),
     refetchInterval,

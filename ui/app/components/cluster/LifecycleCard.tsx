@@ -5,7 +5,7 @@ import type { CommandLog } from "~/hooks/useCommandLogs";
 function hasPendingLifecycleCommand(logs: CommandLog[]) {
   let pending = false;
   for (const log of logs) {
-    const message = log.message.toLowerCase();
+    const message = (log.message ?? "").toLowerCase();
     if (message.includes("executing command: pg_start") || message.includes("executing command: pg_stop")) {
       pending = true;
     }
