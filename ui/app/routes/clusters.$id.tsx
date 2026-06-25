@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from "react-router";
 import { useCluster, useDeleteCluster, usePauseCluster, useRestartCluster, useRestartNode } from "~/hooks/useClusters";
 import { useToast } from "~/components/ui/toast";
 import { useNodes, useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
-import { useCommandLogs, type CommandLog } from "~/hooks/useCommandLogs";
+import { type CommandLog } from "~/hooks/useCommandLogs";
+import { useCommandLogStream } from "~/hooks/useCommandLogStream";
 import { useConnectionProfile } from "~/hooks/useConnectionProfile";
 import type { PostgresRole } from "~/hooks/usePostgresRoles";
 import { Badge } from "~/components/Badge";
@@ -48,12 +49,27 @@ const menuItems = [
   { id: "diagnostics", label: "Diagnostics & Logs", icon: ShieldAlert },
 ] as const;
 
+function LogStreamIndicator({ state }: { state: "connecting" | "live" | "polling" | "closed" }) {
+  const config = {
+    connecting: { dot: "bg-amber-500 animate-pulse", label: "Connecting" },
+    live: { dot: "bg-emerald-500 animate-pulse", label: "Live" },
+    polling: { dot: "bg-amber-500", label: "Polling (5s)" },
+    closed: { dot: "bg-zinc-500", label: "Disconnected" },
+  }[state];
+  return (
+    <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+      <span className={`size-1.5 rounded-full ${config.dot}`} />
+      {config.label}
+    </span>
+  );
+}
+
 export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
   const { data: nodesData } = useNodes(id || "");
-  const { data: logsData } = useCommandLogs(id || "");
+  const { logs, state: logStreamState } = useCommandLogStream({ clusterId: id || "" });
   const { data: profileData } = useConnectionProfile(id || "");
   const startCluster = usePauseCluster(); // Note: useStartCluster mapping
   const pauseCluster = usePauseCluster();
@@ -74,8 +90,6 @@ export default function ClusterDetailPage() {
   const [conflictAction, setConflictAction] = useState<{ nodeId: string; action: "PURGE" | "ABORT" } | null>(null);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>("overview");
   const [revealedRole, setRevealedRole] = useState<{ role: PostgresRole; password: string } | null>(null);
-
-  const logs: CommandLog[] = logsData?.logs ?? [];
 
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -521,6 +535,7 @@ export default function ClusterDetailPage() {
                 <div className="px-4 py-3 border-b border-border flex items-center gap-2 text-foreground">
                   <span className="material-symbols-outlined text-lg text-foreground">terminal</span>
                   <h3 className="text-xs font-semibold">Command Logs</h3>
+                  <LogStreamIndicator state={logStreamState} />
                 </div>
                 <div className="p-4">
                   {logs.length === 0 ? (

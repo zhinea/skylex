@@ -621,6 +621,10 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 
 	mux.HandleFunc("/skylex.v1.AuthService/ListAuditLogs", s.handleListAuditLogs)
 
+	// SSE live log stream. Auth + viewer checks run in connectInterceptors; this
+	// path is read-only so viewers are permitted.
+	mux.HandleFunc("/skylex.v1.NodeService/StreamNodeCommandLogs", s.handleStreamCommandLogs)
+
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))

@@ -47,6 +47,7 @@ type Server struct {
 	metadataBackup   *MetadataBackup
 	tlsConfig        *tls.Config
 	auditRepo        *db.AuditRepository
+	logBroker        *LogBroker
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -127,6 +128,8 @@ func (s *Server) Start(ctx context.Context) error {
 	s.nodeService = NewNodeService(nodeRepo, clusterRepo, commandRepo, commandLogRepo, s.cfg.Agent.HeartbeatTimeout, s.log)
 	s.nodeService.SetCommandSecretRepository(commandSecretRepo)
 	s.agentService = NewAgentService(s.cfg, clusterRepo, nodeRepo, commandRepo, commandLogRepo, agentTokenRepo, s.log)
+	s.logBroker = NewLogBroker()
+	s.agentService.SetLogBroker(s.logBroker)
 	s.agentService.SetCommandSecretRepository(commandSecretRepo)
 	s.agentService.SetPostgresRoleRepository(postgresRoleRepo)
 	s.agentService.SetPostgresDatabaseRepository(postgresDatabaseRepo)

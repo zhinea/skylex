@@ -439,6 +439,43 @@ func (a *Agent) commandLoop(ctx context.Context) error {
 	}
 }
 
+// actionDescriptions maps internal command actions to human-readable phase text
+// shown in the UI log stream, so operators can tell "what's going on" without
+// memorizing internal action names. Unknown actions fall back to the raw name.
+var actionDescriptions = map[string]string{
+	"pg_preflight":                 "Checking node for existing PostgreSQL",
+	"pg_install_native":            "Installing PostgreSQL (native packages)",
+	"pg_install_docker":            "Installing PostgreSQL (Docker container)",
+	"pg_purge_native":              "Removing existing PostgreSQL installation",
+	"pg_adopt_native":              "Adopting existing PostgreSQL installation",
+	"pg_init":                      "Initializing the database cluster",
+	"pg_start":                     "Starting PostgreSQL",
+	"pg_stop":                      "Stopping PostgreSQL",
+	"pg_basebackup":                "Cloning data from primary (base backup)",
+	"pg_promote":                   "Promoting replica to primary",
+	"pg_rewind":                    "Rewinding replica to rejoin primary",
+	"repoint_replica":              "Repointing replica to the primary",
+	"pg_create_repl_user":          "Creating replication user",
+	"pg_create_repl_slot":          "Creating replication slot",
+	"pg_apply_settings":            "Applying PostgreSQL configuration",
+	"pg_ensure_role":               "Creating/updating database role",
+	"pg_rotate_role_password":      "Rotating role password",
+	"pg_drop_role":                 "Dropping database role",
+	"pg_ensure_database":           "Creating database",
+	"pg_drop_database":             "Dropping database",
+	"pg_grant_database_privileges": "Granting database privileges",
+	"pg_apply_hba":                 "Applying network access rules (pg_hba)",
+	"pg_apply_tls":                 "Applying TLS configuration",
+	"agent_deactivate":             "Deactivating agent",
+}
+
+func actionDescription(action string) string {
+	if d, ok := actionDescriptions[action]; ok {
+		return d
+	}
+	return action
+}
+
 func (a *Agent) fetchCommands(ctx context.Context) error {
 	resp, err := a.client.FetchCommand(ctx, &skylexv1.FetchCommandRequest{
 		AgentId: a.agentID,
@@ -450,14 +487,18 @@ func (a *Agent) fetchCommands(ctx context.Context) error {
 	for _, cmd := range resp.GetCommands() {
 		a.log.Info("executing command", "command_id", cmd.GetId(), "action", cmd.GetAction())
 		logger := newCommandLogger(a.agentID, cmd.GetId(), a.client, a.log.With("command_id", cmd.GetId(), "action", cmd.GetAction()))
-		logger.Info(fmt.Sprintf("executing command: %s", cmd.GetAction()))
+		logger.Info(fmt.Sprintf("▶ %s (%s)", actionDescription(cmd.GetAction()), cmd.GetAction()))
 		cmdCtx := postgres.WithLogSink(ctx, logger)
 		success, output, errMsg := a.executeCommand(cmdCtx, cmd, logger)
 		if !success && errMsg != "" {
 			a.log.Error("command failed", "command_id", cmd.GetId(), "action", cmd.GetAction(), "error", errMsg)
 			logger.Error(errMsg)
 		}
-		logger.Info(fmt.Sprintf("command finished: success=%v", success))
+		if success {
+			logger.Info(fmt.Sprintf("✔ %s — done", actionDescription(cmd.GetAction())))
+		} else {
+			logger.Error(fmt.Sprintf("✘ %s — failed", actionDescription(cmd.GetAction())))
+		}
 		logger.Close()
 		if reportErr := a.reportCommandResult(ctx, cmd.GetId(), success, output, errMsg); reportErr != nil {
 			a.log.Error("report command result failed", "error", reportErr)

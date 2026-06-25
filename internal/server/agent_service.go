@@ -32,7 +32,12 @@ type AgentService struct {
 	postgresDBs    *db.PostgresDatabaseRepository
 	postgresAccess *db.PostgresAccessRepository
 	postgresTLS    *db.PostgresTLSRepository
+	logBroker      *LogBroker
 	log            *slog.Logger
+}
+
+func (s *AgentService) SetLogBroker(b *LogBroker) {
+	s.logBroker = b
 }
 
 func NewAgentService(cfg *Config, clusters *db.ClusterRepository, nodes *db.NodeRepository, commands *db.AgentCommandRepository, commandLogs *db.CommandLogRepository, agentTokenRepo *db.AgentTokenRepository, log *slog.Logger) *AgentService {
@@ -879,7 +884,55 @@ func (s *AgentService) ReportCommandLog(ctx context.Context, req *skylexv1.Repor
 		return nil, status.Errorf(codes.Internal, "store command logs: %v", err)
 	}
 
+	s.publishLiveLogs(ctx, node, logs)
+
 	return &skylexv1.ReportCommandLogResponse{}, nil
+}
+
+// publishLiveLogs fans freshly persisted logs out to live SSE subscribers. It
+// enriches the batch via a single GetEnrichedByIDs query (no per-row N+1) and is
+// best-effort: any failure here is logged at debug and never affects ingestion,
+// because the durable copy already landed in SQLite above.
+func (s *AgentService) publishLiveLogs(ctx context.Context, node *models.Node, logs []*db.CommandLog) {
+	if s.logBroker == nil || len(logs) == 0 {
+		return
+	}
+
+	ids := make([]string, 0, len(logs))
+	for _, l := range logs {
+		if l.ID != "" {
+			ids = append(ids, l.ID)
+		}
+	}
+
+	enriched, err := s.commandLogs.GetEnrichedByIDs(ctx, ids)
+	if err != nil {
+		s.log.Debug("skip live log publish: enrich failed", "node_id", node.ID, "error", err)
+		return
+	}
+
+	protoLogs := make([]*skylexv1.CommandLog, 0, len(enriched))
+	for _, l := range enriched {
+		hostname := l.Hostname
+		if hostname == "" {
+			hostname = node.Hostname
+		}
+		nodeID := l.NodeID
+		if nodeID == "" {
+			nodeID = node.ID
+		}
+		protoLogs = append(protoLogs, &skylexv1.CommandLog{
+			Id:          l.ID,
+			CommandId:   l.CommandID,
+			NodeId:      nodeID,
+			Hostname:    hostname,
+			Level:       l.Level,
+			Message:     l.Message,
+			TimestampMs: l.CreatedAt.UnixMilli(),
+		})
+	}
+
+	s.logBroker.Publish(node.ClusterID, protoLogs)
 }
 
 func (s *AgentService) nodeForAgent(ctx context.Context, agentID string) (*models.Node, error) {

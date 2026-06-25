@@ -427,32 +427,13 @@ func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.Lis
 		return nil, status.Errorf(codes.Internal, "list command logs: %v", err)
 	}
 
-	hostnameMap := make(map[string]string)
 	protoLogs := make([]*skylexv1.CommandLog, 0, len(logs))
 	for _, l := range logs {
-		nodeID := ""
-		cmd, _ := s.commands.GetByID(ctx, l.CommandID)
-		if cmd != nil {
-			nodeID = cmd.NodeID
-		}
-
-		hostname := ""
-		if nodeID != "" {
-			if h, ok := hostnameMap[nodeID]; ok {
-				hostname = h
-			} else {
-				if h, err := s.nodes.GetHostnameByID(ctx, nodeID); err == nil && h != "" {
-					hostname = h
-					hostnameMap[nodeID] = hostname
-				}
-			}
-		}
-
 		protoLogs = append(protoLogs, &skylexv1.CommandLog{
 			Id:          l.ID,
 			CommandId:   l.CommandID,
-			NodeId:      nodeID,
-			Hostname:    hostname,
+			NodeId:      l.NodeID,
+			Hostname:    l.Hostname,
 			Level:       l.Level,
 			Message:     l.Message,
 			TimestampMs: l.CreatedAt.UnixMilli(),

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/zhinea/skylex/internal/id"
@@ -17,6 +18,11 @@ type CommandLog struct {
 	Level     string
 	Message   string
 	CreatedAt time.Time
+
+	// Enriched (populated by List* queries via JOIN, empty on Create paths).
+	NodeID   string
+	Hostname string
+	Action   string
 }
 
 type CommandLogRepository struct {
@@ -87,76 +93,107 @@ func (r *CommandLogRepository) CreateBatch(ctx context.Context, logs []*CommandL
 	return nil
 }
 
-func (r *CommandLogRepository) ListByCommandID(ctx context.Context, commandID string, limit, offset int) ([]*CommandLog, error) {
+// selectEnriched is the shared column list + joins. Every List* query enriches
+// each log row with its node_id, hostname, and command action in a single query
+// (avoids an N+1 lookup per row in the service layer). agent_commands/nodes are
+// LEFT JOINed so a log is never dropped if its parent command/node was pruned.
+const selectEnriched = `SELECT l.id, l.command_id, l.agent_id, l.level, l.message, l.created_at,
+		c.node_id, n.hostname, c.action
+	 FROM agent_command_logs l
+	 LEFT JOIN agent_commands c ON l.command_id = c.id
+	 LEFT JOIN nodes n ON c.node_id = n.id`
+
+func clampLogLimit(limit int) int {
 	if limit <= 0 {
-		limit = 500
+		return 500
 	}
 	if limit > 10000 {
-		limit = 10000
+		return 10000
 	}
+	return limit
+}
+
+// ListByCommandID returns logs for a command in ascending (chronological) order.
+// Internally it selects the newest `limit` rows (so the page always tracks the
+// latest activity instead of freezing on the oldest rows once a run exceeds the
+// page size) and reverses them for display.
+func (r *CommandLogRepository) ListByCommandID(ctx context.Context, commandID string, limit, offset int) ([]*CommandLog, error) {
+	limit = clampLogLimit(limit)
 	if offset < 0 {
 		offset = 0
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT id, command_id, agent_id, level, message, created_at
-		 FROM agent_command_logs WHERE command_id = ? ORDER BY created_at ASC LIMIT ? OFFSET ?`),
+		Rebind(selectEnriched+`
+		 WHERE l.command_id = ?
+		 ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`),
 		commandID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("query command logs by command id: %w", err)
 	}
 	defer rows.Close()
 
-	return scanCommandLogs(rows, false)
+	return scanCommandLogs(rows, true)
 }
 
 func (r *CommandLogRepository) ListByNodeID(ctx context.Context, nodeID string, limit, offset int) ([]*CommandLog, error) {
-	if limit <= 0 {
-		limit = 500
-	}
-	if limit > 10000 {
-		limit = 10000
-	}
+	limit = clampLogLimit(limit)
 	if offset < 0 {
 		offset = 0
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT l.id, l.command_id, l.agent_id, l.level, l.message, l.created_at
-		 FROM agent_command_logs l
-		 INNER JOIN agent_commands c ON l.command_id = c.id
+		Rebind(selectEnriched+`
 		 WHERE c.node_id = ?
-		 ORDER BY l.created_at ASC LIMIT ? OFFSET ?`),
+		 ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`),
 		nodeID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("query command logs by node id: %w", err)
 	}
 	defer rows.Close()
 
-	return scanCommandLogs(rows, false)
+	return scanCommandLogs(rows, true)
 }
 
 func (r *CommandLogRepository) ListByClusterID(ctx context.Context, clusterID string, limit, offset int) ([]*CommandLog, error) {
-	if limit <= 0 {
-		limit = 500
-	}
-	if limit > 10000 {
-		limit = 10000
-	}
+	limit = clampLogLimit(limit)
 	if offset < 0 {
 		offset = 0
 	}
 
 	rows, err := r.conn.QueryContext(ctx,
-		Rebind(`SELECT l.id, l.command_id, l.agent_id, l.level, l.message, l.created_at
-		 FROM agent_command_logs l
-		 INNER JOIN agent_commands c ON l.command_id = c.id
-		 INNER JOIN nodes n ON c.node_id = n.id
+		Rebind(selectEnriched+`
 		 WHERE n.cluster_id = ?
-		 ORDER BY l.created_at ASC LIMIT ? OFFSET ?`),
+		 ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`),
 		clusterID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("query command logs by cluster id: %w", err)
+	}
+	defer rows.Close()
+
+	return scanCommandLogs(rows, true)
+}
+
+// GetEnrichedByIDs loads enriched log rows by their IDs, preserving no order.
+// Used by the live stream path to attach node/hostname/action to freshly
+// inserted rows in one batched query instead of per-row lookups.
+func (r *CommandLogRepository) GetEnrichedByIDs(ctx context.Context, ids []string) ([]*CommandLog, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	rows, err := r.conn.QueryContext(ctx,
+		Rebind(selectEnriched+` WHERE l.id IN (`+strings.Join(placeholders, ",")+`)`),
+		args...)
+	if err != nil {
+		return nil, fmt.Errorf("query enriched command logs by ids: %w", err)
 	}
 	defer rows.Close()
 
@@ -167,9 +204,14 @@ func scanCommandLogs(rows *sql.Rows, reverse bool) ([]*CommandLog, error) {
 	var logs []*CommandLog
 	for rows.Next() {
 		var l CommandLog
-		if err := rows.Scan(&l.ID, &l.CommandID, &l.AgentID, &l.Level, &l.Message, &l.CreatedAt); err != nil {
+		var nodeID, hostname, action sql.NullString
+		if err := rows.Scan(&l.ID, &l.CommandID, &l.AgentID, &l.Level, &l.Message, &l.CreatedAt,
+			&nodeID, &hostname, &action); err != nil {
 			return nil, fmt.Errorf("scan command log: %w", err)
 		}
+		l.NodeID = nodeID.String
+		l.Hostname = hostname.String
+		l.Action = action.String
 		logs = append(logs, &l)
 	}
 	if err := rows.Err(); err != nil {
