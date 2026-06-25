@@ -58,22 +58,33 @@ func New(cfg Config) (*Agent, error) {
 		cfg.Hostname = hostname
 	}
 
+	// File logging is enabled by default (see DefaultAgentLogFile) so node
+	// activity and errors can always be traced from disk. A failure to open
+	// the log file must not prevent the agent from starting (e.g. running as a
+	// non-privileged user or on a read-only FS): fall back to stderr-only and
+	// surface a warning once the logger exists.
 	var logFile *os.File
+	var logFileErr error
 	logOutputs := []io.Writer{os.Stderr}
 	if logPath := strings.TrimSpace(cfg.LogFile); logPath != "" {
 		cleanPath := filepath.Clean(logPath)
 		if err := os.MkdirAll(filepath.Dir(cleanPath), 0750); err != nil {
-			return nil, fmt.Errorf("create log directory: %w", err)
+			logFileErr = fmt.Errorf("create log directory: %w", err)
+		} else if file, err := os.OpenFile(cleanPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640); err != nil {
+			logFileErr = fmt.Errorf("open log file: %w", err)
+		} else {
+			logFile = file
+			logOutputs = append(logOutputs, file)
 		}
-		file, err := os.OpenFile(cleanPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0640)
-		if err != nil {
-			return nil, fmt.Errorf("open log file: %w", err)
-		}
-		logFile = file
-		logOutputs = append(logOutputs, file)
 	}
 
 	log := NewLogger(cfg.LogLevel, cfg.LogFormat, logOutputs...)
+	if logFileErr != nil {
+		log.Warn("file logging disabled; logging to stderr only",
+			"log_file", cfg.LogFile,
+			"error", logFileErr,
+		)
+	}
 
 	pg := postgres.New(
 		cfg.PGDataDir,

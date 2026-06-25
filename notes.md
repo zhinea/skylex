@@ -53,6 +53,7 @@ make docker-down
 - `config.example.yaml` is committed and works as-is for local development.
 - Defaults exist for most values; see `internal/server/config.go`. `auth.jwt_secret` defaults to `change-me-in-production` in `config.example.yaml` so dev sessions survive restarts. If `auth.jwt_secret` is left empty, a random secret is generated on startup and a warning is logged; existing JWTs will not validate after a restart.
 - Agent settings are layered: CLI flags take precedence over environment variables, which take precedence over the config file (`/etc/skylex/agent.yaml` by default), with `internal/agent/config.go` defaults as the fallback.
+- The agent always writes its own operational logs to a file so node activity and errors can be traced from disk. The default path is `/var/log/skylex/agent.log` (overridable via `--log-file`, `SKYLEX_AGENT_LOG_FILE`, or `log_file` in the config). Set `log_file: ""` in the config file to disable file logging (e.g. containers that only want stdout). If the file can't be opened (permissions/read-only FS) the agent logs a warning and falls back to stderr-only instead of failing to start.
 
 ```bash
 # With flags

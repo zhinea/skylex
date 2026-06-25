@@ -11,6 +11,14 @@ import (
 
 const DeactivationMarkerName = ".skylex-agent-deactivated"
 
+// DefaultAgentLogFile is where the agent appends its own operational logs by
+// default, so a node's activity and errors can always be traced from disk
+// without extra configuration. It lives under /var/log per the FHS convention
+// for variable log data (rather than /etc, which is for static config, or the
+// PostgreSQL data directory, which initdb requires to be empty).
+// Set log_file to "" in the agent config file to disable file logging.
+const DefaultAgentLogFile = "/var/log/skylex/agent.log"
+
 type Config struct {
 	ServerAddr        string            `mapstructure:"server_addr" yaml:"server_addr"`
 	AgentToken        string            `mapstructure:"agent_token" yaml:"agent_token"`
@@ -38,6 +46,7 @@ func DefaultConfig() Config {
 		HeartbeatInterval: 10 * time.Second,
 		LogLevel:          "info",
 		LogFormat:         "json",
+		LogFile:           DefaultAgentLogFile,
 		PGDataDir:         "/var/lib/postgresql/data",
 		PGBinDir:          "/usr/lib/postgresql/16/bin",
 		PGVersion:         "16",

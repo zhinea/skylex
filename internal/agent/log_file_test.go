@@ -37,6 +37,32 @@ func TestAgentNewWritesLogsToConfiguredFile(t *testing.T) {
 	}
 }
 
+func TestDefaultConfigEnablesFileLogging(t *testing.T) {
+	if DefaultConfig().LogFile != DefaultAgentLogFile {
+		t.Fatalf("expected default log file %q, got %q", DefaultAgentLogFile, DefaultConfig().LogFile)
+	}
+}
+
+func TestAgentNewFallsBackToStderrWhenLogFileUnopenable(t *testing.T) {
+	// Point the log file at a path whose parent is an existing regular file,
+	// so MkdirAll/OpenFile must fail. The agent should still start.
+	dir := t.TempDir()
+	blocker := filepath.Join(dir, "not-a-dir")
+	if err := os.WriteFile(blocker, []byte("x"), 0600); err != nil {
+		t.Fatalf("seed blocker file: %v", err)
+	}
+
+	ag, err := New(testConfig(filepath.Join(blocker, "agent.log")))
+	if err != nil {
+		t.Fatalf("expected agent to start despite unopenable log file, got: %v", err)
+	}
+	t.Cleanup(func() { _ = ag.Close() })
+
+	if ag.logFile != nil {
+		t.Fatal("expected no log file handle when the path cannot be opened")
+	}
+}
+
 func TestAgentNewWithoutLogFileDoesNotCreateDefaultFile(t *testing.T) {
 	ag, err := New(testConfig(""))
 	if err != nil {
