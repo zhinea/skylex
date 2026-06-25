@@ -15,6 +15,13 @@ RestartSec=5
 LimitNOFILE=65536
 TimeoutStopSec=15
 
+# Bound the Go runtime's heap so the long-lived agent stays small. GOMEMLIMIT
+# is a soft ceiling the GC keeps the heap near; GOGC=50 collects more eagerly
+# than the default 100. The agent also applies these defaults in-process, so
+# they hold even under a hand-written unit without these lines.
+Environment=GOMEMLIMIT=64MiB
+Environment=GOGC=50
+
 ReadWritePaths=/var/lib/postgresql/data /var/log/skylex
 ProtectSystem=strict
 ProtectHome=true

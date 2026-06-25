@@ -5,11 +5,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
+	_ "net/http/pprof" // registered only when SKYLEX_AGENT_PPROF is set; see maybeStartPprof
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/zhinea/skylex/internal/agent"
@@ -17,6 +21,16 @@ import (
 )
 
 func main() {
+	// Bound the Go runtime's memory footprint before anything allocates. The
+	// agent is a long-lived idle poller, so without a soft limit the heap
+	// high-water mark (command execution, /proc scraping, exec subprocesses)
+	// stays resident and RSS creeps into the hundreds of MB. GOMEMLIMIT makes
+	// the GC keep the heap near the target; a lower GOGC trades a little CPU
+	// for tighter, more frequent collection. Both are overridable via the
+	// standard env vars for operators who need different behavior.
+	applyRuntimeMemoryDefaults()
+	maybeStartPprof()
+
 	var (
 		configPath = flag.String("config", "/etc/skylex/agent.yaml", "path to agent config file")
 		serverAddr = flag.String("server", "", "control plane gRPC address (host:port)")
@@ -161,6 +175,41 @@ func applyEnv(cfg agent.Config) agent.Config {
 		cfg.LogFile = v
 	}
 	return cfg
+}
+
+// applyRuntimeMemoryDefaults sets a soft heap ceiling and a tighter GC target
+// for the long-lived agent process. Both honor the operator's environment: if
+// GOMEMLIMIT or GOGC are already set, the Go runtime has already read them and
+// we leave them untouched.
+func applyRuntimeMemoryDefaults() {
+	// 64 MiB soft limit. The agent's steady-state live set is a few MB; this
+	// leaves generous headroom for command execution bursts while keeping RSS
+	// far below the previous hundreds of MB. Operators can raise it via the
+	// standard GOMEMLIMIT env var (e.g. "256MiB").
+	if os.Getenv("GOMEMLIMIT") == "" {
+		debug.SetMemoryLimit(64 << 20)
+	}
+	// Collect more eagerly than the default GOGC=100. Trades a little CPU
+	// (negligible for an idle poller) for promptly returning freed pages.
+	if os.Getenv("GOGC") == "" {
+		debug.SetGCPercent(50)
+	}
+}
+
+// maybeStartPprof exposes net/http/pprof on a loopback address only when
+// SKYLEX_AGENT_PPROF is set (e.g. "127.0.0.1:6060"), so memory can be profiled
+// in production without exposing a debug endpoint by default.
+func maybeStartPprof() {
+	addr := strings.TrimSpace(os.Getenv("SKYLEX_AGENT_PPROF"))
+	if addr == "" {
+		return
+	}
+	srv := &http.Server{Addr: addr, ReadHeaderTimeout: 5 * time.Second}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			fmt.Fprintf(os.Stderr, "pprof server error: %v\n", err)
+		}
+	}()
 }
 
 func readTokenFile(path string) (string, error) {

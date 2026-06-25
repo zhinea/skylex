@@ -312,6 +312,15 @@ User=${USER}
 Group=${USER}
 LogsDirectory=skylex
 
+# Keep the long-lived agent's memory small. GOMEMLIMIT is a soft heap ceiling
+# the Go GC stays near; GOGC=50 collects more eagerly than the default. The
+# binary also applies these in-process, so they hold even if this unit is
+# edited by hand.
+Environment=GOMEMLIMIT=64MiB
+Environment=GOGC=50
+MemoryHigh=96M
+MemoryMax=128M
+
 [Install]
 WantedBy=multi-user.target
 EOF
