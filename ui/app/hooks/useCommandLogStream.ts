@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useCommandLogs, type CommandLog } from "./useCommandLogs";
+import { useCommandLogs, type CommandLog, type CommandLogFilter } from "./useCommandLogs";
 
 const API_BASE = "/api";
-const MAX_LOGS = 1000;
 
 export type LogStreamState = "connecting" | "live" | "polling" | "closed";
 
@@ -15,65 +14,54 @@ interface StreamArgs {
   clusterId?: string;
   nodeId?: string;
   commandId?: string;
+  filter?: CommandLogFilter;
 }
 
 /**
- * useCommandLogStream subscribes to the live SSE command-log stream. It reads the
- * stream with fetch + ReadableStream (not EventSource) so the Bearer token can be
- * sent as a header instead of leaking in the URL.
+ * useCommandLogStream returns command logs with low-latency live updates.
  *
- * The server replays a recent backlog on connect, then pushes live entries, so a
- * freshly opened view is never blank. If the stream can't be established (network,
- * proxy, server without SSE) it transparently falls back to the existing 5s
- * polling query, so logs always render.
+ * Architecture: the polling query (useCommandLogs) is the always-on source of
+ * truth — it applies the level/time filters server-side and can never leave the
+ * view blank. The SSE connection is purely a *trigger*: when the server pushes a
+ * new entry we debounce-refetch the query, so updates feel realtime (~150ms)
+ * instead of waiting for the 5s poll. If SSE can't connect or drops, polling
+ * simply continues. Filtering stays authoritative on the server, so live and
+ * filtered results never diverge.
  */
-export function useCommandLogStream({ clusterId, nodeId, commandId }: StreamArgs) {
-  const [logs, setLogs] = useState<CommandLog[]>([]);
+export function useCommandLogStream({ clusterId, nodeId, commandId, filter }: StreamArgs) {
   const [state, setState] = useState<LogStreamState>("connecting");
-  const seenIds = useRef<Set<string>>(new Set());
   const enabled = !!(clusterId || nodeId || commandId);
 
-  // Polling fallback — only fetches when the stream isn't live.
-  const fallback = useCommandLogs(
-    state === "polling" ? clusterId : undefined,
-    state === "polling" ? nodeId : undefined,
-    state === "polling" ? commandId : undefined,
+  // Source of truth. Poll fast (5s) while SSE is down; slow (20s safety net)
+  // once SSE is driving refetches.
+  const query = useCommandLogs(
+    clusterId,
+    nodeId,
+    commandId,
+    filter,
+    1,
+    200,
+    enabled ? (state === "live" ? 20000 : 5000) : false,
   );
 
-  function appendLogs(incoming: CommandLog[]) {
-    if (incoming.length === 0) return;
-    setLogs((prev) => {
-      const merged = prev.slice();
-      for (const log of incoming) {
-        if (seenIds.current.has(log.id)) continue;
-        seenIds.current.add(log.id);
-        merged.push(log);
-      }
-      merged.sort((a, b) => Number(a.timestampMs) - Number(b.timestampMs));
-      if (merged.length > MAX_LOGS) {
-        const dropped = merged.splice(0, merged.length - MAX_LOGS);
-        for (const d of dropped) seenIds.current.delete(d.id);
-      }
-      return merged;
-    });
-  }
-
-  // Merge polling results into the unified buffer when in fallback mode.
-  useEffect(() => {
-    if (state === "polling" && fallback.data?.logs) {
-      appendLogs(fallback.data.logs);
-    }
-  }, [state, fallback.data]);
+  const refetchRef = useRef(query.refetch);
+  refetchRef.current = query.refetch;
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
 
-    seenIds.current = new Set();
-    setLogs([]);
     setState("connecting");
-
     const controller = new AbortController();
     let cancelled = false;
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+
+    const scheduleRefetch = () => {
+      if (debounce) return;
+      debounce = setTimeout(() => {
+        debounce = null;
+        refetchRef.current();
+      }, 150);
+    };
 
     async function run() {
       const token = getToken();
@@ -96,7 +84,6 @@ export function useCommandLogStream({ clusterId, nodeId, commandId }: StreamArgs
           if (!cancelled) setState("polling");
           return;
         }
-
         if (!cancelled) setState("live");
 
         const reader = res.body.getReader();
@@ -108,21 +95,17 @@ export function useCommandLogStream({ clusterId, nodeId, commandId }: StreamArgs
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
 
-          // SSE frames are separated by a blank line.
           let sep: number;
           while ((sep = buffer.indexOf("\n\n")) !== -1) {
             const frame = buffer.slice(0, sep);
             buffer = buffer.slice(sep + 2);
-            const line = frame.split("\n").find((l) => l.startsWith("data:"));
-            if (!line) continue; // heartbeat/comment
-            try {
-              appendLogs([JSON.parse(line.slice(5).trim()) as CommandLog]);
-            } catch {
-              // ignore malformed frame, keep stream alive
+            // Any data frame means new logs exist; refetch through the filtered
+            // query rather than trusting the raw push (keeps filters correct).
+            if (frame.split("\n").some((l) => l.startsWith("data:"))) {
+              scheduleRefetch();
             }
           }
         }
-        // Stream ended (server shutdown / network) — fall back to polling.
         if (!cancelled) setState("polling");
       } catch {
         if (!cancelled) setState("polling");
@@ -134,10 +117,12 @@ export function useCommandLogStream({ clusterId, nodeId, commandId }: StreamArgs
     return () => {
       cancelled = true;
       controller.abort();
+      if (debounce) clearTimeout(debounce);
       setState("closed");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clusterId, nodeId, commandId, enabled]);
 
-  return { logs, state };
+  const logs: CommandLog[] = query.data?.logs ?? [];
+  return { logs, state, isLoading: query.isLoading };
 }

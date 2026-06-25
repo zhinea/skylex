@@ -49,6 +49,41 @@ const menuItems = [
   { id: "diagnostics", label: "Diagnostics & Logs", icon: ShieldAlert },
 ] as const;
 
+type LogRange = "30m" | "1h" | "3h" | "6h" | "24h" | "7d" | "30d" | "custom";
+
+const LOG_RANGE_PRESETS: { value: LogRange; label: string; ms: number }[] = [
+  { value: "30m", label: "30 min", ms: 30 * 60 * 1000 },
+  { value: "1h", label: "1 hour", ms: 60 * 60 * 1000 },
+  { value: "3h", label: "3 hours", ms: 3 * 60 * 60 * 1000 },
+  { value: "6h", label: "6 hours", ms: 6 * 60 * 60 * 1000 },
+  { value: "24h", label: "24 hours", ms: 24 * 60 * 60 * 1000 },
+  { value: "7d", label: "7 days", ms: 7 * 24 * 60 * 60 * 1000 },
+  { value: "30d", label: "30 days", ms: 30 * 24 * 60 * 60 * 1000 },
+  { value: "custom", label: "Custom", ms: 0 },
+];
+
+function buildLogFilter(
+  range: LogRange,
+  level: string,
+  customSince: string,
+  customUntil: string,
+): { level: string; windowMs: number; sinceMs: number; untilMs: number } {
+  if (range === "custom") {
+    const since = customSince ? new Date(customSince).getTime() : 0;
+    const until = customUntil ? new Date(customUntil).getTime() : 0;
+    return {
+      level,
+      windowMs: 0,
+      sinceMs: Number.isNaN(since) ? 0 : since,
+      untilMs: Number.isNaN(until) ? 0 : until,
+    };
+  }
+  const preset = LOG_RANGE_PRESETS.find((p) => p.value === range);
+  // Pass the relative window (stable across renders); the hook materializes the
+  // absolute timestamp at fetch time so the query key never churns.
+  return { level, windowMs: preset ? preset.ms : 0, sinceMs: 0, untilMs: 0 };
+}
+
 function LogStreamIndicator({ state }: { state: "connecting" | "live" | "polling" | "closed" }) {
   const config = {
     connecting: { dot: "bg-amber-500 animate-pulse", label: "Connecting" },
@@ -69,7 +104,12 @@ export default function ClusterDetailPage() {
   const navigate = useNavigate();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
   const { data: nodesData } = useNodes(id || "");
-  const { logs, state: logStreamState } = useCommandLogStream({ clusterId: id || "" });
+  const [logLevel, setLogLevel] = useState<string>("");
+  const [logRange, setLogRange] = useState<LogRange>("1h");
+  const [customSince, setCustomSince] = useState<string>("");
+  const [customUntil, setCustomUntil] = useState<string>("");
+  const logFilter = buildLogFilter(logRange, logLevel, customSince, customUntil);
+  const { logs, state: logStreamState } = useCommandLogStream({ clusterId: id || "", filter: logFilter });
   const { data: profileData } = useConnectionProfile(id || "");
   const startCluster = usePauseCluster(); // Note: useStartCluster mapping
   const pauseCluster = usePauseCluster();
@@ -536,6 +576,50 @@ export default function ClusterDetailPage() {
                   <span className="material-symbols-outlined text-lg text-foreground">terminal</span>
                   <h3 className="text-xs font-semibold">Command Logs</h3>
                   <LogStreamIndicator state={logStreamState} />
+                </div>
+                <div className="px-4 py-2.5 border-b border-border flex flex-wrap items-center gap-2 bg-muted/20">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Level</span>
+                  <select
+                    value={logLevel}
+                    onChange={(e) => setLogLevel(e.target.value)}
+                    className="h-7 rounded border border-border bg-background text-xs px-2 text-foreground"
+                  >
+                    <option value="">All</option>
+                    <option value="info">Info</option>
+                    <option value="warn">Warn</option>
+                    <option value="error">Error</option>
+                    <option value="debug">Debug</option>
+                  </select>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-2">Range</span>
+                  <select
+                    value={logRange}
+                    onChange={(e) => setLogRange(e.target.value as LogRange)}
+                    className="h-7 rounded border border-border bg-background text-xs px-2 text-foreground"
+                  >
+                    {LOG_RANGE_PRESETS.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                  {logRange === "custom" && (
+                    <>
+                      <input
+                        type="datetime-local"
+                        value={customSince}
+                        onChange={(e) => setCustomSince(e.target.value)}
+                        className="h-7 rounded border border-border bg-background text-xs px-2 text-foreground"
+                        aria-label="Logs from"
+                      />
+                      <span className="text-[10px] text-muted-foreground">to</span>
+                      <input
+                        type="datetime-local"
+                        value={customUntil}
+                        onChange={(e) => setCustomUntil(e.target.value)}
+                        className="h-7 rounded border border-border bg-background text-xs px-2 text-foreground"
+                        aria-label="Logs until"
+                      />
+                    </>
+                  )}
+                  <span className="ml-auto text-[10px] text-muted-foreground">{logs.length} shown</span>
                 </div>
                 <div className="p-4">
                   {logs.length === 0 ? (

@@ -499,7 +499,7 @@ func TestAgentService_ReportCommandLogStoresEntries(t *testing.T) {
 		t.Fatalf("report command log: %v", err)
 	}
 
-	logs, err := commandLogs.ListByCommandID(context.Background(), cmd.ID, 10, 0)
+	logs, err := commandLogs.ListByCommandID(context.Background(), cmd.ID, 10, 0, db.LogFilter{})
 	if err != nil {
 		t.Fatalf("list command logs: %v", err)
 	}

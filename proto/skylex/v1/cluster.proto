@@ -202,6 +202,11 @@ message ListNodeCommandLogsRequest {
   string command_id = 3;
   int32 page = 4;
   int32 page_size = 5;
+  // level filters by exact log level (info|warn|error|debug). Empty = all levels.
+  string level = 6;
+  // since_ms / until_ms bound created_at (unix millis, UTC). 0 = unbounded.
+  int64 since_ms = 7;
+  int64 until_ms = 8;
 }
 
 message CommandLog {

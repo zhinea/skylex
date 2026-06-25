@@ -113,21 +113,51 @@ func clampLogLimit(limit int) int {
 	return limit
 }
 
+// LogFilter holds optional, parameterized constraints shared by every List*
+// query. Zero values mean "no constraint" so callers only set what they need.
+type LogFilter struct {
+	Level string    // exact level match (info|warn|error|debug); empty = all
+	Since time.Time // created_at >= Since when non-zero
+	Until time.Time // created_at <= Until when non-zero
+}
+
+// apply appends the filter's SQL conditions (each prefixed with " AND ") and
+// their bind args. Values are always passed as bind parameters, never
+// interpolated, so user input cannot reach the SQL string.
+func (f LogFilter) apply(sb *strings.Builder, args *[]any) {
+	if f.Level != "" {
+		sb.WriteString(" AND l.level = ?")
+		*args = append(*args, f.Level)
+	}
+	if !f.Since.IsZero() {
+		sb.WriteString(" AND l.created_at >= ?")
+		*args = append(*args, f.Since.UTC())
+	}
+	if !f.Until.IsZero() {
+		sb.WriteString(" AND l.created_at <= ?")
+		*args = append(*args, f.Until.UTC())
+	}
+}
+
 // ListByCommandID returns logs for a command in ascending (chronological) order.
 // Internally it selects the newest `limit` rows (so the page always tracks the
 // latest activity instead of freezing on the oldest rows once a run exceeds the
 // page size) and reverses them for display.
-func (r *CommandLogRepository) ListByCommandID(ctx context.Context, commandID string, limit, offset int) ([]*CommandLog, error) {
+func (r *CommandLogRepository) ListByCommandID(ctx context.Context, commandID string, limit, offset int, filter LogFilter) ([]*CommandLog, error) {
 	limit = clampLogLimit(limit)
 	if offset < 0 {
 		offset = 0
 	}
 
-	rows, err := r.conn.QueryContext(ctx,
-		Rebind(selectEnriched+`
-		 WHERE l.command_id = ?
-		 ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`),
-		commandID, limit, offset)
+	var sb strings.Builder
+	sb.WriteString(selectEnriched)
+	sb.WriteString(" WHERE l.command_id = ?")
+	args := []any{commandID}
+	filter.apply(&sb, &args)
+	sb.WriteString(" ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?")
+	args = append(args, limit, offset)
+
+	rows, err := r.conn.QueryContext(ctx, Rebind(sb.String()), args...)
 	if err != nil {
 		return nil, fmt.Errorf("query command logs by command id: %w", err)
 	}
@@ -136,17 +166,21 @@ func (r *CommandLogRepository) ListByCommandID(ctx context.Context, commandID st
 	return scanCommandLogs(rows, true)
 }
 
-func (r *CommandLogRepository) ListByNodeID(ctx context.Context, nodeID string, limit, offset int) ([]*CommandLog, error) {
+func (r *CommandLogRepository) ListByNodeID(ctx context.Context, nodeID string, limit, offset int, filter LogFilter) ([]*CommandLog, error) {
 	limit = clampLogLimit(limit)
 	if offset < 0 {
 		offset = 0
 	}
 
-	rows, err := r.conn.QueryContext(ctx,
-		Rebind(selectEnriched+`
-		 WHERE c.node_id = ?
-		 ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`),
-		nodeID, limit, offset)
+	var sb strings.Builder
+	sb.WriteString(selectEnriched)
+	sb.WriteString(" WHERE c.node_id = ?")
+	args := []any{nodeID}
+	filter.apply(&sb, &args)
+	sb.WriteString(" ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?")
+	args = append(args, limit, offset)
+
+	rows, err := r.conn.QueryContext(ctx, Rebind(sb.String()), args...)
 	if err != nil {
 		return nil, fmt.Errorf("query command logs by node id: %w", err)
 	}
@@ -155,17 +189,21 @@ func (r *CommandLogRepository) ListByNodeID(ctx context.Context, nodeID string, 
 	return scanCommandLogs(rows, true)
 }
 
-func (r *CommandLogRepository) ListByClusterID(ctx context.Context, clusterID string, limit, offset int) ([]*CommandLog, error) {
+func (r *CommandLogRepository) ListByClusterID(ctx context.Context, clusterID string, limit, offset int, filter LogFilter) ([]*CommandLog, error) {
 	limit = clampLogLimit(limit)
 	if offset < 0 {
 		offset = 0
 	}
 
-	rows, err := r.conn.QueryContext(ctx,
-		Rebind(selectEnriched+`
-		 WHERE n.cluster_id = ?
-		 ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?`),
-		clusterID, limit, offset)
+	var sb strings.Builder
+	sb.WriteString(selectEnriched)
+	sb.WriteString(" WHERE n.cluster_id = ?")
+	args := []any{clusterID}
+	filter.apply(&sb, &args)
+	sb.WriteString(" ORDER BY l.created_at DESC, l.id DESC LIMIT ? OFFSET ?")
+	args = append(args, limit, offset)
+
+	rows, err := r.conn.QueryContext(ctx, Rebind(sb.String()), args...)
 	if err != nil {
 		return nil, fmt.Errorf("query command logs by cluster id: %w", err)
 	}

@@ -393,6 +393,18 @@ func (s *NodeService) queueNodeCommands(ctx context.Context, node *models.Node, 
 	return nil
 }
 
+// normalizeLogLevel validates and lowercases a level filter. Unknown values are
+// dropped (return ""), so a malformed filter degrades to "all levels" rather
+// than returning zero rows or reaching the SQL layer unvalidated.
+func normalizeLogLevel(level string) string {
+	switch strings.ToLower(strings.TrimSpace(level)) {
+	case "info", "warn", "error", "debug":
+		return strings.ToLower(strings.TrimSpace(level))
+	default:
+		return ""
+	}
+}
+
 func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.ListNodeCommandLogsRequest) (*skylexv1.ListNodeCommandLogsResponse, error) {
 	pageSize := int(req.GetPageSize())
 	if pageSize <= 0 {
@@ -408,6 +420,16 @@ func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.Lis
 	}
 	offset := (page - 1) * pageSize
 
+	filter := db.LogFilter{
+		Level: normalizeLogLevel(req.GetLevel()),
+	}
+	if ms := req.GetSinceMs(); ms > 0 {
+		filter.Since = timeFromMillis(ms)
+	}
+	if ms := req.GetUntilMs(); ms > 0 {
+		filter.Until = timeFromMillis(ms)
+	}
+
 	var (
 		logs []*db.CommandLog
 		err  error
@@ -415,11 +437,11 @@ func (s *NodeService) ListNodeCommandLogs(ctx context.Context, req *skylexv1.Lis
 
 	switch {
 	case req.GetCommandId() != "":
-		logs, err = s.commandLogs.ListByCommandID(ctx, req.GetCommandId(), pageSize, offset)
+		logs, err = s.commandLogs.ListByCommandID(ctx, req.GetCommandId(), pageSize, offset, filter)
 	case req.GetNodeId() != "":
-		logs, err = s.commandLogs.ListByNodeID(ctx, req.GetNodeId(), pageSize, offset)
+		logs, err = s.commandLogs.ListByNodeID(ctx, req.GetNodeId(), pageSize, offset, filter)
 	case req.GetClusterId() != "":
-		logs, err = s.commandLogs.ListByClusterID(ctx, req.GetClusterId(), pageSize, offset)
+		logs, err = s.commandLogs.ListByClusterID(ctx, req.GetClusterId(), pageSize, offset, filter)
 	default:
 		return nil, status.Errorf(codes.InvalidArgument, "cluster_id, node_id, or command_id is required")
 	}

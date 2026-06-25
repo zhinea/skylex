@@ -1758,12 +1758,17 @@ func (x *ResolveInstallationConflictResponse) GetNode() *Node {
 }
 
 type ListNodeCommandLogsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
-	NodeId        string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	CommandId     string                 `protobuf:"bytes,3,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
-	Page          int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	NodeId    string                 `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	CommandId string                 `protobuf:"bytes,3,opt,name=command_id,json=commandId,proto3" json:"command_id,omitempty"`
+	Page      int32                  `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize  int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	// level filters by exact log level (info|warn|error|debug). Empty = all levels.
+	Level string `protobuf:"bytes,6,opt,name=level,proto3" json:"level,omitempty"`
+	// since_ms / until_ms bound created_at (unix millis, UTC). 0 = unbounded.
+	SinceMs       int64 `protobuf:"varint,7,opt,name=since_ms,json=sinceMs,proto3" json:"since_ms,omitempty"`
+	UntilMs       int64 `protobuf:"varint,8,opt,name=until_ms,json=untilMs,proto3" json:"until_ms,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1829,6 +1834,27 @@ func (x *ListNodeCommandLogsRequest) GetPage() int32 {
 func (x *ListNodeCommandLogsRequest) GetPageSize() int32 {
 	if x != nil {
 		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListNodeCommandLogsRequest) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *ListNodeCommandLogsRequest) GetSinceMs() int64 {
+	if x != nil {
+		return x.SinceMs
+	}
+	return 0
+}
+
+func (x *ListNodeCommandLogsRequest) GetUntilMs() int64 {
+	if x != nil {
+		return x.UntilMs
 	}
 	return 0
 }
@@ -2303,7 +2329,7 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\x13postgres_admin_user\x18\x03 \x01(\tR\x11postgresAdminUser\x126\n" +
 	"\x17postgres_admin_password\x18\x04 \x01(\tR\x15postgresAdminPassword\"J\n" +
 	"#ResolveInstallationConflictResponse\x12#\n" +
-	"\x04node\x18\x01 \x01(\v2\x0f.skylex.v1.NodeR\x04node\"\xa4\x01\n" +
+	"\x04node\x18\x01 \x01(\v2\x0f.skylex.v1.NodeR\x04node\"\xf0\x01\n" +
 	"\x1aListNodeCommandLogsRequest\x12\x1d\n" +
 	"\n" +
 	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x17\n" +
@@ -2311,7 +2337,10 @@ const file_skylex_v1_cluster_proto_rawDesc = "" +
 	"\n" +
 	"command_id\x18\x03 \x01(\tR\tcommandId\x12\x12\n" +
 	"\x04page\x18\x04 \x01(\x05R\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\"\xc3\x01\n" +
+	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\x12\x14\n" +
+	"\x05level\x18\x06 \x01(\tR\x05level\x12\x19\n" +
+	"\bsince_ms\x18\a \x01(\x03R\asinceMs\x12\x19\n" +
+	"\buntil_ms\x18\b \x01(\x03R\auntilMs\"\xc3\x01\n" +
 	"\n" +
 	"CommandLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
