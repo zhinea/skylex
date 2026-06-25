@@ -13,8 +13,8 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 )
 
-// PostgresRole represents a managed PostgreSQL role for a cluster.
-type PostgresRole struct {
+// ManagedRole represents a managed PostgreSQL role for a cluster.
+type ManagedRole struct {
 	ID                string
 	ClusterID         string
 	RoleName          string
@@ -27,8 +27,8 @@ type PostgresRole struct {
 	UpdatedAt         time.Time
 }
 
-// PostgresRoleRepository manages managed_roles rows.
-type PostgresRoleRepository struct {
+// ManagedRoleRepository manages managed_roles rows.
+type ManagedRoleRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
 }
@@ -44,20 +44,20 @@ func RedactStoredError(input string) string {
 	return input
 }
 
-// PostgresRoleTx bundles all writes needed to create/rotate/delete a managed role.
+// ManagedRoleTx bundles all writes needed to create/rotate/delete a managed role.
 // Callers use it so role metadata, operation rows, queued commands, and command
 // secrets are committed atomically.
-type PostgresRoleTx struct {
-	Role      *PostgresRole
-	Operation *PostgresOperation
+type ManagedRoleTx struct {
+	Role      *ManagedRole
+	Operation *ServiceOperation
 	Command   *AgentCommand
 }
 
-func NewPostgresRoleRepository(conn *sql.DB, log *slog.Logger) *PostgresRoleRepository {
-	return &PostgresRoleRepository{conn: conn, log: log}
+func NewManagedRoleRepository(conn *sql.DB, log *slog.Logger) *ManagedRoleRepository {
+	return &ManagedRoleRepository{conn: conn, log: log}
 }
 
-func (r *PostgresRoleRepository) Create(ctx context.Context, clusterID, roleName, roleKind, encryptedPassword string, expiresAt *time.Time) (*PostgresRole, error) {
+func (r *ManagedRoleRepository) Create(ctx context.Context, clusterID, roleName, roleKind, encryptedPassword string, expiresAt *time.Time) (*ManagedRole, error) {
 	roleID := id.New()
 	now := time.Now().UTC()
 
@@ -71,7 +71,7 @@ func (r *PostgresRoleRepository) Create(ctx context.Context, clusterID, roleName
 		return nil, fmt.Errorf("insert postgres role: %w", err)
 	}
 
-	return &PostgresRole{
+	return &ManagedRole{
 		ID:                roleID,
 		ClusterID:         clusterID,
 		RoleName:          roleName,
@@ -85,21 +85,21 @@ func (r *PostgresRoleRepository) Create(ctx context.Context, clusterID, roleName
 	}, nil
 }
 
-func (r *PostgresRoleRepository) GetByID(ctx context.Context, roleID string) (*PostgresRole, error) {
+func (r *ManagedRoleRepository) GetByID(ctx context.Context, roleID string) (*ManagedRole, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
 		 FROM managed_roles WHERE id = ?`), roleID)
-	return scanPostgresRole(row)
+	return scanManagedRole(row)
 }
 
-func (r *PostgresRoleRepository) GetByClusterAndName(ctx context.Context, clusterID, roleName string) (*PostgresRole, error) {
+func (r *ManagedRoleRepository) GetByClusterAndName(ctx context.Context, clusterID, roleName string) (*ManagedRole, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
 		 FROM managed_roles WHERE cluster_id = ? AND role_name = ?`), clusterID, roleName)
-	return scanPostgresRole(row)
+	return scanManagedRole(row)
 }
 
-func (r *PostgresRoleRepository) ListByCluster(ctx context.Context, clusterID string) ([]*PostgresRole, error) {
+func (r *ManagedRoleRepository) ListByCluster(ctx context.Context, clusterID string) ([]*ManagedRole, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
 		 FROM managed_roles WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
@@ -108,9 +108,9 @@ func (r *PostgresRoleRepository) ListByCluster(ctx context.Context, clusterID st
 	}
 	defer rows.Close()
 
-	var roles []*PostgresRole
+	var roles []*ManagedRole
 	for rows.Next() {
-		role, err := scanPostgresRoleRow(rows)
+		role, err := scanManagedRoleRow(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +119,7 @@ func (r *PostgresRoleRepository) ListByCluster(ctx context.Context, clusterID st
 	return roles, rows.Err()
 }
 
-func (r *PostgresRoleRepository) UpdateStatus(ctx context.Context, roleID, status string) error {
+func (r *ManagedRoleRepository) UpdateStatus(ctx context.Context, roleID, status string) error {
 	now := time.Now().UTC()
 	_, err := r.conn.ExecContext(ctx,
 		Rebind(`UPDATE managed_roles SET status = ?, updated_at = ? WHERE id = ?`),
@@ -131,7 +131,7 @@ func (r *PostgresRoleRepository) UpdateStatus(ctx context.Context, roleID, statu
 }
 
 // RotatePassword atomically updates the encrypted password and increments the version.
-func (r *PostgresRoleRepository) RotatePassword(ctx context.Context, roleID, encryptedPassword string) (int, error) {
+func (r *ManagedRoleRepository) RotatePassword(ctx context.Context, roleID, encryptedPassword string) (int, error) {
 	now := time.Now().UTC()
 
 	tx, err := r.conn.BeginTx(ctx, nil)
@@ -165,7 +165,7 @@ func (r *PostgresRoleRepository) RotatePassword(ctx context.Context, roleID, enc
 	return newVersion, nil
 }
 
-func (r *PostgresRoleRepository) Delete(ctx context.Context, roleID string) error {
+func (r *ManagedRoleRepository) Delete(ctx context.Context, roleID string) error {
 	_, err := r.conn.ExecContext(ctx, Rebind(`DELETE FROM managed_roles WHERE id = ?`), roleID)
 	if err != nil {
 		return fmt.Errorf("delete postgres role: %w", err)
@@ -174,7 +174,7 @@ func (r *PostgresRoleRepository) Delete(ctx context.Context, roleID string) erro
 }
 
 // CreateWithCommand atomically creates a role, operation row, command row, and command secret.
-func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input CreateRoleTxInput) (*PostgresRoleTx, error) {
+func (r *ManagedRoleRepository) CreateWithCommand(ctx context.Context, input CreateRoleTxInput) (*ManagedRoleTx, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin create role tx: %w", err)
@@ -196,7 +196,7 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 		return nil, fmt.Errorf("insert postgres role: %w", err)
 	}
 
-	op, err := insertPostgresOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_role", now)
+	op, err := insertServiceOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_role", now)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +222,7 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 		return nil, fmt.Errorf("commit create role tx: %w", err)
 	}
 
-	role := &PostgresRole{
+	role := &ManagedRole{
 		ID:                roleID,
 		ClusterID:         input.ClusterID,
 		RoleName:          input.RoleName,
@@ -234,18 +234,18 @@ func (r *PostgresRoleRepository) CreateWithCommand(ctx context.Context, input Cr
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}
-	return &PostgresRoleTx{Role: role, Operation: op, Command: cmd}, nil
+	return &ManagedRoleTx{Role: role, Operation: op, Command: cmd}, nil
 }
 
 // RetryCreateWithCommand reuses a failed role row and queues pg_ensure_role again.
-func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, input CreateRoleTxInput) (*PostgresRoleTx, error) {
+func (r *ManagedRoleRepository) RetryCreateWithCommand(ctx context.Context, input CreateRoleTxInput) (*ManagedRoleTx, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin retry create role tx: %w", err)
 	}
 	defer tx.Rollback()
 
-	var role PostgresRole
+	var role ManagedRole
 	var expiresAt sql.NullTime
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
@@ -285,7 +285,7 @@ func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, inp
 		return nil, fmt.Errorf("update failed role for retry: %w", err)
 	}
 
-	op, err := insertPostgresOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_role", now)
+	op, err := insertServiceOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_role", now)
 	if err != nil {
 		return nil, err
 	}
@@ -310,18 +310,18 @@ func (r *PostgresRoleRepository) RetryCreateWithCommand(ctx context.Context, inp
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit retry create role tx: %w", err)
 	}
-	return &PostgresRoleTx{Role: &role, Operation: op, Command: cmd}, nil
+	return &ManagedRoleTx{Role: &role, Operation: op, Command: cmd}, nil
 }
 
 // RotateWithCommand atomically updates a role password/version and queues the rotate command.
-func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input RotateRoleTxInput) (*PostgresRoleTx, error) {
+func (r *ManagedRoleRepository) RotateWithCommand(ctx context.Context, input RotateRoleTxInput) (*ManagedRoleTx, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin rotate role tx: %w", err)
 	}
 	defer tx.Rollback()
 
-	var role PostgresRole
+	var role ManagedRole
 	var expiresAt sql.NullTime
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
@@ -354,7 +354,7 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 		return nil, fmt.Errorf("update role password: %w", err)
 	}
 
-	op, err := insertPostgresOperation(ctx, tx, input.OperationID, role.ClusterID, input.NodeID, "rotate_role_password", now)
+	op, err := insertServiceOperation(ctx, tx, input.OperationID, role.ClusterID, input.NodeID, "rotate_role_password", now)
 	if err != nil {
 		return nil, err
 	}
@@ -379,18 +379,18 @@ func (r *PostgresRoleRepository) RotateWithCommand(ctx context.Context, input Ro
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit rotate role tx: %w", err)
 	}
-	return &PostgresRoleTx{Role: &role, Operation: op, Command: cmd}, nil
+	return &ManagedRoleTx{Role: &role, Operation: op, Command: cmd}, nil
 }
 
 // DeleteWithCommand atomically marks a role deleting and queues the drop command.
-func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input DeleteRoleTxInput) (*PostgresRoleTx, error) {
+func (r *ManagedRoleRepository) DeleteWithCommand(ctx context.Context, input DeleteRoleTxInput) (*ManagedRoleTx, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin delete role tx: %w", err)
 	}
 	defer tx.Rollback()
 
-	var role PostgresRole
+	var role ManagedRole
 	var expiresAt sql.NullTime
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, role_name, role_kind, encrypted_password, password_version, expires_at, status, created_at, updated_at
@@ -414,7 +414,7 @@ func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input De
 	role.Status = "deleting"
 	role.UpdatedAt = now
 
-	op, err := insertPostgresOperation(ctx, tx, input.OperationID, role.ClusterID, input.NodeID, "delete_role", now)
+	op, err := insertServiceOperation(ctx, tx, input.OperationID, role.ClusterID, input.NodeID, "delete_role", now)
 	if err != nil {
 		return nil, err
 	}
@@ -436,11 +436,11 @@ func (r *PostgresRoleRepository) DeleteWithCommand(ctx context.Context, input De
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit delete role tx: %w", err)
 	}
-	return &PostgresRoleTx{Role: &role, Operation: op, Command: cmd}, nil
+	return &ManagedRoleTx{Role: &role, Operation: op, Command: cmd}, nil
 }
 
 // HandleCommandResult applies role and operation state transitions for completed role commands.
-func (r *PostgresRoleRepository) HandleCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+func (r *ManagedRoleRepository) HandleCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("begin role command result tx: %w", err)
@@ -568,7 +568,7 @@ type DeleteRoleTxInput struct {
 	DropAction string
 }
 
-func insertPostgresOperation(ctx context.Context, tx *sql.Tx, opID, clusterID, nodeID, operationType string, now time.Time) (*PostgresOperation, error) {
+func insertServiceOperation(ctx context.Context, tx *sql.Tx, opID, clusterID, nodeID, operationType string, now time.Time) (*ServiceOperation, error) {
 	if opID == "" {
 		opID = id.New()
 	}
@@ -585,7 +585,7 @@ func insertPostgresOperation(ctx context.Context, tx *sql.Tx, opID, clusterID, n
 	if err != nil {
 		return nil, fmt.Errorf("insert postgres operation: %w", err)
 	}
-	return &PostgresOperation{ID: opID, ClusterID: clusterID, NodeID: nodeID, OperationType: operationType, Status: "pending", CreatedAt: now, UpdatedAt: now}, nil
+	return &ServiceOperation{ID: opID, ClusterID: clusterID, NodeID: nodeID, OperationType: operationType, Status: "pending", CreatedAt: now, UpdatedAt: now}, nil
 }
 
 func insertAgentCommand(ctx context.Context, tx *sql.Tx, cmdID, agentID, nodeID, action, payload string, now time.Time) (*AgentCommand, error) {
@@ -630,9 +630,9 @@ func operationTypeForRoleAction(action string) string {
 	}
 }
 
-// scanPostgresRole scans a single *sql.Row.
-func scanPostgresRole(row *sql.Row) (*PostgresRole, error) {
-	var role PostgresRole
+// scanManagedRole scans a single *sql.Row.
+func scanManagedRole(row *sql.Row) (*ManagedRole, error) {
+	var role ManagedRole
 	var expiresAt sql.NullTime
 	err := row.Scan(
 		&role.ID, &role.ClusterID, &role.RoleName, &role.RoleKind,
@@ -651,9 +651,9 @@ func scanPostgresRole(row *sql.Row) (*PostgresRole, error) {
 	return &role, nil
 }
 
-// scanPostgresRoleRow scans from *sql.Rows.
-func scanPostgresRoleRow(rows *sql.Rows) (*PostgresRole, error) {
-	var role PostgresRole
+// scanManagedRoleRow scans from *sql.Rows.
+func scanManagedRoleRow(rows *sql.Rows) (*ManagedRole, error) {
+	var role ManagedRole
 	var expiresAt sql.NullTime
 	err := rows.Scan(
 		&role.ID, &role.ClusterID, &role.RoleName, &role.RoleKind,

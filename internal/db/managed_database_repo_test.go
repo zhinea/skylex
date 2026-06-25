@@ -8,7 +8,7 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 )
 
-func TestMigrations_SQLite_PostgresDatabasesTable(t *testing.T) {
+func TestMigrations_SQLite_ManagedDatabasesTable(t *testing.T) {
 	database, _ := newTestDB(t)
 	ctx := context.Background()
 
@@ -20,9 +20,9 @@ func TestMigrations_SQLite_PostgresDatabasesTable(t *testing.T) {
 	}
 }
 
-func TestPostgresDatabaseRepository_CreateListAndUniqueName(t *testing.T) {
+func TestManagedDatabaseRepository_CreateListAndUniqueName(t *testing.T) {
 	database, log := newTestDB(t)
-	repo := NewPostgresDatabaseRepository(database.Conn(), log)
+	repo := NewManagedDatabaseRepository(database.Conn(), log)
 	ctx := context.Background()
 	clusterID := insertTestCluster(t, database, "managed-db-create")
 
@@ -70,9 +70,9 @@ func TestPostgresDatabaseRepository_CreateListAndUniqueName(t *testing.T) {
 	}
 }
 
-func TestPostgresDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
+func TestManagedDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
 	database, log := newTestDB(t)
-	repo := NewPostgresDatabaseRepository(database.Conn(), log)
+	repo := NewManagedDatabaseRepository(database.Conn(), log)
 	ctx := context.Background()
 	clusterID := insertTestCluster(t, database, "managed-db-results")
 
@@ -149,9 +149,9 @@ func TestPostgresDatabaseRepository_HandleEnsureAndGrantResults(t *testing.T) {
 	}
 }
 
-func TestPostgresDatabaseRepository_DeleteWithCommandAndDropResult(t *testing.T) {
+func TestManagedDatabaseRepository_DeleteWithCommandAndDropResult(t *testing.T) {
 	database, log := newTestDB(t)
-	repo := NewPostgresDatabaseRepository(database.Conn(), log)
+	repo := NewManagedDatabaseRepository(database.Conn(), log)
 	ctx := context.Background()
 	clusterID := insertTestCluster(t, database, "managed-db-delete")
 

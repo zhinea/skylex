@@ -56,11 +56,11 @@ type PostgresManagementService struct {
 	profiles       *db.ConnectionProfileRepository
 	nodes          *db.NodeRepository
 	clusters       *db.ClusterRepository
-	roles          *db.PostgresRoleRepository
-	databases      *db.PostgresDatabaseRepository
-	access         *db.PostgresAccessRepository
-	tls            *db.PostgresTLSRepository
-	tlsCA          *db.PostgresTLSCARepository
+	roles          *db.ManagedRoleRepository
+	databases      *db.ManagedDatabaseRepository
+	access         *db.NetworkAccessRepository
+	tls            *db.TLSApplyRepository
+	tlsCA          *db.ServiceTLSCARepository
 	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
@@ -77,11 +77,11 @@ func NewPostgresManagementService(
 	profiles *db.ConnectionProfileRepository,
 	nodes *db.NodeRepository,
 	clusters *db.ClusterRepository,
-	roles *db.PostgresRoleRepository,
-	databases *db.PostgresDatabaseRepository,
-	access *db.PostgresAccessRepository,
-	tls *db.PostgresTLSRepository,
-	tlsCA *db.PostgresTLSCARepository,
+	roles *db.ManagedRoleRepository,
+	databases *db.ManagedDatabaseRepository,
+	access *db.NetworkAccessRepository,
+	tls *db.TLSApplyRepository,
+	tlsCA *db.ServiceTLSCARepository,
 	roleEncryptKey []byte,
 	log *slog.Logger,
 ) *PostgresManagementService {
@@ -502,7 +502,7 @@ func hbaRuleSets(profile *db.ConnectionProfile, nodes []*models.Node) ([]string,
 	return app, admin, replication
 }
 
-func readyAdminRoleNames(roles []*db.PostgresRole) []string {
+func readyAdminRoleNames(roles []*db.ManagedRole) []string {
 	names := make([]string, 0, len(roles))
 	for _, role := range roles {
 		if role.Status != "ready" || role.RoleKind != "admin" {
@@ -513,7 +513,7 @@ func readyAdminRoleNames(roles []*db.PostgresRole) []string {
 	return names
 }
 
-func readyApplicationRoleNames(roles []*db.PostgresRole) []string {
+func readyApplicationRoleNames(roles []*db.ManagedRole) []string {
 	names := make([]string, 0, len(roles))
 	for _, role := range roles {
 		if role.Status != "ready" || role.RoleKind == "admin" {
@@ -524,7 +524,7 @@ func readyApplicationRoleNames(roles []*db.PostgresRole) []string {
 	return names
 }
 
-func readyApplicationDatabaseNames(databases []*db.PostgresDatabase) []string {
+func readyApplicationDatabaseNames(databases []*db.ManagedDatabase) []string {
 	names := make([]string, 0, len(databases))
 	for _, database := range databases {
 		if database.Status != "ready" {
@@ -561,7 +561,7 @@ func (s *PostgresManagementService) hbaStatuses(ctx context.Context, clusterID s
 	return protoStatuses, nil
 }
 
-func hbaStatusToProto(s *db.PostgresHBAApplyStatus) *skylexv1.HBAApplyStatus {
+func hbaStatusToProto(s *db.HBAApplyStatus) *skylexv1.HBAApplyStatus {
 	proto := &skylexv1.HBAApplyStatus{
 		ClusterId: s.ClusterID,
 		NodeId:    s.NodeID,
@@ -869,7 +869,7 @@ func (s *PostgresManagementService) tlsStatuses(ctx context.Context, clusterID s
 	return protoStatuses, nil
 }
 
-func tlsStatusToProto(s *db.PostgresTLSApplyStatus) *skylexv1.TLSApplyStatus {
+func tlsStatusToProto(s *db.TLSApplyStatus) *skylexv1.TLSApplyStatus {
 	proto := &skylexv1.TLSApplyStatus{
 		ClusterId:        s.ClusterID,
 		NodeId:           s.NodeID,
@@ -888,7 +888,7 @@ func tlsStatusToProto(s *db.PostgresTLSApplyStatus) *skylexv1.TLSApplyStatus {
 	return proto
 }
 
-func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, warnings []string, ca *db.PostgresTLSCA) *skylexv1.TLSConfig {
+func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, warnings []string, ca *db.ServiceTLSCA) *skylexv1.TLSConfig {
 	proto := &skylexv1.TLSConfig{
 		ClusterId: p.ClusterID,
 		TlsMode:   normalizeTLSMode(p.SSLMode),
@@ -907,7 +907,7 @@ func tlsConfigToProto(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStat
 	return proto
 }
 
-func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, ca *db.PostgresTLSCA) []string {
+func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, ca *db.ServiceTLSCA) []string {
 	tlsMode := normalizeTLSMode(p.SSLMode)
 	warnings := []string{}
 	if tlsMode != "disabled" && p.TLSCertFile == "" && p.TLSKeyFile == "" {
@@ -936,7 +936,7 @@ func tlsWarnings(p *db.ConnectionProfile, statuses []*skylexv1.TLSApplyStatus, c
 	return warnings
 }
 
-func (s *PostgresManagementService) tlsCAForCluster(ctx context.Context, clusterID string) (*db.PostgresTLSCA, error) {
+func (s *PostgresManagementService) tlsCAForCluster(ctx context.Context, clusterID string) (*db.ServiceTLSCA, error) {
 	if s.tlsCA == nil {
 		return nil, nil
 	}
@@ -1264,7 +1264,7 @@ func (s *PostgresManagementService) CreateRole(
 		ExpiresAt:              expiresAt,
 		EnsureAction:           ensureRoleAction,
 	}
-	var txResult *db.PostgresRoleTx
+	var txResult *db.ManagedRoleTx
 	if existing != nil {
 		txResult, err = s.roles.RetryCreateWithCommand(ctx, createInput)
 	} else {
@@ -1533,7 +1533,7 @@ func (s *PostgresManagementService) CreateDatabase(
 		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("database %q is reserved", databaseName))
 	}
 
-	var ownerRole *db.PostgresRole
+	var ownerRole *db.ManagedRole
 	if ownerRoleID != "" {
 		role, err := s.roles.GetByID(ctx, ownerRoleID)
 		if err != nil {
@@ -1774,9 +1774,9 @@ func (s *PostgresManagementService) requireModule(ctx context.Context, clusterID
 	return provider, nil
 }
 
-// roleToProto converts a db.PostgresRole to the proto message.
+// roleToProto converts a db.ManagedRole to the proto message.
 // The encrypted_password field is never included in the response.
-func roleToProto(r *db.PostgresRole) *skylexv1.PostgresRole {
+func roleToProto(r *db.ManagedRole) *skylexv1.PostgresRole {
 	proto := &skylexv1.PostgresRole{
 		Id:              r.ID,
 		ClusterId:       r.ClusterID,
@@ -1797,7 +1797,7 @@ func roleToProto(r *db.PostgresRole) *skylexv1.PostgresRole {
 	return proto
 }
 
-func databaseToProto(d *db.PostgresDatabase, ownerRoleName string) *skylexv1.PostgresDatabase {
+func databaseToProto(d *db.ManagedDatabase, ownerRoleName string) *skylexv1.PostgresDatabase {
 	proto := &skylexv1.PostgresDatabase{
 		Id:            d.ID,
 		ClusterId:     d.ClusterID,

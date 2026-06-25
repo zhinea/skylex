@@ -11,18 +11,18 @@ import (
 	"github.com/zhinea/skylex/internal/models"
 )
 
-func newPostgresManagementServiceTestDeps(t *testing.T) (*db.DB, *PostgresManagementService, *db.PostgresRoleRepository, *db.NodeRepository) {
+func newPostgresManagementServiceTestDeps(t *testing.T) (*db.DB, *PostgresManagementService, *db.ManagedRoleRepository, *db.NodeRepository) {
 	t.Helper()
 	database, log := newTestDeps(t)
 	conn := database.Conn()
 	profiles := db.NewConnectionProfileRepository(conn, log)
 	clusters := db.NewClusterRepository(conn, log)
 	nodes := db.NewNodeRepository(conn, log)
-	roles := db.NewPostgresRoleRepository(conn, log)
-	databases := db.NewPostgresDatabaseRepository(conn, log)
-	access := db.NewPostgresAccessRepository(conn, log)
-	tls := db.NewPostgresTLSRepository(conn, log, []byte("12345678901234567890123456789012"))
-	tlsCA := db.NewPostgresTLSCARepository(conn, log, []byte("12345678901234567890123456789012"))
+	roles := db.NewManagedRoleRepository(conn, log)
+	databases := db.NewManagedDatabaseRepository(conn, log)
+	access := db.NewNetworkAccessRepository(conn, log)
+	tls := db.NewTLSApplyRepository(conn, log, []byte("12345678901234567890123456789012"))
+	tlsCA := db.NewServiceTLSCARepository(conn, log, []byte("12345678901234567890123456789012"))
 	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, tls, tlsCA, []byte("12345678901234567890123456789012"), log)
 	return database, svc, roles, nodes
 }

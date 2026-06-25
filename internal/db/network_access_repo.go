@@ -12,10 +12,10 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 )
 
-// PostgresHBAApplyStatus records the latest Skylex-managed pg_hba.conf apply
+// HBAApplyStatus records the latest Skylex-managed pg_hba.conf apply
 // attempt per cluster node. Status is operation state, so it lives outside
 // cluster/node entity tables.
-type PostgresHBAApplyStatus struct {
+type HBAApplyStatus struct {
 	ClusterID string
 	NodeID    string
 	CommandID string
@@ -25,8 +25,8 @@ type PostgresHBAApplyStatus struct {
 	UpdatedAt time.Time
 }
 
-// PostgresAccessRepository manages cluster network allowlists and HBA apply state.
-type PostgresAccessRepository struct {
+// NetworkAccessRepository manages cluster network allowlists and HBA apply state.
+type NetworkAccessRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
 }
@@ -38,11 +38,11 @@ type ApplyHBANodeCommand struct {
 	Payload   string
 }
 
-func NewPostgresAccessRepository(conn *sql.DB, log *slog.Logger) *PostgresAccessRepository {
-	return &PostgresAccessRepository{conn: conn, log: log}
+func NewNetworkAccessRepository(conn *sql.DB, log *slog.Logger) *NetworkAccessRepository {
+	return &NetworkAccessRepository{conn: conn, log: log}
 }
 
-func (r *PostgresAccessRepository) ListHBAStatusByCluster(ctx context.Context, clusterID string) ([]*PostgresHBAApplyStatus, error) {
+func (r *NetworkAccessRepository) ListHBAStatusByCluster(ctx context.Context, clusterID string) ([]*HBAApplyStatus, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT cluster_id, node_id, command_id, status, error, applied_at, updated_at
 		 FROM node_feature_apply_status WHERE cluster_id = ? AND feature = 'hba' ORDER BY updated_at DESC`), clusterID)
@@ -51,9 +51,9 @@ func (r *PostgresAccessRepository) ListHBAStatusByCluster(ctx context.Context, c
 	}
 	defer rows.Close()
 
-	statuses := []*PostgresHBAApplyStatus{}
+	statuses := []*HBAApplyStatus{}
 	for rows.Next() {
-		status, err := scanPostgresHBAApplyStatus(rows)
+		status, err := scanHBAApplyStatus(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -62,9 +62,9 @@ func (r *PostgresAccessRepository) ListHBAStatusByCluster(ctx context.Context, c
 	return statuses, rows.Err()
 }
 
-func (r *PostgresAccessRepository) QueueApplyHBACommands(ctx context.Context, clusterID string, commands []ApplyHBANodeCommand) ([]*PostgresHBAApplyStatus, error) {
+func (r *NetworkAccessRepository) QueueApplyHBACommands(ctx context.Context, clusterID string, commands []ApplyHBANodeCommand) ([]*HBAApplyStatus, error) {
 	if len(commands) == 0 {
-		return []*PostgresHBAApplyStatus{}, nil
+		return []*HBAApplyStatus{}, nil
 	}
 
 	tx, err := r.conn.BeginTx(ctx, nil)
@@ -74,7 +74,7 @@ func (r *PostgresAccessRepository) QueueApplyHBACommands(ctx context.Context, cl
 	defer tx.Rollback()
 
 	now := time.Now().UTC()
-	statuses := make([]*PostgresHBAApplyStatus, 0, len(commands))
+	statuses := make([]*HBAApplyStatus, 0, len(commands))
 	for _, cmd := range commands {
 		commandID := cmd.CommandID
 		if commandID == "" {
@@ -97,7 +97,7 @@ func (r *PostgresAccessRepository) QueueApplyHBACommands(ctx context.Context, cl
 		); err != nil {
 			return nil, fmt.Errorf("insert hba apply status: %w", err)
 		}
-		statuses = append(statuses, &PostgresHBAApplyStatus{
+		statuses = append(statuses, &HBAApplyStatus{
 			ClusterID: clusterID,
 			NodeID:    cmd.NodeID,
 			CommandID: commandID,
@@ -112,7 +112,7 @@ func (r *PostgresAccessRepository) QueueApplyHBACommands(ctx context.Context, cl
 	return statuses, nil
 }
 
-func (r *PostgresAccessRepository) HandleHBACommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+func (r *NetworkAccessRepository) HandleHBACommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("begin hba command result tx: %w", err)
@@ -165,8 +165,8 @@ func (r *PostgresAccessRepository) HandleHBACommandResult(ctx context.Context, c
 	return true, nil
 }
 
-func scanPostgresHBAApplyStatus(rows *sql.Rows) (*PostgresHBAApplyStatus, error) {
-	var status PostgresHBAApplyStatus
+func scanHBAApplyStatus(rows *sql.Rows) (*HBAApplyStatus, error) {
+	var status HBAApplyStatus
 	var commandID sql.NullString
 	var appliedAt sql.NullTime
 	if err := rows.Scan(&status.ClusterID, &status.NodeID, &commandID, &status.Status, &status.Error, &appliedAt, &status.UpdatedAt); err != nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/zhinea/skylex/internal/crypto"
 )
 
-type PostgresTLSCA struct {
+type ServiceTLSCA struct {
 	ClusterID         string
 	CACertPEM         string
 	EncryptedCAKeyPEM string
@@ -19,21 +19,21 @@ type PostgresTLSCA struct {
 	UpdatedAt         time.Time
 }
 
-type PostgresTLSCARepository struct {
+type ServiceTLSCARepository struct {
 	conn       *sql.DB
 	log        *slog.Logger
 	encryptKey []byte
 }
 
-func NewPostgresTLSCARepository(conn *sql.DB, log *slog.Logger, encryptKey []byte) *PostgresTLSCARepository {
-	return &PostgresTLSCARepository{conn: conn, log: log, encryptKey: encryptKey}
+func NewServiceTLSCARepository(conn *sql.DB, log *slog.Logger, encryptKey []byte) *ServiceTLSCARepository {
+	return &ServiceTLSCARepository{conn: conn, log: log, encryptKey: encryptKey}
 }
 
-func (r *PostgresTLSCARepository) GetByClusterID(ctx context.Context, clusterID string) (*PostgresTLSCA, error) {
+func (r *ServiceTLSCARepository) GetByClusterID(ctx context.Context, clusterID string) (*ServiceTLSCA, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT cluster_id, ca_cert_pem, encrypted_ca_key_pem, created_at, updated_at
 		 FROM service_tls_authorities WHERE cluster_id = ?`), clusterID)
-	var ca PostgresTLSCA
+	var ca ServiceTLSCA
 	if err := row.Scan(&ca.ClusterID, &ca.CACertPEM, &ca.EncryptedCAKeyPEM, &ca.CreatedAt, &ca.UpdatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -43,7 +43,7 @@ func (r *PostgresTLSCARepository) GetByClusterID(ctx context.Context, clusterID 
 	return &ca, nil
 }
 
-func (r *PostgresTLSCARepository) Upsert(ctx context.Context, clusterID, caCertPEM, caKeyPEM string) (*PostgresTLSCA, error) {
+func (r *ServiceTLSCARepository) Upsert(ctx context.Context, clusterID, caCertPEM, caKeyPEM string) (*ServiceTLSCA, error) {
 	ciphertext, err := crypto.EncryptAES256GCM([]byte(caKeyPEM), r.encryptKey)
 	if err != nil {
 		return nil, fmt.Errorf("encrypt ca key: %w", err)
@@ -62,7 +62,7 @@ func (r *PostgresTLSCARepository) Upsert(ctx context.Context, clusterID, caCertP
 	return r.GetByClusterID(ctx, clusterID)
 }
 
-func (r *PostgresTLSCARepository) DecryptCAKey(ca *PostgresTLSCA) (string, error) {
+func (r *ServiceTLSCARepository) DecryptCAKey(ca *ServiceTLSCA) (string, error) {
 	if ca == nil {
 		return "", fmt.Errorf("ca is nil")
 	}

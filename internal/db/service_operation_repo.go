@@ -10,8 +10,8 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 )
 
-// PostgresOperation records an async operation dispatched for a cluster.
-type PostgresOperation struct {
+// ServiceOperation records an async operation dispatched for a cluster.
+type ServiceOperation struct {
 	ID            string
 	ClusterID     string
 	NodeID        string // may be empty
@@ -23,17 +23,17 @@ type PostgresOperation struct {
 	CompletedAt   *time.Time
 }
 
-// PostgresOperationRepository manages service_operations rows.
-type PostgresOperationRepository struct {
+// ServiceOperationRepository manages service_operations rows.
+type ServiceOperationRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
 }
 
-func NewPostgresOperationRepository(conn *sql.DB, log *slog.Logger) *PostgresOperationRepository {
-	return &PostgresOperationRepository{conn: conn, log: log}
+func NewServiceOperationRepository(conn *sql.DB, log *slog.Logger) *ServiceOperationRepository {
+	return &ServiceOperationRepository{conn: conn, log: log}
 }
 
-func (r *PostgresOperationRepository) Create(ctx context.Context, clusterID, nodeID, operationType string) (*PostgresOperation, error) {
+func (r *ServiceOperationRepository) Create(ctx context.Context, clusterID, nodeID, operationType string) (*ServiceOperation, error) {
 	opID := id.New()
 	now := time.Now().UTC()
 
@@ -52,7 +52,7 @@ func (r *PostgresOperationRepository) Create(ctx context.Context, clusterID, nod
 		return nil, fmt.Errorf("insert postgres operation: %w", err)
 	}
 
-	return &PostgresOperation{
+	return &ServiceOperation{
 		ID:            opID,
 		ClusterID:     clusterID,
 		NodeID:        nodeID,
@@ -63,7 +63,7 @@ func (r *PostgresOperationRepository) Create(ctx context.Context, clusterID, nod
 	}, nil
 }
 
-func (r *PostgresOperationRepository) UpdateStatus(ctx context.Context, opID, status, errMsg string) error {
+func (r *ServiceOperationRepository) UpdateStatus(ctx context.Context, opID, status, errMsg string) error {
 	now := time.Now().UTC()
 	var completedAt interface{}
 	if status == "succeeded" || status == "failed" {
@@ -80,7 +80,7 @@ func (r *PostgresOperationRepository) UpdateStatus(ctx context.Context, opID, st
 	return nil
 }
 
-func (r *PostgresOperationRepository) ListByCluster(ctx context.Context, clusterID string, limit int) ([]*PostgresOperation, error) {
+func (r *ServiceOperationRepository) ListByCluster(ctx context.Context, clusterID string, limit int) ([]*ServiceOperation, error) {
 	if limit <= 0 || limit > 500 {
 		limit = 100
 	}
@@ -92,9 +92,9 @@ func (r *PostgresOperationRepository) ListByCluster(ctx context.Context, cluster
 	}
 	defer rows.Close()
 
-	var ops []*PostgresOperation
+	var ops []*ServiceOperation
 	for rows.Next() {
-		op, err := scanPostgresOperationRow(rows)
+		op, err := scanServiceOperationRow(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -103,8 +103,8 @@ func (r *PostgresOperationRepository) ListByCluster(ctx context.Context, cluster
 	return ops, rows.Err()
 }
 
-func scanPostgresOperationRow(rows *sql.Rows) (*PostgresOperation, error) {
-	var op PostgresOperation
+func scanServiceOperationRow(rows *sql.Rows) (*ServiceOperation, error) {
+	var op ServiceOperation
 	var nodeID sql.NullString
 	var completedAt sql.NullTime
 	err := rows.Scan(

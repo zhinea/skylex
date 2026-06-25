@@ -11,8 +11,8 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 )
 
-// PostgresDatabase represents a Skylex-managed application database.
-type PostgresDatabase struct {
+// ManagedDatabase represents a Skylex-managed application database.
+type ManagedDatabase struct {
 	ID           string
 	ClusterID    string
 	DatabaseName string
@@ -22,16 +22,16 @@ type PostgresDatabase struct {
 	UpdatedAt    time.Time
 }
 
-// PostgresDatabaseRepository manages managed_databases rows and their queued commands.
-type PostgresDatabaseRepository struct {
+// ManagedDatabaseRepository manages managed_databases rows and their queued commands.
+type ManagedDatabaseRepository struct {
 	conn *sql.DB
 	log  *slog.Logger
 }
 
-// PostgresDatabaseTx bundles rows created/changed with the queued command.
-type PostgresDatabaseTx struct {
-	Database  *PostgresDatabase
-	Operation *PostgresOperation
+// ManagedDatabaseTx bundles rows created/changed with the queued command.
+type ManagedDatabaseTx struct {
+	Database  *ManagedDatabase
+	Operation *ServiceOperation
 	Command   *AgentCommand
 }
 
@@ -44,25 +44,25 @@ type DatabaseGrantRequest struct {
 	GrantRoleKind string
 }
 
-func NewPostgresDatabaseRepository(conn *sql.DB, log *slog.Logger) *PostgresDatabaseRepository {
-	return &PostgresDatabaseRepository{conn: conn, log: log}
+func NewManagedDatabaseRepository(conn *sql.DB, log *slog.Logger) *ManagedDatabaseRepository {
+	return &ManagedDatabaseRepository{conn: conn, log: log}
 }
 
-func (r *PostgresDatabaseRepository) GetByID(ctx context.Context, databaseID string) (*PostgresDatabase, error) {
+func (r *ManagedDatabaseRepository) GetByID(ctx context.Context, databaseID string) (*ManagedDatabase, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
 		 FROM managed_databases WHERE id = ?`), databaseID)
-	return scanPostgresDatabase(row)
+	return scanManagedDatabase(row)
 }
 
-func (r *PostgresDatabaseRepository) GetByClusterAndName(ctx context.Context, clusterID, databaseName string) (*PostgresDatabase, error) {
+func (r *ManagedDatabaseRepository) GetByClusterAndName(ctx context.Context, clusterID, databaseName string) (*ManagedDatabase, error) {
 	row := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
 		 FROM managed_databases WHERE cluster_id = ? AND database_name = ?`), clusterID, databaseName)
-	return scanPostgresDatabase(row)
+	return scanManagedDatabase(row)
 }
 
-func (r *PostgresDatabaseRepository) ListByCluster(ctx context.Context, clusterID string) ([]*PostgresDatabase, error) {
+func (r *ManagedDatabaseRepository) ListByCluster(ctx context.Context, clusterID string) ([]*ManagedDatabase, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
 		 FROM managed_databases WHERE cluster_id = ? ORDER BY created_at ASC`), clusterID)
@@ -71,9 +71,9 @@ func (r *PostgresDatabaseRepository) ListByCluster(ctx context.Context, clusterI
 	}
 	defer rows.Close()
 
-	databases := []*PostgresDatabase{}
+	databases := []*ManagedDatabase{}
 	for rows.Next() {
-		database, err := scanPostgresDatabaseRow(rows)
+		database, err := scanManagedDatabaseRow(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func (r *PostgresDatabaseRepository) ListByCluster(ctx context.Context, clusterI
 	return databases, rows.Err()
 }
 
-func (r *PostgresDatabaseRepository) HasByOwnerRole(ctx context.Context, roleID string) (bool, error) {
+func (r *ManagedDatabaseRepository) HasByOwnerRole(ctx context.Context, roleID string) (bool, error) {
 	var exists bool
 	if err := r.conn.QueryRowContext(ctx,
 		Rebind(`SELECT EXISTS(SELECT 1 FROM managed_databases WHERE owner_role_id = ? AND status != 'deleting')`), roleID,
@@ -92,7 +92,7 @@ func (r *PostgresDatabaseRepository) HasByOwnerRole(ctx context.Context, roleID 
 	return exists, nil
 }
 
-func (r *PostgresDatabaseRepository) CreateWithCommand(ctx context.Context, input CreateDatabaseTxInput) (*PostgresDatabaseTx, error) {
+func (r *ManagedDatabaseRepository) CreateWithCommand(ctx context.Context, input CreateDatabaseTxInput) (*ManagedDatabaseTx, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin create database tx: %w", err)
@@ -120,7 +120,7 @@ func (r *PostgresDatabaseRepository) CreateWithCommand(ctx context.Context, inpu
 		return nil, fmt.Errorf("insert postgres database: %w", err)
 	}
 
-	op, err := insertPostgresOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_database", now)
+	op, err := insertServiceOperation(ctx, tx, input.OperationID, input.ClusterID, input.NodeID, "create_database", now)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (r *PostgresDatabaseRepository) CreateWithCommand(ctx context.Context, inpu
 		return nil, fmt.Errorf("commit create database tx: %w", err)
 	}
 
-	database := &PostgresDatabase{
+	database := &ManagedDatabase{
 		ID:           databaseID,
 		ClusterID:    input.ClusterID,
 		DatabaseName: input.DatabaseName,
@@ -154,17 +154,17 @@ func (r *PostgresDatabaseRepository) CreateWithCommand(ctx context.Context, inpu
 	if input.OwnerRoleID != "" {
 		database.OwnerRoleID = &input.OwnerRoleID
 	}
-	return &PostgresDatabaseTx{Database: database, Operation: op, Command: cmd}, nil
+	return &ManagedDatabaseTx{Database: database, Operation: op, Command: cmd}, nil
 }
 
-func (r *PostgresDatabaseRepository) DeleteWithCommand(ctx context.Context, input DeleteDatabaseTxInput) (*PostgresDatabaseTx, error) {
+func (r *ManagedDatabaseRepository) DeleteWithCommand(ctx context.Context, input DeleteDatabaseTxInput) (*ManagedDatabaseTx, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("begin delete database tx: %w", err)
 	}
 	defer tx.Rollback()
 
-	var database PostgresDatabase
+	var database ManagedDatabase
 	var ownerRoleID sql.NullString
 	err = tx.QueryRowContext(ctx,
 		Rebind(`SELECT id, cluster_id, database_name, owner_role_id, status, created_at, updated_at
@@ -188,7 +188,7 @@ func (r *PostgresDatabaseRepository) DeleteWithCommand(ctx context.Context, inpu
 	database.Status = "deleting"
 	database.UpdatedAt = now
 
-	op, err := insertPostgresOperation(ctx, tx, input.OperationID, database.ClusterID, input.NodeID, "delete_database", now)
+	op, err := insertServiceOperation(ctx, tx, input.OperationID, database.ClusterID, input.NodeID, "delete_database", now)
 	if err != nil {
 		return nil, err
 	}
@@ -210,10 +210,10 @@ func (r *PostgresDatabaseRepository) DeleteWithCommand(ctx context.Context, inpu
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("commit delete database tx: %w", err)
 	}
-	return &PostgresDatabaseTx{Database: &database, Operation: op, Command: cmd}, nil
+	return &ManagedDatabaseTx{Database: &database, Operation: op, Command: cmd}, nil
 }
 
-func (r *PostgresDatabaseRepository) QueueGrantCommand(ctx context.Context, input GrantDatabaseTxInput) (*AgentCommand, error) {
+func (r *ManagedDatabaseRepository) QueueGrantCommand(ctx context.Context, input GrantDatabaseTxInput) (*AgentCommand, error) {
 	now := time.Now().UTC()
 	commandID := input.CommandID
 	if commandID == "" {
@@ -230,7 +230,7 @@ func (r *PostgresDatabaseRepository) QueueGrantCommand(ctx context.Context, inpu
 	return &AgentCommand{ID: commandID, AgentID: input.AgentID, NodeID: input.NodeID, Action: input.GrantAction, Payload: input.Payload, Status: "pending", CreatedAt: now}, nil
 }
 
-func (r *PostgresDatabaseRepository) MarkCreateFailed(ctx context.Context, databaseID, operationID, errMsg string) error {
+func (r *ManagedDatabaseRepository) MarkCreateFailed(ctx context.Context, databaseID, operationID, errMsg string) error {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("begin mark database create failed tx: %w", err)
@@ -253,7 +253,7 @@ func (r *PostgresDatabaseRepository) MarkCreateFailed(ctx context.Context, datab
 // HandleCommandResult applies state transitions for database management commands.
 // A successful ensure with an owner role returns a follow-up grant request; the
 // caller resolves the current primary before queueing that grant command.
-func (r *PostgresDatabaseRepository) HandleCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, *DatabaseGrantRequest, error) {
+func (r *ManagedDatabaseRepository) HandleCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, *DatabaseGrantRequest, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return false, nil, fmt.Errorf("begin database command result tx: %w", err)
@@ -457,8 +457,8 @@ func markDatabaseOperation(ctx context.Context, tx *sql.Tx, operationID, operati
 	return nil
 }
 
-func scanPostgresDatabase(row *sql.Row) (*PostgresDatabase, error) {
-	var database PostgresDatabase
+func scanManagedDatabase(row *sql.Row) (*ManagedDatabase, error) {
+	var database ManagedDatabase
 	var ownerRoleID sql.NullString
 	err := row.Scan(&database.ID, &database.ClusterID, &database.DatabaseName, &ownerRoleID, &database.Status, &database.CreatedAt, &database.UpdatedAt)
 	if err == sql.ErrNoRows {
@@ -473,8 +473,8 @@ func scanPostgresDatabase(row *sql.Row) (*PostgresDatabase, error) {
 	return &database, nil
 }
 
-func scanPostgresDatabaseRow(rows *sql.Rows) (*PostgresDatabase, error) {
-	var database PostgresDatabase
+func scanManagedDatabaseRow(rows *sql.Rows) (*ManagedDatabase, error) {
+	var database ManagedDatabase
 	var ownerRoleID sql.NullString
 	err := rows.Scan(&database.ID, &database.ClusterID, &database.DatabaseName, &ownerRoleID, &database.Status, &database.CreatedAt, &database.UpdatedAt)
 	if err != nil {

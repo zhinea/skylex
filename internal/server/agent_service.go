@@ -29,10 +29,10 @@ type AgentService struct {
 	commandLogs    *db.CommandLogRepository
 	agentTokenRepo *db.AgentTokenRepository
 	commandSecrets *db.AgentCommandSecretRepository
-	postgresRoles  *db.PostgresRoleRepository
-	postgresDBs    *db.PostgresDatabaseRepository
-	postgresAccess *db.PostgresAccessRepository
-	postgresTLS    *db.PostgresTLSRepository
+	postgresRoles  *db.ManagedRoleRepository
+	postgresDBs    *db.ManagedDatabaseRepository
+	postgresAccess *db.NetworkAccessRepository
+	postgresTLS    *db.TLSApplyRepository
 	logBroker      *LogBroker
 	log            *slog.Logger
 }
@@ -57,19 +57,19 @@ func (s *AgentService) SetCommandSecretRepository(repo *db.AgentCommandSecretRep
 	s.commandSecrets = repo
 }
 
-func (s *AgentService) SetPostgresRoleRepository(repo *db.PostgresRoleRepository) {
+func (s *AgentService) SetPostgresRoleRepository(repo *db.ManagedRoleRepository) {
 	s.postgresRoles = repo
 }
 
-func (s *AgentService) SetPostgresDatabaseRepository(repo *db.PostgresDatabaseRepository) {
+func (s *AgentService) SetPostgresDatabaseRepository(repo *db.ManagedDatabaseRepository) {
 	s.postgresDBs = repo
 }
 
-func (s *AgentService) SetPostgresAccessRepository(repo *db.PostgresAccessRepository) {
+func (s *AgentService) SetPostgresAccessRepository(repo *db.NetworkAccessRepository) {
 	s.postgresAccess = repo
 }
 
-func (s *AgentService) SetPostgresTLSRepository(repo *db.PostgresTLSRepository) {
+func (s *AgentService) SetPostgresTLSRepository(repo *db.TLSApplyRepository) {
 	s.postgresTLS = repo
 }
 

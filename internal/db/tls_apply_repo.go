@@ -13,8 +13,8 @@ import (
 	"github.com/zhinea/skylex/internal/id"
 )
 
-// PostgresTLSApplyStatus records latest TLS config application state per node.
-type PostgresTLSApplyStatus struct {
+// TLSApplyStatus records latest TLS config application state per node.
+type TLSApplyStatus struct {
 	ClusterID        string
 	NodeID           string
 	CommandID        string
@@ -34,15 +34,15 @@ type ApplyTLSNodeCommand struct {
 	Secrets   map[string]string
 }
 
-// PostgresTLSRepository manages per-node TLS apply status.
-type PostgresTLSRepository struct {
+// TLSApplyRepository manages per-node TLS apply status.
+type TLSApplyRepository struct {
 	conn       *sql.DB
 	log        *slog.Logger
 	encryptKey []byte
 }
 
-func NewPostgresTLSRepository(conn *sql.DB, log *slog.Logger, encryptKey []byte) *PostgresTLSRepository {
-	return &PostgresTLSRepository{conn: conn, log: log, encryptKey: encryptKey}
+func NewTLSApplyRepository(conn *sql.DB, log *slog.Logger, encryptKey []byte) *TLSApplyRepository {
+	return &TLSApplyRepository{conn: conn, log: log, encryptKey: encryptKey}
 }
 
 // tlsApplyDetail holds the TLS-specific fields stored in the shared
@@ -52,7 +52,7 @@ type tlsApplyDetail struct {
 	TLSActive        bool   `json:"tls_active"`
 }
 
-func (r *PostgresTLSRepository) ListStatusByCluster(ctx context.Context, clusterID string) ([]*PostgresTLSApplyStatus, error) {
+func (r *TLSApplyRepository) ListStatusByCluster(ctx context.Context, clusterID string) ([]*TLSApplyStatus, error) {
 	rows, err := r.conn.QueryContext(ctx,
 		Rebind(`SELECT cluster_id, node_id, command_id, status, error, detail, applied_at, updated_at
 		 FROM node_feature_apply_status WHERE cluster_id = ? AND feature = 'tls' ORDER BY updated_at DESC`), clusterID)
@@ -61,9 +61,9 @@ func (r *PostgresTLSRepository) ListStatusByCluster(ctx context.Context, cluster
 	}
 	defer rows.Close()
 
-	statuses := []*PostgresTLSApplyStatus{}
+	statuses := []*TLSApplyStatus{}
 	for rows.Next() {
-		status, err := scanPostgresTLSApplyStatus(rows)
+		status, err := scanTLSApplyStatus(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -72,9 +72,9 @@ func (r *PostgresTLSRepository) ListStatusByCluster(ctx context.Context, cluster
 	return statuses, rows.Err()
 }
 
-func (r *PostgresTLSRepository) QueueApplyTLSCommands(ctx context.Context, clusterID, requestedTLSMode string, commands []ApplyTLSNodeCommand) ([]*PostgresTLSApplyStatus, error) {
+func (r *TLSApplyRepository) QueueApplyTLSCommands(ctx context.Context, clusterID, requestedTLSMode string, commands []ApplyTLSNodeCommand) ([]*TLSApplyStatus, error) {
 	if len(commands) == 0 {
-		return []*PostgresTLSApplyStatus{}, nil
+		return []*TLSApplyStatus{}, nil
 	}
 
 	tx, err := r.conn.BeginTx(ctx, nil)
@@ -84,7 +84,7 @@ func (r *PostgresTLSRepository) QueueApplyTLSCommands(ctx context.Context, clust
 	defer tx.Rollback()
 
 	now := time.Now().UTC()
-	statuses := make([]*PostgresTLSApplyStatus, 0, len(commands))
+	statuses := make([]*TLSApplyStatus, 0, len(commands))
 	for _, cmd := range commands {
 		commandID := cmd.CommandID
 		if commandID == "" {
@@ -121,7 +121,7 @@ func (r *PostgresTLSRepository) QueueApplyTLSCommands(ctx context.Context, clust
 		); err != nil {
 			return nil, fmt.Errorf("insert tls apply status: %w", err)
 		}
-		statuses = append(statuses, &PostgresTLSApplyStatus{
+		statuses = append(statuses, &TLSApplyStatus{
 			ClusterID:        clusterID,
 			NodeID:           cmd.NodeID,
 			CommandID:        commandID,
@@ -137,7 +137,7 @@ func (r *PostgresTLSRepository) QueueApplyTLSCommands(ctx context.Context, clust
 	return statuses, nil
 }
 
-func (r *PostgresTLSRepository) HandleCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+func (r *TLSApplyRepository) HandleCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("begin tls command result tx: %w", err)
@@ -196,8 +196,8 @@ func (r *PostgresTLSRepository) HandleCommandResult(ctx context.Context, command
 	return true, nil
 }
 
-func scanPostgresTLSApplyStatus(rows *sql.Rows) (*PostgresTLSApplyStatus, error) {
-	var status PostgresTLSApplyStatus
+func scanTLSApplyStatus(rows *sql.Rows) (*TLSApplyStatus, error) {
+	var status TLSApplyStatus
 	var commandID sql.NullString
 	var appliedAt sql.NullTime
 	var detailJSON string
