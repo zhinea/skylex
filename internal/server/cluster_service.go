@@ -155,7 +155,7 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 		return nil, status.Errorf(codes.AlreadyExists, "cluster %q already exists", req.GetName())
 	}
 
-	engine := models.EngineType(cfg.GetEngine().String())
+	engine := convertEngine(cfg.GetEngine())
 	version := cfg.GetVersion()
 	if version == "" {
 		version = "16"
@@ -919,6 +919,15 @@ func clusterToProto(c *models.Cluster) *skylexv1.Cluster {
 		ServiceLocation: serviceLocation,
 		CreatedAt:       timestamppb.New(c.CreatedAt),
 		UpdatedAt:       timestamppb.New(c.UpdatedAt),
+	}
+}
+
+func convertEngine(e skylexv1.Engine) models.EngineType {
+	switch e {
+	case skylexv1.Engine_ENGINE_POSTGRESQL:
+		return models.EnginePostgreSQL
+	default:
+		return models.EngineType("")
 	}
 }
 
