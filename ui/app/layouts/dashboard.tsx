@@ -52,9 +52,10 @@ export default function DashboardLayout() {
 
     for (const node of currentNodes) {
       if (!prevNodeIds.current.has(node.id)) {
+        const nodeAddress = node.address || node.hostname;
         success(
           "New Node Registered",
-          `Node '${node.hostname}' (${node.address}:${node.port}) has registered successfully.`
+          `Node '${node.hostname}' (${nodeAddress}:${node.port}) has registered successfully.`
         );
         prevNodeIds.current.add(node.id);
       }
