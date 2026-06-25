@@ -135,7 +135,7 @@ After installation, the standard init sequence is:
 ## Testing
 
 - `make test` runs `go test ./...`. Test packages: `internal/server`, `internal/db`, `internal/agent/installer`.
-- Test coverage includes: cluster provisioning validation (`validateClusterSetting`, `installCommands`), installer logic (`PreflightResult`, `DockerCommandArgs`, `formatCommand`), migration sequential-numbering and idempotency, and cluster settings repository operations.
+- Test coverage includes: cluster provisioning validation (`validateClusterSetting`, `installCommands`), installer logic (`PreflightResult`, `DockerCommandArgs`, `formatCommand`), migration sequential-numbering and idempotency, cluster settings repository operations, and PostgreSQL extension toggling (engine catalog/allowlist, `ClusterExtensionRepository`, and the `GetExtensions`/`SetExtension`/`ApplyExtensions` handlers).
 - The project has no CI workflows, no pre-commit hooks, and no `golangci-lint` config file yet.
 
 ## Docker Compose reference stack

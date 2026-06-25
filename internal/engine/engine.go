@@ -57,7 +57,36 @@ const (
 	OpDropRole                LogicalOp = "drop_role"
 	OpApplyHBA                LogicalOp = "apply_hba"
 	OpApplyTLS                LogicalOp = "apply_tls"
+	OpApplyExtensions         LogicalOp = "apply_extensions"
 )
+
+// Extension describes a single togglable database extension surfaced in the
+// Extensions module. The catalog of available extensions is engine-specific, so
+// it is exposed via the optional ExtensionCatalog interface rather than the core
+// Provider (a future MariaDB provider simply will not implement it).
+type Extension struct {
+	// Name is the canonical extension identifier passed to the engine (e.g.
+	// "uuid-ossp", "pg_trgm").
+	Name string
+	// Label is a short human-readable name for the UI.
+	Label string
+	// Description explains what the extension does in one line.
+	Description string
+}
+
+// ExtensionCatalog is an optional capability a Provider may implement when its
+// engine supports the Extensions module. Keeping it separate from Provider means
+// engines without extensions (MariaDB/MySQL) do not carry empty stubs, and the
+// curated allowlist lives next to the engine that owns it.
+type ExtensionCatalog interface {
+	// AvailableExtensions returns the curated, ordered allowlist of extensions a
+	// user may toggle. Only names in this list are accepted by the control plane.
+	AvailableExtensions() []Extension
+	// ValidateExtensionName reports whether name is an accepted extension. This
+	// is the security boundary: the agent only ever runs CREATE/DROP EXTENSION
+	// for names that pass here.
+	ValidateExtensionName(name string) error
+}
 
 // Provider encapsulates everything that varies per database engine. A concrete
 // provider is stateless and safe for concurrent use.
@@ -97,6 +126,7 @@ var allOps = []LogicalOp{
 	OpDropRole,
 	OpApplyHBA,
 	OpApplyTLS,
+	OpApplyExtensions,
 }
 
 // actionRef identifies which engine and logical operation an agent command

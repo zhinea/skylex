@@ -29,6 +29,7 @@ const (
 	AuditActionDeleteDatabase       AuditAction = "postgres_database.delete"
 	AuditActionUpdatePostgresAccess AuditAction = "postgres_access.update"
 	AuditActionUpdatePostgresTLS    AuditAction = "postgres_tls.update"
+	AuditActionUpdatePostgresExt    AuditAction = "postgres_extensions.update"
 )
 
 type AuditLog struct {

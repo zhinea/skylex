@@ -242,3 +242,37 @@ engine-specific branching in the UI.
   it in the provider's `Modules()`. Do not hardcode it in the UI. See §3/§8.
 - "Should I add an `engine` column to `managed_databases`?" — No. Derive from
   `cluster_id -> clusters.engine`. See §7.
+
+## 12. Optional engine capabilities (extensions example)
+
+Some features are advertised by a `ModuleID` but also need engine-specific *data*
+that does not belong on the core `Provider` interface (which every engine must
+implement). The pattern is an **optional capability interface** that only the
+engines supporting it implement, resolved with a type assertion:
+
+```go
+// internal/engine/engine.go
+type ExtensionCatalog interface {
+    AvailableExtensions() []Extension
+    ValidateExtensionName(string) error
+}
+
+// handler side
+provider, _ := s.requireModule(ctx, clusterID, engine.ModuleExtensions)
+catalog, ok := provider.(engine.ExtensionCatalog) // postgres implements it; mariadb won't
+```
+
+This keeps MariaDB from carrying empty extension stubs and keeps the curated
+allowlist next to the engine that owns it. The PostgreSQL extension feature wires
+through the same layers as HBA/TLS:
+
+- Logical op `OpApplyExtensions` -> action `pg_apply_extensions` (add new ops to
+  BOTH the const block AND the `allOps` slice, or the reverse lookup — and thus
+  `HandleCommandResult` routing — silently no-ops).
+- Storage: `cluster_extensions(cluster_id, extension_name, enabled, status, ...)`
+  in `internal/db/cluster_extension_repo.go` (config state, engine-neutral table,
+  keyed by `(cluster_id, extension_name)`).
+- Flow: user toggles desired state (`SetExtension`, all off by default) then
+  `ApplyExtensions` queues ONE command on the primary; the agent runs
+  `CREATE/DROP EXTENSION` (no restart, no downtime) across managed databases and
+  replicas converge via WAL.

@@ -122,6 +122,7 @@ func (s *Server) Start(ctx context.Context) error {
 	postgresAccessRepo := db.NewNetworkAccessRepository(conn, s.log)
 	postgresTLSRepo := db.NewTLSApplyRepository(conn, s.log, roleEncryptKey)
 	postgresTLSCARepo := db.NewServiceTLSCARepository(conn, s.log, roleEncryptKey)
+	postgresExtensionRepo := db.NewClusterExtensionRepository(conn, s.log)
 	storageConfigRepo := db.NewStorageConfigRepository(conn, s.log, encryptKey)
 	backupRepo := db.NewBackupRepository(conn, s.log)
 
@@ -137,7 +138,8 @@ func (s *Server) Start(ctx context.Context) error {
 	s.agentService.SetPostgresDatabaseRepository(postgresDatabaseRepo)
 	s.agentService.SetPostgresAccessRepository(postgresAccessRepo)
 	s.agentService.SetPostgresTLSRepository(postgresTLSRepo)
-	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, postgresAccessRepo, postgresTLSRepo, postgresTLSCARepo, roleEncryptKey, s.log)
+	s.agentService.SetPostgresExtensionRepository(postgresExtensionRepo)
+	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, postgresAccessRepo, postgresTLSRepo, postgresTLSCARepo, postgresExtensionRepo, roleEncryptKey, s.log)
 	s.postgresService.SetAuditRepository(auditRepo)
 
 	tlsConfig, err := LoadTLSCredentials(s.cfg.TLS)

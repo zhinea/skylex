@@ -23,7 +23,8 @@ func newPostgresManagementServiceTestDeps(t *testing.T) (*db.DB, *PostgresManage
 	access := db.NewNetworkAccessRepository(conn, log)
 	tls := db.NewTLSApplyRepository(conn, log, []byte("12345678901234567890123456789012"))
 	tlsCA := db.NewServiceTLSCARepository(conn, log, []byte("12345678901234567890123456789012"))
-	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, tls, tlsCA, []byte("12345678901234567890123456789012"), log)
+	extensions := db.NewClusterExtensionRepository(conn, log)
+	svc := NewPostgresManagementService(profiles, nodes, clusters, roles, databases, access, tls, tlsCA, extensions, []byte("12345678901234567890123456789012"), log)
 	return database, svc, roles, nodes
 }
 

@@ -27,6 +27,14 @@ service PostgresManagementService {
   rpc ListDatabases(ListDatabasesRequest) returns (ListDatabasesResponse);
   rpc CreateDatabase(CreateDatabaseRequest) returns (CreateDatabaseResponse);
   rpc DeleteDatabase(DeleteDatabaseRequest) returns (DeleteDatabaseResponse);
+
+  // Extension management RPCs. GetExtensions returns the engine catalog merged
+  // with per-cluster toggle state; SetExtension toggles desired state;
+  // ApplyExtensions queues a single command on the primary to converge the
+  // running databases to the desired state (zero downtime, no restart).
+  rpc GetExtensions(GetExtensionsRequest) returns (GetExtensionsResponse);
+  rpc SetExtension(SetExtensionRequest) returns (SetExtensionResponse);
+  rpc ApplyExtensions(ApplyExtensionsRequest) returns (ApplyExtensionsResponse);
 }
 
 message ConnectionProfile {
@@ -296,3 +304,46 @@ message DeleteDatabaseRequest {
 }
 
 message DeleteDatabaseResponse {}
+
+// Extensions
+
+// Extension is a single togglable database extension merged with its current
+// per-cluster state.
+message Extension {
+  string name = 1;
+  string label = 2;
+  string description = 3;
+  // enabled is the desired state set by the user.
+  bool enabled = 4;
+  // status: "off" | "pending" | "ready" | "failed"
+  string status = 5;
+  string error = 6;
+  google.protobuf.Timestamp applied_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message GetExtensionsRequest {
+  string cluster_id = 1;
+}
+
+message GetExtensionsResponse {
+  repeated Extension extensions = 1;
+}
+
+message SetExtensionRequest {
+  string cluster_id = 1;
+  string name = 2;
+  bool enabled = 3;
+}
+
+message SetExtensionResponse {
+  Extension extension = 1;
+}
+
+message ApplyExtensionsRequest {
+  string cluster_id = 1;
+}
+
+message ApplyExtensionsResponse {
+  repeated Extension extensions = 1;
+}

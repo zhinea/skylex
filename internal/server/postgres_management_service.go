@@ -61,6 +61,7 @@ type PostgresManagementService struct {
 	access         *db.NetworkAccessRepository
 	tls            *db.TLSApplyRepository
 	tlsCA          *db.ServiceTLSCARepository
+	extensions     *db.ClusterExtensionRepository
 	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
@@ -82,6 +83,7 @@ func NewPostgresManagementService(
 	access *db.NetworkAccessRepository,
 	tls *db.TLSApplyRepository,
 	tlsCA *db.ServiceTLSCARepository,
+	extensions *db.ClusterExtensionRepository,
 	roleEncryptKey []byte,
 	log *slog.Logger,
 ) *PostgresManagementService {
@@ -96,6 +98,7 @@ func NewPostgresManagementService(
 		access:         access,
 		tls:            tls,
 		tlsCA:          tlsCA,
+		extensions:     extensions,
 		roleEncryptKey: roleEncryptKey,
 		validate:       validate,
 		clusterLocks:   make(map[string]*sync.Mutex),

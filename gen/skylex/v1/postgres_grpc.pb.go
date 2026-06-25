@@ -36,6 +36,9 @@ const (
 	PostgresManagementService_ListDatabases_FullMethodName           = "/skylex.v1.PostgresManagementService/ListDatabases"
 	PostgresManagementService_CreateDatabase_FullMethodName          = "/skylex.v1.PostgresManagementService/CreateDatabase"
 	PostgresManagementService_DeleteDatabase_FullMethodName          = "/skylex.v1.PostgresManagementService/DeleteDatabase"
+	PostgresManagementService_GetExtensions_FullMethodName           = "/skylex.v1.PostgresManagementService/GetExtensions"
+	PostgresManagementService_SetExtension_FullMethodName            = "/skylex.v1.PostgresManagementService/SetExtension"
+	PostgresManagementService_ApplyExtensions_FullMethodName         = "/skylex.v1.PostgresManagementService/ApplyExtensions"
 )
 
 // PostgresManagementServiceClient is the client API for PostgresManagementService service.
@@ -63,6 +66,13 @@ type PostgresManagementServiceClient interface {
 	ListDatabases(ctx context.Context, in *ListDatabasesRequest, opts ...grpc.CallOption) (*ListDatabasesResponse, error)
 	CreateDatabase(ctx context.Context, in *CreateDatabaseRequest, opts ...grpc.CallOption) (*CreateDatabaseResponse, error)
 	DeleteDatabase(ctx context.Context, in *DeleteDatabaseRequest, opts ...grpc.CallOption) (*DeleteDatabaseResponse, error)
+	// Extension management RPCs. GetExtensions returns the engine catalog merged
+	// with per-cluster toggle state; SetExtension toggles desired state;
+	// ApplyExtensions queues a single command on the primary to converge the
+	// running databases to the desired state (zero downtime, no restart).
+	GetExtensions(ctx context.Context, in *GetExtensionsRequest, opts ...grpc.CallOption) (*GetExtensionsResponse, error)
+	SetExtension(ctx context.Context, in *SetExtensionRequest, opts ...grpc.CallOption) (*SetExtensionResponse, error)
+	ApplyExtensions(ctx context.Context, in *ApplyExtensionsRequest, opts ...grpc.CallOption) (*ApplyExtensionsResponse, error)
 }
 
 type postgresManagementServiceClient struct {
@@ -243,6 +253,36 @@ func (c *postgresManagementServiceClient) DeleteDatabase(ctx context.Context, in
 	return out, nil
 }
 
+func (c *postgresManagementServiceClient) GetExtensions(ctx context.Context, in *GetExtensionsRequest, opts ...grpc.CallOption) (*GetExtensionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetExtensionsResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_GetExtensions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) SetExtension(ctx context.Context, in *SetExtensionRequest, opts ...grpc.CallOption) (*SetExtensionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetExtensionResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_SetExtension_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postgresManagementServiceClient) ApplyExtensions(ctx context.Context, in *ApplyExtensionsRequest, opts ...grpc.CallOption) (*ApplyExtensionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ApplyExtensionsResponse)
+	err := c.cc.Invoke(ctx, PostgresManagementService_ApplyExtensions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostgresManagementServiceServer is the server API for PostgresManagementService service.
 // All implementations must embed UnimplementedPostgresManagementServiceServer
 // for forward compatibility.
@@ -268,6 +308,13 @@ type PostgresManagementServiceServer interface {
 	ListDatabases(context.Context, *ListDatabasesRequest) (*ListDatabasesResponse, error)
 	CreateDatabase(context.Context, *CreateDatabaseRequest) (*CreateDatabaseResponse, error)
 	DeleteDatabase(context.Context, *DeleteDatabaseRequest) (*DeleteDatabaseResponse, error)
+	// Extension management RPCs. GetExtensions returns the engine catalog merged
+	// with per-cluster toggle state; SetExtension toggles desired state;
+	// ApplyExtensions queues a single command on the primary to converge the
+	// running databases to the desired state (zero downtime, no restart).
+	GetExtensions(context.Context, *GetExtensionsRequest) (*GetExtensionsResponse, error)
+	SetExtension(context.Context, *SetExtensionRequest) (*SetExtensionResponse, error)
+	ApplyExtensions(context.Context, *ApplyExtensionsRequest) (*ApplyExtensionsResponse, error)
 	mustEmbedUnimplementedPostgresManagementServiceServer()
 }
 
@@ -328,6 +375,15 @@ func (UnimplementedPostgresManagementServiceServer) CreateDatabase(context.Conte
 }
 func (UnimplementedPostgresManagementServiceServer) DeleteDatabase(context.Context, *DeleteDatabaseRequest) (*DeleteDatabaseResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteDatabase not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) GetExtensions(context.Context, *GetExtensionsRequest) (*GetExtensionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetExtensions not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) SetExtension(context.Context, *SetExtensionRequest) (*SetExtensionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetExtension not implemented")
+}
+func (UnimplementedPostgresManagementServiceServer) ApplyExtensions(context.Context, *ApplyExtensionsRequest) (*ApplyExtensionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ApplyExtensions not implemented")
 }
 func (UnimplementedPostgresManagementServiceServer) mustEmbedUnimplementedPostgresManagementServiceServer() {
 }
@@ -657,6 +713,60 @@ func _PostgresManagementService_DeleteDatabase_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PostgresManagementService_GetExtensions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetExtensionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).GetExtensions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_GetExtensions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).GetExtensions(ctx, req.(*GetExtensionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_SetExtension_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetExtensionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).SetExtension(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_SetExtension_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).SetExtension(ctx, req.(*SetExtensionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostgresManagementService_ApplyExtensions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyExtensionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostgresManagementServiceServer).ApplyExtensions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PostgresManagementService_ApplyExtensions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostgresManagementServiceServer).ApplyExtensions(ctx, req.(*ApplyExtensionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PostgresManagementService_ServiceDesc is the grpc.ServiceDesc for PostgresManagementService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -731,6 +841,18 @@ var PostgresManagementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteDatabase",
 			Handler:    _PostgresManagementService_DeleteDatabase_Handler,
+		},
+		{
+			MethodName: "GetExtensions",
+			Handler:    _PostgresManagementService_GetExtensions_Handler,
+		},
+		{
+			MethodName: "SetExtension",
+			Handler:    _PostgresManagementService_SetExtension_Handler,
+		},
+		{
+			MethodName: "ApplyExtensions",
+			Handler:    _PostgresManagementService_ApplyExtensions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

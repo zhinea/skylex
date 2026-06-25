@@ -2509,6 +2509,390 @@ func (*DeleteDatabaseResponse) Descriptor() ([]byte, []int) {
 	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{40}
 }
 
+// Extension is a single togglable database extension merged with its current
+// per-cluster state.
+type Extension struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Name        string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Label       string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	// enabled is the desired state set by the user.
+	Enabled bool `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// status: "off" | "pending" | "ready" | "failed"
+	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	Error         string                 `protobuf:"bytes,6,opt,name=error,proto3" json:"error,omitempty"`
+	AppliedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=applied_at,json=appliedAt,proto3" json:"applied_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Extension) Reset() {
+	*x = Extension{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Extension) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Extension) ProtoMessage() {}
+
+func (x *Extension) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Extension.ProtoReflect.Descriptor instead.
+func (*Extension) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *Extension) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Extension) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *Extension) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Extension) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Extension) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *Extension) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *Extension) GetAppliedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AppliedAt
+	}
+	return nil
+}
+
+func (x *Extension) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type GetExtensionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetExtensionsRequest) Reset() {
+	*x = GetExtensionsRequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetExtensionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetExtensionsRequest) ProtoMessage() {}
+
+func (x *GetExtensionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetExtensionsRequest.ProtoReflect.Descriptor instead.
+func (*GetExtensionsRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *GetExtensionsRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+type GetExtensionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Extensions    []*Extension           `protobuf:"bytes,1,rep,name=extensions,proto3" json:"extensions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetExtensionsResponse) Reset() {
+	*x = GetExtensionsResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetExtensionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetExtensionsResponse) ProtoMessage() {}
+
+func (x *GetExtensionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetExtensionsResponse.ProtoReflect.Descriptor instead.
+func (*GetExtensionsResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *GetExtensionsResponse) GetExtensions() []*Extension {
+	if x != nil {
+		return x.Extensions
+	}
+	return nil
+}
+
+type SetExtensionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Enabled       bool                   `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetExtensionRequest) Reset() {
+	*x = SetExtensionRequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetExtensionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetExtensionRequest) ProtoMessage() {}
+
+func (x *SetExtensionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetExtensionRequest.ProtoReflect.Descriptor instead.
+func (*SetExtensionRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *SetExtensionRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+func (x *SetExtensionRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SetExtensionRequest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+type SetExtensionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Extension     *Extension             `protobuf:"bytes,1,opt,name=extension,proto3" json:"extension,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetExtensionResponse) Reset() {
+	*x = SetExtensionResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetExtensionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetExtensionResponse) ProtoMessage() {}
+
+func (x *SetExtensionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetExtensionResponse.ProtoReflect.Descriptor instead.
+func (*SetExtensionResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *SetExtensionResponse) GetExtension() *Extension {
+	if x != nil {
+		return x.Extension
+	}
+	return nil
+}
+
+type ApplyExtensionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClusterId     string                 `protobuf:"bytes,1,opt,name=cluster_id,json=clusterId,proto3" json:"cluster_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyExtensionsRequest) Reset() {
+	*x = ApplyExtensionsRequest{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyExtensionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyExtensionsRequest) ProtoMessage() {}
+
+func (x *ApplyExtensionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyExtensionsRequest.ProtoReflect.Descriptor instead.
+func (*ApplyExtensionsRequest) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *ApplyExtensionsRequest) GetClusterId() string {
+	if x != nil {
+		return x.ClusterId
+	}
+	return ""
+}
+
+type ApplyExtensionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Extensions    []*Extension           `protobuf:"bytes,1,rep,name=extensions,proto3" json:"extensions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApplyExtensionsResponse) Reset() {
+	*x = ApplyExtensionsResponse{}
+	mi := &file_skylex_v1_postgres_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplyExtensionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplyExtensionsResponse) ProtoMessage() {}
+
+func (x *ApplyExtensionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skylex_v1_postgres_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplyExtensionsResponse.ProtoReflect.Descriptor instead.
+func (*ApplyExtensionsResponse) Descriptor() ([]byte, []int) {
+	return file_skylex_v1_postgres_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *ApplyExtensionsResponse) GetExtensions() []*Extension {
+	if x != nil {
+		return x.Extensions
+	}
+	return nil
+}
+
 var File_skylex_v1_postgres_proto protoreflect.FileDescriptor
 
 const file_skylex_v1_postgres_proto_rawDesc = "" +
@@ -2721,7 +3105,39 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"\x15DeleteDatabaseRequest\x12\x1f\n" +
 	"\vdatabase_id\x18\x01 \x01(\tR\n" +
 	"databaseId\"\x18\n" +
-	"\x16DeleteDatabaseResponse2\xd6\v\n" +
+	"\x16DeleteDatabaseResponse\"\x95\x02\n" +
+	"\tExtension\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x18\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabled\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12\x14\n" +
+	"\x05error\x18\x06 \x01(\tR\x05error\x129\n" +
+	"\n" +
+	"applied_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tappliedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"5\n" +
+	"\x14GetExtensionsRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\"M\n" +
+	"\x15GetExtensionsResponse\x124\n" +
+	"\n" +
+	"extensions\x18\x01 \x03(\v2\x14.skylex.v1.ExtensionR\n" +
+	"extensions\"b\n" +
+	"\x13SetExtensionRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
+	"\aenabled\x18\x03 \x01(\bR\aenabled\"J\n" +
+	"\x14SetExtensionResponse\x122\n" +
+	"\textension\x18\x01 \x01(\v2\x14.skylex.v1.ExtensionR\textension\"7\n" +
+	"\x16ApplyExtensionsRequest\x12\x1d\n" +
+	"\n" +
+	"cluster_id\x18\x01 \x01(\tR\tclusterId\"O\n" +
+	"\x17ApplyExtensionsResponse\x124\n" +
+	"\n" +
+	"extensions\x18\x01 \x03(\v2\x14.skylex.v1.ExtensionR\n" +
+	"extensions2\xd5\r\n" +
 	"\x19PostgresManagementService\x12g\n" +
 	"\x14GetConnectionProfile\x12&.skylex.v1.GetConnectionProfileRequest\x1a'.skylex.v1.GetConnectionProfileResponse\x12p\n" +
 	"\x17UpdateConnectionProfile\x12).skylex.v1.UpdateConnectionProfileRequest\x1a*.skylex.v1.UpdateConnectionProfileResponse\x12[\n" +
@@ -2741,7 +3157,10 @@ const file_skylex_v1_postgres_proto_rawDesc = "" +
 	"DeleteRole\x12\x1c.skylex.v1.DeleteRoleRequest\x1a\x1d.skylex.v1.DeleteRoleResponse\x12R\n" +
 	"\rListDatabases\x12\x1f.skylex.v1.ListDatabasesRequest\x1a .skylex.v1.ListDatabasesResponse\x12U\n" +
 	"\x0eCreateDatabase\x12 .skylex.v1.CreateDatabaseRequest\x1a!.skylex.v1.CreateDatabaseResponse\x12U\n" +
-	"\x0eDeleteDatabase\x12 .skylex.v1.DeleteDatabaseRequest\x1a!.skylex.v1.DeleteDatabaseResponseB\x94\x01\n" +
+	"\x0eDeleteDatabase\x12 .skylex.v1.DeleteDatabaseRequest\x1a!.skylex.v1.DeleteDatabaseResponse\x12R\n" +
+	"\rGetExtensions\x12\x1f.skylex.v1.GetExtensionsRequest\x1a .skylex.v1.GetExtensionsResponse\x12O\n" +
+	"\fSetExtension\x12\x1e.skylex.v1.SetExtensionRequest\x1a\x1f.skylex.v1.SetExtensionResponse\x12X\n" +
+	"\x0fApplyExtensions\x12!.skylex.v1.ApplyExtensionsRequest\x1a\".skylex.v1.ApplyExtensionsResponseB\x94\x01\n" +
 	"\rcom.skylex.v1B\rPostgresProtoP\x01Z/github.com/zhinea/skylex/gen/skylex/v1;skylexv1\xa2\x02\x03SXX\xaa\x02\tSkylex.V1\xca\x02\tSkylex\\V1\xe2\x02\x15Skylex\\V1\\GPBMetadata\xea\x02\n" +
 	"Skylex::V1b\x06proto3"
 
@@ -2757,7 +3176,7 @@ func file_skylex_v1_postgres_proto_rawDescGZIP() []byte {
 	return file_skylex_v1_postgres_proto_rawDescData
 }
 
-var file_skylex_v1_postgres_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
+var file_skylex_v1_postgres_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_skylex_v1_postgres_proto_goTypes = []any{
 	(*ConnectionProfile)(nil),               // 0: skylex.v1.ConnectionProfile
 	(*NodeEndpoint)(nil),                    // 1: skylex.v1.NodeEndpoint
@@ -2800,79 +3219,97 @@ var file_skylex_v1_postgres_proto_goTypes = []any{
 	(*CreateDatabaseResponse)(nil),          // 38: skylex.v1.CreateDatabaseResponse
 	(*DeleteDatabaseRequest)(nil),           // 39: skylex.v1.DeleteDatabaseRequest
 	(*DeleteDatabaseResponse)(nil),          // 40: skylex.v1.DeleteDatabaseResponse
-	(*timestamppb.Timestamp)(nil),           // 41: google.protobuf.Timestamp
+	(*Extension)(nil),                       // 41: skylex.v1.Extension
+	(*GetExtensionsRequest)(nil),            // 42: skylex.v1.GetExtensionsRequest
+	(*GetExtensionsResponse)(nil),           // 43: skylex.v1.GetExtensionsResponse
+	(*SetExtensionRequest)(nil),             // 44: skylex.v1.SetExtensionRequest
+	(*SetExtensionResponse)(nil),            // 45: skylex.v1.SetExtensionResponse
+	(*ApplyExtensionsRequest)(nil),          // 46: skylex.v1.ApplyExtensionsRequest
+	(*ApplyExtensionsResponse)(nil),         // 47: skylex.v1.ApplyExtensionsResponse
+	(*timestamppb.Timestamp)(nil),           // 48: google.protobuf.Timestamp
 }
 var file_skylex_v1_postgres_proto_depIdxs = []int32{
-	41, // 0: skylex.v1.ConnectionProfile.created_at:type_name -> google.protobuf.Timestamp
-	41, // 1: skylex.v1.ConnectionProfile.updated_at:type_name -> google.protobuf.Timestamp
+	48, // 0: skylex.v1.ConnectionProfile.created_at:type_name -> google.protobuf.Timestamp
+	48, // 1: skylex.v1.ConnectionProfile.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: skylex.v1.GetConnectionProfileResponse.profile:type_name -> skylex.v1.ConnectionProfile
 	1,  // 3: skylex.v1.GetConnectionProfileResponse.primary_endpoint:type_name -> skylex.v1.NodeEndpoint
 	1,  // 4: skylex.v1.GetConnectionProfileResponse.replica_endpoints:type_name -> skylex.v1.NodeEndpoint
 	13, // 5: skylex.v1.GetConnectionProfileResponse.tls_config:type_name -> skylex.v1.TLSConfig
 	14, // 6: skylex.v1.GetConnectionProfileResponse.tls_statuses:type_name -> skylex.v1.TLSApplyStatus
 	0,  // 7: skylex.v1.UpdateConnectionProfileResponse.profile:type_name -> skylex.v1.ConnectionProfile
-	41, // 8: skylex.v1.HBAApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
-	41, // 9: skylex.v1.HBAApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
+	48, // 8: skylex.v1.HBAApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
+	48, // 9: skylex.v1.HBAApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
 	6,  // 10: skylex.v1.GetNetworkAccessResponse.hba_statuses:type_name -> skylex.v1.HBAApplyStatus
 	6,  // 11: skylex.v1.ApplyHBAResponse.hba_statuses:type_name -> skylex.v1.HBAApplyStatus
 	14, // 12: skylex.v1.TLSConfig.statuses:type_name -> skylex.v1.TLSApplyStatus
-	41, // 13: skylex.v1.TLSConfig.ca_created_at:type_name -> google.protobuf.Timestamp
-	41, // 14: skylex.v1.TLSApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
-	41, // 15: skylex.v1.TLSApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
+	48, // 13: skylex.v1.TLSConfig.ca_created_at:type_name -> google.protobuf.Timestamp
+	48, // 14: skylex.v1.TLSApplyStatus.applied_at:type_name -> google.protobuf.Timestamp
+	48, // 15: skylex.v1.TLSApplyStatus.updated_at:type_name -> google.protobuf.Timestamp
 	13, // 16: skylex.v1.GetTLSConfigResponse.config:type_name -> skylex.v1.TLSConfig
 	13, // 17: skylex.v1.GenerateTLSCAResponse.config:type_name -> skylex.v1.TLSConfig
 	13, // 18: skylex.v1.UpdateTLSConfigResponse.config:type_name -> skylex.v1.TLSConfig
 	14, // 19: skylex.v1.ApplyTLSResponse.statuses:type_name -> skylex.v1.TLSApplyStatus
-	41, // 20: skylex.v1.PostgresRole.expires_at:type_name -> google.protobuf.Timestamp
-	41, // 21: skylex.v1.PostgresRole.created_at:type_name -> google.protobuf.Timestamp
-	41, // 22: skylex.v1.PostgresRole.updated_at:type_name -> google.protobuf.Timestamp
+	48, // 20: skylex.v1.PostgresRole.expires_at:type_name -> google.protobuf.Timestamp
+	48, // 21: skylex.v1.PostgresRole.created_at:type_name -> google.protobuf.Timestamp
+	48, // 22: skylex.v1.PostgresRole.updated_at:type_name -> google.protobuf.Timestamp
 	25, // 23: skylex.v1.ListRolesResponse.roles:type_name -> skylex.v1.PostgresRole
-	41, // 24: skylex.v1.CreateRoleRequest.expires_at:type_name -> google.protobuf.Timestamp
+	48, // 24: skylex.v1.CreateRoleRequest.expires_at:type_name -> google.protobuf.Timestamp
 	25, // 25: skylex.v1.CreateRoleResponse.role:type_name -> skylex.v1.PostgresRole
 	25, // 26: skylex.v1.RotateRolePasswordResponse.role:type_name -> skylex.v1.PostgresRole
-	41, // 27: skylex.v1.PostgresDatabase.created_at:type_name -> google.protobuf.Timestamp
-	41, // 28: skylex.v1.PostgresDatabase.updated_at:type_name -> google.protobuf.Timestamp
+	48, // 27: skylex.v1.PostgresDatabase.created_at:type_name -> google.protobuf.Timestamp
+	48, // 28: skylex.v1.PostgresDatabase.updated_at:type_name -> google.protobuf.Timestamp
 	34, // 29: skylex.v1.ListDatabasesResponse.databases:type_name -> skylex.v1.PostgresDatabase
 	34, // 30: skylex.v1.CreateDatabaseResponse.database:type_name -> skylex.v1.PostgresDatabase
-	2,  // 31: skylex.v1.PostgresManagementService.GetConnectionProfile:input_type -> skylex.v1.GetConnectionProfileRequest
-	4,  // 32: skylex.v1.PostgresManagementService.UpdateConnectionProfile:input_type -> skylex.v1.UpdateConnectionProfileRequest
-	7,  // 33: skylex.v1.PostgresManagementService.GetNetworkAccess:input_type -> skylex.v1.GetNetworkAccessRequest
-	9,  // 34: skylex.v1.PostgresManagementService.UpdateNetworkAccess:input_type -> skylex.v1.UpdateNetworkAccessRequest
-	11, // 35: skylex.v1.PostgresManagementService.ApplyHBA:input_type -> skylex.v1.ApplyHBARequest
-	15, // 36: skylex.v1.PostgresManagementService.GetTLSConfig:input_type -> skylex.v1.GetTLSConfigRequest
-	17, // 37: skylex.v1.PostgresManagementService.GenerateTLSCA:input_type -> skylex.v1.GenerateTLSCARequest
-	19, // 38: skylex.v1.PostgresManagementService.GetTLSCACert:input_type -> skylex.v1.GetTLSCACertRequest
-	21, // 39: skylex.v1.PostgresManagementService.UpdateTLSConfig:input_type -> skylex.v1.UpdateTLSConfigRequest
-	23, // 40: skylex.v1.PostgresManagementService.ApplyTLS:input_type -> skylex.v1.ApplyTLSRequest
-	26, // 41: skylex.v1.PostgresManagementService.ListRoles:input_type -> skylex.v1.ListRolesRequest
-	28, // 42: skylex.v1.PostgresManagementService.CreateRole:input_type -> skylex.v1.CreateRoleRequest
-	30, // 43: skylex.v1.PostgresManagementService.RotateRolePassword:input_type -> skylex.v1.RotateRolePasswordRequest
-	32, // 44: skylex.v1.PostgresManagementService.DeleteRole:input_type -> skylex.v1.DeleteRoleRequest
-	35, // 45: skylex.v1.PostgresManagementService.ListDatabases:input_type -> skylex.v1.ListDatabasesRequest
-	37, // 46: skylex.v1.PostgresManagementService.CreateDatabase:input_type -> skylex.v1.CreateDatabaseRequest
-	39, // 47: skylex.v1.PostgresManagementService.DeleteDatabase:input_type -> skylex.v1.DeleteDatabaseRequest
-	3,  // 48: skylex.v1.PostgresManagementService.GetConnectionProfile:output_type -> skylex.v1.GetConnectionProfileResponse
-	5,  // 49: skylex.v1.PostgresManagementService.UpdateConnectionProfile:output_type -> skylex.v1.UpdateConnectionProfileResponse
-	8,  // 50: skylex.v1.PostgresManagementService.GetNetworkAccess:output_type -> skylex.v1.GetNetworkAccessResponse
-	10, // 51: skylex.v1.PostgresManagementService.UpdateNetworkAccess:output_type -> skylex.v1.UpdateNetworkAccessResponse
-	12, // 52: skylex.v1.PostgresManagementService.ApplyHBA:output_type -> skylex.v1.ApplyHBAResponse
-	16, // 53: skylex.v1.PostgresManagementService.GetTLSConfig:output_type -> skylex.v1.GetTLSConfigResponse
-	18, // 54: skylex.v1.PostgresManagementService.GenerateTLSCA:output_type -> skylex.v1.GenerateTLSCAResponse
-	20, // 55: skylex.v1.PostgresManagementService.GetTLSCACert:output_type -> skylex.v1.GetTLSCACertResponse
-	22, // 56: skylex.v1.PostgresManagementService.UpdateTLSConfig:output_type -> skylex.v1.UpdateTLSConfigResponse
-	24, // 57: skylex.v1.PostgresManagementService.ApplyTLS:output_type -> skylex.v1.ApplyTLSResponse
-	27, // 58: skylex.v1.PostgresManagementService.ListRoles:output_type -> skylex.v1.ListRolesResponse
-	29, // 59: skylex.v1.PostgresManagementService.CreateRole:output_type -> skylex.v1.CreateRoleResponse
-	31, // 60: skylex.v1.PostgresManagementService.RotateRolePassword:output_type -> skylex.v1.RotateRolePasswordResponse
-	33, // 61: skylex.v1.PostgresManagementService.DeleteRole:output_type -> skylex.v1.DeleteRoleResponse
-	36, // 62: skylex.v1.PostgresManagementService.ListDatabases:output_type -> skylex.v1.ListDatabasesResponse
-	38, // 63: skylex.v1.PostgresManagementService.CreateDatabase:output_type -> skylex.v1.CreateDatabaseResponse
-	40, // 64: skylex.v1.PostgresManagementService.DeleteDatabase:output_type -> skylex.v1.DeleteDatabaseResponse
-	48, // [48:65] is the sub-list for method output_type
-	31, // [31:48] is the sub-list for method input_type
-	31, // [31:31] is the sub-list for extension type_name
-	31, // [31:31] is the sub-list for extension extendee
-	0,  // [0:31] is the sub-list for field type_name
+	48, // 31: skylex.v1.Extension.applied_at:type_name -> google.protobuf.Timestamp
+	48, // 32: skylex.v1.Extension.updated_at:type_name -> google.protobuf.Timestamp
+	41, // 33: skylex.v1.GetExtensionsResponse.extensions:type_name -> skylex.v1.Extension
+	41, // 34: skylex.v1.SetExtensionResponse.extension:type_name -> skylex.v1.Extension
+	41, // 35: skylex.v1.ApplyExtensionsResponse.extensions:type_name -> skylex.v1.Extension
+	2,  // 36: skylex.v1.PostgresManagementService.GetConnectionProfile:input_type -> skylex.v1.GetConnectionProfileRequest
+	4,  // 37: skylex.v1.PostgresManagementService.UpdateConnectionProfile:input_type -> skylex.v1.UpdateConnectionProfileRequest
+	7,  // 38: skylex.v1.PostgresManagementService.GetNetworkAccess:input_type -> skylex.v1.GetNetworkAccessRequest
+	9,  // 39: skylex.v1.PostgresManagementService.UpdateNetworkAccess:input_type -> skylex.v1.UpdateNetworkAccessRequest
+	11, // 40: skylex.v1.PostgresManagementService.ApplyHBA:input_type -> skylex.v1.ApplyHBARequest
+	15, // 41: skylex.v1.PostgresManagementService.GetTLSConfig:input_type -> skylex.v1.GetTLSConfigRequest
+	17, // 42: skylex.v1.PostgresManagementService.GenerateTLSCA:input_type -> skylex.v1.GenerateTLSCARequest
+	19, // 43: skylex.v1.PostgresManagementService.GetTLSCACert:input_type -> skylex.v1.GetTLSCACertRequest
+	21, // 44: skylex.v1.PostgresManagementService.UpdateTLSConfig:input_type -> skylex.v1.UpdateTLSConfigRequest
+	23, // 45: skylex.v1.PostgresManagementService.ApplyTLS:input_type -> skylex.v1.ApplyTLSRequest
+	26, // 46: skylex.v1.PostgresManagementService.ListRoles:input_type -> skylex.v1.ListRolesRequest
+	28, // 47: skylex.v1.PostgresManagementService.CreateRole:input_type -> skylex.v1.CreateRoleRequest
+	30, // 48: skylex.v1.PostgresManagementService.RotateRolePassword:input_type -> skylex.v1.RotateRolePasswordRequest
+	32, // 49: skylex.v1.PostgresManagementService.DeleteRole:input_type -> skylex.v1.DeleteRoleRequest
+	35, // 50: skylex.v1.PostgresManagementService.ListDatabases:input_type -> skylex.v1.ListDatabasesRequest
+	37, // 51: skylex.v1.PostgresManagementService.CreateDatabase:input_type -> skylex.v1.CreateDatabaseRequest
+	39, // 52: skylex.v1.PostgresManagementService.DeleteDatabase:input_type -> skylex.v1.DeleteDatabaseRequest
+	42, // 53: skylex.v1.PostgresManagementService.GetExtensions:input_type -> skylex.v1.GetExtensionsRequest
+	44, // 54: skylex.v1.PostgresManagementService.SetExtension:input_type -> skylex.v1.SetExtensionRequest
+	46, // 55: skylex.v1.PostgresManagementService.ApplyExtensions:input_type -> skylex.v1.ApplyExtensionsRequest
+	3,  // 56: skylex.v1.PostgresManagementService.GetConnectionProfile:output_type -> skylex.v1.GetConnectionProfileResponse
+	5,  // 57: skylex.v1.PostgresManagementService.UpdateConnectionProfile:output_type -> skylex.v1.UpdateConnectionProfileResponse
+	8,  // 58: skylex.v1.PostgresManagementService.GetNetworkAccess:output_type -> skylex.v1.GetNetworkAccessResponse
+	10, // 59: skylex.v1.PostgresManagementService.UpdateNetworkAccess:output_type -> skylex.v1.UpdateNetworkAccessResponse
+	12, // 60: skylex.v1.PostgresManagementService.ApplyHBA:output_type -> skylex.v1.ApplyHBAResponse
+	16, // 61: skylex.v1.PostgresManagementService.GetTLSConfig:output_type -> skylex.v1.GetTLSConfigResponse
+	18, // 62: skylex.v1.PostgresManagementService.GenerateTLSCA:output_type -> skylex.v1.GenerateTLSCAResponse
+	20, // 63: skylex.v1.PostgresManagementService.GetTLSCACert:output_type -> skylex.v1.GetTLSCACertResponse
+	22, // 64: skylex.v1.PostgresManagementService.UpdateTLSConfig:output_type -> skylex.v1.UpdateTLSConfigResponse
+	24, // 65: skylex.v1.PostgresManagementService.ApplyTLS:output_type -> skylex.v1.ApplyTLSResponse
+	27, // 66: skylex.v1.PostgresManagementService.ListRoles:output_type -> skylex.v1.ListRolesResponse
+	29, // 67: skylex.v1.PostgresManagementService.CreateRole:output_type -> skylex.v1.CreateRoleResponse
+	31, // 68: skylex.v1.PostgresManagementService.RotateRolePassword:output_type -> skylex.v1.RotateRolePasswordResponse
+	33, // 69: skylex.v1.PostgresManagementService.DeleteRole:output_type -> skylex.v1.DeleteRoleResponse
+	36, // 70: skylex.v1.PostgresManagementService.ListDatabases:output_type -> skylex.v1.ListDatabasesResponse
+	38, // 71: skylex.v1.PostgresManagementService.CreateDatabase:output_type -> skylex.v1.CreateDatabaseResponse
+	40, // 72: skylex.v1.PostgresManagementService.DeleteDatabase:output_type -> skylex.v1.DeleteDatabaseResponse
+	43, // 73: skylex.v1.PostgresManagementService.GetExtensions:output_type -> skylex.v1.GetExtensionsResponse
+	45, // 74: skylex.v1.PostgresManagementService.SetExtension:output_type -> skylex.v1.SetExtensionResponse
+	47, // 75: skylex.v1.PostgresManagementService.ApplyExtensions:output_type -> skylex.v1.ApplyExtensionsResponse
+	56, // [56:76] is the sub-list for method output_type
+	36, // [36:56] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_skylex_v1_postgres_proto_init() }
@@ -2886,7 +3323,7 @@ func file_skylex_v1_postgres_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skylex_v1_postgres_proto_rawDesc), len(file_skylex_v1_postgres_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   41,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

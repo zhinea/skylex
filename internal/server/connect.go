@@ -85,6 +85,18 @@ func (c *connectPostgresService) DeleteDatabase(ctx context.Context, req *connec
 	return c.svc.DeleteDatabase(ctx, req)
 }
 
+func (c *connectPostgresService) GetExtensions(ctx context.Context, req *connect.Request[skylexv1.GetExtensionsRequest]) (*connect.Response[skylexv1.GetExtensionsResponse], error) {
+	return c.svc.GetExtensions(ctx, req)
+}
+
+func (c *connectPostgresService) SetExtension(ctx context.Context, req *connect.Request[skylexv1.SetExtensionRequest]) (*connect.Response[skylexv1.SetExtensionResponse], error) {
+	return c.svc.SetExtension(ctx, req)
+}
+
+func (c *connectPostgresService) ApplyExtensions(ctx context.Context, req *connect.Request[skylexv1.ApplyExtensionsRequest]) (*connect.Response[skylexv1.ApplyExtensionsResponse], error) {
+	return c.svc.ApplyExtensions(ctx, req)
+}
+
 func connectInterceptors(h http.Handler, srv *Server) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -139,6 +151,8 @@ var writeMethods = map[string]bool{
 	skylexv1connect.PostgresManagementServiceDeleteRoleProcedure:              true,
 	skylexv1connect.PostgresManagementServiceCreateDatabaseProcedure:          true,
 	skylexv1connect.PostgresManagementServiceDeleteDatabaseProcedure:          true,
+	skylexv1connect.PostgresManagementServiceSetExtensionProcedure:            true,
+	skylexv1connect.PostgresManagementServiceApplyExtensionsProcedure:         true,
 	skylexv1connect.ClusterServiceCreateClusterProcedure:                      true,
 	skylexv1connect.ClusterServiceUpdateClusterProcedure:                      true,
 	skylexv1connect.ClusterServiceDeleteClusterProcedure:                      true,

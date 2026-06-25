@@ -33,6 +33,7 @@ type AgentService struct {
 	postgresDBs    *db.ManagedDatabaseRepository
 	postgresAccess *db.NetworkAccessRepository
 	postgresTLS    *db.TLSApplyRepository
+	postgresExt    *db.ClusterExtensionRepository
 	logBroker      *LogBroker
 	log            *slog.Logger
 }
@@ -71,6 +72,10 @@ func (s *AgentService) SetPostgresAccessRepository(repo *db.NetworkAccessReposit
 
 func (s *AgentService) SetPostgresTLSRepository(repo *db.TLSApplyRepository) {
 	s.postgresTLS = repo
+}
+
+func (s *AgentService) SetPostgresExtensionRepository(repo *db.ClusterExtensionRepository) {
+	s.postgresExt = repo
 }
 
 func (s *AgentService) validateAgentToken(token string) (bool, error) {
@@ -442,6 +447,13 @@ func (s *AgentService) handlePostgresTLSCommandResult(ctx context.Context, comma
 	return s.postgresTLS.HandleCommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
 }
 
+func (s *AgentService) handlePostgresExtensionCommandResult(ctx context.Context, commandID string, success bool, errMsg string) (bool, error) {
+	if s.postgresExt == nil {
+		return false, nil
+	}
+	return s.postgresExt.HandleCommandResult(ctx, commandID, success, db.RedactStoredError(errMsg))
+}
+
 func (s *AgentService) allowPromotionForCluster(ctx context.Context, clusterID string) (bool, error) {
 	nodes, _, err := s.nodes.ListByCluster(ctx, clusterID, 0, 1000)
 	if err != nil {
@@ -486,6 +498,11 @@ func (s *AgentService) ReportCommandResult(ctx context.Context, req *skylexv1.Re
 	}
 	if handled, err := s.handlePostgresTLSCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
 		s.log.Warn("handle postgres tls command result failed", "command_id", req.GetCommandId(), "error", err)
+	} else if handled {
+		return &skylexv1.ReportCommandResultResponse{}, nil
+	}
+	if handled, err := s.handlePostgresExtensionCommandResult(ctx, req.GetCommandId(), req.GetSuccess(), req.GetError()); err != nil {
+		s.log.Warn("handle postgres extension command result failed", "command_id", req.GetCommandId(), "error", err)
 	} else if handled {
 		return &skylexv1.ReportCommandResultResponse{}, nil
 	}

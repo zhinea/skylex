@@ -35,6 +35,7 @@ import { ManagedRolesCard } from "~/components/cluster/ManagedRolesCard";
 import { ManagedDatabasesCard } from "~/components/cluster/ManagedDatabasesCard";
 import { TLSConfigCard } from "~/components/cluster/TLSConfigCard";
 import { NetworkAccessCard } from "~/components/cluster/NetworkAccessCard";
+import { ExtensionsCard } from "~/components/cluster/ExtensionsCard";
 
 type ActiveMenu = "overview" | "connection" | "databases" | "roles" | "network" | "tls" | "extensions" | "settings" | "diagnostics";
 
@@ -469,6 +470,12 @@ export default function ClusterDetailPage() {
           {activeMenu === "tls" && (
             <div className="space-y-6">
               <TLSConfigCard clusterId={id || ""} nodes={nodes} />
+            </div>
+          )}
+
+          {activeMenu === "extensions" && (
+            <div className="space-y-6">
+              <ExtensionsCard clusterId={id || ""} />
             </div>
           )}
 

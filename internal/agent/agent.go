@@ -466,6 +466,7 @@ var actionDescriptions = map[string]string{
 	"pg_grant_database_privileges": "Granting database privileges",
 	"pg_apply_hba":                 "Applying network access rules (pg_hba)",
 	"pg_apply_tls":                 "Applying TLS configuration",
+	"pg_apply_extensions":          "Applying database extensions",
 	"agent_deactivate":             "Deactivating agent",
 }
 
@@ -750,6 +751,9 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 
 	case "pg_apply_tls":
 		return a.executeApplyTLS(ctx, cmd, logger)
+
+	case "pg_apply_extensions":
+		return a.executeApplyExtensions(ctx, cmd, logger)
 
 	default:
 		return false, "", fmt.Sprintf("unknown command action: %s", cmd.GetAction())

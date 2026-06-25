@@ -85,6 +85,15 @@ const (
 	// PostgresManagementServiceDeleteDatabaseProcedure is the fully-qualified name of the
 	// PostgresManagementService's DeleteDatabase RPC.
 	PostgresManagementServiceDeleteDatabaseProcedure = "/skylex.v1.PostgresManagementService/DeleteDatabase"
+	// PostgresManagementServiceGetExtensionsProcedure is the fully-qualified name of the
+	// PostgresManagementService's GetExtensions RPC.
+	PostgresManagementServiceGetExtensionsProcedure = "/skylex.v1.PostgresManagementService/GetExtensions"
+	// PostgresManagementServiceSetExtensionProcedure is the fully-qualified name of the
+	// PostgresManagementService's SetExtension RPC.
+	PostgresManagementServiceSetExtensionProcedure = "/skylex.v1.PostgresManagementService/SetExtension"
+	// PostgresManagementServiceApplyExtensionsProcedure is the fully-qualified name of the
+	// PostgresManagementService's ApplyExtensions RPC.
+	PostgresManagementServiceApplyExtensionsProcedure = "/skylex.v1.PostgresManagementService/ApplyExtensions"
 )
 
 // PostgresManagementServiceClient is a client for the skylex.v1.PostgresManagementService service.
@@ -108,6 +117,13 @@ type PostgresManagementServiceClient interface {
 	ListDatabases(context.Context, *connect.Request[v1.ListDatabasesRequest]) (*connect.Response[v1.ListDatabasesResponse], error)
 	CreateDatabase(context.Context, *connect.Request[v1.CreateDatabaseRequest]) (*connect.Response[v1.CreateDatabaseResponse], error)
 	DeleteDatabase(context.Context, *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error)
+	// Extension management RPCs. GetExtensions returns the engine catalog merged
+	// with per-cluster toggle state; SetExtension toggles desired state;
+	// ApplyExtensions queues a single command on the primary to converge the
+	// running databases to the desired state (zero downtime, no restart).
+	GetExtensions(context.Context, *connect.Request[v1.GetExtensionsRequest]) (*connect.Response[v1.GetExtensionsResponse], error)
+	SetExtension(context.Context, *connect.Request[v1.SetExtensionRequest]) (*connect.Response[v1.SetExtensionResponse], error)
+	ApplyExtensions(context.Context, *connect.Request[v1.ApplyExtensionsRequest]) (*connect.Response[v1.ApplyExtensionsResponse], error)
 }
 
 // NewPostgresManagementServiceClient constructs a client for the
@@ -223,6 +239,24 @@ func NewPostgresManagementServiceClient(httpClient connect.HTTPClient, baseURL s
 			connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteDatabase")),
 			connect.WithClientOptions(opts...),
 		),
+		getExtensions: connect.NewClient[v1.GetExtensionsRequest, v1.GetExtensionsResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceGetExtensionsProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("GetExtensions")),
+			connect.WithClientOptions(opts...),
+		),
+		setExtension: connect.NewClient[v1.SetExtensionRequest, v1.SetExtensionResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceSetExtensionProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("SetExtension")),
+			connect.WithClientOptions(opts...),
+		),
+		applyExtensions: connect.NewClient[v1.ApplyExtensionsRequest, v1.ApplyExtensionsResponse](
+			httpClient,
+			baseURL+PostgresManagementServiceApplyExtensionsProcedure,
+			connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyExtensions")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -245,6 +279,9 @@ type postgresManagementServiceClient struct {
 	listDatabases           *connect.Client[v1.ListDatabasesRequest, v1.ListDatabasesResponse]
 	createDatabase          *connect.Client[v1.CreateDatabaseRequest, v1.CreateDatabaseResponse]
 	deleteDatabase          *connect.Client[v1.DeleteDatabaseRequest, v1.DeleteDatabaseResponse]
+	getExtensions           *connect.Client[v1.GetExtensionsRequest, v1.GetExtensionsResponse]
+	setExtension            *connect.Client[v1.SetExtensionRequest, v1.SetExtensionResponse]
+	applyExtensions         *connect.Client[v1.ApplyExtensionsRequest, v1.ApplyExtensionsResponse]
 }
 
 // GetConnectionProfile calls skylex.v1.PostgresManagementService.GetConnectionProfile.
@@ -332,6 +369,21 @@ func (c *postgresManagementServiceClient) DeleteDatabase(ctx context.Context, re
 	return c.deleteDatabase.CallUnary(ctx, req)
 }
 
+// GetExtensions calls skylex.v1.PostgresManagementService.GetExtensions.
+func (c *postgresManagementServiceClient) GetExtensions(ctx context.Context, req *connect.Request[v1.GetExtensionsRequest]) (*connect.Response[v1.GetExtensionsResponse], error) {
+	return c.getExtensions.CallUnary(ctx, req)
+}
+
+// SetExtension calls skylex.v1.PostgresManagementService.SetExtension.
+func (c *postgresManagementServiceClient) SetExtension(ctx context.Context, req *connect.Request[v1.SetExtensionRequest]) (*connect.Response[v1.SetExtensionResponse], error) {
+	return c.setExtension.CallUnary(ctx, req)
+}
+
+// ApplyExtensions calls skylex.v1.PostgresManagementService.ApplyExtensions.
+func (c *postgresManagementServiceClient) ApplyExtensions(ctx context.Context, req *connect.Request[v1.ApplyExtensionsRequest]) (*connect.Response[v1.ApplyExtensionsResponse], error) {
+	return c.applyExtensions.CallUnary(ctx, req)
+}
+
 // PostgresManagementServiceHandler is an implementation of the skylex.v1.PostgresManagementService
 // service.
 type PostgresManagementServiceHandler interface {
@@ -354,6 +406,13 @@ type PostgresManagementServiceHandler interface {
 	ListDatabases(context.Context, *connect.Request[v1.ListDatabasesRequest]) (*connect.Response[v1.ListDatabasesResponse], error)
 	CreateDatabase(context.Context, *connect.Request[v1.CreateDatabaseRequest]) (*connect.Response[v1.CreateDatabaseResponse], error)
 	DeleteDatabase(context.Context, *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error)
+	// Extension management RPCs. GetExtensions returns the engine catalog merged
+	// with per-cluster toggle state; SetExtension toggles desired state;
+	// ApplyExtensions queues a single command on the primary to converge the
+	// running databases to the desired state (zero downtime, no restart).
+	GetExtensions(context.Context, *connect.Request[v1.GetExtensionsRequest]) (*connect.Response[v1.GetExtensionsResponse], error)
+	SetExtension(context.Context, *connect.Request[v1.SetExtensionRequest]) (*connect.Response[v1.SetExtensionResponse], error)
+	ApplyExtensions(context.Context, *connect.Request[v1.ApplyExtensionsRequest]) (*connect.Response[v1.ApplyExtensionsResponse], error)
 }
 
 // NewPostgresManagementServiceHandler builds an HTTP handler from the service implementation. It
@@ -465,6 +524,24 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 		connect.WithSchema(postgresManagementServiceMethods.ByName("DeleteDatabase")),
 		connect.WithHandlerOptions(opts...),
 	)
+	postgresManagementServiceGetExtensionsHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceGetExtensionsProcedure,
+		svc.GetExtensions,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("GetExtensions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceSetExtensionHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceSetExtensionProcedure,
+		svc.SetExtension,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("SetExtension")),
+		connect.WithHandlerOptions(opts...),
+	)
+	postgresManagementServiceApplyExtensionsHandler := connect.NewUnaryHandler(
+		PostgresManagementServiceApplyExtensionsProcedure,
+		svc.ApplyExtensions,
+		connect.WithSchema(postgresManagementServiceMethods.ByName("ApplyExtensions")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skylex.v1.PostgresManagementService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PostgresManagementServiceGetConnectionProfileProcedure:
@@ -501,6 +578,12 @@ func NewPostgresManagementServiceHandler(svc PostgresManagementServiceHandler, o
 			postgresManagementServiceCreateDatabaseHandler.ServeHTTP(w, r)
 		case PostgresManagementServiceDeleteDatabaseProcedure:
 			postgresManagementServiceDeleteDatabaseHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceGetExtensionsProcedure:
+			postgresManagementServiceGetExtensionsHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceSetExtensionProcedure:
+			postgresManagementServiceSetExtensionHandler.ServeHTTP(w, r)
+		case PostgresManagementServiceApplyExtensionsProcedure:
+			postgresManagementServiceApplyExtensionsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -576,4 +659,16 @@ func (UnimplementedPostgresManagementServiceHandler) CreateDatabase(context.Cont
 
 func (UnimplementedPostgresManagementServiceHandler) DeleteDatabase(context.Context, *connect.Request[v1.DeleteDatabaseRequest]) (*connect.Response[v1.DeleteDatabaseResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.DeleteDatabase is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) GetExtensions(context.Context, *connect.Request[v1.GetExtensionsRequest]) (*connect.Response[v1.GetExtensionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.GetExtensions is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) SetExtension(context.Context, *connect.Request[v1.SetExtensionRequest]) (*connect.Response[v1.SetExtensionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.SetExtension is not implemented"))
+}
+
+func (UnimplementedPostgresManagementServiceHandler) ApplyExtensions(context.Context, *connect.Request[v1.ApplyExtensionsRequest]) (*connect.Response[v1.ApplyExtensionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skylex.v1.PostgresManagementService.ApplyExtensions is not implemented"))
 }
