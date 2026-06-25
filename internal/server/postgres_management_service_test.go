@@ -40,6 +40,30 @@ func createPostgresManagementTestCluster(t *testing.T, ctx context.Context, svc 
 	return cluster.ID
 }
 
+func TestPostgresManagementService_CreateDatabaseRejectsUnregisteredEngine(t *testing.T) {
+	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
+	ctx := contextWithUserRole(models.RoleOperator)
+
+	// Create a cluster whose engine has no registered provider. The management
+	// service must refuse the operation at the boundary rather than queueing a
+	// command with an empty/incorrect action string.
+	cluster, err := svc.clusters.Create(ctx, "mysql-cluster", "", "/var/lib/mysql", models.EngineType("mysql"), "8", models.ReplicationAsync, 0, false, nil)
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+
+	_, err = svc.CreateDatabase(ctx, connect.NewRequest(&skylexv1.CreateDatabaseRequest{
+		ClusterId:    cluster.ID,
+		DatabaseName: "app_db",
+	}))
+	if err == nil {
+		t.Fatal("expected create database to fail for unregistered engine")
+	}
+	if connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Fatalf("expected FailedPrecondition, got %v (%v)", connect.CodeOf(err), err)
+	}
+}
+
 func TestPostgresManagementService_CreateDatabaseRejectsViewer(t *testing.T) {
 	_, svc, _, _ := newPostgresManagementServiceTestDeps(t)
 

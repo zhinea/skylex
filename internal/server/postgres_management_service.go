@@ -86,12 +86,6 @@ func NewPostgresManagementService(
 	log *slog.Logger,
 ) *PostgresManagementService {
 	validate := validator.New()
-	_ = validate.RegisterValidation("pgrole", func(fl validator.FieldLevel) bool {
-		return roleNamePattern.MatchString(fl.Field().String())
-	})
-	_ = validate.RegisterValidation("pgdatabase", func(fl validator.FieldLevel) bool {
-		return databaseNamePattern.MatchString(fl.Field().String())
-	})
 
 	return &PostgresManagementService{
 		profiles:       profiles,
@@ -107,18 +101,6 @@ func NewPostgresManagementService(
 		clusterLocks:   make(map[string]*sync.Mutex),
 		log:            log,
 	}
-}
-
-type createRoleInput struct {
-	ClusterID string `validate:"required"`
-	RoleName  string `validate:"required,pgrole"`
-	RoleKind  string `validate:"required,oneof=admin read_write read_only custom"`
-}
-
-type createDatabaseInput struct {
-	ClusterID    string `validate:"required"`
-	DatabaseName string `validate:"required,pgdatabase"`
-	OwnerRoleID  string `validate:"omitempty"`
 }
 
 type updateNetworkAccessInput struct {
