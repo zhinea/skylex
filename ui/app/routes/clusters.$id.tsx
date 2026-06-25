@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, Link } from "react-router";
+import { useParams, Link, useNavigate } from "react-router";
 import { useCluster, useDeleteCluster, usePauseCluster, useRestartCluster, useRestartNode } from "~/hooks/useClusters";
 import { useToast } from "~/components/ui/toast";
 import { useNodes, useRejoinNode, useResolveInstallationConflict } from "~/hooks/useNodes";
@@ -50,6 +50,7 @@ const menuItems = [
 
 export default function ClusterDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: clusterData, isLoading: clusterLoading } = useCluster(id || "");
   const { data: nodesData } = useNodes(id || "");
   const { data: logsData } = useCommandLogs(id || "");
@@ -148,6 +149,7 @@ export default function ClusterDetailPage() {
       onSuccess: () => {
         setDeleteClusterOpen(false);
         toast.success("Cluster deleted successfully", "The cluster has been removed.");
+        navigate("/clusters");
       },
       onError: (err) => {
         const message = err instanceof Error ? err.message : "Failed to delete cluster";
