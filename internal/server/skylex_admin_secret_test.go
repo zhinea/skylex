@@ -21,6 +21,7 @@ func newPostgresManagementServiceWithSecrets(t *testing.T) (*db.DB, *PostgresMan
 	clusterSecrets := db.NewClusterSecretRepository(database.Conn(), svc.log, key)
 	commandSecrets := db.NewAgentCommandSecretRepository(database.Conn(), svc.log, key)
 	svc.SetClusterSecretRepository(clusterSecrets)
+	svc.SetCommandSecretRepository(commandSecrets)
 	return database, svc, nodes, clusterSecrets, commandSecrets
 }
 

@@ -63,6 +63,7 @@ type PostgresManagementService struct {
 	tlsCA          *db.ServiceTLSCARepository
 	extensions     *db.ClusterExtensionRepository
 	clusterSecrets *db.ClusterSecretRepository
+	commandSecrets *db.AgentCommandSecretRepository
 	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
@@ -79,6 +80,14 @@ func (s *PostgresManagementService) SetAuditRepository(repo *db.AuditRepository)
 // resolve the skylex_admin SUPERUSER password for management commands.
 func (s *PostgresManagementService) SetClusterSecretRepository(repo *db.ClusterSecretRepository) {
 	s.clusterSecrets = repo
+}
+
+// SetCommandSecretRepository wires the agent command secret store. It is used by
+// the Phase 4 lazy backfill (ensureSkylexAdminProvisioned) to queue a
+// pg_ensure_admin_role command with the freshly generated password injected as a
+// command secret, exactly as CreateCluster does in Phase 2.
+func (s *PostgresManagementService) SetCommandSecretRepository(repo *db.AgentCommandSecretRepository) {
+	s.commandSecrets = repo
 }
 
 // skylexAdminCommandSecret resolves the durable skylex_admin password for the
@@ -107,6 +116,82 @@ func (s *PostgresManagementService) skylexAdminCommandSecret(ctx context.Context
 		return nil, ""
 	}
 	return ciphertext, "skylex_admin_password"
+}
+
+// ensureSkylexAdminProvisioned is the Phase 4 lazy backfill. Clusters created
+// before Phase 2 (and adopted clusters) have no skylex_admin_password stored and
+// no skylex_admin role in PostgreSQL. The first time a management command is
+// about to be queued for such a cluster, this helper generates a password,
+// stores it durably, and queues a single pg_ensure_admin_role on the primary —
+// exactly like Phase 2's ClusterService.queueAdminRoleCommand does at
+// CreateCluster (same generator, same payload, same command-secret queuing).
+//
+// Returns (false, nil) on the common fast path when the secret already exists
+// (one ResolveSecret read, no writes, no queued command). Returns (true, nil)
+// when it just backfilled the role.
+//
+// Timing — Option B (smoother UX): provisioning is asynchronous (a queued
+// command the agent runs later), so the role does not exist on the agent the
+// instant this returns. When this reports newlyProvisioned=true the CALLER must
+// NOT attach the admin secret to the current management command; that command
+// falls back to the bootstrap postgres identity one final time. Every later
+// action finds the stored secret and connects as skylex_admin. This avoids a
+// guaranteed-fail first attempt that Option A would incur.
+//
+// Idempotency & lock-safety: this is a package-level helper (no receiver lock)
+// invoked while the caller holds s.clusterLock(clusterID); it takes no locks
+// itself, so it cannot deadlock with clusterLock. The leading secret-existence
+// check makes a second call a cheap no-op, and the per-cluster lock serializes
+// concurrent management calls so at most one pg_ensure_admin_role is queued.
+func ensureSkylexAdminProvisioned(
+	ctx context.Context,
+	clusterSecrets *db.ClusterSecretRepository,
+	commandSecrets *db.AgentCommandSecretRepository,
+	log *slog.Logger,
+	clusterID string,
+	primary *models.Node,
+) (newlyProvisioned bool, err error) {
+	if clusterSecrets == nil || commandSecrets == nil {
+		return false, nil
+	}
+	pw, err := clusterSecrets.ResolveSecret(ctx, clusterID, "skylex_admin_password")
+	if err != nil {
+		return false, fmt.Errorf("resolve skylex_admin password: %w", err)
+	}
+	if pw != "" {
+		// Fast path: already provisioned (Phase 2 cluster or a prior backfill).
+		return false, nil
+	}
+
+	// Pre-Phase-2 cluster: generate, persist, and queue the role command using
+	// the same generator and payload shape as Phase 2 to keep behavior identical.
+	password, err := crypto.GenerateToken(24)
+	if err != nil {
+		return false, fmt.Errorf("generate skylex_admin password: %w", err)
+	}
+	if err := clusterSecrets.StoreSecret(ctx, clusterID, "skylex_admin_password", password); err != nil {
+		return false, fmt.Errorf("store skylex_admin password: %w", err)
+	}
+	payload, err := json.Marshal(map[string]interface{}{
+		"role_name":           models.SkylexAdminRole,
+		"role_kind":           "admin",
+		"password_secret_key": "skylex_admin_password",
+		"allow_promote":       false,
+	})
+	if err != nil {
+		return false, fmt.Errorf("marshal admin role payload: %w", err)
+	}
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
+	if _, err := commandSecrets.CreateCommandWithSecrets(ctx, primary.AgentID, primary.ID,
+		"pg_ensure_admin_role", string(payload),
+		map[string]string{"skylex_admin_password": password},
+		&secretExpiresAt,
+	); err != nil {
+		return false, fmt.Errorf("queue pg_ensure_admin_role: %w", err)
+	}
+	log.Info("backfilled skylex_admin provisioning for pre-existing cluster",
+		"cluster_id", clusterID, "primary_node", primary.ID)
+	return true, nil
 }
 
 func NewPostgresManagementService(
@@ -1285,7 +1370,16 @@ func (s *PostgresManagementService) CreateRole(
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 
 	ensureRoleAction, _ := provider.Action(engine.OpEnsureRole)
-	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, clusterID)
+	// Phase 4: lazily backfill skylex_admin for clusters that predate Phase 2.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, clusterID, primary)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
+	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = s.skylexAdminCommandSecret(ctx, clusterID)
+	}
 	createInput := db.CreateRoleTxInput{
 		RoleID:                 retryRoleID,
 		OperationID:            opID,
@@ -1395,7 +1489,16 @@ func (s *PostgresManagementService) RotateRolePassword(
 		return nil, err
 	}
 	rotateRoleAction, _ := provider.Action(engine.OpRotateRolePassword)
-	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, role.ClusterID)
+	// Phase 4: lazily backfill skylex_admin for clusters that predate Phase 2.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, role.ClusterID, primary)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
+	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = s.skylexAdminCommandSecret(ctx, role.ClusterID)
+	}
 	txResult, err := s.roles.RotateWithCommand(ctx, db.RotateRoleTxInput{
 		RoleID:                 role.ID,
 		OperationID:            opID,
@@ -1488,6 +1591,13 @@ func (s *PostgresManagementService) DeleteRole(
 		return nil, err
 	} else {
 		dropRoleAction, _ = provider.Action(engine.OpDropRole)
+	}
+	// Phase 4: lazily backfill skylex_admin so the role exists for subsequent
+	// management commands on pre-Phase-2 clusters. pg_drop_role itself does not
+	// carry the admin secret (DeleteRoleTxInput has no such field), so this call
+	// only provisions the role; its return value is intentionally unused.
+	if _, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, role.ClusterID, primary); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
 	}
 	txResult, err := s.roles.DeleteWithCommand(ctx, db.DeleteRoleTxInput{
 		RoleID:       role.ID,
@@ -1638,7 +1748,16 @@ func (s *PostgresManagementService) CreateDatabase(
 	}
 
 	ensureDatabaseAction, _ := provider.Action(engine.OpEnsureDatabase)
-	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, clusterID)
+	// Phase 4: lazily backfill skylex_admin for clusters that predate Phase 2.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, clusterID, primary)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
+	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = s.skylexAdminCommandSecret(ctx, clusterID)
+	}
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	txResult, err := s.databases.CreateWithCommand(ctx, db.CreateDatabaseTxInput{
 		DatabaseID:   databaseID,
@@ -1726,7 +1845,16 @@ func (s *PostgresManagementService) DeleteDatabase(
 	} else {
 		dropDatabaseAction, _ = provider.Action(engine.OpDropDatabase)
 	}
-	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, database.ClusterID)
+	// Phase 4: lazily backfill skylex_admin for clusters that predate Phase 2.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, database.ClusterID, primary)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
+	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = s.skylexAdminCommandSecret(ctx, database.ClusterID)
+	}
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	txResult, err := s.databases.DeleteWithCommand(ctx, db.DeleteDatabaseTxInput{
 		DatabaseID:   database.ID,

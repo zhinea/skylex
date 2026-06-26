@@ -402,6 +402,16 @@ func (s *AgentService) handleDatabaseManagementCommandResult(ctx context.Context
 		return true, err
 	}
 
+	// Phase 4: lazily backfill skylex_admin so the role exists for subsequent
+	// management commands on pre-Phase-2 clusters. The grant command itself does
+	// not carry the admin secret (GrantDatabaseTxInput has no such field), so this
+	// only provisions the role; its return value is intentionally unused. Failure
+	// is non-fatal — the grant proceeds via the bootstrap identity fallback.
+	if _, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, grant.ClusterID, primary); err != nil {
+		s.log.Warn("ensure skylex_admin provisioned for grant failed; continuing",
+			"cluster_id", grant.ClusterID, "error", err)
+	}
+
 	payload, err := json.Marshal(map[string]interface{}{
 		"database_id":     grant.DatabaseID,
 		"operation_id":    grant.OperationID,

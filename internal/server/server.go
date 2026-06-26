@@ -144,6 +144,11 @@ func (s *Server) Start(ctx context.Context) error {
 	s.agentService.SetPostgresExtensionRepository(postgresExtensionRepo)
 	s.postgresService = NewPostgresManagementService(connectionProfileRepo, nodeRepo, clusterRepo, postgresRoleRepo, postgresDatabaseRepo, postgresAccessRepo, postgresTLSRepo, postgresTLSCARepo, postgresExtensionRepo, roleEncryptKey, s.log)
 	s.postgresService.SetAuditRepository(auditRepo)
+	// Wire the durable secret stores so management commands attach the skylex_admin
+	// SUPERUSER credential (Phase 3) and can lazily backfill it for pre-existing
+	// clusters (Phase 4 ensureSkylexAdminProvisioned).
+	s.postgresService.SetClusterSecretRepository(s.clusterSecrets)
+	s.postgresService.SetCommandSecretRepository(commandSecretRepo)
 
 	tlsConfig, err := LoadTLSCredentials(s.cfg.TLS)
 	if err != nil {

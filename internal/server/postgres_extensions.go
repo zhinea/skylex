@@ -190,7 +190,18 @@ func (s *PostgresManagementService) ApplyExtensions(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal extensions payload: %w", err))
 	}
 
-	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, clusterID)
+	// Phase 4: lazily backfill skylex_admin for clusters that predate Phase 2.
+	// When it just provisioned (Option B), omit the admin secret from this command
+	// and let it use the bootstrap identity one final time.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, clusterID, primary)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
+	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = s.skylexAdminCommandSecret(ctx, clusterID)
+	}
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	if err := s.extensions.QueueApplyCommand(ctx, db.ApplyExtensionsCommand{
 		ClusterID:            clusterID,
