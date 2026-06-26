@@ -190,11 +190,16 @@ func (s *PostgresManagementService) ApplyExtensions(
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("marshal extensions payload: %w", err))
 	}
 
+	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, clusterID)
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	if err := s.extensions.QueueApplyCommand(ctx, db.ApplyExtensionsCommand{
-		ClusterID: clusterID,
-		NodeID:    primary.ID,
-		AgentID:   primary.AgentID,
-		Payload:   string(payload),
+		ClusterID:            clusterID,
+		NodeID:               primary.ID,
+		AgentID:              primary.AgentID,
+		Payload:              string(payload),
+		EncryptedAdminSecret: adminSecret,
+		AdminSecretKey:       adminSecretKey,
+		SecretExpiresAt:      &secretExpiresAt,
 	}); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("queue apply extensions command: %w", err))
 	}

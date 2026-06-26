@@ -133,6 +133,9 @@ func (r *ManagedDatabaseRepository) CreateWithCommand(ctx context.Context, input
 	if err != nil {
 		return nil, err
 	}
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
@@ -199,6 +202,9 @@ func (r *ManagedDatabaseRepository) DeleteWithCommand(ctx context.Context, input
 	}
 	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.DropAction, input.Payload, now)
 	if err != nil {
+		return nil, err
+	}
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
@@ -373,6 +379,12 @@ type CreateDatabaseTxInput struct {
 	Payload       string
 	BeforeAction  string
 	BeforePayload string
+	// EncryptedAdminSecret, when non-empty, is attached under AdminSecretKey so
+	// the agent authenticates to PostgreSQL as the durable skylex_admin
+	// SUPERUSER. Omitted for clusters that predate the skylex_admin role.
+	EncryptedAdminSecret []byte
+	AdminSecretKey       string
+	SecretExpiresAt      *time.Time
 	// EnsureAction is the engine-specific agent command action for ensuring a
 	// database (e.g. "pg_ensure_database"). Resolved by the caller from the
 	// engine provider.
@@ -388,6 +400,11 @@ type DeleteDatabaseTxInput struct {
 	Payload       string
 	BeforeAction  string
 	BeforePayload string
+	// EncryptedAdminSecret, when non-empty, is attached under AdminSecretKey so
+	// the agent authenticates as the durable skylex_admin SUPERUSER.
+	EncryptedAdminSecret []byte
+	AdminSecretKey       string
+	SecretExpiresAt      *time.Time
 	// DropAction is the engine-specific agent command action for dropping a
 	// database (e.g. "pg_drop_database").
 	DropAction string

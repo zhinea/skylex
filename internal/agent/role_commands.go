@@ -22,6 +22,7 @@ type roleCommandPayload struct {
 }
 
 func (a *Agent) executeEnsureRole(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	a.applySkylexAdminCredentialsIfPresent(cmd)
 	var p roleCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
 		return false, "", fmt.Sprintf("pg_ensure_role: invalid payload: %v", err)
@@ -81,6 +82,7 @@ func (a *Agent) executeEnsureAdminRole(ctx context.Context, cmd *skylexv1.AgentC
 }
 
 func (a *Agent) executeRotateRolePassword(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	a.applySkylexAdminCredentialsIfPresent(cmd)
 	var p roleCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
 		return false, "", fmt.Sprintf("pg_rotate_role_password: invalid payload: %v", err)
@@ -108,6 +110,7 @@ func (a *Agent) executeRotateRolePassword(ctx context.Context, cmd *skylexv1.Age
 }
 
 func (a *Agent) executeDropRole(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	a.applySkylexAdminCredentialsIfPresent(cmd)
 	var p roleCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
 		return false, "", fmt.Sprintf("pg_drop_role: invalid payload: %v", err)

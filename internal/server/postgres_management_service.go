@@ -62,6 +62,7 @@ type PostgresManagementService struct {
 	tls            *db.TLSApplyRepository
 	tlsCA          *db.ServiceTLSCARepository
 	extensions     *db.ClusterExtensionRepository
+	clusterSecrets *db.ClusterSecretRepository
 	audit          *db.AuditRepository
 	roleEncryptKey []byte
 	validate       *validator.Validate
@@ -72,6 +73,40 @@ type PostgresManagementService struct {
 
 func (s *PostgresManagementService) SetAuditRepository(repo *db.AuditRepository) {
 	s.audit = repo
+}
+
+// SetClusterSecretRepository wires the durable per-cluster secret store used to
+// resolve the skylex_admin SUPERUSER password for management commands.
+func (s *PostgresManagementService) SetClusterSecretRepository(repo *db.ClusterSecretRepository) {
+	s.clusterSecrets = repo
+}
+
+// skylexAdminCommandSecret resolves the durable skylex_admin password for the
+// cluster and re-encrypts it for at-rest storage as a command secret. It returns
+// (nil, "") when the cluster predates the skylex_admin role (no stored secret),
+// so callers omit the secret and the agent falls back to its bootstrap identity.
+func (s *PostgresManagementService) skylexAdminCommandSecret(ctx context.Context, clusterID string) ([]byte, string) {
+	if s.clusterSecrets == nil {
+		return nil, ""
+	}
+	pw, err := s.clusterSecrets.ResolveSecret(ctx, clusterID, "skylex_admin_password")
+	if err != nil {
+		s.log.Warn("resolve skylex_admin password failed; command will use bootstrap identity",
+			"cluster_id", clusterID, "error", err)
+		return nil, ""
+	}
+	if pw == "" {
+		s.log.Warn("skylex_admin password not found for cluster; command will use bootstrap identity",
+			"cluster_id", clusterID)
+		return nil, ""
+	}
+	ciphertext, err := crypto.EncryptAES256GCM([]byte(pw), s.roleEncryptKey)
+	if err != nil {
+		s.log.Warn("encrypt skylex_admin command secret failed; command will use bootstrap identity",
+			"cluster_id", clusterID, "error", err)
+		return nil, ""
+	}
+	return ciphertext, "skylex_admin_password"
 }
 
 func NewPostgresManagementService(
@@ -1250,6 +1285,7 @@ func (s *PostgresManagementService) CreateRole(
 	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 
 	ensureRoleAction, _ := provider.Action(engine.OpEnsureRole)
+	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, clusterID)
 	createInput := db.CreateRoleTxInput{
 		RoleID:                 retryRoleID,
 		OperationID:            opID,
@@ -1264,6 +1300,8 @@ func (s *PostgresManagementService) CreateRole(
 		BeforeAction:           managementBeforeAction(allowPromote),
 		EncryptedCommandSecret: commandSecret,
 		SecretExpiresAt:        &secretExpiresAt,
+		EncryptedAdminSecret:   adminSecret,
+		AdminSecretKey:         adminSecretKey,
 		ExpiresAt:              expiresAt,
 		EnsureAction:           ensureRoleAction,
 	}
@@ -1357,6 +1395,7 @@ func (s *PostgresManagementService) RotateRolePassword(
 		return nil, err
 	}
 	rotateRoleAction, _ := provider.Action(engine.OpRotateRolePassword)
+	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, role.ClusterID)
 	txResult, err := s.roles.RotateWithCommand(ctx, db.RotateRoleTxInput{
 		RoleID:                 role.ID,
 		OperationID:            opID,
@@ -1368,6 +1407,8 @@ func (s *PostgresManagementService) RotateRolePassword(
 		BeforeAction:           managementBeforeAction(allowPromote),
 		EncryptedCommandSecret: commandSecret,
 		SecretExpiresAt:        &secretExpiresAt,
+		EncryptedAdminSecret:   adminSecret,
+		AdminSecretKey:         adminSecretKey,
 		RotateAction:           rotateRoleAction,
 	})
 	if err != nil {
@@ -1597,6 +1638,8 @@ func (s *PostgresManagementService) CreateDatabase(
 	}
 
 	ensureDatabaseAction, _ := provider.Action(engine.OpEnsureDatabase)
+	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, clusterID)
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	txResult, err := s.databases.CreateWithCommand(ctx, db.CreateDatabaseTxInput{
 		DatabaseID:   databaseID,
 		OperationID:  opID,
@@ -1608,6 +1651,9 @@ func (s *PostgresManagementService) CreateDatabase(
 		OwnerRoleID:  ownerRoleID,
 		Payload:      string(payload),
 		BeforeAction: managementBeforeAction(allowPromote),
+		EncryptedAdminSecret: adminSecret,
+		AdminSecretKey:       adminSecretKey,
+		SecretExpiresAt:      &secretExpiresAt,
 		EnsureAction: ensureDatabaseAction,
 	})
 	if err != nil {
@@ -1680,6 +1726,8 @@ func (s *PostgresManagementService) DeleteDatabase(
 	} else {
 		dropDatabaseAction, _ = provider.Action(engine.OpDropDatabase)
 	}
+	adminSecret, adminSecretKey := s.skylexAdminCommandSecret(ctx, database.ClusterID)
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	txResult, err := s.databases.DeleteWithCommand(ctx, db.DeleteDatabaseTxInput{
 		DatabaseID:   database.ID,
 		OperationID:  opID,
@@ -1688,6 +1736,9 @@ func (s *PostgresManagementService) DeleteDatabase(
 		AgentID:      primary.AgentID,
 		Payload:      string(payload),
 		BeforeAction: managementBeforeAction(allowPromote),
+		EncryptedAdminSecret: adminSecret,
+		AdminSecretKey:       adminSecretKey,
+		SecretExpiresAt:      &secretExpiresAt,
 		DropAction:   dropDatabaseAction,
 	})
 	if err != nil {

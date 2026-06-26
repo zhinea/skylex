@@ -22,6 +22,7 @@ import (
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
 	"github.com/zhinea/skylex/internal/agent/installer"
+	"github.com/zhinea/skylex/internal/models"
 	"github.com/zhinea/skylex/internal/pgbackrest"
 	"github.com/zhinea/skylex/internal/postgres"
 	"golang.org/x/sync/errgroup"
@@ -790,6 +791,26 @@ func (a *Agent) applyPostgresAdminCredentials(cmd *skylexv1.AgentCommand) error 
 	}
 	a.pg.SetSuperuserCredentials(payload.PostgresAdminUser, password)
 	return nil
+}
+
+// applySkylexAdminCredentialsIfPresent switches the agent's local PostgreSQL
+// superuser identity to the durable, cluster-owned skylex_admin SUPERUSER when
+// the command carries its password secret. Management executors call this
+// before opening a DB connection so they no longer depend on the in-memory
+// bootstrap postgres password, which reverts to the config default on restart.
+//
+// When the secret is absent (clusters that predate the skylex_admin role) it is
+// a no-op, leaving the existing credentials untouched for backward compatibility.
+//
+// Safe to mutate shared a.pg state: the agent executes commands serially (one
+// command fetched and run to completion before the next), so there is no
+// concurrent reader of the superuser credentials.
+func (a *Agent) applySkylexAdminCredentialsIfPresent(cmd *skylexv1.AgentCommand) {
+	secret := cmd.GetSecrets()["skylex_admin_password"]
+	if secret == "" {
+		return
+	}
+	a.pg.SetSuperuserCredentials(models.SkylexAdminRole, secret)
 }
 
 func (a *Agent) installConfig() installer.InstallConfig {

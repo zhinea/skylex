@@ -29,6 +29,7 @@ type AgentService struct {
 	commandLogs    *db.CommandLogRepository
 	agentTokenRepo *db.AgentTokenRepository
 	commandSecrets *db.AgentCommandSecretRepository
+	clusterSecrets *db.ClusterSecretRepository
 	postgresRoles  *db.ManagedRoleRepository
 	postgresDBs    *db.ManagedDatabaseRepository
 	postgresAccess *db.NetworkAccessRepository
@@ -56,6 +57,13 @@ func NewAgentService(cfg *Config, clusters *db.ClusterRepository, nodes *db.Node
 
 func (s *AgentService) SetCommandSecretRepository(repo *db.AgentCommandSecretRepository) {
 	s.commandSecrets = repo
+}
+
+// SetClusterSecretRepository wires the durable per-cluster secret store used to
+// resolve the skylex_admin password for follow-up commands queued server-side
+// (e.g. the database grant that follows a successful ensure-database).
+func (s *AgentService) SetClusterSecretRepository(repo *db.ClusterSecretRepository) {
+	s.clusterSecrets = repo
 }
 
 func (s *AgentService) SetPostgresRoleRepository(repo *db.ManagedRoleRepository) {
@@ -348,7 +356,8 @@ func (s *AgentService) FetchCommand(ctx context.Context, req *skylexv1.FetchComm
 // isRoleManagementAction reports whether an action carries command secrets.
 func isSecretBearingAction(action string) bool {
 	switch action {
-	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role", "pg_apply_tls", "pg_adopt_native", "pg_create_repl_user", "pg_ensure_admin_role":
+	case "pg_ensure_role", "pg_rotate_role_password", "pg_drop_role", "pg_apply_tls", "pg_adopt_native", "pg_create_repl_user", "pg_ensure_admin_role",
+		"pg_apply_extensions", "pg_ensure_database", "pg_drop_database", "pg_grant_database_privileges":
 		return true
 	default:
 		return false

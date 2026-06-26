@@ -212,6 +212,9 @@ func (r *ManagedRoleRepository) CreateWithCommand(ctx context.Context, input Cre
 	if err := insertCommandSecret(ctx, tx, cmd.ID, "password", input.EncryptedCommandSecret, input.SecretExpiresAt, now); err != nil {
 		return nil, err
 	}
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
@@ -301,6 +304,9 @@ func (r *ManagedRoleRepository) RetryCreateWithCommand(ctx context.Context, inpu
 	if err := insertCommandSecret(ctx, tx, cmd.ID, "password", input.EncryptedCommandSecret, input.SecretExpiresAt, now); err != nil {
 		return nil, err
 	}
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark retry operation running: %w", err)
@@ -368,6 +374,9 @@ func (r *ManagedRoleRepository) RotateWithCommand(ctx context.Context, input Rot
 		return nil, err
 	}
 	if err := insertCommandSecret(ctx, tx, cmd.ID, "password", input.EncryptedCommandSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
 		return nil, err
 	}
 	if _, err := tx.ExecContext(ctx,
@@ -532,6 +541,11 @@ type CreateRoleTxInput struct {
 	EncryptedCommandSecret []byte
 	SecretExpiresAt        *time.Time
 	ExpiresAt              *time.Time
+	// EncryptedAdminSecret, when non-empty, is attached under AdminSecretKey so
+	// the agent authenticates to PostgreSQL as the durable skylex_admin
+	// SUPERUSER. Omitted for clusters that predate the skylex_admin role.
+	EncryptedAdminSecret []byte
+	AdminSecretKey       string
 	// EnsureAction is the engine-specific agent command action for ensuring a
 	// role (e.g. "pg_ensure_role"). Resolved by the caller from the provider.
 	EnsureAction string
@@ -549,6 +563,8 @@ type RotateRoleTxInput struct {
 	BeforePayload          string
 	EncryptedCommandSecret []byte
 	SecretExpiresAt        *time.Time
+	EncryptedAdminSecret   []byte
+	AdminSecretKey         string
 	// RotateAction is the engine-specific agent command action for rotating a
 	// role password (e.g. "pg_rotate_role_password").
 	RotateAction string
@@ -601,6 +617,16 @@ func insertAgentCommand(ctx context.Context, tx *sql.Tx, cmdID, agentID, nodeID,
 		return nil, fmt.Errorf("insert agent command: %w", err)
 	}
 	return &AgentCommand{ID: cmdID, AgentID: agentID, NodeID: nodeID, Action: action, Payload: payload, Status: "pending", CreatedAt: now}, nil
+}
+
+// insertAdminCommandSecret attaches the durable skylex_admin connection secret
+// to a command when present. It is a no-op for clusters that predate the
+// skylex_admin role (empty ciphertext/key), preserving backward compatibility.
+func insertAdminCommandSecret(ctx context.Context, tx *sql.Tx, commandID, key string, ciphertext []byte, expiresAt *time.Time, now time.Time) error {
+	if len(ciphertext) == 0 || key == "" {
+		return nil
+	}
+	return insertCommandSecret(ctx, tx, commandID, key, ciphertext, expiresAt, now)
 }
 
 func insertCommandSecret(ctx context.Context, tx *sql.Tx, commandID, key string, ciphertext []byte, expiresAt *time.Time, now time.Time) error {

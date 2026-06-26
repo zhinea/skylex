@@ -44,6 +44,12 @@ type ApplyExtensionsCommand struct {
 	AgentID   string
 	CommandID string
 	Payload   string
+	// EncryptedAdminSecret, when non-nil, is attached to the queued command under
+	// the given key so the agent can authenticate to PostgreSQL as the durable
+	// skylex_admin SUPERUSER. Omitted (nil) for clusters that predate Phase 2.
+	EncryptedAdminSecret []byte
+	AdminSecretKey       string
+	SecretExpiresAt      *time.Time
 }
 
 func (r *ClusterExtensionRepository) ListByCluster(ctx context.Context, clusterID string) ([]*ClusterExtension, error) {
@@ -109,6 +115,11 @@ func (r *ClusterExtensionRepository) QueueApplyCommand(ctx context.Context, cmd 
 	}
 	if _, err := insertAgentCommand(ctx, tx, commandID, cmd.AgentID, cmd.NodeID, "pg_apply_extensions", cmd.Payload, now); err != nil {
 		return err
+	}
+	if len(cmd.EncryptedAdminSecret) > 0 && cmd.AdminSecretKey != "" {
+		if err := insertCommandSecret(ctx, tx, commandID, cmd.AdminSecretKey, cmd.EncryptedAdminSecret, cmd.SecretExpiresAt, now); err != nil {
+			return err
+		}
 	}
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`UPDATE cluster_extensions SET status = 'pending', error = '', command_id = ?, updated_at = ? WHERE cluster_id = ?`),

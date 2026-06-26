@@ -40,6 +40,7 @@ type tlsCommandPayload struct {
 }
 
 func (a *Agent) executeEnsureDatabase(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	a.applySkylexAdminCredentialsIfPresent(cmd)
 	var p databaseCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
 		return false, "", fmt.Sprintf("pg_ensure_database: invalid payload: %v", err)
@@ -56,6 +57,7 @@ func (a *Agent) executeEnsureDatabase(ctx context.Context, cmd *skylexv1.AgentCo
 }
 
 func (a *Agent) executeDropDatabase(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	a.applySkylexAdminCredentialsIfPresent(cmd)
 	var p databaseCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
 		return false, "", fmt.Sprintf("pg_drop_database: invalid payload: %v", err)
@@ -72,6 +74,7 @@ func (a *Agent) executeDropDatabase(ctx context.Context, cmd *skylexv1.AgentComm
 }
 
 func (a *Agent) executeGrantDatabasePrivileges(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	a.applySkylexAdminCredentialsIfPresent(cmd)
 	var p databaseCommandPayload
 	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
 		return false, "", fmt.Sprintf("pg_grant_database_privileges: invalid payload: %v", err)
