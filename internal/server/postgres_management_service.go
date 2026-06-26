@@ -95,23 +95,35 @@ func (s *PostgresManagementService) SetCommandSecretRepository(repo *db.AgentCom
 // (nil, "") when the cluster predates the skylex_admin role (no stored secret),
 // so callers omit the secret and the agent falls back to its bootstrap identity.
 func (s *PostgresManagementService) skylexAdminCommandSecret(ctx context.Context, clusterID string) ([]byte, string) {
-	if s.clusterSecrets == nil {
+	return resolveSkylexAdminCommandSecret(ctx, s.clusterSecrets, s.roleEncryptKey, s.log, clusterID)
+}
+
+// resolveSkylexAdminCommandSecret is the shared implementation behind both
+// PostgresManagementService.skylexAdminCommandSecret and the AgentService grant
+// follow-up path. It resolves the durable skylex_admin password from the
+// cluster secret store and re-encrypts it under roleEncryptKey for at-rest
+// command-secret storage. It returns (nil, "") — never panicking — when the
+// store is unwired, the secret is missing (clusters that predate the
+// skylex_admin role), or re-encryption fails; in every such case the caller
+// omits the secret and the agent falls back to its bootstrap identity.
+func resolveSkylexAdminCommandSecret(ctx context.Context, clusterSecrets *db.ClusterSecretRepository, roleEncryptKey []byte, log *slog.Logger, clusterID string) ([]byte, string) {
+	if clusterSecrets == nil {
 		return nil, ""
 	}
-	pw, err := s.clusterSecrets.ResolveSecret(ctx, clusterID, "skylex_admin_password")
+	pw, err := clusterSecrets.ResolveSecret(ctx, clusterID, "skylex_admin_password")
 	if err != nil {
-		s.log.Warn("resolve skylex_admin password failed; command will use bootstrap identity",
+		log.Warn("resolve skylex_admin password failed; command will use bootstrap identity",
 			"cluster_id", clusterID, "error", err)
 		return nil, ""
 	}
 	if pw == "" {
-		s.log.Warn("skylex_admin password not found for cluster; command will use bootstrap identity",
+		log.Warn("skylex_admin password not found for cluster; command will use bootstrap identity",
 			"cluster_id", clusterID)
 		return nil, ""
 	}
-	ciphertext, err := crypto.EncryptAES256GCM([]byte(pw), s.roleEncryptKey)
+	ciphertext, err := crypto.EncryptAES256GCM([]byte(pw), roleEncryptKey)
 	if err != nil {
-		s.log.Warn("encrypt skylex_admin command secret failed; command will use bootstrap identity",
+		log.Warn("encrypt skylex_admin command secret failed; command will use bootstrap identity",
 			"cluster_id", clusterID, "error", err)
 		return nil, ""
 	}
@@ -1592,22 +1604,29 @@ func (s *PostgresManagementService) DeleteRole(
 	} else {
 		dropRoleAction, _ = provider.Action(engine.OpDropRole)
 	}
-	// Phase 4: lazily backfill skylex_admin so the role exists for subsequent
-	// management commands on pre-Phase-2 clusters. pg_drop_role itself does not
-	// carry the admin secret (DeleteRoleTxInput has no such field), so this call
-	// only provisions the role; its return value is intentionally unused.
-	if _, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, role.ClusterID, primary); err != nil {
+	// Phase 4: lazily backfill skylex_admin for clusters that predate Phase 2.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, role.ClusterID, primary)
+	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("ensure skylex_admin provisioned: %w", err))
 	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = s.skylexAdminCommandSecret(ctx, role.ClusterID)
+	}
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	txResult, err := s.roles.DeleteWithCommand(ctx, db.DeleteRoleTxInput{
-		RoleID:       role.ID,
-		OperationID:  opID,
-		CommandID:    cmdID,
-		NodeID:       primary.ID,
-		AgentID:      primary.AgentID,
-		Payload:      string(payload),
-		BeforeAction: managementBeforeAction(allowPromote),
-		DropAction:   dropRoleAction,
+		RoleID:               role.ID,
+		OperationID:          opID,
+		CommandID:            cmdID,
+		NodeID:               primary.ID,
+		AgentID:              primary.AgentID,
+		Payload:              string(payload),
+		BeforeAction:         managementBeforeAction(allowPromote),
+		EncryptedAdminSecret: adminSecret,
+		AdminSecretKey:       adminSecretKey,
+		SecretExpiresAt:      &secretExpiresAt,
+		DropAction:           dropRoleAction,
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("mark role deleting and queue command: %w", err))

@@ -220,20 +220,24 @@ func (r *ManagedDatabaseRepository) DeleteWithCommand(ctx context.Context, input
 }
 
 func (r *ManagedDatabaseRepository) QueueGrantCommand(ctx context.Context, input GrantDatabaseTxInput) (*AgentCommand, error) {
-	now := time.Now().UTC()
-	commandID := input.CommandID
-	if commandID == "" {
-		commandID = id.New()
+	tx, err := r.conn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("begin grant database command tx: %w", err)
 	}
-	_, err := r.conn.ExecContext(ctx,
-		Rebind(`INSERT INTO agent_commands (id, agent_id, node_id, action, payload, status, created_at)
-		 VALUES (?, ?, ?, ?, ?, 'pending', ?)`),
-		commandID, input.AgentID, input.NodeID, input.GrantAction, input.Payload, now,
-	)
+	defer tx.Rollback()
+
+	now := time.Now().UTC()
+	cmd, err := insertAgentCommand(ctx, tx, input.CommandID, input.AgentID, input.NodeID, input.GrantAction, input.Payload, now)
 	if err != nil {
 		return nil, fmt.Errorf("insert grant database command: %w", err)
 	}
-	return &AgentCommand{ID: commandID, AgentID: input.AgentID, NodeID: input.NodeID, Action: input.GrantAction, Payload: input.Payload, Status: "pending", CreatedAt: now}, nil
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("commit grant database command tx: %w", err)
+	}
+	return cmd, nil
 }
 
 func (r *ManagedDatabaseRepository) MarkCreateFailed(ctx context.Context, databaseID, operationID, errMsg string) error {
@@ -415,6 +419,12 @@ type GrantDatabaseTxInput struct {
 	NodeID    string
 	AgentID   string
 	Payload   string
+	// EncryptedAdminSecret, when non-empty, is attached under AdminSecretKey so
+	// the agent authenticates to PostgreSQL as the durable skylex_admin
+	// SUPERUSER. Omitted for clusters that predate the skylex_admin role.
+	EncryptedAdminSecret []byte
+	AdminSecretKey       string
+	SecretExpiresAt      *time.Time
 	// GrantAction is the engine-specific agent command action for granting
 	// database privileges (e.g. "pg_grant_database_privileges").
 	GrantAction string

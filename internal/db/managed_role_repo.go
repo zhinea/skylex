@@ -436,6 +436,9 @@ func (r *ManagedRoleRepository) DeleteWithCommand(ctx context.Context, input Del
 	if err != nil {
 		return nil, err
 	}
+	if err := insertAdminCommandSecret(ctx, tx, cmd.ID, input.AdminSecretKey, input.EncryptedAdminSecret, input.SecretExpiresAt, now); err != nil {
+		return nil, err
+	}
 	if _, err := tx.ExecContext(ctx,
 		Rebind(`UPDATE service_operations SET status = 'running', updated_at = ? WHERE id = ?`), now, op.ID); err != nil {
 		return nil, fmt.Errorf("mark operation running: %w", err)
@@ -579,6 +582,12 @@ type DeleteRoleTxInput struct {
 	Payload       string
 	BeforeAction  string
 	BeforePayload string
+	// EncryptedAdminSecret, when non-empty, is attached under AdminSecretKey so
+	// the agent authenticates to PostgreSQL as the durable skylex_admin
+	// SUPERUSER. Omitted for clusters that predate the skylex_admin role.
+	EncryptedAdminSecret []byte
+	AdminSecretKey       string
+	SecretExpiresAt      *time.Time
 	// DropAction is the engine-specific agent command action for dropping a
 	// role (e.g. "pg_drop_role").
 	DropAction string

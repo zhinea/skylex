@@ -36,6 +36,7 @@ type AgentService struct {
 	postgresTLS    *db.TLSApplyRepository
 	postgresExt    *db.ClusterExtensionRepository
 	logBroker      *LogBroker
+	roleEncryptKey []byte
 	log            *slog.Logger
 }
 
@@ -64,6 +65,15 @@ func (s *AgentService) SetCommandSecretRepository(repo *db.AgentCommandSecretRep
 // (e.g. the database grant that follows a successful ensure-database).
 func (s *AgentService) SetClusterSecretRepository(repo *db.ClusterSecretRepository) {
 	s.clusterSecrets = repo
+}
+
+// SetRoleEncryptKey wires the key used to re-encrypt the resolved skylex_admin
+// password as an at-rest command secret for server-side follow-up commands
+// (the database grant queued after a successful ensure-database). It mirrors the
+// key handed to PostgresManagementService so both produce ciphertext the agent
+// command-secret store can later decrypt.
+func (s *AgentService) SetRoleEncryptKey(key []byte) {
+	s.roleEncryptKey = key
 }
 
 func (s *AgentService) SetPostgresRoleRepository(repo *db.ManagedRoleRepository) {
@@ -403,13 +413,20 @@ func (s *AgentService) handleDatabaseManagementCommandResult(ctx context.Context
 	}
 
 	// Phase 4: lazily backfill skylex_admin so the role exists for subsequent
-	// management commands on pre-Phase-2 clusters. The grant command itself does
-	// not carry the admin secret (GrantDatabaseTxInput has no such field), so this
-	// only provisions the role; its return value is intentionally unused. Failure
-	// is non-fatal — the grant proceeds via the bootstrap identity fallback.
-	if _, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, grant.ClusterID, primary); err != nil {
+	// management commands on pre-Phase-2 clusters. When this newly provisions the
+	// role (newlyProvisioned=true) the grant must NOT carry the admin secret —
+	// the role is not yet live on the agent, so this one grant falls back to the
+	// bootstrap identity, mirroring the Phase 4 timing used by CreateRole. Every
+	// later command finds the stored secret. Provisioning failure is non-fatal.
+	newlyProvisioned, err := ensureSkylexAdminProvisioned(ctx, s.clusterSecrets, s.commandSecrets, s.log, grant.ClusterID, primary)
+	if err != nil {
 		s.log.Warn("ensure skylex_admin provisioned for grant failed; continuing",
 			"cluster_id", grant.ClusterID, "error", err)
+	}
+	var adminSecret []byte
+	var adminSecretKey string
+	if !newlyProvisioned {
+		adminSecret, adminSecretKey = resolveSkylexAdminCommandSecret(ctx, s.clusterSecrets, s.roleEncryptKey, s.log, grant.ClusterID)
 	}
 
 	payload, err := json.Marshal(map[string]interface{}{
@@ -436,11 +453,15 @@ func (s *AgentService) handleDatabaseManagementCommandResult(ctx context.Context
 			}
 		}
 	}
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
 	cmd, err := s.postgresDBs.QueueGrantCommand(ctx, db.GrantDatabaseTxInput{
-		NodeID:      primary.ID,
-		AgentID:     primary.AgentID,
-		Payload:     string(payload),
-		GrantAction: grantAction,
+		NodeID:               primary.ID,
+		AgentID:              primary.AgentID,
+		Payload:              string(payload),
+		EncryptedAdminSecret: adminSecret,
+		AdminSecretKey:       adminSecretKey,
+		SecretExpiresAt:      &secretExpiresAt,
+		GrantAction:          grantAction,
 	})
 	if err != nil {
 		if markErr := s.postgresDBs.MarkCreateFailed(ctx, grant.DatabaseID, grant.OperationID, err.Error()); markErr != nil {

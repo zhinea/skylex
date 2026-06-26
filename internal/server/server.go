@@ -137,6 +137,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.agentService.SetLogBroker(s.logBroker)
 	s.agentService.SetCommandSecretRepository(commandSecretRepo)
 	s.agentService.SetClusterSecretRepository(s.clusterSecrets)
+	s.agentService.SetRoleEncryptKey(roleEncryptKey)
 	s.agentService.SetPostgresRoleRepository(postgresRoleRepo)
 	s.agentService.SetPostgresDatabaseRepository(postgresDatabaseRepo)
 	s.agentService.SetPostgresAccessRepository(postgresAccessRepo)
