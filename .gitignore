@@ -3,6 +3,13 @@ bin
 .vite
 dist
 node_modules
+
+# Keep the embedded SPA dir tracked (placeholder + local .gitignore) even though
+# `dist` is ignored globally. Built assets are ignored via the dir's own .gitignore.
+!internal/server/webui/dist/
+!internal/server/webui/dist/.gitignore
+!internal/server/webui/dist/index.html
+
 *.log
 *.env
 .env.local

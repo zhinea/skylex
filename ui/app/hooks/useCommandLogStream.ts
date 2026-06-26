@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useCommandLogs, type CommandLog, type CommandLogFilter } from "./useCommandLogs";
 
-const API_BASE = "/api";
+const API_BASE = "";
 
 export type LogStreamState = "connecting" | "live" | "polling" | "closed";
 
 function getToken(): string | null {
-  if (typeof window === "undefined") return null;
   return localStorage.getItem("skylex_token");
 }
 

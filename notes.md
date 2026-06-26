@@ -1,6 +1,6 @@
 # Skylex — Agent Notes
 
-Skylex is a self-hosted database control plane. The Go backend has two binaries (`skylex-server` and `skylex-agent`) that talk over gRPC/Connect-RPC, plus a Vite + React Router 7 UI in `ui/`.
+Skylex is a self-hosted database control plane. The Go backend has two binaries (`skylex-server` and `skylex-agent`) that talk over gRPC/Connect-RPC, plus a Vite + React (SPA) UI in `ui/` that is **embedded into the server binary** and served at `/panel/*`. There is no separate UI server at runtime.
 
 
 ## Quick start

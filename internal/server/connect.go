@@ -188,6 +188,11 @@ func isUnauthenticated(srv *Server, path string) bool {
 	if path == "/install-agent.sh" || path == "/skylex-agent" {
 		return srv.cfg.Server.DevMode
 	}
+	// The embedded SPA and its assets are public; auth is enforced at the RPC
+	// layer and client-side in the panel itself.
+	if path == "/" || path == "/panel" || strings.HasPrefix(path, "/panel/") {
+		return true
+	}
 	return unauthenticatedPaths[path]
 }
 
@@ -650,6 +655,16 @@ func (s *Server) serveConnectHTTP(ctx context.Context) error {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
+	})
+
+	// Embedded Vite SPA. Served under /panel/*; root redirects there.
+	mux.Handle("/panel/", spaHandler(webuiFS()))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/panel/", http.StatusFound)
+			return
+		}
+		http.NotFound(w, r)
 	})
 
 	handler := connectInterceptors(mux, s)

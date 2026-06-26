@@ -1,7 +1,8 @@
-const API_BASE = "/api";
+// The panel is served from the same origin as the backend, so RPC paths are
+// called directly (e.g. /skylex.v1.AuthService/Login).
+const API_BASE = "";
 
 function getToken(): string | null {
-  if (typeof window === "undefined") return null;
   return localStorage.getItem("skylex_token");
 }
 

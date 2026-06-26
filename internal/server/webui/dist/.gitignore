@@ -1,0 +1,13 @@
+# Built SPA assets (produced by `make ui-build`). The placeholder index.html
+# below is committed so `go:embed` and `go build` work on a fresh checkout.
+assets/
+*.js
+*.css
+*.svg
+*.png
+*.ico
+*.webp
+*.woff
+*.woff2
+!index.html
+!.gitignore

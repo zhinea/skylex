@@ -1,4 +1,4 @@
-.PHONY: build build-server build-agent build-bench build-agent-linux-amd64 build-agent-linux-arm64 assets test lint clean run-server run-agent proto dev dev-server
+.PHONY: build build-server build-agent build-bench build-agent-linux-amd64 build-agent-linux-arm64 assets ui-build test lint clean run-server run-agent proto dev dev-server
 
 BINARY_SERVER ?= skylex-server
 BINARY_AGENT ?= skylex-agent
@@ -13,9 +13,12 @@ assets:
 	@if ! cmp -s scripts/install-agent.sh $(ASSETS_DIR)/install-agent.sh; then cp scripts/install-agent.sh $(ASSETS_DIR)/install-agent.sh; fi
 	@if ! cmp -s version.txt $(ASSETS_DIR)/version.txt; then cp version.txt $(ASSETS_DIR)/version.txt; fi
 
-build: assets build-server build-agent build-bench
+build: assets ui-build build-server build-agent build-bench
 
-build-server: assets
+ui-build:
+	cd ui && npm run build
+
+build-server: assets ui-build
 	$(GO) build $(GOFLAGS) -o bin/$(BINARY_SERVER) ./cmd/server
 
 build-agent:
