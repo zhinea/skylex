@@ -50,6 +50,7 @@ type Server struct {
 	tlsConfig        *tls.Config
 	auditRepo        *db.AuditRepository
 	logBroker        *LogBroker
+	clusterSecrets   *db.ClusterSecretRepository
 }
 
 func New(cfg *Config) (*Server, error) {
@@ -117,6 +118,7 @@ func (s *Server) Start(ctx context.Context) error {
 	encryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-storage-key"))
 	roleEncryptKey := crypto.DeriveKey(s.cfg.Auth.JWTSecret, []byte("skylex-role-credentials"))
 	commandSecretRepo := db.NewAgentCommandSecretRepository(conn, s.log, roleEncryptKey)
+	s.clusterSecrets = db.NewClusterSecretRepository(conn, s.log, roleEncryptKey)
 	postgresRoleRepo := db.NewManagedRoleRepository(conn, s.log)
 	postgresDatabaseRepo := db.NewManagedDatabaseRepository(conn, s.log)
 	postgresAccessRepo := db.NewNetworkAccessRepository(conn, s.log)
