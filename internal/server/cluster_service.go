@@ -13,6 +13,7 @@ import (
 	"time"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
+	"github.com/zhinea/skylex/internal/crypto"
 	"github.com/zhinea/skylex/internal/db"
 	"github.com/zhinea/skylex/internal/engine"
 	"github.com/zhinea/skylex/internal/id"
@@ -30,6 +31,8 @@ type ClusterService struct {
 	commands       *db.AgentCommandRepository
 	settings       *db.ClusterSettingsRepository
 	audit          *db.AuditRepository
+	clusterSecrets *db.ClusterSecretRepository
+	commandSecrets *db.AgentCommandSecretRepository
 	failoverEngine *FailoverEngine
 	log            *slog.Logger
 }
@@ -53,6 +56,14 @@ func (s *ClusterService) SetFailoverEngine(e *FailoverEngine) {
 
 func (s *ClusterService) SetAuditRepository(repo *db.AuditRepository) {
 	s.audit = repo
+}
+
+func (s *ClusterService) SetClusterSecretRepository(repo *db.ClusterSecretRepository) {
+	s.clusterSecrets = repo
+}
+
+func (s *ClusterService) SetCommandSecretRepository(repo *db.AgentCommandSecretRepository) {
+	s.commandSecrets = repo
 }
 
 // allowedClusterSettings is the curated set of PostgreSQL parameters that can
@@ -297,6 +308,14 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 	primary := assignedNodes[0]
 	if err = s.queuePrimaryCommands(ctx, primary, version, serviceLocation); err != nil {
 		return nil, status.Errorf(codes.Internal, "queue primary commands: %v", err)
+	}
+
+	// Provision the durable, cluster-owned skylex_admin SUPERUSER role on the
+	// primary only. PostgreSQL roles are cluster-global and replicate via WAL,
+	// so it must not be queued on replicas. Queued after the primary's normal
+	// commands so it executes last (after pg_start, once PostgreSQL is up).
+	if err = s.queueAdminRoleCommand(ctx, primary, clusterID, serviceLocation); err != nil {
+		return nil, status.Errorf(codes.Internal, "provision admin role: %v", err)
 	}
 
 	for i := 1; i < len(assignedNodes); i++ {
@@ -987,6 +1006,53 @@ func (s *ClusterService) queueNodeCommands(ctx context.Context, node *models.Nod
 		if _, err := s.commands.Create(ctx, node.AgentID, node.ID, c.action, c.payload); err != nil {
 			return fmt.Errorf("queue %s: %w", c.action, err)
 		}
+	}
+	return nil
+}
+
+// queueAdminRoleCommand generates a strong random password for the cluster-owned
+// skylex_admin SUPERUSER role, persists it durably in cluster_secrets, and queues
+// a single pg_ensure_admin_role command on the primary with the password injected
+// as a command secret. The command is only queued when the full primary command
+// sequence (including pg_start) is queued — for the native location the instance
+// is not started during CreateCluster, so the role is provisioned later in that
+// flow. The durable secret is always stored so it is available when needed.
+func (s *ClusterService) queueAdminRoleCommand(ctx context.Context, primary *models.Node, clusterID string, serviceLocation models.ServiceLocation) error {
+	if s.clusterSecrets == nil || s.commandSecrets == nil {
+		return nil
+	}
+
+	password, err := crypto.GenerateToken(24)
+	if err != nil {
+		return fmt.Errorf("generate skylex_admin password: %w", err)
+	}
+	if err := s.clusterSecrets.StoreSecret(ctx, clusterID, "skylex_admin_password", password); err != nil {
+		return fmt.Errorf("store skylex_admin password: %w", err)
+	}
+
+	// The native location only queues pg_preflight at creation time; PostgreSQL
+	// is not yet running, so the role is provisioned in the post-preflight flow.
+	if serviceLocation == models.ServiceLocationNative {
+		return nil
+	}
+
+	payload, err := json.Marshal(map[string]interface{}{
+		"role_name":           models.SkylexAdminRole,
+		"role_kind":           "admin",
+		"password_secret_key": "skylex_admin_password",
+		"allow_promote":       false,
+	})
+	if err != nil {
+		return fmt.Errorf("marshal admin role payload: %w", err)
+	}
+
+	secretExpiresAt := time.Now().UTC().Add(24 * time.Hour)
+	if _, err := s.commandSecrets.CreateCommandWithSecrets(ctx, primary.AgentID, primary.ID,
+		"pg_ensure_admin_role", string(payload),
+		map[string]string{"skylex_admin_password": password},
+		&secretExpiresAt,
+	); err != nil {
+		return fmt.Errorf("queue pg_ensure_admin_role: %w", err)
 	}
 	return nil
 }

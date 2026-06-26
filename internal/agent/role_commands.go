@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	skylexv1 "github.com/zhinea/skylex/gen/skylex/v1"
+	"github.com/zhinea/skylex/internal/models"
 	"github.com/zhinea/skylex/internal/postgres"
 )
 
@@ -49,6 +50,34 @@ func (a *Agent) executeEnsureRole(ctx context.Context, cmd *skylexv1.AgentComman
 	}
 
 	return true, fmt.Sprintf("role %q ensured (kind=%s)", p.RoleName, p.RoleKind), ""
+}
+
+// executeEnsureAdminRole provisions the durable, cluster-owned skylex_admin
+// SUPERUSER role. It reuses the existing role payload shape but forces the role
+// name and kind to the admin constants so a malformed payload can never
+// downgrade or rename the privileged role.
+func (a *Agent) executeEnsureAdminRole(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {
+	var p roleCommandPayload
+	if err := json.Unmarshal([]byte(cmd.GetPayload()), &p); err != nil {
+		return false, "", fmt.Sprintf("pg_ensure_admin_role: invalid payload: %v", err)
+	}
+
+	secretKey := p.PasswordSecretKey
+	if secretKey == "" {
+		secretKey = "skylex_admin_password"
+	}
+	password := cmd.GetSecrets()[secretKey]
+	if password == "" {
+		return false, "", "pg_ensure_admin_role: password secret not resolved"
+	}
+
+	logger.Info(fmt.Sprintf("ensuring cluster-owned admin role %q", models.SkylexAdminRole))
+
+	if err := a.pg.EnsureRole(ctx, models.SkylexAdminRole, postgres.RoleKindAdmin, password, p.AllowPromote); err != nil {
+		return false, "", fmt.Sprintf("pg_ensure_admin_role failed: %v", err)
+	}
+
+	return true, fmt.Sprintf("cluster-owned admin role %q provisioned", models.SkylexAdminRole), ""
 }
 
 func (a *Agent) executeRotateRolePassword(ctx context.Context, cmd *skylexv1.AgentCommand, logger *commandLogger) (bool, string, string) {

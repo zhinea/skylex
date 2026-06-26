@@ -731,6 +731,9 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 	case "pg_ensure_role":
 		return a.executeEnsureRole(ctx, cmd, logger)
 
+	case "pg_ensure_admin_role":
+		return a.executeEnsureAdminRole(ctx, cmd, logger)
+
 	case "pg_rotate_role_password":
 		return a.executeRotateRolePassword(ctx, cmd, logger)
 

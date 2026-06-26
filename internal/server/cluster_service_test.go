@@ -558,3 +558,119 @@ func TestClusterService_DeleteClusterRequiresStoppedService(t *testing.T) {
 		t.Fatalf("delete stopped cluster: %v", err)
 	}
 }
+
+// newClusterServiceWithSecrets builds a ClusterService wired with the cluster
+// and command secret repositories needed to provision the skylex_admin role.
+func newClusterServiceWithSecrets(t *testing.T) (*ClusterService, *db.ClusterSecretRepository, *db.AgentCommandSecretRepository) {
+	t.Helper()
+	database, svc := newClusterServiceTestDeps(t)
+	conn := database.Conn()
+	encryptKey := []byte("12345678901234567890123456789012")
+	clusterSecrets := db.NewClusterSecretRepository(conn, svc.log, encryptKey)
+	commandSecrets := db.NewAgentCommandSecretRepository(conn, svc.log, encryptKey)
+	svc.SetClusterSecretRepository(clusterSecrets)
+	svc.SetCommandSecretRepository(commandSecrets)
+	return svc, clusterSecrets, commandSecrets
+}
+
+func TestClusterService_CreateCluster_ProvisionsSkylexAdminRole(t *testing.T) {
+	svc, clusterSecrets, commandSecrets := newClusterServiceWithSecrets(t)
+	ctx := context.Background()
+
+	primaryNode, err := svc.nodes.Create(ctx, "", "primary-node", "10.0.0.20", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create primary node: %v", err)
+	}
+	if err := svc.nodes.UpdateAgentID(ctx, primaryNode.ID, "agent-primary"); err != nil {
+		t.Fatalf("update primary agent id: %v", err)
+	}
+	replicaNode, err := svc.nodes.Create(ctx, "", "replica-node", "10.0.0.21", 5432, models.NodeRoleReplica, "0.1.0", nil)
+	if err != nil {
+		t.Fatalf("create replica node: %v", err)
+	}
+	if err := svc.nodes.UpdateAgentID(ctx, replicaNode.ID, "agent-replica"); err != nil {
+		t.Fatalf("update replica agent id: %v", err)
+	}
+
+	// Docker location queues the full primary command sequence (pg_start), so
+	// pg_ensure_admin_role is queued last on the primary.
+	resp, err := svc.CreateCluster(ctx, &skylexv1.CreateClusterRequest{
+		Name: "admin-role-cluster",
+		Config: &skylexv1.ClusterConfig{
+			Engine:          skylexv1.Engine_ENGINE_POSTGRESQL,
+			Version:         "16",
+			ReplicationMode: skylexv1.ReplicationMode_REPLICATION_MODE_ASYNC,
+			ReplicaCount:    1,
+			ServiceLocation: skylexv1.ServiceLocation_SERVICE_LOCATION_DOCKER,
+		},
+		NodeIds: []string{primaryNode.ID, replicaNode.ID},
+	})
+	if err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+	clusterID := resp.GetCluster().GetId()
+
+	// (a) durable cluster secret stored.
+	storedPassword, err := clusterSecrets.ResolveSecret(ctx, clusterID, "skylex_admin_password")
+	if err != nil {
+		t.Fatalf("resolve cluster secret: %v", err)
+	}
+	if storedPassword == "" {
+		t.Fatal("expected skylex_admin_password to be stored for the cluster")
+	}
+
+	// (b) exactly one pg_ensure_admin_role queued on the primary, with a
+	// command secret that resolves to the same stored password.
+	primaryPending, err := svc.commands.ListPending(ctx, "agent-primary", primaryNode.ID)
+	if err != nil {
+		t.Fatalf("list primary pending: %v", err)
+	}
+	var adminCmds []*db.AgentCommand
+	for _, cmd := range primaryPending {
+		if cmd.Action == "pg_ensure_admin_role" {
+			adminCmds = append(adminCmds, cmd)
+		}
+	}
+	if len(adminCmds) != 1 {
+		t.Fatalf("expected exactly 1 pg_ensure_admin_role on primary, got %d", len(adminCmds))
+	}
+	adminCmd := adminCmds[0]
+
+	var payload roleCommandFields
+	if err := json.Unmarshal([]byte(adminCmd.Payload), &payload); err != nil {
+		t.Fatalf("unmarshal admin role payload: %v", err)
+	}
+	if payload.RoleName != models.SkylexAdminRole || payload.RoleKind != "admin" {
+		t.Fatalf("unexpected admin role payload: %#v", payload)
+	}
+	if payload.PasswordSecretKey != "skylex_admin_password" || payload.AllowPromote {
+		t.Fatalf("unexpected admin role payload: %#v", payload)
+	}
+
+	cmdSecret, err := commandSecrets.ResolveSecret(ctx, adminCmd.ID, "skylex_admin_password")
+	if err != nil {
+		t.Fatalf("resolve command secret: %v", err)
+	}
+	if cmdSecret != storedPassword {
+		t.Fatalf("command secret %q does not match cluster secret %q", cmdSecret, storedPassword)
+	}
+
+	// (c) never queued on the replica — roles are cluster-global and replicate.
+	replicaPending, err := svc.commands.ListPending(ctx, "agent-replica", replicaNode.ID)
+	if err != nil {
+		t.Fatalf("list replica pending: %v", err)
+	}
+	for _, cmd := range replicaPending {
+		if cmd.Action == "pg_ensure_admin_role" {
+			t.Fatal("pg_ensure_admin_role must not be queued on a replica")
+		}
+	}
+}
+
+// roleCommandFields mirrors the agent's roleCommandPayload shape for assertions.
+type roleCommandFields struct {
+	RoleName          string `json:"role_name"`
+	RoleKind          string `json:"role_kind"`
+	PasswordSecretKey string `json:"password_secret_key"`
+	AllowPromote      bool   `json:"allow_promote"`
+}

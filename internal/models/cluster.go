@@ -15,6 +15,11 @@ const (
 	NodeRoleReplica NodeRole = "replica"
 )
 
+// SkylexAdminRole is the durable, cluster-owned PostgreSQL SUPERUSER role
+// provisioned on the primary at cluster creation. Shared by the server (which
+// queues the provisioning command) and the agent (which creates the role).
+const SkylexAdminRole = "skylex_admin"
+
 type ReplicationMode string
 
 const (
