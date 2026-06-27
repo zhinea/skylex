@@ -167,6 +167,13 @@ func (s *ClusterService) CreateCluster(ctx context.Context, req *skylexv1.Create
 	}
 
 	engine := convertEngine(cfg.GetEngine())
+	// Reject an unspecified/unsupported engine up front. Persisting an empty
+	// engine silently breaks every downstream engine.For() lookup (roles,
+	// databases, etc.) with a cryptic "no provider registered for """ error at
+	// use time instead of failing loudly here. See migration 000021.
+	if engine == "" {
+		return nil, status.Error(codes.InvalidArgument, "config.engine is required and must be a supported engine")
+	}
 	version := cfg.GetVersion()
 	if version == "" {
 		version = "16"

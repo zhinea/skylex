@@ -27,10 +27,10 @@ export default function CreateClusterPage() {
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
-  const [engine, setEngine] = useState("POSTGRESQL");
+  const [engine, setEngine] = useState("ENGINE_POSTGRESQL");
   const [version, setVersion] = useState("16");
   const [replicaCount, setReplicaCount] = useState(0);
-  const [replicationMode, setReplicationMode] = useState("ASYNC");
+  const [replicationMode, setReplicationMode] = useState("REPLICATION_MODE_ASYNC");
   const [pitrEnabled, setPitrEnabled] = useState(false);
   const [serviceLocation, setServiceLocation] = useState("SERVICE_LOCATION_NATIVE");
   // Ordered list of selected node IDs; first = primary, rest = replicas.
@@ -323,7 +323,7 @@ export default function CreateClusterPage() {
                   onChange={(e) => setEngine(e.target.value)}
                   className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                 >
-                  <option value="POSTGRESQL" className="bg-popover text-popover-foreground">PostgreSQL</option>
+                  <option value="ENGINE_POSTGRESQL" className="bg-popover text-popover-foreground">PostgreSQL</option>
                 </select>
               </div>
               <div className="space-y-1.5">
@@ -370,8 +370,8 @@ export default function CreateClusterPage() {
                   onChange={(e) => setReplicationMode(e.target.value)}
                   className="w-full px-3 py-2 text-sm border rounded-md bg-transparent border-input text-foreground transition-all focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                 >
-                  <option value="ASYNC" className="bg-popover text-popover-foreground">Asynchronous</option>
-                  <option value="SYNC" className="bg-popover text-popover-foreground">Synchronous</option>
+                  <option value="REPLICATION_MODE_ASYNC" className="bg-popover text-popover-foreground">Asynchronous</option>
+                  <option value="REPLICATION_MODE_SYNC" className="bg-popover text-popover-foreground">Synchronous</option>
                 </select>
               </div>
             </div>
@@ -453,7 +453,7 @@ export default function CreateClusterPage() {
               <div className="flex justify-between pt-3 pb-1">
                 <dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Replication</dt>
                 <dd className="text-foreground font-medium text-xs">
-                  {replicationMode === "SYNC" ? "Synchronous" : "Asynchronous"}
+                  {replicationMode === "REPLICATION_MODE_SYNC" ? "Synchronous" : "Asynchronous"}
                 </dd>
               </div>
               <div className="flex justify-between pt-3 pb-1">
