@@ -638,11 +638,11 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		return true, "Skylex agent deactivated", ""
 
 	case "pg_basebackup":
-		primaryHost := cmd.GetPayload()
-		if err := a.pg.BaseBackup(ctx, primaryHost, a.cfg.Port, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
+		primaryHost, primaryPort := parseReplicationTarget(cmd.GetPayload(), a.cfg.Port)
+		if err := a.pg.BaseBackup(ctx, primaryHost, primaryPort, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
 			return false, "", a.enrichError("pg_basebackup", err)
 		}
-		return true, fmt.Sprintf("Base backup completed from primary at %s:%d", primaryHost, a.cfg.Port), ""
+		return true, fmt.Sprintf("Base backup completed from primary at %s:%d", primaryHost, primaryPort), ""
 
 	case "pg_promote":
 		if err := a.pg.Promote(ctx); err != nil {
@@ -651,24 +651,14 @@ func (a *Agent) executeCommand(ctx context.Context, cmd *skylexv1.AgentCommand, 
 		return true, "Promoted to primary — node is now writable", ""
 
 	case "pg_rewind":
-		parts := strings.SplitN(cmd.GetPayload(), ":", 2)
-		targetHost := parts[0]
-		targetPort := a.cfg.Port
-		if len(parts) > 1 {
-			fmt.Sscanf(parts[1], "%d", &targetPort)
-		}
+		targetHost, targetPort := parseReplicationTarget(cmd.GetPayload(), a.cfg.Port)
 		if err := a.pg.Rewind(ctx, targetHost, targetPort, a.cfg.PGReplUser, a.cfg.PGReplPass); err != nil {
 			return false, "", a.enrichError("pg_rewind", err)
 		}
 		return true, fmt.Sprintf("pg_rewind completed — repointed to new primary at %s:%d", targetHost, targetPort), ""
 
 	case "repoint_replica":
-		parts := strings.SplitN(cmd.GetPayload(), ":", 2)
-		primaryHost := parts[0]
-		primaryPort := a.cfg.Port
-		if len(parts) > 1 {
-			fmt.Sscanf(parts[1], "%d", &primaryPort)
-		}
+		primaryHost, primaryPort := parseReplicationTarget(cmd.GetPayload(), a.cfg.Port)
 		logger.Info(fmt.Sprintf("updating standby signal to %s:%d", primaryHost, primaryPort))
 		if err := a.pg.UpdateStandbySignal(primaryHost, primaryPort); err != nil {
 			return false, "", a.enrichError("repoint_replica", err)
@@ -1018,6 +1008,19 @@ func computeAgentStatusDetail(pgInstalled, pgDataInitialized, pgRunning bool) st
 		return "stopped"
 	}
 	return "running"
+}
+
+// parseReplicationTarget splits a "host:port" replication payload into host
+// and port. When the port segment is absent or unparseable, defaultPort is
+// returned, matching the existing repoint_replica / pg_rewind behavior.
+func parseReplicationTarget(payload string, defaultPort int) (host string, port int) {
+	parts := strings.SplitN(payload, ":", 2)
+	host = parts[0]
+	port = defaultPort
+	if len(parts) > 1 {
+		fmt.Sscanf(parts[1], "%d", &port)
+	}
+	return host, port
 }
 
 // detectDockerAvailable returns true when the `docker version` command succeeds,
