@@ -2,7 +2,7 @@ import { ManagedDatabasesCard } from "~/components/cluster/ManagedDatabasesCard"
 import { useClusterContext } from "./clusters.$id";
 
 export default function ClusterDatabasesPage() {
-  const { clusterId, displayHost, displayPort, sslMode, revealedRole } = useClusterContext();
+  const { clusterId, displayHost, displayPort, sslMode } = useClusterContext();
   return (
     <div className="space-y-6">
       <ManagedDatabasesCard
@@ -10,7 +10,6 @@ export default function ClusterDatabasesPage() {
         host={displayHost}
         port={displayPort}
         sslMode={sslMode}
-        revealedRole={revealedRole}
       />
     </div>
   );

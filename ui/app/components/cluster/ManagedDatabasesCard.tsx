@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePostgresRoles, type PostgresRole } from "~/hooks/usePostgresRoles";
+import { usePostgresRoles } from "~/hooks/usePostgresRoles";
 import { usePostgresDatabases, useCreatePostgresDatabase, useDeletePostgresDatabase, type PostgresDatabase } from "~/hooks/usePostgresDatabases";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -20,7 +20,6 @@ interface ManagedDatabasesCardProps {
   host: string;
   port: number;
   sslMode: string;
-  revealedRole: { role: PostgresRole; password: string } | null;
 }
 
 export function ManagedDatabasesCard({
@@ -28,7 +27,6 @@ export function ManagedDatabasesCard({
   host,
   port,
   sslMode,
-  revealedRole,
 }: ManagedDatabasesCardProps) {
   const { data: roleData } = usePostgresRoles(clusterId);
   const { data, isLoading } = usePostgresDatabases(clusterId);
@@ -40,8 +38,6 @@ export function ManagedDatabasesCard({
 
   const roles = (roleData?.roles ?? []).filter((role) => role.status === "ready" && role.roleKind !== "read_only");
   const databases = data?.databases ?? [];
-  const revealedDatabasePassword = (database: PostgresDatabase) =>
-    revealedRole?.role.roleName === database.ownerRoleName ? revealedRole?.password : undefined;
 
   function handleCreate() {
     setError(null);
@@ -158,7 +154,6 @@ export function ManagedDatabasesCard({
                                 database.databaseName,
                                 sslMode,
                                 database.ownerRoleName,
-                                revealedDatabasePassword(database),
                               )}
                             </code>
                             <CopyButton text={databaseConnectionURI(
@@ -167,7 +162,6 @@ export function ManagedDatabasesCard({
                               database.databaseName,
                               sslMode,
                               database.ownerRoleName,
-                              revealedDatabasePassword(database),
                             )} />
                           </div>
                           <div className="flex items-center gap-1.5">

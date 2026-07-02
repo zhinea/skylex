@@ -54,8 +54,9 @@ export interface ClusterOutletContext {
   displayHost: string;
   displayPort: number;
   sslMode: string;
-  // Role reveal state is shared between the roles and databases pages so a
-  // revealed password can decorate the owning database row.
+  // Role reveal state is shared with the roles page so a one-time password can
+  // be shown after create/rotate. The password is never displayed elsewhere —
+  // the databases table renders a connection-URI template (<password>) only.
   revealedRole: { role: PostgresRole; password: string } | null;
   setRevealedRole: (value: { role: PostgresRole; password: string } | null) => void;
 }
